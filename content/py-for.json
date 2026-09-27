@@ -1,0 +1,857 @@
+{
+  "topics": [
+    {
+      "slug": "py-for",
+      "title": "Цикл for",
+      "icon": "🔁",
+      "color": "#00a88e",
+      "description": "Перебор коллекций, range, вложенные циклы, break, continue и шаблоны",
+      "group": "Python",
+      "modules": [
+        {
+          "slug": "for-m1",
+          "title": "Основы for",
+          "icon": "🔁",
+          "description": "Перебор коллекций, range и вложенные циклы",
+          "lessons": [
+            {
+              "slug": "for-m1-l1",
+              "title": "Перебор коллекций",
+              "theory": "# Цикл for\n\n```\nfor item in коллекция:\n    тело\n```\n\nНа каждом шаге `item` получает очередной элемент.\n\n- Перебирать можно список, строку (по символам), кортеж, словарь (по ключам), `range`.\n- Тело — с отступом; после цикла код продолжается.\n- Переменная цикла после завершения хранит последний элемент.\n",
+              "exercises": [
+                {
+                  "slug": "for-m1-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "for fruit in [\"яблоко\", \"банан\"]:\n    print(\"я люблю\", fruit)\nprint(\"готово\")\n",
+                  "expected_output": "я люблю яблоко\nя люблю банан\nготово",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m1-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "for ch in \"кот\":\n    print(ch * 2)\nfor key in {\"a\": 1, \"b\": 2}:\n    print(key)\n",
+                  "expected_output": "кк\nоо\nтт\na\nb",
+                  "hint": "Перебор словаря даёт ключи.",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m1-l1-e3",
+                  "type": "code",
+                  "prompt": "Выведи каждый элемент списка `tests = [\"login\", \"search\", \"pay\"]` на отдельной строке с префиксом `\"▶ \"`.\n\nОжидаемый вывод:\n```\n▶ login\n▶ search\n▶ pay\n```\nИспользуй цикл `for`.",
+                  "starter_code": "tests = [\"login\", \"search\", \"pay\"]\n",
+                  "tests": "def test_output():\n    assert OUTPUT.strip().splitlines() == [\"▶ login\", \"▶ search\", \"▶ pay\"], f\"Напечатано {OUTPUT!r}\"\n\ndef test_loop():\n    assert \"for \" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй цикл for\"\n",
+                  "solution": "tests = [\"login\", \"search\", \"pay\"]\nfor name in tests:\n    print(\"▶ \" + name)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "for-m1-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `count_char(text, ch)` — сколько раз символ `ch` встречается в строке. Реши **циклом** (без метода `count`).\n\nПримеры:\n```\ncount_char(\"banana\", \"a\")   # → 3\ncount_char(\"abc\", \"z\")      # → 0\n```",
+                  "starter_code": "def count_char(text, ch):\n    pass\n",
+                  "tests": "def test_values():\n    assert count_char(\"banana\", \"a\") == 3 and count_char(\"abc\", \"z\") == 0 and count_char(\"\", \"a\") == 0, \"Неверный подсчёт\"\n\ndef test_no_count():\n    assert \".count(\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Реши циклом, без count()\"\n",
+                  "solution": "def count_char(text, ch):\n    n = 0\n    for c in text:\n        if c == ch:\n            n += 1\n    return n\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "for-m1-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `longest_word(words)` — самое длинное слово из списка. При равной длине — первое из них. Для пустого списка — `\"\"`.\n\nРеши циклом, без `max`.\n\nПримеры:\n```\nlongest_word([\"api\", \"docker\", \"ci\", \"pytest\"])   # → \"docker\"\nlongest_word([])                                  # → \"\"\n```",
+                  "starter_code": "def longest_word(words):\n    pass\n",
+                  "tests": "def test_values():\n    assert longest_word([\"api\", \"docker\", \"ci\", \"pytest\"]) == \"docker\", \"docker и pytest одной длины — нужно первое\"\n    assert longest_word([]) == \"\" and longest_word([\"a\"]) == \"a\", \"Неверный результат\"\n",
+                  "solution": "def longest_word(words):\n    best = \"\"\n    for w in words:\n        if len(w) > len(best):\n            best = w\n    return best\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПовторять одно действие для множества элементов — главное, в чём компьютер сильнее человека: проверить каждый ответ API, обработать каждую строку лога, прогнать тест на каждом наборе данных. Цикл `for` перебирает элементы коллекции по одному.\n\n## Как это работает\n\n```py\nfor переменная in итерируемое:\n    тело\n```\n\n1. Python берёт у коллекции следующий элемент и присваивает его переменной.\n2. Выполняет тело.\n3. Повторяет, пока элементы не кончатся.\n\nЧто можно перебирать:\n- `list`, `tuple` — элементы;\n- `str` — символы;\n- `dict` — ключи (`.values()` — значения, `.items()` — пары);\n- `range(...)` — числа;\n- файлы — строки, и многое другое.\n\nПеременная цикла — обычная переменная: после цикла в ней остаётся последний элемент (если коллекция была непустой).\n\n## Примеры\n\n### Пример 1. Разные коллекции\n\n```python\nfor x in [1, 2, 3]:\n    print(\"число\", x)\nfor ch in \"ok\":\n    print(\"символ\", ch)\nfor k in {\"name\": \"Аня\", \"role\": \"qa\"}:\n    print(\"ключ\", k)\n```\n\n### Пример 2. Обработка каждого элемента\n\n```python\ncodes = [200, 404, 500, 201]\nfor code in codes:\n    status = \"ok\" if code < 400 else \"ОШИБКА\"\n    print(code, status)\n```\n\n### Пример 3. Поиск самого длинного\n\n```python\nwords = [\"api\", \"docker\", \"ci\", \"pytest\"]\nbest = \"\"\nfor w in words:\n    if len(w) > len(best):\n        best = w\nprint(best)\n```\n\n### Пример 4. Переменная после цикла\n\n```python\nfor n in [10, 20, 30]:\n    pass\nprint(\"последнее значение:\", n)\n```\n\n## Частые ошибки\n\n**Изменение списка во время перебора** — элементы пропускаются.\n\n**Забытый отступ** — тело не относится к циклу.\n\n**Ожидание индексов вместо элементов** — `for x in items` даёт сами элементы; нужен индекс — `enumerate`.\n\n## Шпаргалка\n\n```py\nfor x in xs: ...\nfor ch in text: ...\nfor key in d: ...\nfor key, value in d.items(): ...\n```",
+              "quiz": [
+                {
+                  "q": "Что перебирает `for x in {\"a\": 1, \"b\": 2}`?",
+                  "options": [
+                    "Значения",
+                    "Ключи",
+                    "Пары ключ-значение",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Перебор словаря по умолчанию идёт по ключам."
+                },
+                {
+                  "q": "Сколько раз выполнится тело `for ch in \"hello\":`?",
+                  "options": [
+                    "1",
+                    "4",
+                    "5",
+                    "0"
+                  ],
+                  "answer": 2,
+                  "explain": "По одному разу на каждый символ — их пять."
+                },
+                {
+                  "q": "Что будет в `x` после `for x in [1, 2, 3]: pass`?",
+                  "options": [
+                    "`None`",
+                    "`1`",
+                    "`3`",
+                    "Ошибка"
+                  ],
+                  "answer": 2,
+                  "explain": "Переменная цикла сохраняет последнее значение."
+                }
+              ]
+            },
+            {
+              "slug": "for-m1-l2",
+              "title": "range",
+              "theory": "# range\n\n- `range(n)` — `0, 1, …, n-1` (само `n` не входит)\n- `range(a, b)` — `a, …, b-1`\n- `range(a, b, step)` — с шагом; шаг может быть отрицательным\n\n```\nfor i in range(3):          # 0 1 2\nfor i in range(1, 6):       # 1 2 3 4 5\nfor i in range(10, 0, -2):  # 10 8 6 4 2\n```\n",
+              "exercises": [
+                {
+                  "slug": "for-m1-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "print(list(range(4)))\nprint(list(range(2, 6)))\nprint(list(range(0, 10, 3)))\nprint(list(range(5, 0, -1)))\n",
+                  "expected_output": "[0, 1, 2, 3]\n[2, 3, 4, 5]\n[0, 3, 6, 9]\n[5, 4, 3, 2, 1]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m1-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "total = 0\nfor i in range(1, 5):\n    total += i\nprint(total)\nprint(len(range(100)), list(range(3, 3)))\n",
+                  "expected_output": "10\n100 []",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m1-l2-e3",
+                  "type": "code",
+                  "prompt": "С помощью `for` и `range` выведи таблицу умножения на 7 от `7 x 1 = 7` до `7 x 10 = 70`.\n\nКаждая строка — в формате `7 x N = R`, всего 10 строк:\n```\n7 x 1 = 7\n7 x 2 = 14\n...\n7 x 10 = 70\n```",
+                  "starter_code": "",
+                  "tests": "def test_lines():\n    lines = OUTPUT.strip().splitlines()\n    assert len(lines) == 10, f\"Нужно 10 строк, а напечатано {len(lines)}\"\n    assert lines[0] == \"7 x 1 = 7\" and lines[-1] == \"7 x 10 = 70\", f\"Первая: {lines[0]!r}, последняя: {lines[-1]!r}\"\n",
+                  "solution": "for n in range(1, 11):\n    print(f\"7 x {n} = {7 * n}\")\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "for-m1-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sum_even(n)` — сумма всех **чётных** чисел от 0 до `n` включительно. Используй `range` **с шагом 2**.\n\nПримеры:\n```\nsum_even(10)   # → 30   (0 + 2 + 4 + 6 + 8 + 10)\nsum_even(7)    # → 12   (0 + 2 + 4 + 6)\n```",
+                  "starter_code": "def sum_even(n):\n    pass\n",
+                  "tests": "def test_values():\n    assert [sum_even(n) for n in (10, 7, 0, 1)] == [30, 12, 0, 0], \"Неверная сумма\"\n",
+                  "solution": "def sum_even(n):\n    total = 0\n    for i in range(0, n + 1, 2):\n        total += i\n    return total\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "for-m1-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `countdown(n)` — список чисел от `n` до 1, а в конце строка `\"Старт!\"`. Используй `range` с отрицательным шагом.\n\nПримеры:\n```\ncountdown(3)   # → [3, 2, 1, \"Старт!\"]\ncountdown(0)   # → [\"Старт!\"]\n```",
+                  "starter_code": "def countdown(n):\n    pass\n",
+                  "tests": "def test_values():\n    assert countdown(3) == [3, 2, 1, \"Старт!\"] and countdown(0) == [\"Старт!\"] and countdown(1) == [1, \"Старт!\"], \"Неверный отсчёт\"\n",
+                  "solution": "def countdown(n):\n    result = []\n    for i in range(n, 0, -1):\n        result.append(i)\n    result.append(\"Старт!\")\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЧасто нужно повторить действие определённое число раз или перебрать числа: номера страниц, попытки запроса, строки таблицы. `range` создаёт последовательность чисел, не храня её целиком в памяти.\n\n## Как это работает\n\n- `range(stop)` — от 0 до `stop - 1`;\n- `range(start, stop)` — от `start` до `stop - 1`;\n- `range(start, stop, step)` — с шагом; `step` может быть отрицательным, но не нулём.\n\n**Правая граница не входит.** Зато `range(n)` даёт ровно `n` чисел, а `range(len(xs))` — все индексы списка.\n\n`range` — «ленивый» объект: `range(10**9)` не займёт памяти, числа генерируются по мере перебора. Чтобы увидеть содержимое — `list(range(...))`. Длина — `len(range(...))`.\n\nЕсли перебор невозможен (например, `range(5, 1)` с положительным шагом), последовательность просто пустая.\n\n## Примеры\n\n### Пример 1. Все формы\n\n```python\nprint(list(range(5)))\nprint(list(range(2, 8)))\nprint(list(range(1, 20, 4)))\nprint(list(range(10, 0, -3)))\nprint(list(range(5, 1)))\n```\n\n### Пример 2. Повторить N раз\n\n```python\nfor attempt in range(1, 4):\n    print(f\"попытка {attempt} из 3\")\nfor _ in range(3):\n    print(\"-\" * 10)\n```\n\n`_` — договорённость: «номер не нужен».\n\n### Пример 3. Суммы с шагом\n\n```python\nprint(sum(range(0, 11, 2)))\nprint(sum(range(1, 101)))\n```\n\n### Пример 4. Ленивость\n\n```python\nr = range(0, 10**12, 7)\nprint(len(r), r[5], 700 in r)\n```\n\n## Частые ошибки\n\n**Ошибка на единицу** — числа от 1 до 5 это `range(1, 6)`.\n\n**Отрицательный шаг с неправильными границами** — `range(1, 10, -1)` пустой.\n\n**`range(len(xs))` ради элементов** — перебирай `xs` напрямую.\n\n## Шпаргалка\n\n```py\nrange(5)           # 0..4\nrange(1, 6)        # 1..5\nrange(0, 10, 2)    # 0 2 4 6 8\nrange(10, 0, -1)   # 10..1\nfor _ in range(n): ...\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `list(range(2, 5))`?",
+                  "options": [
+                    "`[2, 3, 4, 5]`",
+                    "`[2, 3, 4]`",
+                    "`[3, 4, 5]`",
+                    "`[2, 5]`"
+                  ],
+                  "answer": 1,
+                  "explain": "Правая граница не входит."
+                },
+                {
+                  "q": "Как получить числа 10, 8, 6, 4, 2?",
+                  "options": [
+                    "`range(10, 2, -2)`",
+                    "`range(10, 0, -2)`",
+                    "`range(2, 10, 2)`",
+                    "`range(10, 1, 2)`"
+                  ],
+                  "answer": 1,
+                  "explain": "Шаг -2, граница 0 не входит, двойка включается."
+                },
+                {
+                  "q": "Что вернёт `list(range(5, 1))`?",
+                  "options": [
+                    "`[5, 4, 3, 2]`",
+                    "`[]`",
+                    "Ошибка",
+                    "`[1, 2, 3, 4, 5]`"
+                  ],
+                  "answer": 1,
+                  "explain": "С шагом +1 от 5 до 1 дойти нельзя — последовательность пуста."
+                }
+              ]
+            },
+            {
+              "slug": "for-m1-l3",
+              "title": "Вложенные циклы",
+              "theory": "# Цикл в цикле\n\n```\nfor row in range(3):\n    for col in range(3):\n        print(row, col)\n```\n\nВнутренний цикл выполняется **полностью** на каждом шаге внешнего.\nИтераций: `внешний × внутренний`.\n\nПрименения: таблицы, пары элементов, комбинации (браузер × размер экрана).\n",
+              "exercises": [
+                {
+                  "slug": "for-m1-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "for i in range(1, 3):\n    for j in range(1, 3):\n        print(i, j)\n",
+                  "expected_output": "1 1\n1 2\n2 1\n2 2",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m1-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "for n in range(1, 4):\n    print(\"*\" * n)\n",
+                  "expected_output": "*\n**\n***",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m1-l3-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `test_matrix(browsers, sizes)` — список строк `\"браузер@размер\"` для **всех комбинаций**, используя вложенные циклы. Сначала все размеры для первого браузера.\n\nПример:\n```\ntest_matrix([\"chrome\", \"firefox\"], [1920, 375])\n# → [\"chrome@1920\", \"chrome@375\", \"firefox@1920\", \"firefox@375\"]\n```",
+                  "starter_code": "def test_matrix(browsers, sizes):\n    pass\n",
+                  "tests": "def test_combinations():\n    got = test_matrix([\"chrome\", \"firefox\"], [1920, 375])\n    assert got == [\"chrome@1920\", \"chrome@375\", \"firefox@1920\", \"firefox@375\"], f\"Получено {got}\"\n    assert test_matrix([], [1]) == [], \"Нет браузеров — пусто\"\n",
+                  "solution": "def test_matrix(browsers, sizes):\n    result = []\n    for b in browsers:\n        for s in sizes:\n            result.append(f\"{b}@{s}\")\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "for-m1-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `multiplication_table(n)` — таблица умножения `n × n` в виде **списка строк**, числа в строке через пробел.\n\nПример:\n```\nmultiplication_table(3)\n# → [\"1 2 3\", \"2 4 6\", \"3 6 9\"]\n```",
+                  "starter_code": "def multiplication_table(n):\n    pass\n",
+                  "tests": "def test_values():\n    assert multiplication_table(3) == [\"1 2 3\", \"2 4 6\", \"3 6 9\"] and multiplication_table(1) == [\"1\"], \"Неверная таблица\"\n",
+                  "solution": "def multiplication_table(n):\n    rows = []\n    for i in range(1, n + 1):\n        row = []\n        for j in range(1, n + 1):\n            row.append(str(i * j))\n        rows.append(\" \".join(row))\n    return rows\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "for-m1-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `pairs_with_sum(nums, target)` — список всех пар `(a, b)` из списка, где `a + b == target`, **без повторов** и без пары элемента с самим собой. Пара берётся в порядке индексов (`i < j`).\n\nПример:\n```\npairs_with_sum([1, 2, 3, 4], 5)   # → [(1, 4), (2, 3)]\n```\nПодсказка: внешний цикл по `i`, внутренний — по `j` от `i + 1`.",
+                  "starter_code": "def pairs_with_sum(nums, target):\n    pass\n",
+                  "tests": "def test_values():\n    assert pairs_with_sum([1, 2, 3, 4], 5) == [(1, 4), (2, 3)], f\"Получено {pairs_with_sum([1, 2, 3, 4], 5)}\"\n    assert pairs_with_sum([5], 10) == [] and pairs_with_sum([2, 2], 4) == [(2, 2)], \"Неверный результат\"\n",
+                  "solution": "def pairs_with_sum(nums, target):\n    result = []\n    for i in range(len(nums)):\n        for j in range(i + 1, len(nums)):\n            if nums[i] + nums[j] == target:\n                result.append((nums[i], nums[j]))\n    return result\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКогда данные двумерные или нужно перебрать комбинации, одного цикла мало: таблица (строки × столбцы), матрица тестов (браузеры × разрешения), сравнение каждого элемента с каждым (поиск дубликатов, пар).\n\n## Как это работает\n\n```py\nfor a in внешний:\n    for b in внутренний:\n        ...\n```\n\nНа **каждом** шаге внешнего цикла внутренний проходит от начала до конца. Общее число итераций — произведение длин. Для 1000 × 1000 это уже миллион — вложенные циклы быстро становятся медленными.\n\n### Перебор пар без повторов\n\n```py\nfor i in range(len(xs)):\n    for j in range(i + 1, len(xs)):\n        пара xs[i], xs[j]\n```\n\n`j` начинается с `i + 1`: пара не повторяется в обратном порядке и элемент не сочетается сам с собой.\n\n### break во вложенном цикле\n\n`break` выходит только из **ближайшего** (внутреннего) цикла.\n\n## Примеры\n\n### Пример 1. Координаты\n\n```python\nfor row in range(2):\n    for col in range(3):\n        print(f\"({row},{col})\", end=\" \")\n    print()\n```\n\n### Пример 2. Матрица тестов\n\n```python\nbrowsers = [\"chrome\", \"firefox\"]\nsizes = [1920, 768, 375]\nruns = 0\nfor b in browsers:\n    for s in sizes:\n        runs += 1\n        print(f\"прогон {runs}: {b} @ {s}px\")\n```\n\n### Пример 3. Поиск дубликатов\n\n```python\nemails = [\"a@x.ru\", \"b@x.ru\", \"a@x.ru\", \"c@x.ru\", \"b@x.ru\"]\ndups = []\nfor i in range(len(emails)):\n    for j in range(i + 1, len(emails)):\n        if emails[i] == emails[j] and emails[i] not in dups:\n            dups.append(emails[i])\nprint(dups)\n```\n\n### Пример 4. Треугольник\n\n```python\nfor i in range(1, 5):\n    print(\" \".join(str(j) for j in range(1, i + 1)))\n```\n\n## Частые ошибки\n\n**Одинаковые имена переменных** во внешнем и внутреннем цикле — внутренний затирает внешний.\n\n**Ожидание, что break выйдет из обоих циклов.**\n\n**Квадратичная сложность на больших данных** — для поиска дубликатов лучше `set`.\n\n## Шпаргалка\n\n```py\nfor i in range(rows):\n    for j in range(cols): ...\nfor i in range(n):\n    for j in range(i + 1, n): ...   # пары без повторов\n```",
+              "quiz": [
+                {
+                  "q": "Сколько раз выполнится тело внутреннего цикла: `for i in range(3): for j in range(4):`?",
+                  "options": [
+                    "7",
+                    "12",
+                    "3",
+                    "4"
+                  ],
+                  "answer": 1,
+                  "explain": "3 × 4 = 12."
+                },
+                {
+                  "q": "Из какого цикла выходит `break` во внутреннем цикле?",
+                  "options": [
+                    "Из обоих",
+                    "Только из внутреннего",
+                    "Только из внешнего",
+                    "Из функции"
+                  ],
+                  "answer": 1,
+                  "explain": "`break` прерывает ближайший цикл."
+                },
+                {
+                  "q": "Зачем внутренний цикл начинают с `i + 1` при переборе пар?",
+                  "options": [
+                    "Так быстрее компилируется",
+                    "Чтобы не повторять пары и не сочетать элемент с самим собой",
+                    "Чтобы избежать IndexError",
+                    "Это обязательно"
+                  ],
+                  "answer": 1,
+                  "explain": "Каждая неупорядоченная пара встречается ровно один раз."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "for-m2",
+          "title": "Управление циклом",
+          "icon": "🎛️",
+          "description": "break, continue и else у цикла",
+          "lessons": [
+            {
+              "slug": "for-m2-l1",
+              "title": "break — досрочный выход",
+              "theory": "# break\n\n```\nfor code in codes:\n    if code >= 500:\n        print(\"нашли ошибку сервера\")\n        break          # дальше не перебираем\n```\n\n- Немедленно завершает **ближайший** цикл.\n- Удобен для поиска: нашли — вышли.\n",
+              "exercises": [
+                {
+                  "slug": "for-m2-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "for i in range(10):\n    if i == 3:\n        break\n    print(i)\nprint(\"после цикла\")\n",
+                  "expected_output": "0\n1\n2\nпосле цикла",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m2-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "log = [\"INFO a\", \"WARN b\", \"ERROR c\", \"ERROR d\"]\nfor i, line in enumerate(log):\n    if line.startswith(\"ERROR\"):\n        print(\"первая ошибка на строке\", i)\n        break\n",
+                  "expected_output": "первая ошибка на строке 2",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m2-l1-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `first_error(codes)` — первый код ответа ≥ 400 из списка. Если таких нет — `None`. Используй цикл и `break` (или `return`).\n\nПримеры:\n```\nfirst_error([200, 201, 404, 500])   # → 404\nfirst_error([200, 302])             # → None\n```",
+                  "starter_code": "def first_error(codes):\n    pass\n",
+                  "tests": "def test_values():\n    assert first_error([200, 201, 404, 500]) == 404 and first_error([200, 302]) is None and first_error([]) is None, \"Неверный результат\"\n",
+                  "solution": "def first_error(codes):\n    found = None\n    for code in codes:\n        if code >= 400:\n            found = code\n            break\n    return found\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "for-m2-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sum_until_negative(nums)` — сумма чисел по порядку, **пока** не встретится отрицательное (само отрицательное и всё после него не суммируется).\n\nПримеры:\n```\nsum_until_negative([3, 5, -1, 10])   # → 8\nsum_until_negative([1, 2, 3])        # → 6\n```",
+                  "starter_code": "def sum_until_negative(nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert [sum_until_negative(x) for x in ([3, 5, -1, 10], [1, 2, 3], [-5, 1], [])] == [8, 6, 0, 0], \"Неверная сумма\"\n",
+                  "solution": "def sum_until_negative(nums):\n    total = 0\n    for n in nums:\n        if n < 0:\n            break\n        total += n\n    return total\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "for-m2-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `attempts_until_ok(statuses)` — номер попытки (с 1), на которой пришёл статус `200`. Если 200 не пришёл ни разу — `-1`.\n\nПримеры:\n```\nattempts_until_ok([503, 502, 200, 200])   # → 3\nattempts_until_ok([500, 500])             # → -1\n```\nИспользуй `enumerate(..., start=1)` и `break`.",
+                  "starter_code": "def attempts_until_ok(statuses):\n    pass\n",
+                  "tests": "def test_values():\n    assert [attempts_until_ok(x) for x in ([503, 502, 200, 200], [500, 500], [200], [])] == [3, -1, 1, -1], \"Неверный номер попытки\"\n",
+                  "solution": "def attempts_until_ok(statuses):\n    result = -1\n    for attempt, status in enumerate(statuses, start=1):\n        if status == 200:\n            result = attempt\n            break\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЧасто перебирать до конца не нужно: нашли первую ошибку, первого подходящего пользователя, успешную попытку — дальше можно не смотреть. `break` экономит время и выражает намерение «ищем первое».\n\n## Как это работает\n\n`break` немедленно завершает **ближайший** охватывающий цикл. Выполнение продолжается с первой строки после цикла.\n\n### break и функции\n\nВнутри функции вместо `break` часто пишут `return` — он завершает и цикл, и функцию сразу с результатом. Оба варианта нормальны; `return` обычно короче.\n\n### Вложенные циклы\n\n`break` во внутреннем цикле не прерывает внешний. Чтобы выйти из обоих — вынеси циклы в функцию и используй `return` или флаг.\n\n## Примеры\n\n### Пример 1. Поиск первого\n\n```python\nusers = [{\"name\": \"Аня\", \"active\": False}, {\"name\": \"Боря\", \"active\": True}, {\"name\": \"Вика\", \"active\": True}]\nfor u in users:\n    if u[\"active\"]:\n        print(\"первый активный:\", u[\"name\"])\n        break\n```\n\n### Пример 2. Повторы до успеха\n\n```python\nresponses = [503, 502, 200, 200]\nfor attempt, status in enumerate(responses, start=1):\n    print(f\"попытка {attempt}: {status}\")\n    if status == 200:\n        break\nprint(\"итог:\", status)\n```\n\n### Пример 3. break против return\n\n```python\ndef first_error_break(codes):\n    found = None\n    for c in codes:\n        if c >= 400:\n            found = c\n            break\n    return found\n\ndef first_error_return(codes):\n    for c in codes:\n        if c >= 400:\n            return c\n    return None\n\nprint(first_error_break([200, 404, 500]), first_error_return([200, 404, 500]))\n```\n\n### Пример 4. Выход из вложенных циклов через функцию\n\n```python\ndef find_cell(matrix, value):\n    for i, row in enumerate(matrix):\n        for j, x in enumerate(row):\n            if x == value:\n                return i, j\n    return None\n\nprint(find_cell([[1, 2], [3, 4]], 3))\n```\n\n## Частые ошибки\n\n**`break` вне цикла** — `SyntaxError`.\n\n**Ожидание выхода из всех вложенных циклов.**\n\n**Переменная результата не инициализирована** до цикла — если `break` не сработал, её нет.\n\n## Шпаргалка\n\n```py\nfor x in xs:\n    if found(x):\n        result = x\n        break\n# или в функции:\nfor x in xs:\n    if found(x):\n        return x\nreturn None\n```",
+              "quiz": [
+                {
+                  "q": "Что выведет `for i in range(5):\\n    if i == 2: break\\n    print(i)`?",
+                  "options": [
+                    "`0 1`",
+                    "`0 1 2`",
+                    "`2 3 4`",
+                    "Ничего"
+                  ],
+                  "answer": 0,
+                  "explain": "Цикл прерывается, когда i становится 2, до печати."
+                },
+                {
+                  "q": "Что делает `break` во внутреннем из двух вложенных циклов?",
+                  "options": [
+                    "Завершает оба",
+                    "Завершает внутренний, внешний продолжается",
+                    "Завершает программу",
+                    "Пропускает шаг"
+                  ],
+                  "answer": 1,
+                  "explain": "`break` действует на ближайший цикл."
+                },
+                {
+                  "q": "Чем в функции удобно заменить связку «переменная + break»?",
+                  "options": [
+                    "`continue`",
+                    "`return` значения прямо из цикла",
+                    "`pass`",
+                    "`global`"
+                  ],
+                  "answer": 1,
+                  "explain": "`return` сразу завершает цикл и функцию с результатом."
+                }
+              ]
+            },
+            {
+              "slug": "for-m2-l2",
+              "title": "continue — пропустить шаг",
+              "theory": "# continue\n\n```\nfor line in log:\n    if line.startswith(\"#\"):\n        continue       # пропустить комментарий\n    обработать(line)\n```\n\n- Прерывает **текущую** итерацию и переходит к следующей.\n- Помогает убрать вложенность: «отсеять неподходящее» в начале тела.\n",
+              "exercises": [
+                {
+                  "slug": "for-m2-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "for i in range(6):\n    if i % 2 == 0:\n        continue\n    print(i)\n",
+                  "expected_output": "1\n3\n5",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m2-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "for word in [\"api\", \"\", \"ui\", \"  \", \"ci\"]:\n    if not word.strip():\n        continue\n    print(word.upper())\n",
+                  "expected_output": "API\nUI\nCI",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m2-l2-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_config(lines)` — разобрать строки конфигурации `\"ключ=значение\"` в словарь:\n\n- пустые строки и строки, начинающиеся с `#`, пропускать через `continue`;\n- ключ и значение очищать от пробелов по краям.\n\nПример:\n```\nparse_config([\"# настройки\", \"host = localhost\", \"\", \"port=8080\"])\n# → {\"host\": \"localhost\", \"port\": \"8080\"}\n```",
+                  "starter_code": "def parse_config(lines):\n    pass\n",
+                  "tests": "def test_values():\n    got = parse_config([\"# настройки\", \"host = localhost\", \"\", \"port=8080\", \"   \"])\n    assert got == {\"host\": \"localhost\", \"port\": \"8080\"}, f\"Получено {got}\"\n\ndef test_continue():\n    assert \"continue\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй continue для пропуска строк\"\n",
+                  "solution": "def parse_config(lines):\n    config = {}\n    for line in lines:\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        key, value = line.split(\"=\", 1)\n        config[key.strip()] = value.strip()\n    return config\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "for-m2-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sum_valid(values)` — сумма только тех элементов списка, которые являются **числами** (`int` или `float`, но не `bool`). Остальные пропускать через `continue`.\n\nПример:\n```\nsum_valid([10, \"20\", None, 2.5, True, 7])   # → 19.5\n```",
+                  "starter_code": "def sum_valid(values):\n    pass\n",
+                  "tests": "def test_values():\n    assert sum_valid([10, \"20\", None, 2.5, True, 7]) == 19.5 and sum_valid([]) == 0 and sum_valid([\"x\"]) == 0, \"Неверная сумма\"\n",
+                  "solution": "def sum_valid(values):\n    total = 0\n    for v in values:\n        if isinstance(v, bool) or not isinstance(v, (int, float)):\n            continue\n        total += v\n    return total\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "for-m2-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `run_tests(tests)`, где `tests` — список словарей `{\"name\": ..., \"skip\": bool, \"ok\": bool}`.\n\n- пропущенные (`skip == True`) не считать — `continue`;\n- вернуть словарь `{\"passed\": N, \"failed\": M, \"skipped\": K}`.\n\nПример:\n```\nrun_tests([{\"name\": \"a\", \"skip\": False, \"ok\": True},\n           {\"name\": \"b\", \"skip\": True,  \"ok\": False},\n           {\"name\": \"c\", \"skip\": False, \"ok\": False}])\n# → {\"passed\": 1, \"failed\": 1, \"skipped\": 1}\n```",
+                  "starter_code": "def run_tests(tests):\n    pass\n",
+                  "tests": "def test_values():\n    tests = [{\"name\": \"a\", \"skip\": False, \"ok\": True}, {\"name\": \"b\", \"skip\": True, \"ok\": False}, {\"name\": \"c\", \"skip\": False, \"ok\": False}]\n    assert run_tests(tests) == {\"passed\": 1, \"failed\": 1, \"skipped\": 1}, f\"Получено {run_tests(tests)}\"\n    assert run_tests([]) == {\"passed\": 0, \"failed\": 0, \"skipped\": 0}, \"Пусто — нули\"\n",
+                  "solution": "def run_tests(tests):\n    stats = {\"passed\": 0, \"failed\": 0, \"skipped\": 0}\n    for t in tests:\n        if t[\"skip\"]:\n            stats[\"skipped\"] += 1\n            continue\n        stats[\"passed\" if t[\"ok\"] else \"failed\"] += 1\n    return stats\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПри обработке данных часть элементов нужно просто пропустить: пустые строки и комментарии в конфиге, некорректные значения, отключённые тесты. `continue` позволяет сразу перейти к следующему элементу и не вкладывать всю основную логику в `if`.\n\n## Как это работает\n\n`continue` прерывает **текущий** шаг цикла: оставшаяся часть тела пропускается, и цикл переходит к следующему элементу.\n\n### Приём «отсеять в начале»\n\nВместо:\n\n```py\nfor line in lines:\n    if line and not line.startswith(\"#\"):\n        ... длинная логика с отступом ...\n```\n\nпишем:\n\n```py\nfor line in lines:\n    if not line or line.startswith(\"#\"):\n        continue\n    ... логика без лишнего отступа ...\n```\n\nЭто то же самое, что «ранний выход» в функциях, только для итерации цикла.\n\n## Примеры\n\n### Пример 1. Пропуск нечётных\n\n```python\nfor i in range(10):\n    if i % 2:\n        continue\n    print(i, end=\" \")\nprint()\n```\n\n### Пример 2. Разбор конфигурации\n\n```python\nlines = [\"# настройки стенда\", \"host = staging\", \"\", \"port=8080\", \"   # ещё комментарий\", \"debug = true\"]\nconfig = {}\nfor raw in lines:\n    line = raw.strip()\n    if not line or line.startswith(\"#\"):\n        continue\n    key, value = line.split(\"=\", 1)\n    config[key.strip()] = value.strip()\nprint(config)\n```\n\n### Пример 3. Фильтрация мусора в данных\n\n```python\nvalues = [10, \"20\", None, 2.5, True, -3]\ntotal = 0\nfor v in values:\n    if isinstance(v, bool) or not isinstance(v, (int, float)):\n        print(\"пропускаю\", repr(v))\n        continue\n    total += v\nprint(\"сумма:\", total)\n```\n\n## Частые ошибки\n\n**`continue` в `while` до изменения счётчика** — бесконечный цикл: изменение переменной не выполнится.\n\n**`continue` вместо `break`** — цикл не останавливается, а идёт дальше.\n\n**Лишний `continue` в конце тела** — ничего не меняет.\n\n## Шпаргалка\n\n```py\nfor x in xs:\n    if not подходит(x):\n        continue\n    обработать(x)\n```",
+              "quiz": [
+                {
+                  "q": "Чем `continue` отличается от `break`?",
+                  "options": [
+                    "Ничем",
+                    "`continue` переходит к следующей итерации, `break` завершает цикл",
+                    "`continue` завершает программу",
+                    "`break` пропускает шаг"
+                  ],
+                  "answer": 1,
+                  "explain": "continue — следующий шаг, break — выход из цикла."
+                },
+                {
+                  "q": "Что выведет `for i in range(4):\\n    if i == 1: continue\\n    print(i)`?",
+                  "options": [
+                    "`0 2 3`",
+                    "`0`",
+                    "`1`",
+                    "`0 1 2 3`"
+                  ],
+                  "answer": 0,
+                  "explain": "Итерация с i = 1 пропускается."
+                },
+                {
+                  "q": "Почему `continue` в `while` может дать бесконечный цикл?",
+                  "options": [
+                    "Никогда не может",
+                    "Если он стоит до изменения переменной условия, изменение пропускается",
+                    "while не поддерживает continue",
+                    "Из-за отступов"
+                  ],
+                  "answer": 1,
+                  "explain": "Код после continue в этой итерации не выполнится, включая увеличение счётчика."
+                }
+              ]
+            },
+            {
+              "slug": "for-m2-l3",
+              "title": "else у цикла",
+              "theory": "# for … else\n\n```\nfor user in users:\n    if user == target:\n        print(\"найден\")\n        break\nelse:\n    print(\"не найден\")     # выполнится, если цикл НЕ был прерван break\n```\n\n- `else` у цикла срабатывает, когда цикл завершился **естественно** (без `break`).\n- Удобно для поиска: «прошли всё и не нашли».\n",
+              "exercises": [
+                {
+                  "slug": "for-m2-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "for n in [1, 3, 5]:\n    if n % 2 == 0:\n        print(\"есть чётное\")\n        break\nelse:\n    print(\"чётных нет\")\n",
+                  "expected_output": "чётных нет",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m2-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "for n in [1, 4, 5]:\n    if n % 2 == 0:\n        print(\"есть чётное:\", n)\n        break\nelse:\n    print(\"чётных нет\")\nfor x in []:\n    pass\nelse:\n    print(\"пустой цикл тоже завершился\")\n",
+                  "expected_output": "есть чётное: 4\nпустой цикл тоже завершился",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m2-l3-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_prime(n)` — простое ли число (для `n >= 2`). Используй `for … else`: перебирай делители от 2 до `n - 1`, при находке — `break`, в `else` — число простое.\n\nПримеры:\n```\nis_prime(7)    # → True\nis_prime(12)   # → False\nis_prime(2)    # → True\n```",
+                  "starter_code": "def is_prime(n):\n    pass\n",
+                  "tests": "def test_values():\n    got = [is_prime(n) for n in (2, 3, 4, 7, 12, 97, 100)]\n    assert got == [True, True, False, True, False, True, False], f\"Получено {got}\"\n\ndef test_for_else():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"else:\" in src and \"break\" in src, \"Используй for … else с break\"\n",
+                  "solution": "def is_prime(n):\n    result = True\n    for d in range(2, n):\n        if n % d == 0:\n            result = False\n            break\n    else:\n        result = True\n    return result\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "for-m2-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `check_all_ok(codes)` через `for … else`:\n\n- если встретился код ≥ 400 — вернуть `\"упал на <код>\"` (первый такой);\n- если все коды меньше 400 — вернуть `\"все ок\"`.\n\nПримеры:\n```\ncheck_all_ok([200, 201, 500, 404])   # → \"упал на 500\"\ncheck_all_ok([200, 302])             # → \"все ок\"\n```",
+                  "starter_code": "def check_all_ok(codes):\n    pass\n",
+                  "tests": "def test_values():\n    assert check_all_ok([200, 201, 500, 404]) == \"упал на 500\" and check_all_ok([200, 302]) == \"все ок\" and check_all_ok([]) == \"все ок\", \"Неверный результат\"\n",
+                  "solution": "def check_all_ok(codes):\n    for code in codes:\n        if code >= 400:\n            message = f\"упал на {code}\"\n            break\n    else:\n        message = \"все ок\"\n    return message\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "for-m2-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `find_free_port(busy, start, end)` — первый свободный порт в диапазоне от `start` до `end` включительно (не входящий в список `busy`). Если свободных нет — `None`. Используй `for … else`.\n\nПример:\n```\nfind_free_port([8000, 8001], 8000, 8005)   # → 8002\nfind_free_port([80, 81], 80, 81)           # → None\n```",
+                  "starter_code": "def find_free_port(busy, start, end):\n    pass\n",
+                  "tests": "def test_values():\n    assert find_free_port([8000, 8001], 8000, 8005) == 8002 and find_free_port([80, 81], 80, 81) is None and find_free_port([], 5, 9) == 5, \"Неверный порт\"\n",
+                  "solution": "def find_free_port(busy, start, end):\n    for port in range(start, end + 1):\n        if port not in busy:\n            free = port\n            break\n    else:\n        free = None\n    return free\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКлассическая задача: «перебрать всё и сказать, нашли или нет». Обычно для этого заводят флаг `found = False`. В Python есть более выразительный инструмент — ветка `else` у цикла, которая выполняется, только если цикл **не был прерван** `break`.\n\n## Как это работает\n\n```py\nfor x in xs:\n    if подходит(x):\n        ...\n        break\nelse:\n    # сюда попадаем, только если break не случился\n```\n\n- Цикл дошёл до конца (в том числе если коллекция пустая) → выполняется `else`.\n- Цикл прерван `break` → `else` пропускается.\n- Работает и с `while`.\n\nНазвание неудачное — легче запомнить как «nobreak»: «если не было break».\n\n### Флаг против else\n\n```py\nfound = False\nfor x in xs:\n    if good(x):\n        found = True\n        break\nif not found:\n    ...\n```\n\n`for … else` делает то же без флага. Но если команда с ним не знакома, флаг читается привычнее — оба варианта допустимы.\n\n## Примеры\n\n### Пример 1. Поиск с сообщением\n\n```python\nusers = [\"anna\", \"boris\", \"vika\"]\nfor target in [\"boris\", \"gosha\"]:\n    for u in users:\n        if u == target:\n            print(target, \"— найден\")\n            break\n    else:\n        print(target, \"— не найден\")\n```\n\n### Пример 2. Простые числа\n\n```python\ndef is_prime(n):\n    for d in range(2, int(n ** 0.5) + 1):\n        if n % d == 0:\n            return False\n    return True\n\nprint([n for n in range(2, 30) if is_prime(n)])\n```\n\nВнутри функции `return` в цикле делает `else` ненужным — это тоже нормальный стиль.\n\n### Пример 3. Проверка ответов\n\n```python\nfor codes in [[200, 201], [200, 503, 200]]:\n    for c in codes:\n        if c >= 400:\n            print(codes, \"— упал на\", c)\n            break\n    else:\n        print(codes, \"— все ок\")\n```\n\n## Частые ошибки\n\n**Ожидание, что `else` срабатывает, если цикл не выполнился ни разу** — он срабатывает и в этом случае (пустой цикл завершился без break).\n\n**Отступ `else`** — он на уровне `for`, а не внутри тела.\n\n**Путаница с `if/else` внутри цикла.**\n\n## Шпаргалка\n\n```py\nfor x in xs:\n    if cond(x):\n        break\nelse:\n    print(\"не нашли\")      # только если не было break\n```",
+              "quiz": [
+                {
+                  "q": "Когда выполняется `else` у цикла `for`?",
+                  "options": [
+                    "Всегда",
+                    "Если цикл завершился без break",
+                    "Если был break",
+                    "Если коллекция пустая — никогда"
+                  ],
+                  "answer": 1,
+                  "explain": "`else` — ветка «не было break»."
+                },
+                {
+                  "q": "Выполнится ли `else`, если перебирается пустой список?",
+                  "options": [
+                    "Да",
+                    "Нет",
+                    "Ошибка",
+                    "Зависит от содержимого"
+                  ],
+                  "answer": 0,
+                  "explain": "Цикл завершился естественно (ни одной итерации, но и без break)."
+                },
+                {
+                  "q": "На каком уровне отступа пишется `else` цикла?",
+                  "options": [
+                    "Внутри тела цикла",
+                    "На уровне слова for",
+                    "Внутри if",
+                    "После return"
+                  ],
+                  "answer": 1,
+                  "explain": "`else` относится к самому циклу."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "for-m3",
+          "title": "Шаблоны циклов",
+          "icon": "🧮",
+          "description": "Подсчёт, поиск и перебор с помощниками",
+          "lessons": [
+            {
+              "slug": "for-m3-l1",
+              "title": "Подсчёт и накопление",
+              "theory": "# Накопитель\n\n```\ncount = 0            # до цикла\nfor x in items:\n    if условие(x):\n        count += 1   # в цикле\nprint(count)         # после\n```\n\nНачальные значения: сумма и счётчик — `0`, произведение — `1`, строка — `\"\"`, словарь-счётчик — `{}`.\n",
+              "exercises": [
+                {
+                  "slug": "for-m3-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "text = \"я иду домой\"\nvowels = 0\nfor ch in text:\n    if ch in \"аеёиоуыэюя\":\n        vowels += 1\nprint(vowels)\n",
+                  "expected_output": "5",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m3-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "counts = {}\nfor r in [\"pass\", \"fail\", \"pass\", \"skip\", \"pass\"]:\n    counts[r] = counts.get(r, 0) + 1\nprint(counts)\n",
+                  "expected_output": "{'pass': 3, 'fail': 1, 'skip': 1}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m3-l1-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `factorial(n)` — произведение чисел от 1 до `n` (для 0 — 1). Используй цикл `for`.\n\nПримеры:\n```\nfactorial(5)   # → 120\nfactorial(0)   # → 1\n```",
+                  "starter_code": "def factorial(n):\n    pass\n",
+                  "tests": "def test_values():\n    assert [factorial(n) for n in (0, 1, 5, 10)] == [1, 1, 120, 3628800], \"Неверный факториал\"\n",
+                  "solution": "def factorial(n):\n    result = 1\n    for i in range(2, n + 1):\n        result *= i\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "for-m3-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `word_freq(text)` — словарь «слово → сколько раз встретилось». Слова сравнивать в нижнем регистре, разбивать по пробелам.\n\nПример:\n```\nword_freq(\"Тест упал тест прошёл Тест\")   # → {\"тест\": 3, \"упал\": 1, \"прошёл\": 1}\n```",
+                  "starter_code": "def word_freq(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert word_freq(\"Тест упал тест прошёл Тест\") == {\"тест\": 3, \"упал\": 1, \"прошёл\": 1}, f\"Получено {word_freq('Тест упал тест прошёл Тест')}\"\n    assert word_freq(\"\") == {}, \"Пустая строка — пустой словарь\"\n",
+                  "solution": "def word_freq(text):\n    freq = {}\n    for word in text.lower().split():\n        freq[word] = freq.get(word, 0) + 1\n    return freq\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "for-m3-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `acronym(phrase)` — аббревиатура из первых букв слов, заглавными. Накапливай результат в строке через `+=`.\n\nПримеры:\n```\nacronym(\"continuous integration\")   # → \"CI\"\nacronym(\"quality assurance team\")   # → \"QAT\"\n```",
+                  "starter_code": "def acronym(phrase):\n    pass\n",
+                  "tests": "def test_values():\n    assert acronym(\"continuous integration\") == \"CI\" and acronym(\"quality assurance team\") == \"QAT\" and acronym(\"\") == \"\", \"Неверная аббревиатура\"\n",
+                  "solution": "def acronym(phrase):\n    result = \"\"\n    for word in phrase.split():\n        result += word[0].upper()\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nБольшая часть задач с циклами сводится к одному шаблону: пройти по данным и **накопить** результат — количество, сумму, произведение, строку, словарь частот. Этот шаблон нужно уметь писать не задумываясь.\n\n## Как это работает\n\nТри шага:\n\n1. **До** цикла — накопитель с начальным значением.\n2. **В** цикле — обновление для каждого подходящего элемента.\n3. **После** цикла — результат.\n\n- счётчик/сумма — `0`, обновление `+= 1` / `+= x`;\n- произведение — `1`, `*= x`;\n- строка — `\"\"`, `+= часть` (для больших объёмов лучше собирать список и `\"\".join`);\n- словарь частот — `{}`, `d[k] = d.get(k, 0) + 1`;\n- максимум/минимум — **первый элемент**.\n\nДля частых случаев есть готовое: `sum`, `len`, `max`, `min`, `collections.Counter`.\n\n## Примеры\n\n### Пример 1. Несколько счётчиков за один проход\n\n```python\ncodes = [200, 404, 200, 500, 201, 503]\nok = client = server = 0\nfor c in codes:\n    if c < 400:\n        ok += 1\n    elif c < 500:\n        client += 1\n    else:\n        server += 1\nprint(f\"ok={ok} 4xx={client} 5xx={server}\")\n```\n\n### Пример 2. Частоты словарём и Counter\n\n```python\nfrom collections import Counter\nresults = [\"pass\", \"fail\", \"pass\", \"skip\", \"pass\"]\nfreq = {}\nfor r in results:\n    freq[r] = freq.get(r, 0) + 1\nprint(freq)\nprint(Counter(results).most_common(1))\n```\n\n### Пример 3. Сборка строки\n\n```python\nwords = [\"continuous\", \"integration\", \"delivery\"]\nabbr = \"\"\nfor w in words:\n    abbr += w[0].upper()\nprint(abbr)\nprint(\"\".join(w[0].upper() for w in words))\n```\n\n### Пример 4. Факториал\n\n```python\nresult = 1\nfor i in range(2, 11):\n    result *= i\nprint(result)\n```\n\n## Частые ошибки\n\n**Накопитель внутри цикла** — обнуляется каждый шаг.\n\n**Произведение с нуля** — всегда 0.\n\n**`return` внутри цикла** — результат после первого элемента.\n\n## Шпаргалка\n\n```py\ntotal = 0; for x in xs: total += x\nd = {}; for k in keys: d[k] = d.get(k, 0) + 1\ns = \"\"; for w in ws: s += w[0]\nCounter(xs)\n```",
+              "quiz": [
+                {
+                  "q": "С какого значения начинать накопитель для произведения?",
+                  "options": [
+                    "`0`",
+                    "`1`",
+                    "`None`",
+                    "`[]`"
+                  ],
+                  "answer": 1,
+                  "explain": "Умножение на 0 обнулит результат; 1 — нейтральный элемент."
+                },
+                {
+                  "q": "Что делает `d[k] = d.get(k, 0) + 1`?",
+                  "options": [
+                    "Удаляет ключ",
+                    "Увеличивает счётчик для ключа, создавая его при первом появлении",
+                    "Ошибка, если ключа нет",
+                    "Устанавливает значение 1"
+                  ],
+                  "answer": 1,
+                  "explain": "`get` вернёт 0 для нового ключа."
+                },
+                {
+                  "q": "Где объявить счётчик `count = 0`?",
+                  "options": [
+                    "Внутри цикла",
+                    "До цикла",
+                    "После цикла",
+                    "В условии if"
+                  ],
+                  "answer": 1,
+                  "explain": "Иначе он будет сбрасываться на каждой итерации."
+                }
+              ]
+            },
+            {
+              "slug": "for-m3-l2",
+              "title": "Поиск в цикле",
+              "theory": "# Шаблоны поиска\n\n```\n# есть ли хотя бы один\nfound = any(условие(x) for x in xs)\n\n# первый подходящий\nfor x in xs:\n    if условие(x):\n        return x\nreturn None\n\n# индекс первого\nfor i, x in enumerate(xs):\n    if условие(x):\n        return i\n```\n",
+              "exercises": [
+                {
+                  "slug": "for-m3-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "users = [{\"name\": \"Аня\", \"role\": \"qa\"}, {\"name\": \"Боря\", \"role\": \"admin\"}]\nadmin = None\nfor u in users:\n    if u[\"role\"] == \"admin\":\n        admin = u[\"name\"]\n        break\nprint(admin)\nprint(any(u[\"role\"] == \"dev\" for u in users))\n",
+                  "expected_output": "Боря\nFalse",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m3-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "nums = [7, 3, 9, 3]\npos = -1\nfor i, n in enumerate(nums):\n    if n == 3:\n        pos = i\nprint(pos)\n",
+                  "expected_output": "3",
+                  "hint": "Без break в переменной останется индекс последнего совпадения.",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m3-l2-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `find_user(users, name)` — словарь пользователя с данным именем (поле `\"name\"`) или `None`.\n\nПример:\n```\nusers = [{\"name\": \"Аня\", \"age\": 25}, {\"name\": \"Боря\", \"age\": 30}]\nfind_user(users, \"Боря\")   # → {\"name\": \"Боря\", \"age\": 30}\nfind_user(users, \"Гоша\")   # → None\n```",
+                  "starter_code": "def find_user(users, name):\n    pass\n",
+                  "tests": "def test_values():\n    users = [{\"name\": \"Аня\", \"age\": 25}, {\"name\": \"Боря\", \"age\": 30}]\n    assert find_user(users, \"Боря\") == {\"name\": \"Боря\", \"age\": 30} and find_user(users, \"Гоша\") is None, \"Неверный результат\"\n",
+                  "solution": "def find_user(users, name):\n    for u in users:\n        if u[\"name\"] == name:\n            return u\n    return None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "for-m3-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `last_index(items, value)` — индекс **последнего** вхождения `value` или `-1`.\n\nПримеры:\n```\nlast_index([1, 2, 1, 3], 1)   # → 2\nlast_index([1, 2], 5)         # → -1\n```",
+                  "starter_code": "def last_index(items, value):\n    pass\n",
+                  "tests": "def test_values():\n    assert last_index([1, 2, 1, 3], 1) == 2 and last_index([1, 2], 5) == -1 and last_index([], 1) == -1, \"Неверный индекс\"\n",
+                  "solution": "def last_index(items, value):\n    pos = -1\n    for i, x in enumerate(items):\n        if x == value:\n            pos = i\n    return pos\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "for-m3-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `has_duplicates(items)` — есть ли в списке повторяющиеся элементы. Иди циклом и храни уже виденные элементы в **множестве** `seen`: как только элемент уже в `seen` — сразу `True`.\n\nПримеры:\n```\nhas_duplicates([1, 2, 3, 2])   # → True\nhas_duplicates([\"a\", \"b\"])     # → False\n```",
+                  "starter_code": "def has_duplicates(items):\n    pass\n",
+                  "tests": "def test_values():\n    assert has_duplicates([1, 2, 3, 2]) is True and has_duplicates([\"a\", \"b\"]) is False and has_duplicates([]) is False, \"Неверный результат\"\n",
+                  "solution": "def has_duplicates(items):\n    seen = set()\n    for x in items:\n        if x in seen:\n            return True\n        seen.add(x)\n    return False\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n«Есть ли в ответе упавший тест?», «найти пользователя по email», «на какой строке первая ошибка?», «есть ли дубликаты?» — поиск нужен постоянно. Важно выбрать правильный шаблон: нужен ли сам элемент, его индекс или просто факт наличия, первое совпадение или последнее.\n\n## Как это работает\n\n### Факт наличия\n`any(условие(x) for x in xs)` — останавливается на первом `True`.\n\n### Первый подходящий элемент\nЦикл + `return x` (или `break`). После цикла — значение «не найдено» (`None`).\n\nКороткая форма: `next((x for x in xs if условие(x)), None)`.\n\n### Индекс\n`enumerate` + `return i`. Для последнего совпадения — перебрать всё без `break` и запоминать индекс.\n\n### Дубликаты\nХрани уже виденные элементы в `set` — проверка `x in seen` мгновенная, в отличие от списка.\n\n## Примеры\n\n### Пример 1. Разные вопросы — разные шаблоны\n\n```python\nresults = [(\"login\", \"pass\"), (\"pay\", \"fail\"), (\"cart\", \"fail\")]\nprint(\"есть упавшие:\", any(s == \"fail\" for _, s in results))\nprint(\"первый упавший:\", next((n for n, s in results if s == \"fail\"), None))\nprint(\"все упавшие:\", [n for n, s in results if s == \"fail\"])\n```\n\n### Пример 2. Первое и последнее вхождение\n\n```python\nlog = [\"INFO\", \"ERROR\", \"INFO\", \"ERROR\", \"WARN\"]\nfirst = last = -1\nfor i, level in enumerate(log):\n    if level == \"ERROR\":\n        if first == -1:\n            first = i\n        last = i\nprint(first, last)\n```\n\n### Пример 3. Дубликаты через множество\n\n```python\nemails = [\"a@x.ru\", \"b@x.ru\", \"a@x.ru\"]\nseen, dups = set(), []\nfor e in emails:\n    if e in seen:\n        dups.append(e)\n    seen.add(e)\nprint(dups)\n```\n\n### Пример 4. Поиск в списке словарей\n\n```python\nusers = [{\"id\": 1, \"email\": \"a@x.ru\"}, {\"id\": 2, \"email\": \"b@x.ru\"}]\ntarget = \"b@x.ru\"\nuser = next((u for u in users if u[\"email\"] == target), None)\nprint(user)\n```\n\n## Частые ошибки\n\n**Нет значения «не найдено»** — функция вернёт `None` неявно или упадёт на использовании несуществующей переменной.\n\n**break там, где нужно последнее совпадение.**\n\n**Поиск дубликатов через `in` по списку** — медленно на больших данных.\n\n## Шпаргалка\n\n```py\nany(cond(x) for x in xs)\nnext((x for x in xs if cond(x)), None)\nfor i, x in enumerate(xs):\n    if cond(x): return i\nseen = set(); x in seen; seen.add(x)\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `next((x for x in [1, 2, 3] if x > 5), \"нет\")`?",
+                  "options": [
+                    "`None`",
+                    "`\"нет\"`",
+                    "`StopIteration`",
+                    "`3`"
+                  ],
+                  "answer": 1,
+                  "explain": "Подходящих нет — возвращается значение по умолчанию."
+                },
+                {
+                  "q": "Почему `seen` для поиска дубликатов делают множеством?",
+                  "options": [
+                    "Так красивее",
+                    "Проверка `x in set` мгновенная, а в списке — перебором",
+                    "Список нельзя использовать",
+                    "Множество сортирует элементы"
+                  ],
+                  "answer": 1,
+                  "explain": "Множество использует хеш-таблицу."
+                },
+                {
+                  "q": "Как найти индекс **последнего** совпадения одним проходом?",
+                  "options": [
+                    "Остановиться на первом с break",
+                    "Перебрать всё без break и запоминать индекс при каждом совпадении",
+                    "Использовать any",
+                    "Невозможно"
+                  ],
+                  "answer": 1,
+                  "explain": "Последнее присвоение и будет последним совпадением."
+                }
+              ]
+            },
+            {
+              "slug": "for-m3-l3",
+              "title": "Помощники перебора",
+              "theory": "# Встроенные помощники\n\n- `enumerate(xs, start=1)` — номер + элемент\n- `zip(a, b)` — параллельно\n- `reversed(xs)` — в обратном порядке\n- `sorted(xs, key=...)` — в отсортированном порядке\n- `d.items()` — пары ключ-значение словаря\n\nОни не меняют исходную коллекцию.\n",
+              "exercises": [
+                {
+                  "slug": "for-m3-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "for i, name in enumerate(reversed([\"a\", \"b\", \"c\"]), start=1):\n    print(i, name)\n",
+                  "expected_output": "1 c\n2 b\n3 a",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m3-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "prices = {\"чай\": 300, \"кофе\": 500, \"сок\": 150}\nfor item, price in sorted(prices.items(), key=lambda p: p[1]):\n    print(item, price)\n",
+                  "expected_output": "сок 150\nчай 300\nкофе 500",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "for-m3-l3-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `leaderboard(scores)`, где `scores` — словарь `{имя: очки}`. Вернуть список строк `\"<место>. <имя> — <очки>\"`, отсортированный по убыванию очков, места с 1.\n\nПример:\n```\nleaderboard({\"Боря\": 50, \"Аня\": 80, \"Вика\": 65})\n# → [\"1. Аня — 80\", \"2. Вика — 65\", \"3. Боря — 50\"]\n```",
+                  "starter_code": "def leaderboard(scores):\n    pass\n",
+                  "tests": "def test_values():\n    got = leaderboard({\"Боря\": 50, \"Аня\": 80, \"Вика\": 65})\n    assert got == [\"1. Аня — 80\", \"2. Вика — 65\", \"3. Боря — 50\"], f\"Получено {got}\"\n",
+                  "solution": "def leaderboard(scores):\n    ordered = sorted(scores.items(), key=lambda p: p[1], reverse=True)\n    return [f\"{i}. {name} — {pts}\" for i, (name, pts) in enumerate(ordered, start=1)]\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "for-m3-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `diff_report(expected, actual)` — сравни два списка одинаковой длины попарно (`zip`) и верни список строк для **несовпадений** в формате `\"#<номер с 1>: ожидали <e>, получили <a>\"`.\n\nПример:\n```\ndiff_report([200, 201, 404], [200, 500, 404])\n# → [\"#2: ожидали 201, получили 500\"]\n```",
+                  "starter_code": "def diff_report(expected, actual):\n    pass\n",
+                  "tests": "def test_values():\n    assert diff_report([200, 201, 404], [200, 500, 404]) == [\"#2: ожидали 201, получили 500\"], \"Неверный отчёт\"\n    assert diff_report([1], [1]) == [], \"Совпадают — пусто\"\n",
+                  "solution": "def diff_report(expected, actual):\n    report = []\n    for i, (e, a) in enumerate(zip(expected, actual), start=1):\n        if e != a:\n            report.append(f\"#{i}: ожидали {e}, получили {a}\")\n    return report\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "for-m3-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `last_n_lines(lines, n)` — последние `n` строк лога **в обратном порядке** (самая свежая первой), каждая с номером строки в исходном списке (с 1): `\"<номер>: <строка>\"`.\n\nПример:\n```\nlast_n_lines([\"a\", \"b\", \"c\", \"d\"], 2)   # → [\"4: d\", \"3: c\"]\n```\nИспользуй `enumerate` и `reversed` (или срез).",
+                  "starter_code": "def last_n_lines(lines, n):\n    pass\n",
+                  "tests": "def test_values():\n    assert last_n_lines([\"a\", \"b\", \"c\", \"d\"], 2) == [\"4: d\", \"3: c\"] and last_n_lines([\"x\"], 5) == [\"1: x\"] and last_n_lines([], 3) == [], \"Неверный результат\"\n",
+                  "solution": "def last_n_lines(lines, n):\n    numbered = [f\"{i}: {line}\" for i, line in enumerate(lines, start=1)]\n    return list(reversed(numbered))[:n]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВстроенные функции-помощники избавляют от ручной работы с индексами: пронумеровать, перебрать два списка параллельно, пройти в обратном или отсортированном порядке, перебрать словарь парами. Код становится короче, понятнее и надёжнее.\n\n## Как это работает\n\n- `enumerate(xs, start=0)` — пары `(номер, элемент)`.\n- `zip(a, b, ...)` — кортежи из элементов на одинаковых позициях; останавливается на самой короткой коллекции (`strict=True` — ошибка при разной длине).\n- `reversed(xs)` — итератор в обратном порядке (для последовательностей).\n- `sorted(xs, key=..., reverse=...)` — новый отсортированный список.\n- `dict.items()` / `.keys()` / `.values()` — представления словаря.\n\nИх можно комбинировать: `enumerate(sorted(...))`, `zip(xs, reversed(ys))`.\n\n## Примеры\n\n### Пример 1. Комбинации помощников\n\n```python\ntests = {\"login\": 1.2, \"pay\": 3.4, \"search\": 0.2}\nfor place, (name, sec) in enumerate(sorted(tests.items(), key=lambda p: p[1], reverse=True), start=1):\n    print(f\"{place}. {name:<7} {sec} с\")\n```\n\n### Пример 2. Параллельное сравнение\n\n```python\nexpected = [\"login\", \"pay\", \"logout\"]\nactual = [\"login\", \"cart\", \"logout\"]\nfor i, (e, a) in enumerate(zip(expected, actual), start=1):\n    print(f\"шаг {i}: {'✅' if e == a else '❌'} {e} / {a}\")\n```\n\n### Пример 3. Свежие записи первыми\n\n```python\nlog = [\"10:00 start\", \"10:01 login\", \"10:02 ERROR\", \"10:03 retry\"]\nfor line in reversed(log[-3:]):\n    print(line)\n```\n\n### Пример 4. Соседние элементы\n\n```python\ntimes = [100, 120, 90, 300]\nfor prev, cur in zip(times, times[1:]):\n    change = cur - prev\n    print(f\"{prev} -> {cur}: {'+' if change > 0 else ''}{change}\")\n```\n\n## Частые ошибки\n\n**`reversed` для множества или словаря старых версий** — работает только с последовательностями (и словарями с Python 3.8).\n\n**Повторное использование итератора** `zip`/`enumerate`/`reversed` — одноразовые.\n\n**`sorted(d)` ожидая пары** — сортирует ключи; для пар — `sorted(d.items())`.\n\n## Шпаргалка\n\n```py\nfor i, x in enumerate(xs, start=1): ...\nfor a, b in zip(xs, ys): ...\nfor x in reversed(xs): ...\nfor k, v in sorted(d.items(), key=lambda p: p[1]): ...\nfor a, b in zip(xs, xs[1:]): ...     # соседи\n```",
+              "quiz": [
+                {
+                  "q": "Что перебирает `sorted({\"b\": 1, \"a\": 2})`?",
+                  "options": [
+                    "Пары",
+                    "Значения",
+                    "Отсортированные ключи",
+                    "Ошибка"
+                  ],
+                  "answer": 2,
+                  "explain": "`sorted` по словарю сортирует ключи: `['a', 'b']`."
+                },
+                {
+                  "q": "Что даёт `zip(xs, xs[1:])`?",
+                  "options": [
+                    "Копию списка",
+                    "Пары соседних элементов",
+                    "Развёрнутый список",
+                    "Пары с индексами"
+                  ],
+                  "answer": 1,
+                  "explain": "Элемент и следующий за ним."
+                },
+                {
+                  "q": "Можно ли дважды перебрать один и тот же объект `enumerate(xs)`?",
+                  "options": [
+                    "Да",
+                    "Нет, это одноразовый итератор",
+                    "Только если xs — список",
+                    "Только с reversed"
+                  ],
+                  "answer": 1,
+                  "explain": "Второй проход по исчерпанному итератору пуст."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

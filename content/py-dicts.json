@@ -1,0 +1,857 @@
+{
+  "topics": [
+    {
+      "slug": "py-dicts",
+      "title": "Словари",
+      "icon": "📖",
+      "color": "#ffc800",
+      "description": "Ключи и значения, get, перебор, подсчёт, группировка, вложенность и слияние",
+      "group": "Python",
+      "modules": [
+        {
+          "slug": "dct-m1",
+          "title": "Основы словарей",
+          "icon": "📖",
+          "description": "Создание, доступ, изменение и get",
+          "lessons": [
+            {
+              "slug": "dct-m1-l1",
+              "title": "Создание и доступ по ключу",
+              "theory": "# Словарь (dict)\n\n```\nuser = {\"name\": \"Аня\", \"age\": 25, \"role\": \"qa\"}\nuser[\"name\"]        # \"Аня\"\nuser[\"email\"]       # KeyError — такого ключа нет\n\"age\" in user       # True — проверка ключа\nlen(user)           # 3\n```\n\n- Пары **ключ → значение**; поиск по ключу мгновенный.\n- Ключи уникальные и хешируемые (строки, числа, кортежи).\n- Порядок вставки сохраняется (Python 3.7+).\n",
+              "exercises": [
+                {
+                  "slug": "dct-m1-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "user = {\"name\": \"Аня\", \"age\": 25, \"role\": \"qa\"}\nprint(user[\"name\"], user[\"age\"])\nprint(\"role\" in user, \"email\" in user, len(user))\n",
+                  "expected_output": "Аня 25\nTrue False 3",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m1-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "codes = {200: \"OK\", 404: \"Not Found\"}\nprint(codes[404])\ntry:\n    print(codes[500])\nexcept KeyError as e:\n    print(\"нет ключа\", e)\nd = {\"a\": 1, \"a\": 2}\nprint(d)\n",
+                  "expected_output": "Not Found\nнет ключа 500\n{'a': 2}",
+                  "hint": "Повторяющийся ключ — последнее значение побеждает.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m1-l1-e3",
+                  "type": "code",
+                  "prompt": "Создай словарь `user` с ключами `\"name\"` → `\"Аня\"`, `\"age\"` → `25`, `\"active\"` → `True`. Затем напиши функцию `describe(u)`, возвращающую строку `\"<name>, <age> лет\"`.\n\n```\ndescribe(user)   # → \"Аня, 25 лет\"\n```",
+                  "starter_code": "",
+                  "tests": "def test_dict():\n    assert user == {\"name\": \"Аня\", \"age\": 25, \"active\": True}, f\"Получено {user}\"\n\ndef test_describe():\n    assert describe(user) == \"Аня, 25 лет\" and describe({\"name\": \"Боря\", \"age\": 30}) == \"Боря, 30 лет\", \"Неверная строка\"\n",
+                  "solution": "user = {\"name\": \"Аня\", \"age\": 25, \"active\": True}\n\ndef describe(u):\n    return f\"{u['name']}, {u['age']} лет\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m1-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `status_text(code)` — текст статуса по коду из словаря `STATUS = {200: \"OK\", 201: \"Created\", 404: \"Not Found\", 500: \"Server Error\"}`. Если кода нет — `\"Unknown\"`. Используй проверку `in`.\n\n```\nstatus_text(404)   # → \"Not Found\"\nstatus_text(418)   # → \"Unknown\"\n```",
+                  "starter_code": "STATUS = {200: \"OK\", 201: \"Created\", 404: \"Not Found\", 500: \"Server Error\"}\n\ndef status_text(code):\n    pass\n",
+                  "tests": "def test_values():\n    assert [status_text(c) for c in (200, 404, 500, 418)] == [\"OK\", \"Not Found\", \"Server Error\", \"Unknown\"], \"Неверный текст\"\n",
+                  "solution": "STATUS = {200: \"OK\", 201: \"Created\", 404: \"Not Found\", 500: \"Server Error\"}\n\ndef status_text(code):\n    if code in STATUS:\n        return STATUS[code]\n    return \"Unknown\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m1-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `has_required(data, required)` — есть ли в словаре `data` **все** ключи из списка `required`.\n\n```\nhas_required({\"id\": 1, \"name\": \"A\"}, [\"id\", \"name\"])           # → True\nhas_required({\"id\": 1}, [\"id\", \"email\"])                        # → False\n```",
+                  "starter_code": "def has_required(data, required):\n    pass\n",
+                  "tests": "def test_values():\n    assert has_required({\"id\": 1, \"name\": \"A\"}, [\"id\", \"name\"]) is True, \"Все ключи есть\"\n    assert has_required({\"id\": 1}, [\"id\", \"email\"]) is False, \"email нет\"\n    assert has_required({}, []) is True, \"Нечего требовать — True\"\n",
+                  "solution": "def has_required(data, required):\n    return all(key in data for key in required)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСловарь — вторая по важности структура данных в Python после списка. Он хранит пары «ключ → значение» и мгновенно находит значение по ключу. JSON-ответы API — это словари; настройки, счётчики, кэши, группировки — тоже словари. Для тестировщика это основной инструмент проверки ответов.\n\n## Как это работает\n\n### Создание\n\n```py\nuser = {\"name\": \"Аня\", \"age\": 25}\nempty = {}                          # пустой словарь (не множество!)\npairs = dict([(\"a\", 1), (\"b\", 2)])\nkw = dict(name=\"Аня\", age=25)\n```\n\n### Ключи\n\n- Уникальны: повтор ключа перезаписывает значение.\n- Должны быть **хешируемыми**: `str`, `int`, `float`, `bool`, `tuple` из неизменяемых. Список ключом быть не может.\n- Значения — что угодно, включая списки и другие словари.\n\n### Доступ\n\n- `d[key]` — значение; если ключа нет — `KeyError`.\n- `key in d` — проверка **ключа** (не значения!).\n- `len(d)` — число пар.\n\nПоиск по ключу работает за постоянное время независимо от размера словаря — в отличие от поиска в списке.\n\n### Порядок\n\nС Python 3.7 словари сохраняют порядок вставки ключей.\n\n## Примеры\n\n### Пример 1. Создание и доступ\n\n```python\nuser = {\"name\": \"Аня\", \"age\": 25, \"tags\": [\"qa\", \"admin\"]}\nprint(user[\"name\"], user[\"tags\"][0])\nprint(\"age\" in user, \"Аня\" in user)      # in проверяет ключи\nprint(len(user), list(user))\n```\n\n### Пример 2. KeyError\n\n```python\nresp = {\"id\": 1, \"name\": \"Аня\"}\ntry:\n    print(resp[\"email\"])\nexcept KeyError as e:\n    print(\"KeyError:\", e)\n```\n\n### Пример 3. Разные ключи\n\n```python\nlookup = {200: \"OK\", \"admin\": True, (0, 0): \"старт\", 3.5: \"дробь\"}\nprint(lookup[200], lookup[\"admin\"], lookup[(0, 0)])\ntry:\n    bad = {[1, 2]: \"x\"}\nexcept TypeError as e:\n    print(\"TypeError:\", e)\n```\n\n### Пример 4. Проверка обязательных полей\n\n```python\nrequired = [\"id\", \"name\", \"email\"]\nresp = {\"id\": 1, \"name\": \"Аня\"}\nmissing = [k for k in required if k not in resp]\nprint(\"не хватает:\", missing)\n```\n\n## Частые ошибки\n\n**`d[key]` без уверенности, что ключ есть** — `KeyError`.\n\n**`value in d`** — проверяет ключи, а не значения; для значений — `in d.values()`.\n\n**`{}` для пустого множества** — это пустой словарь; множество — `set()`.\n\n## Шпаргалка\n\n```py\nd = {\"k\": \"v\"}\nd[\"k\"]        # значение или KeyError\n\"k\" in d      # есть ли ключ\nlen(d)\ndict(a=1, b=2)\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `\"Аня\" in {\"name\": \"Аня\"}`?",
+                  "options": [
+                    "`True`",
+                    "`False`",
+                    "Ошибка",
+                    "`\"name\"`"
+                  ],
+                  "answer": 1,
+                  "explain": "`in` для словаря проверяет ключи."
+                },
+                {
+                  "q": "Что будет в `d` после `d = {\"a\": 1, \"a\": 2}`?",
+                  "options": [
+                    "`{'a': 1}`",
+                    "`{'a': 2}`",
+                    "Ошибка",
+                    "`{'a': [1, 2]}`"
+                  ],
+                  "answer": 1,
+                  "explain": "Ключ уникален, последнее значение перезаписывает."
+                },
+                {
+                  "q": "Что создаёт `{}`?",
+                  "options": [
+                    "Пустое множество",
+                    "Пустой словарь",
+                    "Пустой кортеж",
+                    "Ошибку"
+                  ],
+                  "answer": 1,
+                  "explain": "Пустое множество — `set()`."
+                }
+              ]
+            },
+            {
+              "slug": "dct-m1-l2",
+              "title": "Добавление, изменение, удаление",
+              "theory": "# Изменение словаря\n\n```\nd[\"email\"] = \"a@b.ru\"      # добавить или перезаписать\nd.update({\"age\": 26, \"city\": \"Казань\"})   # несколько сразу\ndel d[\"city\"]              # удалить (KeyError, если нет)\nvalue = d.pop(\"age\")       # удалить и вернуть\nd.pop(\"x\", None)           # без ошибки, если ключа нет\nd.clear()                  # очистить\n```\n",
+              "exercises": [
+                {
+                  "slug": "dct-m1-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "d = {\"name\": \"Аня\"}\nd[\"age\"] = 25\nd[\"name\"] = \"Анна\"\nd.update({\"city\": \"Казань\", \"age\": 26})\nprint(d)\n",
+                  "expected_output": "{'name': 'Анна', 'age': 26, 'city': 'Казань'}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m1-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "d = {\"a\": 1, \"b\": 2, \"c\": 3}\ndel d[\"a\"]\nx = d.pop(\"b\")\ny = d.pop(\"z\", \"нет\")\nprint(x, y, d)\n",
+                  "expected_output": "2 нет {'c': 3}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m1-l2-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `update_user(user, changes)` — применить изменения из словаря `changes` к словарю `user` **на месте** и вернуть `user`.\n\n```\nu = {\"name\": \"Аня\", \"age\": 25}\nupdate_user(u, {\"age\": 26, \"city\": \"Казань\"})\n# → {\"name\": \"Аня\", \"age\": 26, \"city\": \"Казань\"}, и u изменился\n```",
+                  "starter_code": "def update_user(user, changes):\n    pass\n",
+                  "tests": "def test_update():\n    u = {\"name\": \"Аня\", \"age\": 25}\n    result = update_user(u, {\"age\": 26, \"city\": \"Казань\"})\n    assert result == {\"name\": \"Аня\", \"age\": 26, \"city\": \"Казань\"} and u == result, \"Словарь должен измениться на месте\"\n",
+                  "solution": "def update_user(user, changes):\n    user.update(changes)\n    return user\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m1-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `remove_secrets(data, keys)` — вернуть **новый** словарь без указанных ключей (например, `\"password\"`, `\"token\"`). Отсутствующие ключи не должны вызывать ошибку, исходный словарь не меняется.\n\n```\nremove_secrets({\"user\": \"a\", \"password\": \"x\", \"token\": \"y\"}, [\"password\", \"token\", \"api_key\"])\n# → {\"user\": \"a\"}\n```",
+                  "starter_code": "def remove_secrets(data, keys):\n    pass\n",
+                  "tests": "def test_values():\n    src = {\"user\": \"a\", \"password\": \"x\", \"token\": \"y\"}\n    assert remove_secrets(src, [\"password\", \"token\", \"api_key\"]) == {\"user\": \"a\"}, \"Секреты должны быть удалены\"\n    assert src == {\"user\": \"a\", \"password\": \"x\", \"token\": \"y\"}, \"Исходный словарь не должен меняться\"\n",
+                  "solution": "def remove_secrets(data, keys):\n    result = dict(data)\n    for key in keys:\n        result.pop(key, None)\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m1-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `rename_key(d, old, new)` — переименовать ключ **на месте**, сохранив значение. Если ключа `old` нет — ничего не делать. Вернуть словарь.\n\n```\nrename_key({\"userName\": \"Аня\", \"age\": 25}, \"userName\", \"user_name\")\n# → {\"age\": 25, \"user_name\": \"Аня\"}\n```",
+                  "starter_code": "def rename_key(d, old, new):\n    pass\n",
+                  "tests": "def test_values():\n    d = {\"userName\": \"Аня\", \"age\": 25}\n    assert rename_key(d, \"userName\", \"user_name\") == {\"age\": 25, \"user_name\": \"Аня\"} and \"userName\" not in d, \"Ключ не переименован\"\n    assert rename_key({\"a\": 1}, \"x\", \"y\") == {\"a\": 1}, \"Нет ключа — без изменений\"\n",
+                  "solution": "def rename_key(d, old, new):\n    if old in d:\n        d[new] = d.pop(old)\n    return d\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСловари живут и меняются: добавляем поля к тестовым данным, убираем секреты перед логированием, обновляем настройки, переименовываем ключи при переходе API на новый формат. Важно знать, какие операции падают на отсутствующем ключе, а какие — нет.\n\n## Как это работает\n\n### Добавление и изменение\n\n- `d[key] = value` — добавит новый ключ или перезапишет существующий.\n- `d.update(other)` — добавит/перезапишет все пары из другого словаря (или из именованных аргументов: `d.update(age=26)`).\n\n### Удаление\n\n- `del d[key]` — `KeyError`, если ключа нет.\n- `d.pop(key)` — удаляет и **возвращает** значение; `KeyError`, если нет.\n- `d.pop(key, default)` — без ошибки: вернёт `default`.\n- `d.popitem()` — удалить последнюю добавленную пару.\n- `d.clear()` — всё.\n\n### Изменение во время перебора\n\nНельзя добавлять/удалять ключи, перебирая тот же словарь: `RuntimeError: dictionary changed size during iteration`. Перебирай копию: `for k in list(d):`.\n\n### Новый словарь вместо изменения\n\n`{**d, \"key\": v}` или `d | {\"key\": v}` (Python 3.9+) — новый словарь, исходный не меняется.\n\n## Примеры\n\n### Пример 1. Добавление и обновление\n\n```python\npayload = {\"name\": \"Аня\"}\npayload[\"email\"] = \"anna@mail.ru\"\npayload.update({\"role\": \"qa\", \"name\": \"Анна\"})\npayload.update(active=True)\nprint(payload)\n```\n\n### Пример 2. Безопасное удаление\n\n```python\nlog_data = {\"user\": \"anna\", \"password\": \"secret\", \"token\": \"abc\"}\nfor key in [\"password\", \"token\", \"api_key\"]:\n    removed = log_data.pop(key, None)\n    print(key, \"->\", \"удалён\" if removed is not None else \"не было\")\nprint(log_data)\n```\n\n### Пример 3. Изменение во время перебора\n\n```python\nd = {\"a\": 1, \"b\": 0, \"c\": 2}\ntry:\n    for k in d:\n        if d[k] == 0:\n            del d[k]\nexcept RuntimeError as e:\n    print(\"RuntimeError:\", e)\nd = {\"a\": 1, \"b\": 0, \"c\": 2}\nfor k in list(d):\n    if d[k] == 0:\n        del d[k]\nprint(d)\n```\n\n### Пример 4. Новый словарь\n\n```python\nbase = {\"Accept\": \"application/json\"}\nwith_auth = {**base, \"Authorization\": \"Bearer x\"}\nalso = base | {\"X-Id\": \"1\"}\nprint(base, with_auth, also, sep=\"\\n\")\n```\n\n## Частые ошибки\n\n**`del d[k]` для отсутствующего ключа** — используй `pop(k, None)`.\n\n**Удаление ключей во время перебора словаря.**\n\n**Ожидание, что `update` вернёт словарь** — возвращает `None`.\n\n## Шпаргалка\n\n```py\nd[k] = v;  d.update(x=1)\ndel d[k];  v = d.pop(k);  d.pop(k, None)\n{**d, k: v};  d | other\nfor k in list(d): ...\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `{\"a\": 1}.pop(\"b\", 0)`?",
+                  "options": [
+                    "`KeyError`",
+                    "`0`",
+                    "`None`",
+                    "`1`"
+                  ],
+                  "answer": 1,
+                  "explain": "С вторым аргументом pop возвращает значение по умолчанию вместо ошибки."
+                },
+                {
+                  "q": "Что вернёт `d.update({\"x\": 1})`?",
+                  "options": [
+                    "Обновлённый словарь",
+                    "`None`",
+                    "`1`",
+                    "`True`"
+                  ],
+                  "answer": 1,
+                  "explain": "update меняет словарь на месте и возвращает None."
+                },
+                {
+                  "q": "Как удалить ключи из словаря во время перебора без ошибки?",
+                  "options": [
+                    "Перебирать `d` напрямую",
+                    "Перебирать копию ключей: `for k in list(d):`",
+                    "Использовать `while d`",
+                    "Никак"
+                  ],
+                  "answer": 1,
+                  "explain": "Изменять размер словаря во время перебора нельзя."
+                }
+              ]
+            },
+            {
+              "slug": "dct-m1-l3",
+              "title": "get и значения по умолчанию",
+              "theory": "# Безопасное чтение\n\n```\nd.get(\"email\")              # None, если ключа нет\nd.get(\"timeout\", 30)        # 30, если ключа нет\nd.setdefault(\"tags\", [])    # вернуть значение; если нет — вставить [] и вернуть\n```\n\n⚠️ `get(key, default)` вернёт default, только если **ключа нет**. Если ключ есть со значением `None` — вернётся `None`.\n",
+              "exercises": [
+                {
+                  "slug": "dct-m1-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "cfg = {\"browser\": \"chrome\", \"retries\": 0, \"proxy\": None}\nprint(cfg.get(\"browser\"), cfg.get(\"timeout\"), cfg.get(\"timeout\", 30))\nprint(cfg.get(\"retries\", 3), cfg.get(\"proxy\", \"нет\"))\n",
+                  "expected_output": "chrome None 30\n0 None",
+                  "hint": "Для существующего ключа get возвращает его значение, даже 0 или None.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m1-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "groups = {}\ngroups.setdefault(\"qa\", []).append(\"Аня\")\ngroups.setdefault(\"qa\", []).append(\"Боря\")\ngroups.setdefault(\"dev\", []).append(\"Вика\")\nprint(groups)\n",
+                  "expected_output": "{'qa': ['Аня', 'Боря'], 'dev': ['Вика']}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m1-l3-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `get_timeout(config)` — вернуть `config[\"timeout\"]`, а если ключа нет — `30`. Используй `get`.\n\n```\nget_timeout({\"timeout\": 5})   # → 5\nget_timeout({})               # → 30\nget_timeout({\"timeout\": 0})   # → 0\n```",
+                  "starter_code": "def get_timeout(config):\n    pass\n",
+                  "tests": "def test_values():\n    assert [get_timeout({\"timeout\": 5}), get_timeout({}), get_timeout({\"timeout\": 0})] == [5, 30, 0], \"Неверный таймаут\"\n",
+                  "solution": "def get_timeout(config):\n    return config.get(\"timeout\", 30)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m1-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `group_by_role(users)` — сгруппировать имена пользователей по ролям с помощью `setdefault`.\n\n`users` — список словарей `{\"name\": ..., \"role\": ...}`.\n\n```\ngroup_by_role([{\"name\": \"Аня\", \"role\": \"qa\"}, {\"name\": \"Боря\", \"role\": \"dev\"}, {\"name\": \"Вика\", \"role\": \"qa\"}])\n# → {\"qa\": [\"Аня\", \"Вика\"], \"dev\": [\"Боря\"]}\n```",
+                  "starter_code": "def group_by_role(users):\n    pass\n",
+                  "tests": "def test_values():\n    users = [{\"name\": \"Аня\", \"role\": \"qa\"}, {\"name\": \"Боря\", \"role\": \"dev\"}, {\"name\": \"Вика\", \"role\": \"qa\"}]\n    assert group_by_role(users) == {\"qa\": [\"Аня\", \"Вика\"], \"dev\": [\"Боря\"]}, f\"Получено {group_by_role(users)}\"\n    assert group_by_role([]) == {}, \"Пусто — пусто\"\n",
+                  "solution": "def group_by_role(users):\n    groups = {}\n    for u in users:\n        groups.setdefault(u[\"role\"], []).append(u[\"name\"])\n    return groups\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m1-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `resolve(config, key, default)` — настройка с учётом ловушки `None`: если ключа нет **или** его значение `None` — вернуть `default`, иначе значение (в том числе `0`, `False`, `\"\"`).\n\n```\ncfg = {\"retries\": 0, \"proxy\": None, \"debug\": False}\nresolve(cfg, \"retries\", 3)     # → 0\nresolve(cfg, \"proxy\", \"none\")  # → \"none\"\nresolve(cfg, \"debug\", True)    # → False\nresolve(cfg, \"timeout\", 30)    # → 30\n```",
+                  "starter_code": "def resolve(config, key, default):\n    pass\n",
+                  "tests": "def test_values():\n    cfg = {\"retries\": 0, \"proxy\": None, \"debug\": False}\n    got = [resolve(cfg, \"retries\", 3), resolve(cfg, \"proxy\", \"none\"), resolve(cfg, \"debug\", True), resolve(cfg, \"timeout\", 30)]\n    assert got == [0, \"none\", False, 30], f\"Получено {got}\"\n",
+                  "solution": "def resolve(config, key, default):\n    value = config.get(key)\n    return default if value is None else value\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nДанные почти никогда не бывают полными: у пользователя может не быть email, в настройках — таймаута, в ответе API — необязательного поля. `get` и `setdefault` позволяют работать с такими словарями без `KeyError` и без громоздких проверок `if key in d`.\n\n## Как это работает\n\n### get\n\n- `d.get(key)` — значение или `None`.\n- `d.get(key, default)` — значение или `default`.\n\nЛовушка: default подставляется, только если **ключа нет**. Если ключ есть со значением `None`, вернётся `None`. Когда `None` означает «не задано», проверяй явно: `v = d.get(k); v = default if v is None else v`.\n\n### setdefault\n\n`d.setdefault(key, default)`:\n- если ключ есть — вернуть его значение;\n- если нет — вставить `default` и вернуть его.\n\nКлассический приём группировки: `groups.setdefault(role, []).append(name)`.\n\n### defaultdict\n\n`collections.defaultdict(list)` — словарь, который сам создаёт значение по умолчанию при обращении к отсутствующему ключу. Подробнее — в уроке про группировку.\n\n## Примеры\n\n### Пример 1. get с разными значениями\n\n```python\ncfg = {\"browser\": \"chrome\", \"retries\": 0, \"proxy\": None}\nfor key in [\"browser\", \"retries\", \"proxy\", \"timeout\"]:\n    print(f\"{key:8} get={cfg.get(key)!r:10} get(default)={cfg.get(key, 'DEF')!r}\")\n```\n\n### Пример 2. Безопасный доступ к необязательным полям ответа\n\n```python\nusers = [{\"name\": \"Аня\", \"email\": \"a@b.ru\"}, {\"name\": \"Боря\"}]\nfor u in users:\n    print(u[\"name\"], \"—\", u.get(\"email\", \"email не указан\"))\n```\n\n### Пример 3. Группировка через setdefault\n\n```python\nresults = [(\"login\", \"pass\"), (\"pay\", \"fail\"), (\"cart\", \"pass\"), (\"search\", \"skip\")]\nby_status = {}\nfor name, status in results:\n    by_status.setdefault(status, []).append(name)\nprint(by_status)\n```\n\n### Пример 4. None как «не задано»\n\n```python\ndef resolve(config, key, default):\n    value = config.get(key)\n    return default if value is None else value\n\ncfg = {\"retries\": 0, \"proxy\": None}\nprint(resolve(cfg, \"retries\", 3), resolve(cfg, \"proxy\", \"direct\"), resolve(cfg, \"timeout\", 30))\n```\n\n## Частые ошибки\n\n**`d.get(k) or default`** — заменит и `0`, `False`, `\"\"`.\n\n**Ожидание default для ключа со значением `None`.**\n\n**`setdefault` с дорогим вычислением default** — оно вычисляется всегда, даже если ключ есть.\n\n## Шпаргалка\n\n```py\nd.get(k)            # None, если нет\nd.get(k, default)   # default, если нет\nd.setdefault(k, []).append(x)   # группировка\nv = d.get(k); v = default if v is None else v\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `{\"a\": None}.get(\"a\", 5)`?",
+                  "options": [
+                    "`5`",
+                    "`None`",
+                    "`KeyError`",
+                    "`\"a\"`"
+                  ],
+                  "answer": 1,
+                  "explain": "Ключ существует — возвращается его значение, даже None."
+                },
+                {
+                  "q": "Что делает `d.setdefault(\"k\", [])`, если ключа `k` нет?",
+                  "options": [
+                    "Возвращает None",
+                    "Вставляет `[]` под ключом `k` и возвращает этот список",
+                    "Бросает KeyError",
+                    "Ничего"
+                  ],
+                  "answer": 1,
+                  "explain": "setdefault вставляет default и возвращает его."
+                },
+                {
+                  "q": "Чем опасно `d.get(\"retries\") or 3`?",
+                  "options": [
+                    "Ничем",
+                    "Если retries = 0, подставится 3",
+                    "Будет KeyError",
+                    "Вернёт строку"
+                  ],
+                  "answer": 1,
+                  "explain": "`or` заменяет любое ложное значение."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "dct-m2",
+          "title": "Перебор и обработка",
+          "icon": "🔄",
+          "description": "keys/values/items, подсчёт, группировка и сортировка",
+          "lessons": [
+            {
+              "slug": "dct-m2-l1",
+              "title": "Перебор словаря",
+              "theory": "# Перебор\n\n```\nfor key in d:                   # ключи\nfor value in d.values():        # значения\nfor key, value in d.items():    # пары\n```\n\n`d.keys()`, `d.values()`, `d.items()` — «представления», они отражают текущее состояние словаря.\n",
+              "exercises": [
+                {
+                  "slug": "dct-m2-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "prices = {\"чай\": 300, \"кофе\": 500}\nfor item in prices:\n    print(item)\nfor item, price in prices.items():\n    print(f\"{item}: {price}\")\nprint(sum(prices.values()))\n",
+                  "expected_output": "чай\nкофе\nчай: 300\nкофе: 500\n800",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m2-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Представления «живые».",
+                  "code": "d = {\"a\": 1}\nkeys = d.keys()\nd[\"b\"] = 2\nprint(list(keys))\nprint(list(d.values()), list(d.items()))\n",
+                  "expected_output": "['a', 'b']\n[1, 2] [('a', 1), ('b', 2)]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m2-l1-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `total_cost(cart, prices)` — стоимость корзины. `cart` — словарь `{товар: количество}`, `prices` — `{товар: цена}`.\n\n```\ntotal_cost({\"чай\": 2, \"кофе\": 1}, {\"чай\": 300, \"кофе\": 500, \"сок\": 150})   # → 1100\n```",
+                  "starter_code": "def total_cost(cart, prices):\n    pass\n",
+                  "tests": "def test_values():\n    assert total_cost({\"чай\": 2, \"кофе\": 1}, {\"чай\": 300, \"кофе\": 500, \"сок\": 150}) == 1100 and total_cost({}, {\"чай\": 1}) == 0, \"Неверная стоимость\"\n",
+                  "solution": "def total_cost(cart, prices):\n    total = 0\n    for item, qty in cart.items():\n        total += prices[item] * qty\n    return total\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m2-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `failed_tests(results)` — `results` это словарь `{имя_теста: статус}`. Вернуть **отсортированный** список имён тестов со статусом `\"fail\"`.\n\n```\nfailed_tests({\"login\": \"pass\", \"pay\": \"fail\", \"cart\": \"fail\"})   # → [\"cart\", \"pay\"]\n```",
+                  "starter_code": "def failed_tests(results):\n    pass\n",
+                  "tests": "def test_values():\n    assert failed_tests({\"login\": \"pass\", \"pay\": \"fail\", \"cart\": \"fail\"}) == [\"cart\", \"pay\"] and failed_tests({}) == [], \"Неверный список\"\n",
+                  "solution": "def failed_tests(results):\n    return sorted(name for name, status in results.items() if status == \"fail\")\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m2-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `format_headers(headers)` — превратить словарь заголовков в строку, где каждая пара — на отдельной строке в формате `Имя: значение`, в порядке словаря.\n\n```\nformat_headers({\"Content-Type\": \"application/json\", \"X-Id\": \"42\"})\n# → \"Content-Type: application/json\\nX-Id: 42\"\n```",
+                  "starter_code": "def format_headers(headers):\n    pass\n",
+                  "tests": "def test_values():\n    assert format_headers({\"Content-Type\": \"application/json\", \"X-Id\": \"42\"}) == \"Content-Type: application/json\\nX-Id: 42\", \"Неверный формат\"\n    assert format_headers({}) == \"\", \"Пусто — пустая строка\"\n",
+                  "solution": "def format_headers(headers):\n    return \"\\n\".join(f\"{name}: {value}\" for name, value in headers.items())\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПросуммировать значения, найти упавшие тесты, вывести заголовки запроса, сравнить два ответа — всё это требует перебора словаря. Важно выбрать правильный способ: по ключам, по значениям или парами.\n\n## Как это работает\n\n- `for k in d:` — ключи (то же, что `d.keys()`).\n- `for v in d.values():` — значения.\n- `for k, v in d.items():` — пары, сразу с распаковкой. Самый частый вариант.\n\n`keys()`, `values()`, `items()` возвращают **представления** (views): они не копируют данные и отражают изменения словаря. Представления ключей и пар поддерживают операции множеств: `d1.keys() & d2.keys()` — общие ключи.\n\nНужен список — `list(d.values())`.\n\nПорядок перебора — порядок вставки.\n\n## Примеры\n\n### Пример 1. Три способа\n\n```python\nstats = {\"passed\": 42, \"failed\": 3, \"skipped\": 5}\nprint(list(stats), list(stats.values()), list(stats.items()))\nfor status, count in stats.items():\n    print(f\"{status:8} {count:3}\")\nprint(\"всего:\", sum(stats.values()))\n```\n\n### Пример 2. Стоимость корзины\n\n```python\ncart = {\"чай\": 2, \"кофе\": 1}\nprices = {\"чай\": 300, \"кофе\": 500}\ntotal = 0\nfor item, qty in cart.items():\n    line = prices[item] * qty\n    total += line\n    print(f\"{item}: {qty} × {prices[item]} = {line}\")\nprint(\"итого:\", total)\n```\n\n### Пример 3. Сравнение ключей двух ответов\n\n```python\nexpected = {\"id\": 1, \"name\": \"Аня\", \"email\": \"a@b.ru\"}\nactual = {\"id\": 1, \"name\": \"Аня\", \"phone\": \"123\"}\nprint(\"пропали:\", expected.keys() - actual.keys())\nprint(\"лишние:\", actual.keys() - expected.keys())\nprint(\"общие:\", expected.keys() & actual.keys())\n```\n\n### Пример 4. Различия значений\n\n```python\nexpected = {\"status\": \"active\", \"role\": \"qa\", \"age\": 25}\nactual = {\"status\": \"blocked\", \"role\": \"qa\", \"age\": 25}\nfor key, exp in expected.items():\n    act = actual.get(key)\n    if act != exp:\n        print(f\"{key}: ожидали {exp!r}, получили {act!r}\")\n```\n\n## Частые ошибки\n\n**`for k, v in d:`** — без `.items()` распаковка ключа-строки даст ошибку или мусор.\n\n**Изменение размера словаря во время перебора.**\n\n**`d.values()[0]`** — представление не индексируется; нужно `list(d.values())[0]`.\n\n## Шпаргалка\n\n```py\nfor k in d: ...\nfor v in d.values(): ...\nfor k, v in d.items(): ...\nd1.keys() - d2.keys()     # разница ключей\nsum(d.values())\n```",
+              "quiz": [
+                {
+                  "q": "Что перебирает `for x in d.items():`?",
+                  "options": [
+                    "Ключи",
+                    "Значения",
+                    "Пары (ключ, значение)",
+                    "Индексы"
+                  ],
+                  "answer": 2,
+                  "explain": "items() даёт кортежи-пары."
+                },
+                {
+                  "q": "Что вернёт `{\"a\": 1, \"b\": 2}.keys() - {\"a\": 0}.keys()`?",
+                  "options": [
+                    "`{'b'}`",
+                    "`{'a'}`",
+                    "Ошибка",
+                    "`['b']`"
+                  ],
+                  "answer": 0,
+                  "explain": "Представления ключей поддерживают операции множеств."
+                },
+                {
+                  "q": "Можно ли обратиться к `d.values()[0]`?",
+                  "options": [
+                    "Да",
+                    "Нет, представление не индексируется; нужен list()",
+                    "Только для строк",
+                    "Только в Python 2"
+                  ],
+                  "answer": 1,
+                  "explain": "values() — представление, а не список."
+                }
+              ]
+            },
+            {
+              "slug": "dct-m2-l2",
+              "title": "Подсчёт и группировка",
+              "theory": "# Счётчики\n\n```\ncounts = {}\nfor x in items:\n    counts[x] = counts.get(x, 0) + 1\n\nfrom collections import Counter\nCounter(items).most_common(2)\n```\n\n# Группировка\n\n```\nfrom collections import defaultdict\ngroups = defaultdict(list)\nfor user in users:\n    groups[user[\"role\"]].append(user[\"name\"])\n```\n",
+              "exercises": [
+                {
+                  "slug": "dct-m2-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "from collections import Counter\nresults = [\"pass\", \"fail\", \"pass\", \"skip\", \"pass\"]\nc = Counter(results)\nprint(c[\"pass\"], c[\"error\"], c.most_common(1))\n",
+                  "expected_output": "3 0 [('pass', 3)]",
+                  "hint": "Counter возвращает 0 для отсутствующего ключа, без KeyError.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m2-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "from collections import defaultdict\ngroups = defaultdict(list)\nfor name, team in [(\"Аня\", \"qa\"), (\"Боря\", \"dev\"), (\"Вика\", \"qa\")]:\n    groups[team].append(name)\nprint(dict(groups))\nprint(groups[\"ops\"])\n",
+                  "expected_output": "{'qa': ['Аня', 'Вика'], 'dev': ['Боря']}\n[]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m2-l2-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `char_count(text)` — словарь «символ → сколько раз встречается», **без** пробелов, через `get`.\n\n```\nchar_count(\"aab c\")   # → {\"a\": 2, \"b\": 1, \"c\": 1}\n```",
+                  "starter_code": "def char_count(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert char_count(\"aab c\") == {\"a\": 2, \"b\": 1, \"c\": 1} and char_count(\"\") == {}, \"Неверный подсчёт\"\n",
+                  "solution": "def char_count(text):\n    counts = {}\n    for ch in text:\n        if ch != \" \":\n            counts[ch] = counts.get(ch, 0) + 1\n    return counts\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m2-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `top_errors(log, n)` — `n` самых частых сообщений об ошибках. `log` — список строк `\"LEVEL текст\"`; учитывай только уровень `ERROR`. Верни список пар `(текст, количество)` по убыванию количества. Используй `Counter.most_common`.\n\n```\nlog = [\"ERROR timeout\", \"INFO ok\", \"ERROR db down\", \"ERROR timeout\"]\ntop_errors(log, 1)   # → [(\"timeout\", 2)]\n```",
+                  "starter_code": "from collections import Counter\n\ndef top_errors(log, n):\n    pass\n",
+                  "tests": "def test_values():\n    log = [\"ERROR timeout\", \"INFO ok\", \"ERROR db down\", \"ERROR timeout\", \"WARN slow\"]\n    assert top_errors(log, 1) == [(\"timeout\", 2)], f\"Получено {top_errors(log, 1)}\"\n    assert top_errors(log, 5) == [(\"timeout\", 2), (\"db down\", 1)], f\"Получено {top_errors(log, 5)}\"\n",
+                  "solution": "from collections import Counter\n\ndef top_errors(log, n):\n    errors = [line.split(\" \", 1)[1] for line in log if line.startswith(\"ERROR \")]\n    return Counter(errors).most_common(n)\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "dct-m2-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `group_by_first_letter(words)` — сгруппировать слова по первой букве (в нижнем регистре) с помощью `defaultdict(list)`. Вернуть обычный `dict`, слова внутри групп — в исходном порядке.\n\n```\ngroup_by_first_letter([\"Apple\", \"avocado\", \"banana\", \"Blueberry\", \"cherry\"])\n# → {\"a\": [\"Apple\", \"avocado\"], \"b\": [\"banana\", \"Blueberry\"], \"c\": [\"cherry\"]}\n```",
+                  "starter_code": "from collections import defaultdict\n\ndef group_by_first_letter(words):\n    pass\n",
+                  "tests": "def test_values():\n    got = group_by_first_letter([\"Apple\", \"avocado\", \"banana\", \"Blueberry\", \"cherry\"])\n    assert got == {\"a\": [\"Apple\", \"avocado\"], \"b\": [\"banana\", \"Blueberry\"], \"c\": [\"cherry\"]} and type(got) is dict, f\"Получено {got!r}\"\n",
+                  "solution": "from collections import defaultdict\n\ndef group_by_first_letter(words):\n    groups = defaultdict(list)\n    for w in words:\n        groups[w[0].lower()].append(w)\n    return dict(groups)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n«Сколько раз встречается каждая ошибка?», «какие тесты упали в каждом браузере?», «разбить пользователей по ролям» — подсчёт и группировка — самые частые задачи обработки данных. Словарь решает их идеально, а модуль `collections` даёт готовые инструменты.\n\n## Как это работает\n\n### Подсчёт вручную\n\n```py\ncounts = {}\nfor x in items:\n    counts[x] = counts.get(x, 0) + 1\n```\n\n### Counter\n\n`collections.Counter(iterable)` — словарь-счётчик:\n- `c[x]` — количество, для отсутствующего — `0` (без `KeyError`);\n- `c.most_common(n)` — `n` самых частых пар `(элемент, количество)`;\n- счётчики можно складывать и вычитать: `c1 + c2`.\n\n### Группировка вручную\n\n`groups.setdefault(key, []).append(item)`.\n\n### defaultdict\n\n`collections.defaultdict(factory)` — при обращении к отсутствующему ключу вызывает `factory()` и вставляет результат:\n- `defaultdict(list)` — группировка;\n- `defaultdict(int)` — счётчик (`d[x] += 1`);\n- `defaultdict(set)` — уникальные элементы в группе.\n\nОсторожно: даже **чтение** отсутствующего ключа создаёт его. Перед возвратом из функции часто превращают в обычный `dict`.\n\n## Примеры\n\n### Пример 1. Три способа посчитать\n\n```python\nfrom collections import Counter, defaultdict\nresults = [\"pass\", \"fail\", \"pass\", \"skip\", \"pass\"]\n\nmanual = {}\nfor r in results:\n    manual[r] = manual.get(r, 0) + 1\n\nauto = defaultdict(int)\nfor r in results:\n    auto[r] += 1\n\nprint(manual, dict(auto), Counter(results), sep=\"\\n\")\n```\n\n### Пример 2. Топ ошибок из лога\n\n```python\nfrom collections import Counter\nlog = [\"ERROR timeout\", \"INFO ok\", \"ERROR db down\", \"ERROR timeout\", \"ERROR timeout\"]\nerrors = Counter(line.split(\" \", 1)[1] for line in log if line.startswith(\"ERROR\"))\nfor message, count in errors.most_common(2):\n    print(f\"{count} × {message}\")\n```\n\n### Пример 3. Упавшие тесты по браузерам\n\n```python\nfrom collections import defaultdict\nruns = [(\"chrome\", \"login\", \"pass\"), (\"firefox\", \"login\", \"fail\"),\n        (\"chrome\", \"pay\", \"fail\"), (\"firefox\", \"pay\", \"fail\")]\nfailed = defaultdict(list)\nfor browser, test, status in runs:\n    if status == \"fail\":\n        failed[browser].append(test)\nprint(dict(failed))\n```\n\n### Пример 4. Ловушка defaultdict\n\n```python\nfrom collections import defaultdict\nd = defaultdict(list)\nprint(\"ops\" in d)\n_ = d[\"ops\"]          # просто прочитали…\nprint(\"ops\" in d, dict(d))\n```\n\n## Частые ошибки\n\n**`counts[x] += 1` в обычном словаре** — `KeyError` для нового ключа.\n\n**Чтение из defaultdict создаёт ключи** — неожиданные пустые группы.\n\n**`most_common()` без аргумента** — вернёт все элементы, а не один.\n\n## Шпаргалка\n\n```py\nd[k] = d.get(k, 0) + 1\nCounter(xs).most_common(3)\ng = defaultdict(list); g[key].append(x)\ndict(g)                    # вернуть обычный словарь\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `Counter([\"a\"])[\"b\"]`?",
+                  "options": [
+                    "`KeyError`",
+                    "`0`",
+                    "`None`",
+                    "`1`"
+                  ],
+                  "answer": 1,
+                  "explain": "Counter возвращает 0 для отсутствующих элементов."
+                },
+                {
+                  "q": "Что создаст `defaultdict(list)` при обращении к новому ключу?",
+                  "options": [
+                    "KeyError",
+                    "Пустой список под этим ключом",
+                    "None",
+                    "Ничего"
+                  ],
+                  "answer": 1,
+                  "explain": "Вызывается фабрика list() и результат вставляется."
+                },
+                {
+                  "q": "Что вернёт `Counter(\"aabbbc\").most_common(1)`?",
+                  "options": [
+                    "`['b']`",
+                    "`[('b', 3)]`",
+                    "`('b', 3)`",
+                    "`{'b': 3}`"
+                  ],
+                  "answer": 1,
+                  "explain": "Список пар (элемент, количество)."
+                }
+              ]
+            },
+            {
+              "slug": "dct-m2-l3",
+              "title": "Сортировка словарей",
+              "theory": "# Сортировка\n\n```\nsorted(d)                                       # ключи по алфавиту\nsorted(d.items())                               # пары по ключу\nsorted(d.items(), key=lambda p: p[1])           # пары по значению\nsorted(d, key=d.get, reverse=True)              # ключи по убыванию значений\ndict(sorted(d.items()))                         # новый упорядоченный словарь\n```\n",
+              "exercises": [
+                {
+                  "slug": "dct-m2-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "scores = {\"Боря\": 50, \"Аня\": 80, \"Вика\": 65}\nprint(sorted(scores))\nprint(sorted(scores, key=scores.get, reverse=True))\nprint(sorted(scores.items(), key=lambda p: p[1]))\n",
+                  "expected_output": "['Аня', 'Боря', 'Вика']\n['Аня', 'Вика', 'Боря']\n[('Боря', 50), ('Вика', 65), ('Аня', 80)]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m2-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "d = {\"b\": 2, \"a\": 1, \"c\": 3}\nordered = dict(sorted(d.items()))\nprint(ordered)\nprint(max(d, key=d.get), min(d.values()))\n",
+                  "expected_output": "{'a': 1, 'b': 2, 'c': 3}\nc 1",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m2-l3-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `slowest_tests(times, n)` — имена `n` самых медленных тестов по убыванию времени. `times` — словарь `{имя: секунды}`.\n\n```\nslowest_tests({\"login\": 1.2, \"pay\": 3.4, \"search\": 0.2, \"cart\": 2.0}, 2)   # → [\"pay\", \"cart\"]\n```",
+                  "starter_code": "def slowest_tests(times, n):\n    pass\n",
+                  "tests": "def test_values():\n    assert slowest_tests({\"login\": 1.2, \"pay\": 3.4, \"search\": 0.2, \"cart\": 2.0}, 2) == [\"pay\", \"cart\"], \"Неверный результат\"\n    assert slowest_tests({}, 3) == [], \"Пусто — пусто\"\n",
+                  "solution": "def slowest_tests(times, n):\n    return sorted(times, key=times.get, reverse=True)[:n]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m2-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sort_by_value_then_key(d)` — вернуть список ключей, отсортированных по значению **по убыванию**, а при равных значениях — по ключу **по алфавиту**.\n\n```\nsort_by_value_then_key({\"b\": 2, \"a\": 2, \"c\": 5, \"d\": 1})   # → [\"c\", \"a\", \"b\", \"d\"]\n```",
+                  "starter_code": "def sort_by_value_then_key(d):\n    pass\n",
+                  "tests": "def test_values():\n    assert sort_by_value_then_key({\"b\": 2, \"a\": 2, \"c\": 5, \"d\": 1}) == [\"c\", \"a\", \"b\", \"d\"], f\"Получено {sort_by_value_then_key({'b': 2, 'a': 2, 'c': 5, 'd': 1})}\"\n",
+                  "solution": "def sort_by_value_then_key(d):\n    return [k for k, _ in sorted(d.items(), key=lambda p: (-p[1], p[0]))]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m2-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `report(stats)` — строки отчёта `\"<статус>: <кол-во>\"` для словаря `{статус: количество}`, отсортированные по количеству по убыванию. Статусы с нулевым количеством пропустить.\n\n```\nreport({\"passed\": 42, \"failed\": 3, \"skipped\": 0, \"error\": 1})\n# → [\"passed: 42\", \"failed: 3\", \"error: 1\"]\n```",
+                  "starter_code": "def report(stats):\n    pass\n",
+                  "tests": "def test_values():\n    assert report({\"passed\": 42, \"failed\": 3, \"skipped\": 0, \"error\": 1}) == [\"passed: 42\", \"failed: 3\", \"error: 1\"], f\"Получено {report({'passed': 42, 'failed': 3, 'skipped': 0, 'error': 1})}\"\n",
+                  "solution": "def report(stats):\n    ordered = sorted(stats.items(), key=lambda p: p[1], reverse=True)\n    return [f\"{status}: {count}\" for status, count in ordered if count > 0]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСловарь хранит данные, но выводить их часто нужно в определённом порядке: самые медленные тесты вверху, самые частые ошибки первыми, настройки по алфавиту. Сам словарь сортировать нельзя «на месте», но можно получить отсортированный список ключей или пар — или новый упорядоченный словарь.\n\n## Как это работает\n\n- `sorted(d)` — список **ключей** по возрастанию.\n- `sorted(d.items())` — список пар, отсортированных по ключу.\n- `sorted(d.items(), key=lambda p: p[1])` — по значению.\n- `sorted(d, key=d.get)` — ключи, упорядоченные по значениям (`d.get` — функция «ключ → значение»).\n- `reverse=True` — по убыванию; для смешанных направлений — кортеж с минусом: `key=lambda p: (-p[1], p[0])`.\n- `max(d, key=d.get)` — ключ с наибольшим значением.\n- `dict(sorted(d.items()))` — новый словарь в нужном порядке (словари сохраняют порядок вставки).\n- `heapq.nlargest(n, d, key=d.get)` — топ-N без полной сортировки.\n\n## Примеры\n\n### Пример 1. По ключу и по значению\n\n```python\nscores = {\"Боря\": 50, \"Аня\": 80, \"Вика\": 65}\nprint(sorted(scores))\nprint(sorted(scores.items()))\nprint(sorted(scores.items(), key=lambda p: p[1], reverse=True))\nprint(max(scores, key=scores.get))\n```\n\n### Пример 2. Таблица лидеров\n\n```python\nscores = {\"Боря\": 50, \"Аня\": 80, \"Вика\": 50, \"Гоша\": 10}\nranking = sorted(scores.items(), key=lambda p: (-p[1], p[0]))\nfor place, (name, pts) in enumerate(ranking, start=1):\n    print(f\"{place}. {name:5} {pts}\")\n```\n\n### Пример 3. Топ медленных тестов\n\n```python\nimport heapq\ntimes = {\"login\": 1.2, \"pay\": 3.4, \"search\": 0.2, \"cart\": 2.0, \"logout\": 0.1}\nprint(sorted(times, key=times.get, reverse=True)[:3])\nprint(heapq.nlargest(3, times, key=times.get))\n```\n\n### Пример 4. Упорядоченный словарь\n\n```python\nconfig = {\"timeout\": 30, \"browser\": \"chrome\", \"base_url\": \"https://x\"}\nprint(dict(sorted(config.items())))\n```\n\n## Частые ошибки\n\n**`d.sort()`** — у словаря нет метода sort.\n\n**`sorted(d)` в ожидании пар** — сортирует ключи.\n\n**`key=d.get()`** — передаётся функция без скобок.\n\n## Шпаргалка\n\n```py\nsorted(d)                              # ключи\nsorted(d.items(), key=lambda p: p[1])  # пары по значению\nsorted(d, key=d.get, reverse=True)[:n] # топ ключей\nmax(d, key=d.get)\ndict(sorted(d.items()))\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `sorted({\"b\": 1, \"a\": 2})`?",
+                  "options": [
+                    "`[('a', 2), ('b', 1)]`",
+                    "`['a', 'b']`",
+                    "`[1, 2]`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "sorted по словарю сортирует ключи."
+                },
+                {
+                  "q": "Что вернёт `max({\"a\": 3, \"b\": 7}, key={\"a\": 3, \"b\": 7}.get)`?",
+                  "options": [
+                    "`7`",
+                    "`\"b\"`",
+                    "`(\"b\", 7)`",
+                    "`\"a\"`"
+                  ],
+                  "answer": 1,
+                  "explain": "max перебирает ключи, сравнивая их значения."
+                },
+                {
+                  "q": "Есть ли у словаря метод `.sort()`?",
+                  "options": [
+                    "Да",
+                    "Нет",
+                    "Только в Python 3.12",
+                    "Только для числовых ключей"
+                  ],
+                  "answer": 1,
+                  "explain": "Сортируют через sorted(), получая список или новый словарь."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "dct-m3",
+          "title": "Словари в реальных задачах",
+          "icon": "🗂️",
+          "description": "Вложенные словари, слияние, копирование и включения",
+          "lessons": [
+            {
+              "slug": "dct-m3-l1",
+              "title": "Вложенные словари",
+              "theory": "# JSON-подобные данные\n\n```\nresp = {\"data\": {\"user\": {\"name\": \"Аня\", \"roles\": [\"qa\"]}}, \"status\": 200}\nresp[\"data\"][\"user\"][\"name\"]          # \"Аня\"\nresp.get(\"data\", {}).get(\"meta\", {})  # безопасный спуск\n```\n\nКаждый шаг может упасть с `KeyError`, если ключа нет.\n",
+              "exercises": [
+                {
+                  "slug": "dct-m3-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "resp = {\"status\": 200, \"data\": {\"user\": {\"name\": \"Аня\", \"roles\": [\"qa\", \"admin\"]}}}\nuser = resp[\"data\"][\"user\"]\nprint(user[\"name\"], user[\"roles\"][-1])\nprint(resp.get(\"meta\", {}).get(\"page\", 1))\n",
+                  "expected_output": "Аня admin\n1",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m3-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "config = {\"env\": {\"staging\": {\"url\": \"https://stg\"}, \"prod\": {\"url\": \"https://prod\"}}}\nfor name, settings in config[\"env\"].items():\n    print(name, settings[\"url\"])\nconfig[\"env\"][\"dev\"] = {\"url\": \"http://localhost\"}\nprint(len(config[\"env\"]))\n",
+                  "expected_output": "staging https://stg\nprod https://prod\n3",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m3-l1-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `user_city(resp)` — город пользователя из ответа вида `{\"data\": {\"user\": {\"address\": {\"city\": ...}}}}`. Если на любом уровне ключа нет — `None`. Используй цепочку `get` с `{}` по умолчанию.\n\n```\nuser_city({\"data\": {\"user\": {\"address\": {\"city\": \"Казань\"}}}})   # → \"Казань\"\nuser_city({\"data\": {\"user\": {}}})                               # → None\n```",
+                  "starter_code": "def user_city(resp):\n    pass\n",
+                  "tests": "def test_values():\n    assert user_city({\"data\": {\"user\": {\"address\": {\"city\": \"Казань\"}}}}) == \"Казань\", \"Нужен город\"\n    assert user_city({\"data\": {\"user\": {}}}) is None and user_city({}) is None, \"Нет ключа — None\"\n",
+                  "solution": "def user_city(resp):\n    return resp.get(\"data\", {}).get(\"user\", {}).get(\"address\", {}).get(\"city\")\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m3-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `set_nested(d, path, value)` — установить значение по пути ключей, **создавая** промежуточные словари при необходимости. Изменить `d` на месте и вернуть его.\n\n```\nd = {}\nset_nested(d, [\"a\", \"b\", \"c\"], 1)   # → {\"a\": {\"b\": {\"c\": 1}}}\nset_nested(d, [\"a\", \"x\"], 2)        # → {\"a\": {\"b\": {\"c\": 1}, \"x\": 2}}\n```",
+                  "starter_code": "def set_nested(d, path, value):\n    pass\n",
+                  "tests": "def test_values():\n    d = {}\n    assert set_nested(d, [\"a\", \"b\", \"c\"], 1) == {\"a\": {\"b\": {\"c\": 1}}}, \"Неверная вложенность\"\n    assert set_nested(d, [\"a\", \"x\"], 2) == {\"a\": {\"b\": {\"c\": 1}, \"x\": 2}}, \"Существующие ветки должны сохраняться\"\n",
+                  "solution": "def set_nested(d, path, value):\n    current = d\n    for key in path[:-1]:\n        current = current.setdefault(key, {})\n    current[path[-1]] = value\n    return d\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "dct-m3-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `flatten_dict(d, prefix=\"\")` — «расплющить» вложенный словарь в плоский с ключами через точку.\n\n```\nflatten_dict({\"a\": 1, \"b\": {\"c\": 2, \"d\": {\"e\": 3}}})\n# → {\"a\": 1, \"b.c\": 2, \"b.d.e\": 3}\n```\nИспользуй рекурсию.",
+                  "starter_code": "def flatten_dict(d, prefix=\"\"):\n    pass\n",
+                  "tests": "def test_values():\n    assert flatten_dict({\"a\": 1, \"b\": {\"c\": 2, \"d\": {\"e\": 3}}}) == {\"a\": 1, \"b.c\": 2, \"b.d.e\": 3}, f\"Получено {flatten_dict({'a': 1, 'b': {'c': 2, 'd': {'e': 3}}})}\"\n    assert flatten_dict({}) == {}, \"Пусто — пусто\"\n",
+                  "solution": "def flatten_dict(d, prefix=\"\"):\n    flat = {}\n    for key, value in d.items():\n        full = f\"{prefix}.{key}\" if prefix else key\n        if isinstance(value, dict):\n            flat.update(flatten_dict(value, full))\n        else:\n            flat[full] = value\n    return flat\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОтветы API, конфиги (YAML/JSON), фикстуры тестовых данных — всё это вложенные словари. Нужно уметь достать поле с любой глубины, безопасно пройти по необязательным веткам, построить вложенную структуру и превратить её в плоскую — например, чтобы сравнить два ответа поле за полем.\n\n## Как это работает\n\n### Доступ\n\n`resp[\"data\"][\"user\"][\"name\"]` — цепочка индексаций. Каждый шаг может дать `KeyError`.\n\n### Безопасный спуск\n\n`resp.get(\"data\", {}).get(\"user\", {}).get(\"name\")` — `{}` по умолчанию позволяет продолжить цепочку, в конце получим значение или `None`. Осторожно: если по пути встретится не словарь (например, `None` или список), `.get` упадёт — тогда нужна функция с `try/except`.\n\n### Построение\n\n`d.setdefault(key, {})` — «зайти во вложенный словарь, создав его при необходимости». Отлично подходит для построения дерева по пути.\n\n### Расплющивание\n\nРекурсивный обход: если значение — словарь, спускаемся глубже, добавляя ключ к префиксу; иначе — записываем `префикс.ключ → значение`. Плоский вид удобен для сравнения и отчётов.\n\n## Примеры\n\n### Пример 1. Разбор ответа\n\n```python\nresp = {\"status\": 200, \"data\": {\"items\": [{\"id\": 1, \"tags\": [\"new\"]}, {\"id\": 2, \"tags\": []}], \"total\": 2}}\nitems = resp[\"data\"][\"items\"]\nprint(\"total совпадает:\", len(items) == resp[\"data\"][\"total\"])\nfor item in items:\n    print(item[\"id\"], item[\"tags\"][0] if item[\"tags\"] else \"без тегов\")\n```\n\n### Пример 2. Безопасный спуск\n\n```python\ndef page(resp):\n    return resp.get(\"meta\", {}).get(\"pagination\", {}).get(\"page\", 1)\n\nprint(page({\"meta\": {\"pagination\": {\"page\": 3}}}), page({}), page({\"meta\": {}}))\n```\n\n### Пример 3. Построение по пути\n\n```python\ntree = {}\nfor path, value in [(\"env.staging.url\", \"https://stg\"), (\"env.prod.url\", \"https://prod\"), (\"timeout\", 30)]:\n    *parents, last = path.split(\".\")\n    node = tree\n    for key in parents:\n        node = node.setdefault(key, {})\n    node[last] = value\nprint(tree)\n```\n\n### Пример 4. Плоское сравнение двух ответов\n\n```python\ndef flatten(d, prefix=\"\"):\n    out = {}\n    for k, v in d.items():\n        key = f\"{prefix}.{k}\" if prefix else k\n        out.update(flatten(v, key) if isinstance(v, dict) else {key: v})\n    return out\n\nexpected = {\"user\": {\"name\": \"Аня\", \"address\": {\"city\": \"Казань\"}}, \"active\": True}\nactual = {\"user\": {\"name\": \"Аня\", \"address\": {\"city\": \"Москва\"}}, \"active\": True}\nfe, fa = flatten(expected), flatten(actual)\nprint({k: (fe[k], fa.get(k)) for k in fe if fe[k] != fa.get(k)})\n```\n\n## Частые ошибки\n\n**Длинная цепочка `[]` без проверки** — `KeyError` на необязательном поле.\n\n**`.get(...)` на значении `None`** — `AttributeError`.\n\n**Изменение вложенного словаря «копии»**, сделанной через `dict(d)` — вложенные словари общие (следующий урок).\n\n## Шпаргалка\n\n```py\nd[\"a\"][\"b\"][\"c\"]\nd.get(\"a\", {}).get(\"b\", {}).get(\"c\")\nnode = node.setdefault(key, {})\nflatten: рекурсия с префиксом \"a.b.c\"\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `{}.get(\"a\", {}).get(\"b\")`?",
+                  "options": [
+                    "`KeyError`",
+                    "`None`",
+                    "`{}`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Первый get вернёт `{}`, второй — `None`."
+                },
+                {
+                  "q": "Что делает `node = node.setdefault(key, {})` в цикле по ключам пути?",
+                  "options": [
+                    "Удаляет ключи",
+                    "Спускается во вложенный словарь, создавая его при необходимости",
+                    "Копирует словарь",
+                    "Ничего"
+                  ],
+                  "answer": 1,
+                  "explain": "Классический приём построения дерева."
+                },
+                {
+                  "q": "Что вернёт `{\"a\": None}.get(\"a\", {}).get(\"b\")`?",
+                  "options": [
+                    "`None`",
+                    "`AttributeError`: у None нет get",
+                    "`{}`",
+                    "`KeyError`"
+                  ],
+                  "answer": 1,
+                  "explain": "Ключ есть со значением None, а у None нет метода get."
+                }
+              ]
+            },
+            {
+              "slug": "dct-m3-l2",
+              "title": "Слияние и копирование",
+              "theory": "# Слияние\n\n```\nmerged = {**defaults, **overrides}    # новый словарь, правый побеждает\nmerged = defaults | overrides         # то же (Python 3.9+)\ndefaults.update(overrides)            # на месте\n```\n\n# Копирование\n\n```\nshallow = d.copy()          # вложенные объекты — общие!\nimport copy\ndeep = copy.deepcopy(d)     # полная копия\n```\n",
+              "exercises": [
+                {
+                  "slug": "dct-m3-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "defaults = {\"timeout\": 30, \"browser\": \"chrome\", \"headless\": True}\noverrides = {\"browser\": \"firefox\", \"retries\": 2}\nprint({**defaults, **overrides})\nprint(defaults | overrides == {**defaults, **overrides})\nprint(defaults)\n",
+                  "expected_output": "{'timeout': 30, 'browser': 'firefox', 'headless': True, 'retries': 2}\nTrue\n{'timeout': 30, 'browser': 'chrome', 'headless': True}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m3-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Мелкая копия.",
+                  "code": "import copy\noriginal = {\"name\": \"Аня\", \"tags\": [\"qa\"]}\nshallow = original.copy()\ndeep = copy.deepcopy(original)\nshallow[\"tags\"].append(\"admin\")\nshallow[\"name\"] = \"Боря\"\nprint(original)\nprint(deep)\n",
+                  "expected_output": "{'name': 'Аня', 'tags': ['qa', 'admin']}\n{'name': 'Аня', 'tags': ['qa']}",
+                  "hint": "copy() копирует только верхний уровень; список tags общий.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m3-l2-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `build_config(overrides)` — объединить настройки по умолчанию `DEFAULTS = {\"timeout\": 30, \"browser\": \"chrome\", \"headless\": True}` с переданными `overrides` (они важнее) и вернуть **новый** словарь. `DEFAULTS` не должен меняться.\n\n```\nbuild_config({\"browser\": \"firefox\"})   # → {\"timeout\": 30, \"browser\": \"firefox\", \"headless\": True}\n```",
+                  "starter_code": "DEFAULTS = {\"timeout\": 30, \"browser\": \"chrome\", \"headless\": True}\n\ndef build_config(overrides):\n    pass\n",
+                  "tests": "def test_values():\n    assert build_config({\"browser\": \"firefox\"}) == {\"timeout\": 30, \"browser\": \"firefox\", \"headless\": True}, \"Неверный конфиг\"\n    build_config({\"timeout\": 5})\n    assert DEFAULTS == {\"timeout\": 30, \"browser\": \"chrome\", \"headless\": True}, \"DEFAULTS изменился\"\n",
+                  "solution": "DEFAULTS = {\"timeout\": 30, \"browser\": \"chrome\", \"headless\": True}\n\ndef build_config(overrides):\n    return {**DEFAULTS, **overrides}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m3-l2-e4",
+                  "type": "code",
+                  "prompt": "Функция `make_test_user(base)` должна вернуть **независимую** копию шаблона пользователя с добавленным тегом `\"temp\"` в список `tags`. Сейчас она портит шаблон, потому что делает мелкую копию.\n\nИсправь с помощью `copy.deepcopy`.\n\n```\nTEMPLATE = {\"name\": \"test\", \"tags\": [\"auto\"]}\nmake_test_user(TEMPLATE)   # → {\"name\": \"test\", \"tags\": [\"auto\", \"temp\"]}\nTEMPLATE                   # → {\"name\": \"test\", \"tags\": [\"auto\"]}   без изменений\n```",
+                  "starter_code": "def make_test_user(base):\n    user = base.copy()\n    user[\"tags\"].append(\"temp\")\n    return user\n",
+                  "tests": "def test_independent():\n    template = {\"name\": \"test\", \"tags\": [\"auto\"]}\n    user = make_test_user(template)\n    assert user == {\"name\": \"test\", \"tags\": [\"auto\", \"temp\"]}, f\"Получено {user}\"\n    assert template == {\"name\": \"test\", \"tags\": [\"auto\"]}, \"Шаблон испорчен — нужна глубокая копия\"\n",
+                  "solution": "import copy\n\ndef make_test_user(base):\n    user = copy.deepcopy(base)\n    user[\"tags\"].append(\"temp\")\n    return user\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m3-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `deep_merge(base, override)` — рекурсивное слияние: если по ключу в обоих словарях лежат словари — слить их рекурсивно; иначе значение из `override` побеждает. Вернуть **новый** словарь, исходные не менять.\n\n```\ndeep_merge({\"db\": {\"host\": \"localhost\", \"port\": 5432}, \"debug\": False},\n           {\"db\": {\"host\": \"stg-db\"}, \"debug\": True})\n# → {\"db\": {\"host\": \"stg-db\", \"port\": 5432}, \"debug\": True}\n```",
+                  "starter_code": "def deep_merge(base, override):\n    pass\n",
+                  "tests": "def test_values():\n    base = {\"db\": {\"host\": \"localhost\", \"port\": 5432}, \"debug\": False}\n    over = {\"db\": {\"host\": \"stg-db\"}, \"debug\": True}\n    assert deep_merge(base, over) == {\"db\": {\"host\": \"stg-db\", \"port\": 5432}, \"debug\": True}, f\"Получено {deep_merge(base, over)}\"\n    assert base == {\"db\": {\"host\": \"localhost\", \"port\": 5432}, \"debug\": False}, \"base изменился\"\n",
+                  "solution": "def deep_merge(base, override):\n    result = dict(base)\n    for key, value in override.items():\n        if isinstance(result.get(key), dict) and isinstance(value, dict):\n            result[key] = deep_merge(result[key], value)\n        else:\n            result[key] = value\n    return result\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКонфигурация тестов почти всегда многослойная: настройки по умолчанию → настройки окружения (staging) → переопределения из командной строки. Это слияние словарей. А тестовые данные часто создают из шаблона — и если скопировать шаблон неправильно, один тест испортит данные для всех остальных.\n\n## Как это работает\n\n### Слияние\n\n- `{**a, **b}` — новый словарь: сначала пары из `a`, потом из `b`; при совпадении ключей побеждает **правый**.\n- `a | b` — то же самое (Python 3.9+); `a |= b` — обновление на месте.\n- `a.update(b)` — на месте, возвращает `None`.\n\nВсе эти способы **поверхностные**: вложенный словарь из `b` целиком заменит вложенный словарь из `a`. Для «умного» слияния вложенных настроек нужна рекурсия.\n\n### Копирование\n\n- `d.copy()`, `dict(d)`, `{**d}` — **мелкая** копия: новый внешний словарь, но вложенные списки и словари — те же объекты.\n- `copy.deepcopy(d)` — **глубокая** копия: всё копируется рекурсивно, изменения никак не влияют на оригинал.\n\n## Примеры\n\n### Пример 1. Слои конфигурации\n\n```python\ndefaults = {\"timeout\": 30, \"browser\": \"chrome\", \"headless\": True}\nstaging = {\"base_url\": \"https://stg.shop.ru\"}\ncli = {\"browser\": \"firefox\", \"headless\": False}\nconfig = defaults | staging | cli\nprint(config)\n```\n\n### Пример 2. Поверхностное слияние теряет вложенное\n\n```python\nbase = {\"db\": {\"host\": \"localhost\", \"port\": 5432}}\noverride = {\"db\": {\"host\": \"stg-db\"}}\nprint({**base, **override})       # port пропал!\n```\n\n### Пример 3. Рекурсивное слияние\n\n```python\ndef deep_merge(base, override):\n    result = dict(base)\n    for key, value in override.items():\n        if isinstance(result.get(key), dict) and isinstance(value, dict):\n            result[key] = deep_merge(result[key], value)\n        else:\n            result[key] = value\n    return result\n\nprint(deep_merge({\"db\": {\"host\": \"localhost\", \"port\": 5432}}, {\"db\": {\"host\": \"stg-db\"}}))\n```\n\n### Пример 4. Мелкая и глубокая копия\n\n```python\nimport copy\ntemplate = {\"name\": \"test_user\", \"roles\": [\"qa\"]}\na = template.copy()\nb = copy.deepcopy(template)\na[\"roles\"].append(\"admin\")\nprint(\"шаблон:\", template)\nprint(\"глубокая:\", b)\n```\n\n## Частые ошибки\n\n**`d2 = d1`** — не копия, а второе имя.\n\n**Мелкая копия шаблона с вложенными списками** — тесты портят друг другу данные.\n\n**Ожидание рекурсивного слияния от `|` или `update`.**\n\n## Шпаргалка\n\n```py\n{**a, **b};  a | b;  a.update(b)   # правый побеждает, поверхностно\nd.copy()                           # мелкая копия\ncopy.deepcopy(d)                   # глубокая\ndeep_merge — рекурсия для вложенных настроек\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `{\"a\": 1, \"b\": 2} | {\"b\": 3}`?",
+                  "options": [
+                    "`{'a': 1, 'b': 2}`",
+                    "`{'a': 1, 'b': 3}`",
+                    "`{'b': 3}`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Правый словарь побеждает при совпадении ключей."
+                },
+                {
+                  "q": "Скопирует ли `d.copy()` вложенный список?",
+                  "options": [
+                    "Да",
+                    "Нет, вложенный список будет общим",
+                    "Только если он пуст",
+                    "Скопирует дважды"
+                  ],
+                  "answer": 1,
+                  "explain": "copy() — мелкая копия."
+                },
+                {
+                  "q": "Что даст `{**{\"db\": {\"host\": \"a\", \"port\": 1}}, **{\"db\": {\"host\": \"b\"}}}`?",
+                  "options": [
+                    "`{'db': {'host': 'b', 'port': 1}}`",
+                    "`{'db': {'host': 'b'}}`",
+                    "Ошибка",
+                    "`{'db': {'host': 'a', 'port': 1}}`"
+                  ],
+                  "answer": 1,
+                  "explain": "Слияние поверхностное: вложенный словарь заменён целиком."
+                }
+              ]
+            },
+            {
+              "slug": "dct-m3-l3",
+              "title": "Словарные включения",
+              "theory": "# dict comprehension\n\n```\n{k: v for k, v in pairs}\n{name: len(name) for name in names}\n{k: v for k, v in d.items() if v is not None}    # фильтр\n{v: k for k, v in d.items()}                      # инверсия\n```\n\nКороткий способ построить словарь из данных.\n",
+              "exercises": [
+                {
+                  "slug": "dct-m3-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "names = [\"api\", \"ui\", \"docker\"]\nprint({n: len(n) for n in names})\nprices = {\"чай\": 300, \"кофе\": 500, \"сок\": 150}\nprint({k: v for k, v in prices.items() if v >= 300})\n",
+                  "expected_output": "{'api': 3, 'ui': 2, 'docker': 6}\n{'чай': 300, 'кофе': 500}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m3-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "codes = {\"OK\": 200, \"Created\": 201, \"Not Found\": 404}\nby_code = {code: text for text, code in codes.items()}\nprint(by_code[404])\nprint({k.lower(): v for k, v in codes.items()})\n",
+                  "expected_output": "Not Found\n{'ok': 200, 'created': 201, 'not found': 404}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dct-m3-l3-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `drop_none(d)` — новый словарь без пар, у которых значение `None`. Используй словарное включение.\n\n```\ndrop_none({\"a\": 1, \"b\": None, \"c\": 0, \"d\": \"\"})   # → {\"a\": 1, \"c\": 0, \"d\": \"\"}\n```",
+                  "starter_code": "def drop_none(d):\n    pass\n",
+                  "tests": "def test_values():\n    assert drop_none({\"a\": 1, \"b\": None, \"c\": 0, \"d\": \"\"}) == {\"a\": 1, \"c\": 0, \"d\": \"\"}, \"Удалить только None (0 и пустая строка остаются)\"\n",
+                  "solution": "def drop_none(d):\n    return {k: v for k, v in d.items() if v is not None}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m3-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `index_by_id(users)` — словарь `{id: пользователь}` из списка словарей-пользователей. Так поиск по id становится мгновенным.\n\n```\nindex_by_id([{\"id\": 1, \"name\": \"Аня\"}, {\"id\": 2, \"name\": \"Боря\"}])\n# → {1: {\"id\": 1, \"name\": \"Аня\"}, 2: {\"id\": 2, \"name\": \"Боря\"}}\n```",
+                  "starter_code": "def index_by_id(users):\n    pass\n",
+                  "tests": "def test_values():\n    users = [{\"id\": 1, \"name\": \"Аня\"}, {\"id\": 2, \"name\": \"Боря\"}]\n    assert index_by_id(users) == {1: users[0], 2: users[1]} and index_by_id([]) == {}, \"Неверный индекс\"\n",
+                  "solution": "def index_by_id(users):\n    return {u[\"id\"]: u for u in users}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dct-m3-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `normalize_keys(d)` — вернуть новый словарь с ключами в стиле `snake_case`: ключи из `camelCase` превратить так, чтобы перед каждой заглавной буквой стояло `_`, а всё было в нижнем регистре.\n\n```\nnormalize_keys({\"userName\": \"Аня\", \"createdAt\": \"2024\", \"id\": 1})\n# → {\"user_name\": \"Аня\", \"created_at\": \"2024\", \"id\": 1}\n```\nСначала напиши вспомогательную функцию для одного ключа, затем словарное включение.",
+                  "starter_code": "def normalize_keys(d):\n    pass\n",
+                  "tests": "def test_values():\n    got = normalize_keys({\"userName\": \"Аня\", \"createdAt\": \"2024\", \"id\": 1, \"HTTPCode\": 200})\n    assert got == {\"user_name\": \"Аня\", \"created_at\": \"2024\", \"id\": 1, \"_h_t_t_p_code\": 200}, f\"Получено {got}\"\n",
+                  "solution": "def to_snake(key):\n    return \"\".join(\"_\" + ch.lower() if ch.isupper() else ch for ch in key)\n\ndef normalize_keys(d):\n    return {to_snake(k): v for k, v in d.items()}\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПостроить словарь из данных нужно постоянно: индекс «id → объект» для быстрого поиска, словарь длин, отфильтрованные настройки, перевёрнутый справочник кодов. Словарное включение делает это одной понятной строкой.\n\n## Как это работает\n\n```py\n{ключ: значение for элемент in коллекция if условие}\n```\n\n- Выражения ключа и значения вычисляются для каждого элемента.\n- Необязательный `if` фильтрует элементы.\n- Если ключи повторяются — остаётся **последнее** значение.\n- У включения своя область видимости (переменные не «утекают»).\n\nТипичные шаблоны:\n- из списка: `{x: f(x) for x in xs}`;\n- из пар: `{k: v for k, v in pairs}` (или просто `dict(pairs)`);\n- преобразование словаря: `{k: f(v) for k, v in d.items()}`;\n- фильтр: `{k: v for k, v in d.items() if cond(v)}`;\n- инверсия: `{v: k for k, v in d.items()}` (значения должны быть уникальными и хешируемыми);\n- индекс: `{obj[\"id\"]: obj for obj in objects}`.\n\n## Примеры\n\n### Пример 1. Базовые формы\n\n```python\nwords = [\"api\", \"ui\", \"docker\", \"ci\"]\nprint({w: len(w) for w in words})\nprint({w: len(w) for w in words if len(w) > 2})\n```\n\n### Пример 2. Индекс для быстрого поиска\n\n```python\nusers = [{\"id\": 1, \"name\": \"Аня\"}, {\"id\": 2, \"name\": \"Боря\"}, {\"id\": 3, \"name\": \"Вика\"}]\nby_id = {u[\"id\"]: u for u in users}\nprint(by_id[2][\"name\"])\n```\n\n### Пример 3. Очистка и преобразование\n\n```python\nraw = {\"Name \": \" Аня\", \"AGE\": \"25\", \"email\": None}\nclean = {k.strip().lower(): v.strip() for k, v in raw.items() if v is not None}\nprint(clean)\n```\n\n### Пример 4. Инверсия и её подвох\n\n```python\ncodes = {\"OK\": 200, \"Success\": 200, \"Not Found\": 404}\nprint({code: text for text, code in codes.items()})     # 200 перезаписался!\n```\n\n## Частые ошибки\n\n**Инверсия с повторяющимися значениями** — часть данных теряется.\n\n**Слишком сложное включение** — если не читается с одного взгляда, лучше цикл.\n\n**`{x for x in xs}`** без двоеточия — это множество, а не словарь.\n\n## Шпаргалка\n\n```py\n{x: f(x) for x in xs}\n{k: v for k, v in d.items() if v is not None}\n{v: k for k, v in d.items()}\n{obj[\"id\"]: obj for obj in objs}\n```",
+              "quiz": [
+                {
+                  "q": "Что создаёт `{x for x in [1, 2]}`?",
+                  "options": [
+                    "Словарь",
+                    "Множество",
+                    "Список",
+                    "Ошибку"
+                  ],
+                  "answer": 1,
+                  "explain": "Без двоеточия фигурные скобки — множество."
+                },
+                {
+                  "q": "Что вернёт `{k: v for k, v in [(\"a\", 1), (\"a\", 2)]}`?",
+                  "options": [
+                    "`{'a': 1}`",
+                    "`{'a': 2}`",
+                    "Ошибка",
+                    "`{'a': [1, 2]}`"
+                  ],
+                  "answer": 1,
+                  "explain": "Повторяющийся ключ — последнее значение побеждает."
+                },
+                {
+                  "q": "Зачем строить индекс `{u[\"id\"]: u for u in users}`?",
+                  "options": [
+                    "Чтобы отсортировать",
+                    "Чтобы находить пользователя по id мгновенно, без перебора списка",
+                    "Чтобы удалить дубликаты",
+                    "Незачем"
+                  ],
+                  "answer": 1,
+                  "explain": "Поиск по ключу словаря не зависит от размера данных."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

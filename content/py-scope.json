@@ -1,0 +1,857 @@
+{
+  "topics": [
+    {
+      "slug": "py-scope",
+      "title": "Область видимости переменных",
+      "icon": "🔭",
+      "color": "#ff4b4b",
+      "description": "Локальные и глобальные переменные, LEGB, global, nonlocal и замыкания",
+      "group": "Python",
+      "modules": [
+        {
+          "slug": "scp-m1",
+          "title": "Локальные и глобальные",
+          "icon": "🏠",
+          "description": "Где живут переменные и как их менять",
+          "lessons": [
+            {
+              "slug": "scp-m1-l1",
+              "title": "Локальные переменные",
+              "theory": "# Локальная область\n\n```\ndef f():\n    x = 10        # локальная: существует только внутри f\n    return x\n\nf()\nprint(x)          # NameError: x не определена снаружи\n```\n\n- Переменные, созданные внутри функции, **локальные**.\n- Они появляются при вызове и исчезают после выхода.\n- Параметры функции — тоже локальные переменные.\n- У каждого вызова — свой набор локальных переменных.\n",
+              "exercises": [
+                {
+                  "slug": "scp-m1-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def f():\n    x = 10\n    return x * 2\n\nprint(f())\ntry:\n    print(x)\nexcept NameError:\n    print(\"x не существует снаружи\")\n",
+                  "expected_output": "20\nx не существует снаружи",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m1-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Одинаковые имена в разных функциях.",
+                  "code": "def a():\n    value = \"из a\"\n    return value\n\ndef b():\n    value = \"из b\"\n    return value\n\nprint(a(), \"|\", b())\n",
+                  "expected_output": "из a | из b",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m1-l1-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_greeting(name)`, которая создаёт **локальную** переменную `greeting` со строкой `\"Привет, <имя>!\"` и возвращает её.\n\nПосле вызова переменная `greeting` не должна существовать снаружи — это проверит тест.\n\nПример:\n```\nmake_greeting(\"Аня\")   # → \"Привет, Аня!\"\n```",
+                  "starter_code": "def make_greeting(name):\n    pass\n",
+                  "tests": "def test_value():\n    assert make_greeting(\"Аня\") == \"Привет, Аня!\", \"Неверное приветствие\"\n\ndef test_local():\n    make_greeting(\"x\")\n    assert \"greeting\" not in globals(), \"greeting не должна быть глобальной\"\n",
+                  "solution": "def make_greeting(name):\n    greeting = f\"Привет, {name}!\"\n    return greeting\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m1-l1-e4",
+                  "type": "code",
+                  "prompt": "В коде ошибка: результат вычисления внутри функции пытаются использовать снаружи по имени локальной переменной, и программа падает с `NameError`.\n\nИсправь: функция `total_price(prices)` должна **вернуть** сумму, а снаружи результат нужно сохранить в переменную `total` и напечатать.\n\nОжидаемый вывод:\n```\n450\n```",
+                  "starter_code": "def total_price(prices):\n    s = sum(prices)\n\ntotal_price([100, 200, 150])\nprint(s)\n",
+                  "tests": "def test_output():\n    assert OUTPUT.strip() == \"450\", f\"Напечатано {OUTPUT.strip()!r}\"\n\ndef test_function():\n    assert total_price([1, 2]) == 3, \"total_price должна возвращать сумму\"\n    assert total == 450, \"Результат сохрани в переменную total\"\n",
+                  "solution": "def total_price(prices):\n    s = sum(prices)\n    return s\n\ntotal = total_price([100, 200, 150])\nprint(total)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m1-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `call_counter_demo()`, которая **трижды** вызывает вложенную логику: внутри неё объяви функцию `step()`, у которой есть локальная переменная `n = 0`, увеличивающаяся на 1 и возвращаемая.\n\nВернуть список результатов трёх вызовов `step()`.\n\nРезультат покажет, что локальные переменные создаются **заново** при каждом вызове:\n```\ncall_counter_demo()   # → [1, 1, 1]\n```",
+                  "starter_code": "def call_counter_demo():\n    pass\n",
+                  "tests": "def test_values():\n    assert call_counter_demo() == [1, 1, 1], f\"Получено {call_counter_demo()}\"\n",
+                  "solution": "def call_counter_demo():\n    def step():\n        n = 0\n        n += 1\n        return n\n    return [step(), step(), step()]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОбласть видимости (scope) определяет, **где** переменная существует и откуда к ней можно обратиться. Это защищает от хаоса: переменная `result` в одной функции не ломает `result` в другой. Непонимание областей видимости даёт загадочные `NameError` и `UnboundLocalError` и «почему мой счётчик не растёт».\n\n## Как это работает\n\n### Локальная область\n\nКаждый **вызов** функции создаёт свою локальную область:\n- туда попадают параметры и все переменные, которым внутри функции что-то **присваивается**;\n- при выходе из функции область исчезает вместе с переменными (если на них не ссылается замыкание — это позже);\n- следующий вызов начинает с чистого листа.\n\nПоэтому результат работы функции нужно **возвращать** — к её локальным переменным снаружи не добраться.\n\n### Одинаковые имена\n\nПеременные с одним именем в разных функциях — **разные** переменные. Это нормально и удобно.\n\n### Блоки if/for — не области\n\nВ Python, в отличие от многих языков, `if`, `for`, `while` **не создают** новой области: переменная, созданная внутри цикла, видна после него (в той же функции).\n\n## Примеры\n\n### Пример 1. Локальная переменная не видна снаружи\n\n```python\ndef compute():\n    result = 42\n    return result\n\nvalue = compute()\nprint(value)\ntry:\n    print(result)\nexcept NameError as e:\n    print(\"NameError:\", e)\n```\n\n### Пример 2. Каждый вызов — заново\n\n```python\ndef attempt():\n    count = 0\n    count += 1\n    return count\n\nprint(attempt(), attempt(), attempt())\n```\n\n### Пример 3. Блоки не создают области\n\n```python\ndef demo():\n    for i in range(3):\n        last = i * 10\n    if True:\n        flag = \"видно\"\n    return i, last, flag\n\nprint(demo())\n```\n\n### Пример 4. Параметры — локальные\n\n```python\ndef double(x):\n    x = x * 2\n    return x\n\nx = 5\nprint(double(x), x)\n```\n\n## Частые ошибки\n\n**Обращение к локальной переменной снаружи** — `NameError`; нужно вернуть значение.\n\n**Ожидание, что локальная переменная «помнит» значение между вызовами.**\n\n**Путаница: присваивание параметру внутри функции меняет внешнюю переменную** — нет, меняется только локальное имя.\n\n## Шпаргалка\n\n```py\ndef f(a):\n    b = a + 1     # a, b — локальные\n    return b      # единственный путь наружу\nres = f(1)\n```",
+              "quiz": [
+                {
+                  "q": "Что произойдёт при `print(y)` после вызова `def f(): y = 1` и `f()`?",
+                  "options": [
+                    "Выведет 1",
+                    "`NameError`",
+                    "Выведет None",
+                    "Выведет 0"
+                  ],
+                  "answer": 1,
+                  "explain": "y — локальная переменная f и снаружи не существует."
+                },
+                {
+                  "q": "Создаёт ли цикл `for` внутри функции новую область видимости?",
+                  "options": [
+                    "Да",
+                    "Нет, переменные цикла видны в функции после цикла",
+                    "Только для счётчика",
+                    "Только в Python 2"
+                  ],
+                  "answer": 1,
+                  "explain": "Области создают функции (и классы, модули), а не блоки."
+                },
+                {
+                  "q": "Как передать результат вычисления из функции наружу?",
+                  "options": [
+                    "Через локальную переменную с тем же именем",
+                    "Через return",
+                    "Через print",
+                    "Никак"
+                  ],
+                  "answer": 1,
+                  "explain": "return — основной путь наружу."
+                }
+              ]
+            },
+            {
+              "slug": "scp-m1-l2",
+              "title": "Глобальные переменные",
+              "theory": "# Глобальная область\n\n```\nTIMEOUT = 30          # глобальная: объявлена на уровне модуля\n\ndef request():\n    return f\"таймаут {TIMEOUT}\"   # читать глобальную можно\n```\n\n- Переменные на верхнем уровне файла — **глобальные**.\n- Функция может их **читать** без ограничений.\n- Если внутри функции **присвоить** значение — создастся **локальная** переменная с тем же именем.\n",
+              "exercises": [
+                {
+                  "slug": "scp-m1-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "TIMEOUT = 30\n\ndef show():\n    return f\"таймаут {TIMEOUT}\"\n\nprint(show())\nTIMEOUT = 60\nprint(show())\n",
+                  "expected_output": "таймаут 30\nтаймаут 60",
+                  "hint": "Функция читает глобальную переменную в момент вызова.",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m1-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Присваивание создаёт локальную.",
+                  "code": "x = \"глобальная\"\n\ndef f():\n    x = \"локальная\"\n    return x\n\nprint(f())\nprint(x)\n",
+                  "expected_output": "локальная\nглобальная",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m1-l2-e3",
+                  "type": "code",
+                  "prompt": "Есть глобальная константа `BASE_URL = \"https://api.shop.ru\"`. Напиши функцию `endpoint(path)`, которая **читает** её и возвращает полный адрес.\n\nПример:\n```\nendpoint(\"/users\")   # → \"https://api.shop.ru/users\"\n```",
+                  "starter_code": "BASE_URL = \"https://api.shop.ru\"\n\ndef endpoint(path):\n    pass\n",
+                  "tests": "def test_values():\n    assert endpoint(\"/users\") == \"https://api.shop.ru/users\", \"Неверный адрес\"\n\ndef test_reads_global():\n    g = endpoint.__globals__\n    old = g[\"BASE_URL\"]\n    g[\"BASE_URL\"] = \"http://localhost\"\n    try:\n        assert endpoint(\"/x\") == \"http://localhost/x\", \"Функция должна читать глобальную BASE_URL, а не хардкодить адрес\"\n    finally:\n        g[\"BASE_URL\"] = old\n",
+                  "solution": "BASE_URL = \"https://api.shop.ru\"\n\ndef endpoint(path):\n    return BASE_URL + path\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m1-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `describe_env()`, которая возвращает строку `\"<ENV>: <BROWSER>\"`, используя глобальные настройки `ENV` и `BROWSER`, объявленные в заготовке.\n\n```\ndescribe_env()   # → \"staging: chrome\"\n```\nНе создавай внутри функции переменных с такими же именами.",
+                  "starter_code": "ENV = \"staging\"\nBROWSER = \"chrome\"\n\ndef describe_env():\n    pass\n",
+                  "tests": "def test_value():\n    assert describe_env() == \"staging: chrome\", f\"Получено {describe_env()!r}\"\n",
+                  "solution": "ENV = \"staging\"\nBROWSER = \"chrome\"\n\ndef describe_env():\n    return f\"{ENV}: {BROWSER}\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m1-l2-e5",
+                  "type": "code",
+                  "prompt": "Функция `apply_tax` должна использовать глобальную ставку `TAX = 20`, но вместо этого всегда считает с нулевым налогом: внутри неё по ошибке создаётся **локальная** переменная `TAX = 0`.\n\nИсправь функцию — она должна читать глобальную ставку.\n\n```\napply_tax(100)   # → 120.0\n```",
+                  "starter_code": "TAX = 20\n\ndef apply_tax(price):\n    TAX = 0\n    return price * (1 + TAX / 100)\n",
+                  "tests": "def test_value():\n    assert apply_tax(100) == 120.0, f\"Получено {apply_tax(100)}\"\n",
+                  "solution": "TAX = 20\n\ndef apply_tax(price):\n    return price * (1 + TAX / 100)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nНа уровне модуля обычно живут константы и настройки: базовый URL API, таймауты, имя браузера. Функции читают их отовсюду. Важно понимать разницу между **чтением** глобальной переменной (можно всегда) и **присваиванием** ей внутри функции (создаёт локальную переменную).\n\n## Как это работает\n\n### Глобальная область\n\nВсё, что определено на верхнем уровне файла (модуля): переменные, функции, импорты. Живёт, пока работает программа.\n\n### Чтение\n\nЕсли внутри функции используется имя, которое не присваивается в ней, Python ищет его снаружи — в глобальной области. Значение берётся **в момент вызова**, а не в момент объявления функции.\n\n### Присваивание создаёт локальную\n\n```py\nx = 1\ndef f():\n    x = 2      # новая ЛОКАЛЬНАЯ x; глобальная не меняется\n```\n\nPython решает, локальная ли переменная, **при компиляции функции**: если где-то в теле функции есть присваивание имени — оно локальное во всей функции.\n\n### Константы\n\nПо соглашению неизменяемые настройки пишут `ЗАГЛАВНЫМИ`: `BASE_URL`, `MAX_RETRIES`. Это сигнал «не менять».\n\n## Примеры\n\n### Пример 1. Чтение в момент вызова\n\n```python\nMAX_RETRIES = 3\n\ndef plan():\n    return f\"до {MAX_RETRIES} попыток\"\n\nprint(plan())\nMAX_RETRIES = 5\nprint(plan())\n```\n\n### Пример 2. Присваивание не меняет глобальную\n\n```python\ncounter = 0\n\ndef increment():\n    counter = 1           # локальная\n    return counter\n\nprint(increment(), counter)\n```\n\n### Пример 3. Настройки модуля\n\n```python\nBASE_URL = \"https://staging.shop.ru\"\nTIMEOUT = 10\n\ndef request_line(method, path):\n    return f\"{method} {BASE_URL}{path} (timeout={TIMEOUT}s)\"\n\nprint(request_line(\"GET\", \"/api/users\"))\n```\n\n### Пример 4. Функции — тоже глобальные имена\n\n```python\ndef helper():\n    return \"помощник\"\n\ndef main():\n    return helper() + \" вызван из main\"\n\nprint(main())\n```\n\n## Частые ошибки\n\n**Ожидание, что присваивание внутри функции изменит глобальную переменную.**\n\n**Случайное «затенение»** — локальная переменная с именем глобальной скрывает её.\n\n**Изменяемое глобальное состояние** — функции начинают зависеть от порядка вызовов (об этом в следующем уроке).\n\n## Шпаргалка\n\n```py\nCONFIG = \"...\"          # глобальная константа\ndef f():\n    return CONFIG       # читать — можно\ndef g():\n    CONFIG = \"x\"        # это ЛОКАЛЬНАЯ переменная\n```",
+              "quiz": [
+                {
+                  "q": "Что выведет код?\n```py\nx = 1\ndef f():\n    x = 2\nf()\nprint(x)\n```",
+                  "options": [
+                    "`2`",
+                    "`1`",
+                    "Ошибка",
+                    "`None`"
+                  ],
+                  "answer": 1,
+                  "explain": "Присваивание внутри f создало локальную x; глобальная не изменилась."
+                },
+                {
+                  "q": "Когда функция берёт значение глобальной переменной, которую только читает?",
+                  "options": [
+                    "При объявлении функции",
+                    "В момент вызова",
+                    "При запуске программы",
+                    "Никогда"
+                  ],
+                  "answer": 1,
+                  "explain": "Имя ищется при каждом обращении во время выполнения."
+                },
+                {
+                  "q": "Что означает имя переменной ЗАГЛАВНЫМИ буквами?",
+                  "options": [
+                    "Ошибку",
+                    "Соглашение: это константа, её не меняют",
+                    "Глобальную область автоматически",
+                    "Приватную переменную"
+                  ],
+                  "answer": 1,
+                  "explain": "Python не запрещает изменение, но это договорённость."
+                }
+              ]
+            },
+            {
+              "slug": "scp-m1-l3",
+              "title": "global и почему лучше без него",
+              "theory": "# Изменение глобальной переменной\n\n```\ncounter = 0\n\ndef increment():\n    global counter      # разрешить изменение глобальной\n    counter += 1\n```\n\nБез `global` строка `counter += 1` даст `UnboundLocalError`.\n\n⚠️ Изменяемое глобальное состояние делает код хрупким и трудно тестируемым. Обычно лучше **передать значение параметром и вернуть результат**.\n",
+              "exercises": [
+                {
+                  "slug": "scp-m1-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "counter = 0\n\ndef increment():\n    global counter\n    counter += 1\n    return counter\n\nincrement()\nincrement()\nprint(counter)\n",
+                  "expected_output": "2",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m1-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? UnboundLocalError.",
+                  "code": "total = 10\n\ndef add():\n    try:\n        total += 5\n    except UnboundLocalError as e:\n        return \"ошибка: \" + type(e).__name__\n    return total\n\nprint(add())\n",
+                  "expected_output": "ошибка: UnboundLocalError",
+                  "hint": "Присваивание делает total локальной во всей функции, а читать её до присваивания нельзя.",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m1-l3-e3",
+                  "type": "code",
+                  "prompt": "Функция `register()` должна увеличивать **глобальный** счётчик `users_count` на 1 и возвращать новое значение. Сейчас она падает с `UnboundLocalError`.\n\nИсправь с помощью `global`.\n\n```\nregister()   # → 1\nregister()   # → 2\n```",
+                  "starter_code": "users_count = 0\n\ndef register():\n    users_count += 1\n    return users_count\n",
+                  "tests": "def test_values():\n    g = register.__globals__\n    g[\"users_count\"] = 0\n    assert register() == 1 and register() == 2 and g[\"users_count\"] == 2, \"Глобальный счётчик должен расти\"\n",
+                  "solution": "users_count = 0\n\ndef register():\n    global users_count\n    users_count += 1\n    return users_count\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m1-l3-e4",
+                  "type": "code",
+                  "prompt": "Перепиши код **без `global`**: функция `add_points(score, points)` получает текущий счёт параметром и **возвращает** новый.\n\nСнаружи обнови переменную `score` результатом двух вызовов (+10, затем +5) и выведи её.\n\nОжидаемый вывод:\n```\n15\n```",
+                  "starter_code": "score = 0\n\ndef add_points(points):\n    global score\n    score += points\n\nadd_points(10)\nadd_points(5)\nprint(score)\n",
+                  "tests": "import inspect\n\ndef test_output():\n    assert OUTPUT.strip() == \"15\", f\"Напечатано {OUTPUT.strip()!r}\"\n\ndef test_pure():\n    assert add_points(3, 4) == 7, \"add_points(score, points) должна вернуть сумму\"\n    assert \"global\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Избавься от global\"\n",
+                  "solution": "def add_points(score, points):\n    return score + points\n\nscore = 0\nscore = add_points(score, 10)\nscore = add_points(score, 5)\nprint(score)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m1-l3-e5",
+                  "type": "code",
+                  "prompt": "Сделай счётчик запросов **без `global`**: напиши класс-хранилище не нужно — используй **словарь** состояния, который передаётся в функцию.\n\nФункция `track(stats, endpoint)` увеличивает счётчик вызовов для `endpoint` в словаре `stats` (изменяя его) и возвращает новое значение счётчика.\n\n```\nstats = {}\ntrack(stats, \"/users\")   # → 1\ntrack(stats, \"/users\")   # → 2\ntrack(stats, \"/items\")   # → 1\nstats                    # → {\"/users\": 2, \"/items\": 1}\n```",
+                  "starter_code": "def track(stats, endpoint):\n    pass\n",
+                  "tests": "def test_values():\n    stats = {}\n    assert [track(stats, \"/users\"), track(stats, \"/users\"), track(stats, \"/items\")] == [1, 2, 1], \"Неверные счётчики\"\n    assert stats == {\"/users\": 2, \"/items\": 1}, f\"Состояние: {stats}\"\n\ndef test_no_global():\n    assert \"global\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Реши без global\"\n",
+                  "solution": "def track(stats, endpoint):\n    stats[endpoint] = stats.get(endpoint, 0) + 1\n    return stats[endpoint]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nИногда кажется удобным хранить состояние в глобальной переменной: счётчик вызовов, текущего пользователя, открытую сессию. Python разрешает менять глобальную переменную из функции через `global`, но это почти всегда источник проблем — особенно в тестах, где один тест «загрязняет» состояние для следующего.\n\n## Как это работает\n\n### UnboundLocalError\n\n```py\ntotal = 10\ndef add():\n    total += 5      # UnboundLocalError\n```\n\nРаз в функции есть присваивание `total`, Python считает `total` **локальной во всей функции**. А `total += 5` сначала читает локальную `total`, которой ещё нет.\n\n### global\n\n`global имя` в начале функции говорит: «это имя — глобальная переменная, присваивания меняют её».\n\n### Почему лучше без global\n\n- **Скрытая зависимость**: по сигнатуре функции не видно, что она читает и меняет.\n- **Зависимость от порядка вызовов**: результат зависит от того, что вызывали раньше.\n- **Тесты влияют друг на друга**: глобальное состояние переживает тест.\n- **Параллельный запуск** ломается.\n\n### Альтернативы\n\n1. Передать значение параметром и **вернуть** новое.\n2. Передать изменяемый контейнер (словарь, объект) явно.\n3. Инкапсулировать состояние в объекте класса или замыкании.\n\n## Примеры\n\n### Пример 1. Ошибка и её причина\n\n```python\ntotal = 10\n\ndef add_broken():\n    total += 5\n\ntry:\n    add_broken()\nexcept UnboundLocalError as e:\n    print(\"UnboundLocalError:\", e)\n```\n\n### Пример 2. global работает, но…\n\n```python\ncalls = 0\n\ndef api_call():\n    global calls\n    calls += 1\n    return f\"вызов №{calls}\"\n\nprint(api_call(), api_call())\ncalls = 0                        # «кто-то» сбросил снаружи\nprint(api_call())\n```\n\n### Пример 3. Явное состояние\n\n```python\ndef add_points(score, points):\n    return score + points\n\nscore = 0\nfor p in [10, 5, 20]:\n    score = add_points(score, p)\nprint(score)\n```\n\n### Пример 4. Состояние в словаре\n\n```python\ndef track(stats, endpoint):\n    stats[endpoint] = stats.get(endpoint, 0) + 1\n\nrun1, run2 = {}, {}\ntrack(run1, \"/users\"); track(run1, \"/users\")\ntrack(run2, \"/items\")\nprint(run1, run2)          # прогоны не мешают друг другу\n```\n\n## Частые ошибки\n\n**`x += 1` без `global`** для глобальной `x` — `UnboundLocalError`.\n\n**`global` «на всякий случай»** там, где переменная только читается — не нужен.\n\n**Тесты, полагающиеся на глобальное состояние** — работают по одному и падают вместе.\n\n## Шпаргалка\n\n```py\ndef f():\n    global count; count += 1      # можно, но избегай\ndef f(count):\n    return count + 1              # лучше: явный вход и выход\n```",
+              "quiz": [
+                {
+                  "q": "Почему `x += 1` внутри функции падает с `UnboundLocalError`, если `x` глобальная?",
+                  "options": [
+                    "Нельзя складывать",
+                    "Присваивание делает x локальной во всей функции, а её ещё нет",
+                    "global запрещён",
+                    "x неизменяемая"
+                  ],
+                  "answer": 1,
+                  "explain": "Python решает про локальность по наличию присваивания в теле функции."
+                },
+                {
+                  "q": "Нужен ли `global`, чтобы только прочитать глобальную переменную?",
+                  "options": [
+                    "Да",
+                    "Нет",
+                    "Только для строк",
+                    "Только в классах"
+                  ],
+                  "answer": 1,
+                  "explain": "`global` нужен лишь для присваивания."
+                },
+                {
+                  "q": "Почему глобальное изменяемое состояние вредно в тестах?",
+                  "options": [
+                    "Замедляет тесты",
+                    "Тесты начинают зависеть друг от друга и от порядка запуска",
+                    "Оно запрещено pytest",
+                    "Не вредно"
+                  ],
+                  "answer": 1,
+                  "explain": "Состояние, изменённое одним тестом, видят следующие."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "scp-m2",
+          "title": "Вложенные функции",
+          "icon": "🪆",
+          "description": "Правило LEGB, nonlocal и замыкания",
+          "lessons": [
+            {
+              "slug": "scp-m2-l1",
+              "title": "Правило LEGB",
+              "theory": "# Порядок поиска имени\n\n**L**ocal → **E**nclosing → **G**lobal → **B**uilt-in\n\n1. локальная область текущей функции;\n2. области внешних (объемлющих) функций;\n3. глобальная область модуля;\n4. встроенные имена (`len`, `print`, `list`…).\n\nИспользуется **первое** найденное.\n",
+              "exercises": [
+                {
+                  "slug": "scp-m2-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "x = \"global\"\n\ndef outer():\n    x = \"enclosing\"\n    def inner():\n        return x\n    return inner()\n\nprint(outer())\n",
+                  "expected_output": "enclosing",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m2-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "x = \"global\"\n\ndef outer():\n    def inner():\n        return x\n    return inner()\n\ndef outer2():\n    x = \"enclosing\"\n    def inner():\n        x = \"local\"\n        return x\n    return inner(), x\n\nprint(outer())\nprint(outer2())\n",
+                  "expected_output": "global\n('local', 'enclosing')",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m2-l1-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_formatter(prefix)`, внутри которой объяви функцию `fmt(message)`, возвращающую `\"<prefix>: <message>\"`. Вложенная функция должна брать `prefix` из **объемлющей** области. `make_formatter` возвращает результат `fmt(\"готово\")`.\n\n```\nmake_formatter(\"INFO\")   # → \"INFO: готово\"\n```",
+                  "starter_code": "def make_formatter(prefix):\n    pass\n",
+                  "tests": "def test_value():\n    assert make_formatter(\"INFO\") == \"INFO: готово\" and make_formatter(\"ERR\") == \"ERR: готово\", \"Неверная строка\"\n",
+                  "solution": "def make_formatter(prefix):\n    def fmt(message):\n        return f\"{prefix}: {message}\"\n    return fmt(\"готово\")\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m2-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `which_scope()`, возвращающую список из трёх строк: значение переменной `level`, полученное из **трёх** уровней.\n\nСтруктура:\n- глобальная `level = \"G\"` (уже в заготовке);\n- внутри `which_scope` — `level = \"E\"` и вложенная функция `inner()`, где `level = \"L\"`;\n- `inner` возвращает свою `level`, а `which_scope` возвращает `[inner(), level, глобальная level]`.\n\n```\nwhich_scope()   # → [\"L\", \"E\", \"G\"]\n```\nГлобальную прочитай через `globals()[\"level\"]`.",
+                  "starter_code": "level = \"G\"\n\ndef which_scope():\n    pass\n",
+                  "tests": "def test_value():\n    assert which_scope() == [\"L\", \"E\", \"G\"], f\"Получено {which_scope()}\"\n",
+                  "solution": "level = \"G\"\n\ndef which_scope():\n    level = \"E\"\n    def inner():\n        level = \"L\"\n        return level\n    return [inner(), level, globals()[\"level\"]]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m2-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `count_items(items)`, которая использует встроенную `len` — **но** в заготовке глобально объявлена переменная `len = 5`, которая «ломает» встроенную функцию.\n\nИсправь заготовку так, чтобы `count_items` работала: удали затеняющую переменную.\n\n```\ncount_items([1, 2, 3])   # → 3\n```",
+                  "starter_code": "len = 5\n\ndef count_items(items):\n    return len(items)\n",
+                  "tests": "def test_value():\n    assert count_items([1, 2, 3]) == 3 and count_items([]) == 0, \"count_items должна вернуть длину\"\n",
+                  "solution": "def count_items(items):\n    return len(items)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКогда функции вложены друг в друга, а имена совпадают, важно точно знать, какую переменную увидит код. Правило LEGB объясняет всё: от «почему внутренняя функция видит переменную внешней» до «почему после `list = [...]` перестала работать функция `list()`».\n\n## Как это работает\n\nВстретив имя, Python ищет его по порядку:\n\n1. **L — Local**: локальная область текущей функции.\n2. **E — Enclosing**: области объемлющих функций, от ближайшей к дальней.\n3. **G — Global**: область модуля.\n4. **B — Built-in**: встроенные имена (`len`, `print`, `sum`, `list`, `Exception`…).\n\nБерётся **первое** найденное. Если нигде — `NameError`.\n\n### Следствия\n\n- Вложенная функция может **читать** переменные внешней (это основа замыканий).\n- Локальное имя **затеняет** одноимённые снаружи.\n- Глобальная переменная с именем встроенной функции её «ломает» — `len = 5` сделает `len(...)` ошибкой во всём модуле.\n\nПосмотреть содержимое областей: `locals()`, `globals()`, модуль `builtins`.\n\n## Примеры\n\n### Пример 1. Все четыре уровня\n\n```python\nx = \"G\"\n\ndef outer():\n    x = \"E\"\n    def inner():\n        x = \"L\"\n        return x\n    return inner(), x\n\nprint(outer(), x)\nprint(len(\"B — встроенная функция len\"))\n```\n\n### Пример 2. Чтение из объемлющей области\n\n```python\ndef make_report(title):\n    lines = []\n    def add(line):\n        lines.append(f\"[{title}] {line}\")    # title и lines — из outer\n    add(\"старт\")\n    add(\"финиш\")\n    return lines\n\nprint(make_report(\"smoke\"))\n```\n\n### Пример 3. Сломанная встроенная функция\n\n```python\nlist = [1, 2, 3]\ntry:\n    list(\"abc\")\nexcept TypeError as e:\n    print(\"TypeError:\", e)\ndel list                     # вернуть встроенную\nprint(list(\"abc\"))\n```\n\n## Частые ошибки\n\n**Имена переменных как у встроенных**: `list`, `dict`, `str`, `id`, `type`, `input`, `sum`, `max`.\n\n**Ожидание, что внутренняя функция увидит переменную, созданную после её вызова.**\n\n**Путаница «читать можно — присваивать нельзя»** для внешних переменных (решение — `nonlocal`, следующий урок).\n\n## Шпаргалка\n\n```text\nLocal → Enclosing → Global → Built-in\nпервое найденное имя побеждает\nне называй переменные list, dict, str, id, sum…\n```",
+              "quiz": [
+                {
+                  "q": "В каком порядке Python ищет имя?",
+                  "options": [
+                    "Global → Local → Built-in",
+                    "Local → Enclosing → Global → Built-in",
+                    "Built-in → Global → Local",
+                    "Случайно"
+                  ],
+                  "answer": 1,
+                  "explain": "Правило LEGB."
+                },
+                {
+                  "q": "Что станет с `len(\"abc\")` после строки `len = 3` на уровне модуля?",
+                  "options": [
+                    "Вернёт 3",
+                    "`TypeError`: int не вызывается",
+                    "Вернёт 3 символа",
+                    "Ничего не изменится"
+                  ],
+                  "answer": 1,
+                  "explain": "Глобальное имя len затенило встроенную функцию."
+                },
+                {
+                  "q": "Может ли вложенная функция читать переменную внешней функции?",
+                  "options": [
+                    "Нет",
+                    "Да, через объемлющую (E) область",
+                    "Только через global",
+                    "Только если она константа"
+                  ],
+                  "answer": 1,
+                  "explain": "Это Enclosing-уровень LEGB."
+                }
+              ]
+            },
+            {
+              "slug": "scp-m2-l2",
+              "title": "nonlocal",
+              "theory": "# Изменение переменной внешней функции\n\n```\ndef counter():\n    count = 0\n    def inc():\n        nonlocal count     # count — из объемлющей функции\n        count += 1\n        return count\n    return inc\n```\n\n- `nonlocal` — как `global`, но для ближайшей **объемлющей функции**.\n- Без него присваивание создаёт локальную переменную (`UnboundLocalError`).\n- Изменять содержимое списка/словаря можно и без `nonlocal`.\n",
+              "exercises": [
+                {
+                  "slug": "scp-m2-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def outer():\n    count = 0\n    def inc():\n        nonlocal count\n        count += 1\n    inc()\n    inc()\n    return count\n\nprint(outer())\n",
+                  "expected_output": "2",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m2-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Список меняется без nonlocal.",
+                  "code": "def outer():\n    log = []\n    total = 0\n    def add(x):\n        log.append(x)\n    add(1)\n    add(2)\n    return log, total\n\nprint(outer())\n",
+                  "expected_output": "([1, 2], 0)",
+                  "hint": "append меняет объект, а не переменную; присваивания нет — nonlocal не нужен.",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m2-l2-e3",
+                  "type": "code",
+                  "prompt": "Функция `sum_with_helper(nums)` должна суммировать числа через вложенную функцию `add(x)`, которая увеличивает переменную `total` внешней функции. Сейчас она падает с `UnboundLocalError`.\n\nИсправь с помощью `nonlocal`.\n\n```\nsum_with_helper([1, 2, 3])   # → 6\n```",
+                  "starter_code": "def sum_with_helper(nums):\n    total = 0\n    def add(x):\n        total += x\n    for n in nums:\n        add(n)\n    return total\n",
+                  "tests": "def test_value():\n    assert sum_with_helper([1, 2, 3]) == 6 and sum_with_helper([]) == 0, \"Неверная сумма\"\n",
+                  "solution": "def sum_with_helper(nums):\n    total = 0\n    def add(x):\n        nonlocal total\n        total += x\n    for n in nums:\n        add(n)\n    return total\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m2-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_counter()`, которая возвращает **функцию** `inc()`: каждый вызов `inc()` увеличивает внутренний счётчик на 1 и возвращает его. Используй `nonlocal`.\n\n```\nc = make_counter()\nc(), c(), c()      # → 1, 2, 3\nd = make_counter()\nd()                # → 1   у каждого счётчика своё состояние\n```",
+                  "starter_code": "def make_counter():\n    pass\n",
+                  "tests": "def test_counter():\n    c = make_counter()\n    assert [c(), c(), c()] == [1, 2, 3], \"Счётчик должен расти\"\n    d = make_counter()\n    assert d() == 1 and c() == 4, \"Счётчики независимы\"\n\ndef test_nonlocal():\n    assert \"nonlocal\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй nonlocal\"\n",
+                  "solution": "def make_counter():\n    count = 0\n    def inc():\n        nonlocal count\n        count += 1\n        return count\n    return inc\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m2-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_accumulator(start=0)`, возвращающую функцию `add(x)`: она прибавляет `x` к накопленной сумме и возвращает новую сумму. Также у возвращаемой функции должна быть возможность **сбросить** сумму вызовом `add(reset=True)` (вернуть `start`).\n\n```\nacc = make_accumulator(10)\nacc(5)            # → 15\nacc(5)            # → 20\nacc(reset=True)   # → 10\nacc(1)            # → 11\n```",
+                  "starter_code": "def make_accumulator(start=0):\n    pass\n",
+                  "tests": "def test_values():\n    acc = make_accumulator(10)\n    assert [acc(5), acc(5), acc(reset=True), acc(1)] == [15, 20, 10, 11], \"Неверные суммы\"\n    other = make_accumulator()\n    assert other(3) == 3, \"Независимые аккумуляторы\"\n",
+                  "solution": "def make_accumulator(start=0):\n    total = start\n    def add(x=0, reset=False):\n        nonlocal total\n        if reset:\n            total = start\n        else:\n            total += x\n        return total\n    return add\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВложенные функции часто должны не только читать, но и **менять** переменные внешней функции: считать вызовы, накапливать результат, помнить состояние. `nonlocal` делает это возможным без глобальных переменных — состояние остаётся спрятанным внутри.\n\n## Как это работает\n\n```py\ndef outer():\n    count = 0\n    def inner():\n        nonlocal count\n        count += 1\n```\n\n- `nonlocal имя` связывает имя с переменной ближайшей **объемлющей функции** (не глобальной!).\n- Без `nonlocal` присваивание сделает имя локальным для `inner` → `UnboundLocalError` при `+=`.\n- Переменная должна уже существовать во внешней функции.\n\n### Когда nonlocal не нужен\n\nЕсли ты не **присваиваешь** имя, а меняешь объект — `lst.append(x)`, `d[k] = v` — `nonlocal` не нужен: переменная указывает на тот же объект.\n\n### global против nonlocal\n\n- `global` — переменная модуля;\n- `nonlocal` — переменная внешней функции.\n\n## Примеры\n\n### Пример 1. Без nonlocal и с ним\n\n```python\ndef broken():\n    count = 0\n    def inc():\n        count += 1\n    try:\n        inc()\n    except UnboundLocalError as e:\n        return f\"ошибка: {e}\"\n\ndef fixed():\n    count = 0\n    def inc():\n        nonlocal count\n        count += 1\n    inc(); inc()\n    return count\n\nprint(broken())\nprint(fixed())\n```\n\n### Пример 2. Независимые счётчики\n\n```python\ndef make_counter():\n    count = 0\n    def inc():\n        nonlocal count\n        count += 1\n        return count\n    return inc\n\nrequests_counter = make_counter()\nerrors_counter = make_counter()\nrequests_counter(); requests_counter(); errors_counter()\nprint(requests_counter(), errors_counter())\n```\n\n### Пример 3. Изменяемый объект — nonlocal не нужен\n\n```python\ndef collect():\n    items = []\n    def add(x):\n        items.append(x)        # изменение объекта\n    for i in range(3):\n        add(i)\n    return items\n\nprint(collect())\n```\n\n## Частые ошибки\n\n**`nonlocal` для глобальной переменной** — `SyntaxError: no binding for nonlocal found`.\n\n**`nonlocal` там, где только читают** — не нужен.\n\n**Забыли `nonlocal` при `+=`** — `UnboundLocalError`.\n\n## Шпаргалка\n\n```py\ndef outer():\n    n = 0\n    def inner():\n        nonlocal n\n        n += 1\n    return inner\n```",
+              "quiz": [
+                {
+                  "q": "Чем `nonlocal` отличается от `global`?",
+                  "options": [
+                    "Ничем",
+                    "`nonlocal` ссылается на переменную объемлющей функции, `global` — на переменную модуля",
+                    "`nonlocal` работает только со списками",
+                    "`global` устарел"
+                  ],
+                  "answer": 1,
+                  "explain": "Разные уровни LEGB: Enclosing и Global."
+                },
+                {
+                  "q": "Нужен ли `nonlocal`, чтобы вызвать `items.append(x)` для списка из внешней функции?",
+                  "options": [
+                    "Да",
+                    "Нет, объект меняется без присваивания имени",
+                    "Только в Python 2",
+                    "Нужен global"
+                  ],
+                  "answer": 1,
+                  "explain": "nonlocal нужен только для присваивания имени."
+                },
+                {
+                  "q": "Что будет при `nonlocal x`, если во внешних функциях нет переменной x?",
+                  "options": [
+                    "Создастся новая",
+                    "`SyntaxError`",
+                    "Возьмётся глобальная",
+                    "Ничего"
+                  ],
+                  "answer": 1,
+                  "explain": "nonlocal требует существующей переменной в объемлющей функции."
+                }
+              ]
+            },
+            {
+              "slug": "scp-m2-l3",
+              "title": "Замыкания",
+              "theory": "# Функция, которая помнит окружение\n\n```\ndef multiplier(n):\n    def mul(x):\n        return x * n      # n «запомнилось»\n    return mul\n\ntriple = multiplier(3)\ntriple(5)                 # 15\n```\n\nВнутренняя функция сохраняет доступ к переменным внешней даже **после** её завершения.\nТак делают фабрики функций, счётчики, кэши, декораторы.\n",
+              "exercises": [
+                {
+                  "slug": "scp-m2-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def multiplier(n):\n    def mul(x):\n        return x * n\n    return mul\n\ndouble, triple = multiplier(2), multiplier(3)\nprint(double(10), triple(10))\n",
+                  "expected_output": "20 30",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m2-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Ловушка позднего связывания.",
+                  "code": "funcs = []\nfor i in range(3):\n    funcs.append(lambda: i)\nprint([f() for f in funcs])\n\nfixed = []\nfor i in range(3):\n    fixed.append(lambda i=i: i)\nprint([f() for f in fixed])\n",
+                  "expected_output": "[2, 2, 2]\n[0, 1, 2]",
+                  "hint": "Замыкание помнит переменную, а не её значение в момент создания.",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m2-l3-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_validator(min_len)` — фабрику проверок: возвращает функцию, которая получает строку и возвращает `True`, если её длина не меньше `min_len`.\n\n```\ncheck8 = make_validator(8)\ncheck8(\"12345678\")   # → True\ncheck8(\"123\")        # → False\n```",
+                  "starter_code": "def make_validator(min_len):\n    pass\n",
+                  "tests": "def test_values():\n    check8, check2 = make_validator(8), make_validator(2)\n    assert check8(\"12345678\") is True and check8(\"123\") is False and check2(\"ab\") is True, \"Неверная проверка\"\n",
+                  "solution": "def make_validator(min_len):\n    def check(s):\n        return len(s) >= min_len\n    return check\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m2-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_cache(func)` — возвращает новую функцию, которая вызывает `func(x)` только при **первом** обращении с этим `x`, а дальше берёт результат из словаря-кэша (в замыкании).\n\nУ возвращаемой функции должен быть атрибут-счётчик реальных вызовов недоступен — поэтому проверка сделает сама: `func` будет считать свои вызовы.\n\n```\nslow_square = ...   # считает вызовы\nfast = make_cache(slow_square)\nfast(4), fast(4), fast(5)    # → 16, 16, 25; реальных вызовов — 2\n```",
+                  "starter_code": "def make_cache(func):\n    pass\n",
+                  "tests": "def test_cache():\n    calls = []\n    def slow_square(x):\n        calls.append(x)\n        return x * x\n    fast = make_cache(slow_square)\n    assert [fast(4), fast(4), fast(5), fast(4)] == [16, 16, 25, 16], \"Неверные результаты\"\n    assert calls == [4, 5], f\"Реальные вызовы: {calls} — повторы должны браться из кэша\"\n",
+                  "solution": "def make_cache(func):\n    cache = {}\n    def cached(x):\n        if x not in cache:\n            cache[x] = func(x)\n        return cache[x]\n    return cached\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "scp-m2-l3-e5",
+                  "type": "code",
+                  "prompt": "Исправь ловушку позднего связывания: функция `make_handlers(names)` должна вернуть список функций, каждая из которых возвращает **свою** строку `\"обработчик <имя>\"`. Сейчас все возвращают последнее имя.\n\n```\nhs = make_handlers([\"a\", \"b\", \"c\"])\n[h() for h in hs]   # → [\"обработчик a\", \"обработчик b\", \"обработчик c\"]\n```",
+                  "starter_code": "def make_handlers(names):\n    handlers = []\n    for name in names:\n        handlers.append(lambda: f\"обработчик {name}\")\n    return handlers\n",
+                  "tests": "def test_values():\n    hs = make_handlers([\"a\", \"b\", \"c\"])\n    assert [h() for h in hs] == [\"обработчик a\", \"обработчик b\", \"обработчик c\"], f\"Получено {[h() for h in hs]}\"\n",
+                  "solution": "def make_handlers(names):\n    handlers = []\n    for name in names:\n        handlers.append(lambda name=name: f\"обработчик {name}\")\n    return handlers\n",
+                  "hint": "Зафиксируй значение аргументом по умолчанию: `lambda name=name: ...`.",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЗамыкание — функция, которая «запомнила» переменные из места, где её создали. На этом построены фабрики функций (`make_validator(8)`), счётчики без глобальных переменных, кэширование, декораторы, фикстуры pytest. Это одна из ключевых идей Python, без которой не понять следующие темы.\n\n## Как это работает\n\n```py\ndef multiplier(n):\n    def mul(x):\n        return x * n\n    return mul          # возвращаем саму функцию, не вызов\n```\n\n1. `multiplier(3)` создаёт локальную `n = 3` и функцию `mul`.\n2. `mul` ссылается на `n` из объемлющей области.\n3. `multiplier` завершилась, но `n` не исчезла — её держит `mul`.\n4. Каждый вызов `multiplier` создаёт **новую** пару «функция + её переменные».\n\nЗапомненные переменные хранятся в `func.__closure__`.\n\n### Позднее связывание\n\nЗамыкание помнит **переменную**, а не её значение в момент создания. Значение читается при **вызове**. Поэтому функции, созданные в цикле, увидят **последнее** значение переменной цикла.\n\nЛечение — зафиксировать значение: аргумент по умолчанию (`lambda i=i: i`) или отдельная функция-фабрика.\n\n## Примеры\n\n### Пример 1. Фабрика функций\n\n```python\ndef make_greeter(greeting):\n    def greet(name):\n        return f\"{greeting}, {name}!\"\n    return greet\n\nhello = make_greeter(\"Привет\")\nhi = make_greeter(\"Хай\")\nprint(hello(\"Аня\"), hi(\"Боря\"))\nprint(hello.__closure__[0].cell_contents)\n```\n\n### Пример 2. Кэш в замыкании\n\n```python\ndef make_cache(func):\n    cache = {}\n    def cached(x):\n        if x not in cache:\n            print(\"  вычисляю\", x)\n            cache[x] = func(x)\n        return cache[x]\n    return cached\n\nsquare = make_cache(lambda x: x * x)\nprint(square(4), square(4), square(5))\n```\n\n### Пример 3. Позднее связывание и лечение\n\n```python\nlate = [lambda: i for i in range(3)]\nearly = [lambda i=i: i for i in range(3)]\n\ndef factory(i):\n    return lambda: i\nvia_factory = [factory(i) for i in range(3)]\n\nprint([f() for f in late], [f() for f in early], [f() for f in via_factory])\n```\n\n### Пример 4. Проверки с параметрами\n\n```python\ndef min_len(n):\n    return lambda s: len(s) >= n\n\ndef contains(ch):\n    return lambda s: ch in s\n\nrules = {\"длина ≥ 8\": min_len(8), \"есть @\": contains(\"@\")}\nfor value in [\"user@mail.ru\", \"abc\"]:\n    failed = [name for name, rule in rules.items() if not rule(value)]\n    print(value, \"->\", failed or \"ok\")\n```\n\n## Частые ошибки\n\n**Возврат вызова вместо функции**: `return mul(x)` вместо `return mul`.\n\n**Позднее связывание** в циклах.\n\n**Изменение запомненной переменной без `nonlocal`** — `UnboundLocalError`.\n\n## Шпаргалка\n\n```py\ndef factory(param):\n    def inner(x):\n        return ... param ...\n    return inner\nf = factory(3); f(10)\n[lambda i=i: i for i in range(3)]   # зафиксировать значение\n```",
+              "quiz": [
+                {
+                  "q": "Что такое замыкание?",
+                  "options": [
+                    "Функция без параметров",
+                    "Функция, которая помнит переменные из объемлющей области, где была создана",
+                    "Функция, закрытая для импорта",
+                    "Цикл внутри функции"
+                  ],
+                  "answer": 1,
+                  "explain": "Она сохраняет доступ к этим переменным даже после завершения внешней функции."
+                },
+                {
+                  "q": "Что вернёт `[f() for f in [lambda: i for i in range(3)]]`?",
+                  "options": [
+                    "`[0, 1, 2]`",
+                    "`[2, 2, 2]`",
+                    "`[3, 3, 3]`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Все лямбды читают одну переменную i, равную 2 к моменту вызова."
+                },
+                {
+                  "q": "Что должна вернуть функция-фабрика?",
+                  "options": [
+                    "Результат вызова внутренней функции",
+                    "Саму внутреннюю функцию",
+                    "None",
+                    "Список"
+                  ],
+                  "answer": 1,
+                  "explain": "Возвращают объект функции без скобок."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "scp-m3",
+          "title": "Подводные камни",
+          "icon": "⚠️",
+          "description": "Затенение, изменяемые объекты и области в циклах",
+          "lessons": [
+            {
+              "slug": "scp-m3-l1",
+              "title": "Затенение имён",
+              "theory": "# Shadowing\n\nЛокальное имя **скрывает** одноимённое снаружи:\n\n```\nlist = [1, 2, 3]       # затенили встроенную list()\nlist(\"abc\")            # TypeError: 'list' object is not callable\n```\n\nОсобенно опасные имена: `list`, `dict`, `str`, `id`, `type`, `input`, `sum`, `max`, `min`, `file`, `filter`.\nВместо них: `items`, `user_id`, `total`, `max_value`.\n",
+              "exercises": [
+                {
+                  "slug": "scp-m3-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def f(sum):\n    try:\n        return sum([1, 2])\n    except TypeError:\n        return \"sum затенён параметром\"\n\nprint(f(10))\nprint(sum([1, 2]))\n",
+                  "expected_output": "sum затенён параметром\n3",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m3-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "id = 42\ntry:\n    print(id(object()) > 0)\nexcept TypeError:\n    print(\"встроенная id сломана\")\ndel id\nprint(callable(id))\n",
+                  "expected_output": "встроенная id сломана\nTrue",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m3-l1-e3",
+                  "type": "code",
+                  "prompt": "Функция `stats(list)` падает: параметр назван `list`, и внутри не работает встроенная `list()`. Переименуй параметр в `items`, чтобы функция возвращала `(список_уникальных_элементов_по_порядку_первого_появления, количество)`.\n\n```\nstats([3, 1, 3, 2, 1])   # → ([3, 1, 2], 5)\n```",
+                  "starter_code": "def stats(list):\n    unique = list(dict.fromkeys(list))\n    return unique, len(list)\n",
+                  "tests": "import inspect\n\ndef test_values():\n    assert stats([3, 1, 3, 2, 1]) == ([3, 1, 2], 5), f\"Получено {stats([3, 1, 3, 2, 1])}\"\n\ndef test_param_name():\n    params = list(inspect.signature(stats).parameters)\n    assert params == [\"items\"], f\"Параметр должен называться items, сейчас {params}\"\n",
+                  "solution": "def stats(items):\n    unique = list(dict.fromkeys(items))\n    return unique, len(items)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m3-l1-e4",
+                  "type": "code",
+                  "prompt": "В заготовке функция `find_max_id(users)` использует переменную `max` для текущего максимума — и из-за этого внутри не работает встроенная `max`. Перепиши её: верни наибольший `id` среди пользователей с помощью **встроенной** `max` и генератора. Не используй имена встроенных функций для переменных.\n\n```\nfind_max_id([{\"id\": 3}, {\"id\": 10}, {\"id\": 7}])   # → 10\n```",
+                  "starter_code": "def find_max_id(users):\n    max = 0\n    for u in users:\n        if u[\"id\"] > max:\n            max = u[\"id\"]\n    return max\n",
+                  "tests": "def test_value():\n    assert find_max_id([{\"id\": 3}, {\"id\": 10}, {\"id\": 7}]) == 10 and find_max_id([{\"id\": -5}]) == -5, \"Неверный максимум\"\n\ndef test_uses_builtin():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"max(\" in src and \"max =\" not in src, \"Используй встроенную max, не затеняя её\"\n",
+                  "solution": "def find_max_id(users):\n    return max(u[\"id\"] for u in users)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m3-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `shadowed_builtins(names)` — из списка имён переменных вернуть те, что **совпадают с именами встроенных функций/типов** Python (в исходном порядке).\n\nИспользуй модуль `builtins`: имя встроенное, если `hasattr(builtins, name)`.\n\n```\nshadowed_builtins([\"items\", \"list\", \"user_id\", \"id\", \"total\", \"sum\"])\n# → [\"list\", \"id\", \"sum\"]\n```",
+                  "starter_code": "import builtins\n\ndef shadowed_builtins(names):\n    pass\n",
+                  "tests": "def test_values():\n    got = shadowed_builtins([\"items\", \"list\", \"user_id\", \"id\", \"total\", \"sum\"])\n    assert got == [\"list\", \"id\", \"sum\"], f\"Получено {got}\"\n    assert shadowed_builtins([]) == [], \"Пусто — пусто\"\n",
+                  "solution": "import builtins\n\ndef shadowed_builtins(names):\n    return [n for n in names if hasattr(builtins, n)]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nНазвать переменную `list`, `id` или `sum` очень хочется — это естественные слова. Но в Python это имена встроенных функций, и локальная переменная с таким именем «затеняет» встроенную. Ошибка проявляется позже и в другом месте: `TypeError: 'list' object is not callable` — и непонятно, почему.\n\n## Как это работает\n\nПо правилу LEGB поиск имени останавливается на первом найденном. Если в локальной или глобальной области есть `list`, до встроенного `list` (уровень Built-in) Python не дойдёт.\n\nЗатенить можно:\n- переменной: `list = [...]`;\n- параметром функции: `def f(id):`;\n- переменной цикла: `for str in values:`;\n- импортом: `from os import open` (затеняет встроенный `open`).\n\n### Как избежать\n\n- Описательные имена: `items`, `user_id`, `total`, `max_value`, `text`.\n- Если очень нужно слово — суффикс `_`: `id_`, `type_`, `filter_`.\n- Линтеры (ruff, pylint) предупреждают о затенении встроенных имён.\n\nВернуть встроенную функцию после затенения в интерактивной сессии: `del list` (или `builtins.list`).\n\n## Примеры\n\n### Пример 1. Классическая ловушка\n\n```python\nlist = [\"a\", \"b\"]\ntry:\n    print(list(\"xyz\"))\nexcept TypeError as e:\n    print(\"TypeError:\", e)\ndel list\nprint(list(\"xyz\"))\n```\n\n### Пример 2. Затенение параметром\n\n```python\ndef report(id, type):\n    # внутри встроенные id() и type() недоступны\n    return f\"объект {id} типа {type}\"\n\ndef report_ok(user_id, kind):\n    return f\"объект {user_id} типа {kind} ({type(user_id).__name__})\"\n\nprint(report(7, \"user\"))\nprint(report_ok(7, \"user\"))\n```\n\n### Пример 3. Какие имена опасны\n\n```python\nimport builtins\ncandidates = [\"items\", \"list\", \"data\", \"id\", \"input\", \"total\", \"max\", \"filter\", \"result\"]\nprint([n for n in candidates if hasattr(builtins, n)])\n```\n\n## Частые ошибки\n\n**`dict = {}`, `str = \"...\"`, `input = ...`** — ломают встроенные функции ниже по коду.\n\n**`for type in types:`** — после цикла `type()` не работает.\n\n**Затенение в модуле** — ломает встроенную функцию во всём файле.\n\n## Шпаргалка\n\n```text\n✗ list, dict, str, id, type, input, sum, max, min, filter, open\n✓ items, mapping, text, user_id, kind, raw_input, total, max_value\nimport builtins; hasattr(builtins, name)   # проверить имя\n```",
+              "quiz": [
+                {
+                  "q": "Почему после `str = \"текст\"` вызов `str(5)` падает?",
+                  "options": [
+                    "str нельзя вызывать с числом",
+                    "Переменная str затенила встроенный тип str",
+                    "Строки неизменяемые",
+                    "Не падает"
+                  ],
+                  "answer": 1,
+                  "explain": "Имя str теперь указывает на строку, а строку вызвать нельзя."
+                },
+                {
+                  "q": "Какое имя переменной безопасно?",
+                  "options": [
+                    "`list`",
+                    "`id`",
+                    "`user_id`",
+                    "`sum`"
+                  ],
+                  "answer": 2,
+                  "explain": "user_id не совпадает со встроенными именами."
+                },
+                {
+                  "q": "Как проверить, что имя совпадает со встроенным?",
+                  "options": [
+                    "`name in globals()`",
+                    "`hasattr(builtins, name)` после `import builtins`",
+                    "`type(name)`",
+                    "Никак"
+                  ],
+                  "answer": 1,
+                  "explain": "Встроенные имена — атрибуты модуля builtins."
+                }
+              ]
+            },
+            {
+              "slug": "scp-m3-l2",
+              "title": "Изменяемые объекты и области",
+              "theory": "# Изменить объект ≠ присвоить имя\n\n```\nitems = []\n\ndef add(x):\n    items.append(x)      # ОК без global: меняем объект, имя не присваиваем\n\ndef reset():\n    items = []           # локальная переменная! глобальная не изменится\n```\n\nФункция, получившая список параметром, может изменить его — это видно снаружи.\n",
+              "exercises": [
+                {
+                  "slug": "scp-m3-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "items = []\n\ndef add(x):\n    items.append(x)\n\ndef reset():\n    items = []\n\nadd(1)\nadd(2)\nreset()\nprint(items)\n",
+                  "expected_output": "[1, 2]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m3-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def modify(lst):\n    lst.append(99)\n    lst = [0]\n    lst.append(1)\n    return lst\n\ndata = [1]\nresult = modify(data)\nprint(data, result)\n",
+                  "expected_output": "[1, 99] [0, 1]",
+                  "hint": "После `lst = [0]` имя внутри функции указывает на новый список.",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m3-l2-e3",
+                  "type": "code",
+                  "prompt": "Функция `clear_log()` должна **очищать** глобальный список `LOG`, но сейчас не работает: она создаёт локальную переменную.\n\nИсправь **без `global`**, изменяя сам объект (например, `LOG.clear()`).\n\n```\nLOG.append(\"x\"); clear_log(); LOG   # → []\n```",
+                  "starter_code": "LOG = []\n\ndef clear_log():\n    LOG = []\n",
+                  "tests": "def test_clear():\n    LOG.append(\"x\")\n    LOG.append(\"y\")\n    clear_log()\n    assert LOG == [], f\"LOG не очищен: {LOG}\"\n\ndef test_no_global():\n    assert \"global\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Реши без global — измени сам объект\"\n",
+                  "solution": "LOG = []\n\ndef clear_log():\n    LOG.clear()\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m3-l2-e4",
+                  "type": "code",
+                  "prompt": "Функция `add_default_headers(headers)` должна вернуть **новый** словарь заголовков, дополненный `\"Accept\": \"application/json\"`, **не изменяя** переданный словарь. Сейчас она портит аргумент.\n\n```\nh = {\"Authorization\": \"Bearer x\"}\nadd_default_headers(h)   # → {\"Authorization\": \"Bearer x\", \"Accept\": \"application/json\"}\nh                        # → {\"Authorization\": \"Bearer x\"}   без изменений\n```",
+                  "starter_code": "def add_default_headers(headers):\n    headers[\"Accept\"] = \"application/json\"\n    return headers\n",
+                  "tests": "def test_new_dict():\n    h = {\"Authorization\": \"Bearer x\"}\n    result = add_default_headers(h)\n    assert result == {\"Authorization\": \"Bearer x\", \"Accept\": \"application/json\"}, \"Неверный результат\"\n    assert h == {\"Authorization\": \"Bearer x\"}, \"Исходный словарь изменён\"\n",
+                  "solution": "def add_default_headers(headers):\n    return {**headers, \"Accept\": \"application/json\"}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m3-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `reset_in_place(items, value)` — заменить **всё содержимое** переданного списка одним элементом `value`, так чтобы изменение было видно через **все** ссылки на этот список. Функция ничего не возвращает.\n\n```\na = [1, 2, 3]\nb = a\nreset_in_place(a, 0)\na, b     # → [0], [0]\n```\nИспользуй присваивание срезом `items[:] = ...`.",
+                  "starter_code": "def reset_in_place(items, value):\n    items = [value]\n",
+                  "tests": "def test_in_place():\n    a = [1, 2, 3]\n    b = a\n    assert reset_in_place(a, 0) is None, \"Функция ничего не возвращает\"\n    assert a == [0] and b == [0], f\"a={a}, b={b}\"\n",
+                  "solution": "def reset_in_place(items, value):\n    items[:] = [value]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСамый запутанный момент областей видимости: почему `items.append(x)` внутри функции меняет глобальный список, а `items = []` — нет? Почему функция, получившая словарь заголовков, «испортила» его вызывающему коду? Ответ — в разнице между **изменением объекта** и **присваиванием имени**.\n\n## Как это работает\n\nПеременная — это имя, привязанное к объекту.\n\n- **Присваивание** `x = ...` перепривязывает имя. Внутри функции (без `global`/`nonlocal`) это всегда **локальное** имя. Внешняя переменная не меняется.\n- **Изменение объекта** — `x.append()`, `x[k] = v`, `x.clear()`, `x[:] = ...` — меняет сам объект, на который указывают **все** ссылки. Никакого `global` для этого не нужно.\n\n### Передача аргументов\n\nВ Python аргументы передаются «ссылкой на объект»: параметр — новое имя для того же объекта.\n- Изменишь объект (изменяемый: список, словарь) — изменение видно снаружи.\n- Перепривяжешь параметр — снаружи ничего не изменится.\n\nНеизменяемые объекты (числа, строки, кортежи) изменить «на месте» нельзя в принципе, поэтому для них функция никак не повлияет на внешнюю переменную.\n\n### Хорошая практика\n\nЛибо **не изменяй** аргументы и возвращай новый объект, либо явно документируй, что функция меняет аргумент (как `list.sort()`).\n\n## Примеры\n\n### Пример 1. Изменение против присваивания\n\n```python\nitems = [1]\n\ndef mutate():\n    items.append(2)        # меняем объект\n\ndef rebind():\n    items = [\"новый\"]       # локальное имя\n\nmutate(); rebind()\nprint(items)\n```\n\n### Пример 2. Функция портит аргумент\n\n```python\ndef with_accept(headers):\n    headers[\"Accept\"] = \"application/json\"\n    return headers\n\nbase = {\"Authorization\": \"Bearer x\"}\nh1 = with_accept(base)\nprint(base)          # испорчен!\n\ndef with_accept_safe(headers):\n    return {**headers, \"Accept\": \"application/json\"}\n\nbase = {\"Authorization\": \"Bearer x\"}\nh2 = with_accept_safe(base)\nprint(base, h2)\n```\n\n### Пример 3. Неизменяемые не меняются\n\n```python\ndef bump(n, s, t):\n    n += 1\n    s += \"!\"\n    t += (3,)\n    return n, s, t\n\nn, s, t = 1, \"hi\", (1, 2)\nprint(bump(n, s, t), n, s, t)\n```\n\n### Пример 4. Очистка «для всех»\n\n```python\nshared = [1, 2, 3]\nalias = shared\n\ndef clear_all(lst):\n    lst[:] = []           # или lst.clear()\n\nclear_all(shared)\nprint(shared, alias)\n```\n\n## Частые ошибки\n\n**`items = []` внутри функции в надежде очистить глобальный список.**\n\n**Незаметное изменение аргумента** — баг у вызывающего кода.\n\n**Ожидание, что функция изменит переданное число или строку.**\n\n## Шпаргалка\n\n```py\nlst.append(x); d[k] = v; lst.clear(); lst[:] = new   # меняют объект\nlst = []                                             # перепривязка имени\nreturn {**d, \"k\": v}                                 # новый объект вместо изменения\n```",
+              "quiz": [
+                {
+                  "q": "Что выведет код?\n```py\nitems = [1]\ndef f():\n    items.append(2)\nf()\nprint(items)\n```",
+                  "options": [
+                    "`[1]`",
+                    "`[1, 2]`",
+                    "`UnboundLocalError`",
+                    "`[2]`"
+                  ],
+                  "answer": 1,
+                  "explain": "append меняет объект; присваивания имени нет — global не нужен."
+                },
+                {
+                  "q": "Изменится ли переменная `n = 5` снаружи после вызова `def f(n): n += 1`?",
+                  "options": [
+                    "Да, станет 6",
+                    "Нет, числа неизменяемы, внутри перепривязалось локальное имя",
+                    "Будет ошибка",
+                    "Станет None"
+                  ],
+                  "answer": 1,
+                  "explain": "Для неизменяемых объектов `+=` создаёт новый объект и перепривязывает локальное имя."
+                },
+                {
+                  "q": "Как очистить переданный список так, чтобы это увидели все ссылки?",
+                  "options": [
+                    "`lst = []`",
+                    "`lst.clear()` или `lst[:] = []`",
+                    "`del lst`",
+                    "`lst = None`"
+                  ],
+                  "answer": 1,
+                  "explain": "Нужно изменить сам объект, а не имя."
+                }
+              ]
+            },
+            {
+              "slug": "scp-m3-l3",
+              "title": "Области в циклах и списочных включениях",
+              "theory": "# Кто «утекает», а кто нет\n\n```\nfor i in range(3):\n    pass\nprint(i)                 # 2 — переменная цикла видна после цикла\n\nsquares = [n * n for n in range(3)]\nprint(n)                 # NameError — у списочного включения своя область\n```\n\n- Цикл `for` не создаёт области: переменная остаётся после него.\n- Списочные/словарные включения и генераторы — **своя** область.\n",
+              "exercises": [
+                {
+                  "slug": "scp-m3-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "for i in range(3):\n    pass\nprint(\"после for:\", i)\n\nsquares = [n * n for n in range(3)]\ntry:\n    print(n)\nexcept NameError:\n    print(\"n из включения не видна\")\n",
+                  "expected_output": "после for: 2\nn из включения не видна",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m3-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "x = \"снаружи\"\nresult = [x for x in [\"a\", \"b\"]]\nprint(result, x)\n\nfor x in [\"c\", \"d\"]:\n    pass\nprint(x)\n",
+                  "expected_output": "['a', 'b'] снаружи\nd",
+                  "hint": "Включение не трогает внешнюю x, а обычный цикл — перезаписывает.",
+                  "xp": 10
+                },
+                {
+                  "slug": "scp-m3-l3-e3",
+                  "type": "code",
+                  "prompt": "В функции `process(items)` баг: переменная цикла `item` используется **после** цикла, и для пустого списка функция падает с `UnboundLocalError`.\n\nИсправь: функция должна возвращать последний элемент списка, а для пустого — `None`.\n\n```\nprocess([1, 2, 3])   # → 3\nprocess([])          # → None\n```",
+                  "starter_code": "def process(items):\n    for item in items:\n        pass\n    return item\n",
+                  "tests": "def test_values():\n    assert process([1, 2, 3]) == 3 and process([\"a\"]) == \"a\", \"Нужен последний элемент\"\n    assert process([]) is None, \"Пустой список — None\"\n",
+                  "solution": "def process(items):\n    last = None\n    for item in items:\n        last = item\n    return last\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m3-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `name_after_loop(names)`, которая доказывает разницу областей: верни пару\n\n1. результат списочного включения `[n.upper() for n in names]`;\n2. значение внешней переменной `n`, которой **до** включения присвоено `\"внешняя\"` — она не должна измениться.\n\n```\nname_after_loop([\"a\", \"b\"])   # → ([\"A\", \"B\"], \"внешняя\")\n```",
+                  "starter_code": "def name_after_loop(names):\n    n = \"внешняя\"\n    pass\n",
+                  "tests": "def test_values():\n    assert name_after_loop([\"a\", \"b\"]) == ([\"A\", \"B\"], \"внешняя\"), f\"Получено {name_after_loop(['a', 'b'])}\"\n",
+                  "solution": "def name_after_loop(names):\n    n = \"внешняя\"\n    upper = [n.upper() for n in names]\n    return upper, n\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "scp-m3-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_multipliers(n)` — список из `n` функций, где функция с индексом `i` умножает аргумент на `i`. Реши **списочным включением** с лямбдой и позаботься о позднем связывании.\n\n```\nms = make_multipliers(4)\n[m(10) for m in ms]   # → [0, 10, 20, 30]\n```",
+                  "starter_code": "def make_multipliers(n):\n    return [lambda x: x * i for i in range(n)]\n",
+                  "tests": "def test_values():\n    ms = make_multipliers(4)\n    assert [m(10) for m in ms] == [0, 10, 20, 30], f\"Получено {[m(10) for m in ms]}\"\n",
+                  "solution": "def make_multipliers(n):\n    return [lambda x, i=i: x * i for i in range(n)]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЦиклы и списочные включения выглядят похоже, но по-разному обращаются с переменными. Это объясняет классические баги: `UnboundLocalError` после пустого цикла, «переменная неожиданно перезаписалась», все лямбды из включения возвращают одно и то же.\n\n## Как это работает\n\n### Цикл for\n\nНе создаёт новой области. Переменная цикла — обычная переменная функции (или модуля):\n- после цикла хранит последнее значение;\n- перезаписывает одноимённую переменную, созданную до цикла;\n- если коллекция пустая, переменная **не создаётся** — обращение к ней после цикла даст `NameError`/`UnboundLocalError`.\n\n### Включения и генераторы\n\n`[... for x in ...]`, `{... for ...}`, `(... for ...)` имеют **собственную** область:\n- переменная `x` не видна снаружи;\n- одноимённая внешняя переменная не перезаписывается.\n\nНо внутри включения видны внешние переменные (LEGB работает как обычно).\n\n### Лямбды во включениях\n\nКаждая лямбда — замыкание на переменную цикла включения; позднее связывание действует и здесь. Лечение — `lambda x, i=i: ...`.\n\n## Примеры\n\n### Пример 1. Утечка переменной цикла\n\n```python\ntotal = \"моё значение\"\nfor total in [1, 2, 3]:\n    pass\nprint(total)              # перезаписано циклом\n```\n\n### Пример 2. Пустой цикл\n\n```python\ndef last_item(items):\n    for item in items:\n        pass\n    return item\n\nprint(last_item([1, 2]))\ntry:\n    last_item([])\nexcept UnboundLocalError as e:\n    print(\"UnboundLocalError:\", e)\n```\n\n### Пример 3. Включения изолированы\n\n```python\nx = \"снаружи\"\nsquares = [x * 2 for x in [1, 2, 3]]\nprint(squares, x)\nfactor = 10\nprint([n * factor for n in range(3)])     # внешние имена видны\n```\n\n### Пример 4. Лямбды во включении\n\n```python\nlate = [lambda: i for i in range(3)]\nfixed = [lambda i=i: i for i in range(3)]\nprint([f() for f in late], [f() for f in fixed])\n```\n\n## Частые ошибки\n\n**Использование переменной цикла после пустого цикла.**\n\n**Одинаковое имя для переменной цикла и важной переменной выше.**\n\n**Позднее связывание в лямбдах внутри включений.**\n\n## Шпаргалка\n\n```text\nfor x in xs: ...        → x видна после цикла (если xs не пуст)\n[f(x) for x in xs]      → x не видна снаружи\n[lambda i=i: i for i in range(n)]   → зафиксировать значение\n```",
+              "quiz": [
+                {
+                  "q": "Будет ли видна переменная `n` после `squares = [n * n for n in range(3)]`?",
+                  "options": [
+                    "Да, равна 2",
+                    "Нет, у включения своя область",
+                    "Да, равна 3",
+                    "Зависит от версии"
+                  ],
+                  "answer": 1,
+                  "explain": "Включения изолируют свои переменные."
+                },
+                {
+                  "q": "Что произойдёт при `for x in []: pass` и затем `print(x)` (если x раньше не было)?",
+                  "options": [
+                    "Выведет None",
+                    "`NameError`",
+                    "Выведет []",
+                    "Выведет 0"
+                  ],
+                  "answer": 1,
+                  "explain": "Цикл не выполнился ни разу, переменная не создана."
+                },
+                {
+                  "q": "Перезапишет ли `for x in ...` переменную `x`, созданную до цикла?",
+                  "options": [
+                    "Нет",
+                    "Да, цикл не создаёт отдельной области",
+                    "Только если x — число",
+                    "Только в функциях"
+                  ],
+                  "answer": 1,
+                  "explain": "Переменная цикла — обычная переменная той же области."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
