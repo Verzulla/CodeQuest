@@ -90,6 +90,32 @@ def sync() -> int:
         for row in stale:
             conn.execute("DELETE FROM topics WHERE slug = ?", (row["slug"],))
             print(f"  удалена тема «{row['title']}» ({row['slug']}) — её нет среди пакетов")
+        # Внутри тем тоже убираем то, чего больше нет в пакетах (урок разделили, задание удалили…).
+        # Прогресс привязан к слагам и не удаляется — если элемент вернётся, прогресс найдётся.
+        for _, pkg in pkgs:
+            for t in pkg.topics:
+                keep = {
+                    "modules": {m.slug for m in t.modules},
+                    "lessons": {l.slug for m in t.modules for l in m.lessons},
+                    "exercises": {e.slug for m in t.modules for l in m.lessons for e in l.exercises},
+                }
+                rows = {
+                    "modules": conn.execute(
+                        "SELECT m.slug, m.title FROM modules m JOIN topics t ON t.id = m.topic_id "
+                        "WHERE t.slug = ?", (t.slug,)).fetchall(),
+                    "lessons": conn.execute(
+                        "SELECT l.slug, l.title FROM lessons l JOIN modules m ON m.id = l.module_id "
+                        "JOIN topics t ON t.id = m.topic_id WHERE t.slug = ?", (t.slug,)).fetchall(),
+                    "exercises": conn.execute(
+                        "SELECT e.slug, e.slug AS title FROM exercises e JOIN lessons l ON l.id = e.lesson_id "
+                        "JOIN modules m ON m.id = l.module_id JOIN topics t ON t.id = m.topic_id "
+                        "WHERE t.slug = ?", (t.slug,)).fetchall(),
+                }
+                for table in ("modules", "lessons", "exercises"):
+                    for row in rows[table]:
+                        if row["slug"] not in keep[table]:
+                            conn.execute(f"DELETE FROM {table} WHERE slug = ?", (row["slug"],))
+                            print(f"  {t.slug}: удалено «{row['title']}» ({table}) — его нет в пакете")
     print(f"✅ Синхронизировано тем: {len(order)}")
     return 0
 

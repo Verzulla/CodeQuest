@@ -625,3 +625,27 @@ def test_service_worker_served_from_root(anon):
     assert not any(p.startswith("/api") for p in shell)
     for path in shell:                       # всё, что кладём в кэш при установке, реально отдаётся
         assert anon.get(path).status_code == 200, path
+
+
+def test_sync_prunes_removed_lessons(tmp_path, monkeypatch):
+    """Урок, исчезнувший из пакета (например, разделённый на два), удаляется при sync."""
+    monkeypatch.setenv("CODEQUEST_DB", str(tmp_path / "sync.db"))
+    from app import cli
+    from app.db import init_db, transaction
+    pkg_dir = tmp_path / "content"
+    pkg_dir.mkdir()
+    def write(lessons):
+        pkg = {"topics": [{"slug": "t", "title": "T", "modules": [{"slug": "m", "title": "M", "lessons": [
+            {"slug": s, "title": s, "exercises": [{"slug": f"{s}-e", "type": "output", "prompt": "?",
+                                                    "code": "print(1)", "expected_output": "1"}]} for s in lessons]}]}]}
+        (pkg_dir / "t.json").write_text(json.dumps(pkg), encoding="utf-8")
+    monkeypatch.setattr(cli, "CONTENT_DIR", pkg_dir)
+    init_db()
+    write(["a", "b"])
+    assert cli.sync() == 0
+    write(["a", "c"])
+    assert cli.sync() == 0
+    with transaction() as conn:
+        lessons = [r[0] for r in conn.execute("SELECT slug FROM lessons ORDER BY slug")]
+        exercises = [r[0] for r in conn.execute("SELECT slug FROM exercises ORDER BY slug")]
+    assert lessons == ["a", "c"] and exercises == ["a-e", "c-e"]
