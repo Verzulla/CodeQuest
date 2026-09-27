@@ -1,8 +1,12 @@
 """Командная строка для работы с контент-пакетами.
 
-    python -m app.cli validate content/python-basics.json   # проверить пакет
-    python -m app.cli import   content/python-basics.json   # загрузить в БД
-    python -m app.cli export   backup.json                  # выгрузить весь контент
+    python -m app.cli validate content/py-vars.json   # проверить пакет
+    python -m app.cli import   content/py-vars.json   # загрузить в БД
+    python -m app.cli export   backup.json            # выгрузить весь контент
+    python -m app.cli sync                            # привести БД к content/: загрузить все пакеты
+                                                      # в порядке content/ORDER и удалить темы,
+                                                      # которых больше нет среди пакетов
+    python -m app.cli reset-progress --yes            # обнулить весь прогресс (контент остаётся)
 
 validate прогоняет каждое эталонное решение через тесты задания и
 сверяет expected_output с реальным выводом кода. Пакет, который не
@@ -55,7 +59,49 @@ def validate(pkg: content.Package) -> list[str]:
     return problems
 
 
+CONTENT_DIR = Path(__file__).resolve().parent.parent / "content"
+PROGRESS_TABLES = ("exercise_progress", "lesson_completions", "trophies", "achievements",
+                   "daily_activity", "counters", "user_state")
+
+
+def sync() -> int:
+    files = content.content_files(CONTENT_DIR)
+    pkgs = [(f, content.Package.model_validate_json(f.read_text(encoding="utf-8"))) for f in files]
+    problems = [f"{f.name}: {p}" for f, pkg in pkgs for p in validate(pkg)]
+    if problems:
+        print(f"❌ Синхронизация отменена, проблем: {len(problems)}")
+        for p in problems:
+            print("  -", p)
+        return 1
+    order = [t.slug for _, pkg in pkgs for t in pkg.topics]
+    with transaction() as conn:
+        for f, pkg in pkgs:
+            st = content.import_package(conn, pkg)
+            print(f"  {f.name}: создано {st['created']}, обновлено {st['updated']}")
+        for pos, slug in enumerate(order):
+            conn.execute("UPDATE topics SET position = ? WHERE slug = ?", (pos, slug))
+        stale = conn.execute(
+            f"SELECT slug, title FROM topics WHERE slug NOT IN ({', '.join('?' * len(order))})", order
+        ).fetchall()
+        for row in stale:
+            conn.execute("DELETE FROM topics WHERE slug = ?", (row["slug"],))
+            print(f"  удалена тема «{row['title']}» ({row['slug']}) — её нет среди пакетов")
+    print(f"✅ Синхронизировано тем: {len(order)}")
+    return 0
+
+
 def main(argv: list[str]) -> int:
+    if argv == ["sync"]:
+        init_db()
+        return sync()
+    if argv == ["reset-progress", "--yes"]:
+        init_db()
+        with transaction() as conn:
+            for table in PROGRESS_TABLES:
+                conn.execute(f"DELETE FROM {table}")
+            conn.execute("INSERT INTO user_state (id) VALUES (1)")
+        print("Прогресс обнулён")
+        return 0
     if len(argv) != 2 or argv[0] not in ("validate", "import", "export"):
         print(__doc__)
         return 2

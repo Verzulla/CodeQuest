@@ -12,6 +12,7 @@ import uuid
 from typing import Literal
 
 import json
+from pathlib import Path
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -243,3 +244,14 @@ def _target(t, m, l, started: bool) -> dict:
         "module": m["title"],
         "lesson": {"id": l["id"], "title": l["title"], "solved": l["solved"], "exercises": l["exercises"]},
     }
+
+
+def content_files(content_dir: Path) -> list[Path]:
+    """Пакеты из content/ в порядке файла content/ORDER, остальные — по алфавиту."""
+    order_file = content_dir / "ORDER"
+    order = []
+    if order_file.exists():
+        order = [l.strip() for l in order_file.read_text(encoding="utf-8").splitlines()
+                 if l.strip() and not l.startswith("#")]
+    files = {f.stem: f for f in content_dir.glob("*.json")}
+    return [files[n] for n in order if n in files] + [f for n, f in sorted(files.items()) if n not in order]

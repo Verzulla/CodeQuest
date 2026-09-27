@@ -17,24 +17,13 @@ STATIC = ROOT / "static"
 CONTENT_DIR = ROOT / "content"
 
 
-def content_files() -> list:
-    """Пакеты из content/ в порядке файла content/ORDER, остальные — по алфавиту."""
-    order_file = CONTENT_DIR / "ORDER"
-    order = []
-    if order_file.exists():
-        order = [l.strip() for l in order_file.read_text(encoding="utf-8").splitlines()
-                 if l.strip() and not l.startswith("#")]
-    files = {f.stem: f for f in CONTENT_DIR.glob("*.json")}
-    return [files[n] for n in order if n in files] + [f for n, f in sorted(files.items()) if n not in order]
-
-
 def seed_if_empty() -> None:
     """При самом первом запуске загружаем стартовые пакеты из content/.
     Дальше импорт — только явный (админка или CLI), чтобы не затирать правки."""
     with transaction() as conn:
         if conn.execute("SELECT COUNT(*) FROM topics").fetchone()[0]:
             return
-        for f in content_files():
+        for f in content.content_files(CONTENT_DIR):
             pkg = content.Package.model_validate_json(f.read_text(encoding="utf-8"))
             content.import_package(conn, pkg)
 

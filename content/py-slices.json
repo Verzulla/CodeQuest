@@ -1,0 +1,857 @@
+{
+  "topics": [
+    {
+      "slug": "py-slices",
+      "title": "Индексы и слайсы",
+      "icon": "✂️",
+      "color": "#ce82ff",
+      "description": "Индексы, срезы с шагом, срезы строк, окна, пачки и распаковка",
+      "group": "Python",
+      "modules": [
+        {
+          "slug": "slc-m1",
+          "title": "Индексы",
+          "icon": "🎯",
+          "description": "Доступ к элементам, отрицательные индексы и вложенность",
+          "lessons": [
+            {
+              "slug": "slc-m1-l1",
+              "title": "Положительные и отрицательные индексы",
+              "theory": "# Индексы\n\n```\ns = \"Python\"      # P  y  t  h  o  n\n                  # 0  1  2  3  4  5\n                  #-6 -5 -4 -3 -2 -1\ns[0]    # \"P\"\ns[-1]   # \"n\"\ns[-2]   # \"o\"\n```\n\nРаботает одинаково для строк, списков и кортежей.\nПоследний элемент: `x[-1]` или `x[len(x) - 1]`.\n",
+              "exercises": [
+                {
+                  "slug": "slc-m1-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "s = \"Python\"\nprint(s[0], s[3], s[-1], s[-3])\n",
+                  "expected_output": "P h n h",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m1-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "items = [10, 20, 30, 40, 50]\nprint(items[len(items) - 1] == items[-1])\nprint(items[-len(items)])\n",
+                  "expected_output": "True\n10",
+                  "hint": "`-len(items)` — это индекс первого элемента.",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m1-l1-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `edges(text)`, которая возвращает строку из **первого и последнего** символа текста.\n\nПримеры:\n```\nedges(\"Python\")   # → \"Pn\"\nedges(\"a\")        # → \"aa\"\n```",
+                  "starter_code": "def edges(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert edges(\"Python\") == \"Pn\" and edges(\"a\") == \"aa\" and edges(\"ok\") == \"ok\", \"Неверный результат\"\n",
+                  "solution": "def edges(text):\n    return text[0] + text[-1]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m1-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `second_last(items)` — предпоследний элемент списка (в списке минимум 2 элемента).\n\nПримеры:\n```\nsecond_last([1, 2, 3])   # → 2\nsecond_last([\"a\", \"b\"])  # → \"a\"\n```",
+                  "starter_code": "def second_last(items):\n    pass\n",
+                  "tests": "def test_values():\n    assert second_last([1, 2, 3]) == 2 and second_last([\"a\", \"b\"]) == \"a\", \"Неверный элемент\"\n",
+                  "solution": "def second_last(items):\n    return items[-2]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m1-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_palindrome(word)` — читается ли слово одинаково в обе стороны. Сравнивай символы **по индексам** с двух концов (без срезов и `reversed`), регистр не учитывай.\n\nПримеры:\n```\nis_palindrome(\"Шалаш\")   # → True\nis_palindrome(\"python\")  # → False\n```\nИдея: для `i` от 0 до середины сравни `w[i]` и `w[-1 - i]`.",
+                  "starter_code": "def is_palindrome(word):\n    pass\n",
+                  "tests": "def test_values():\n    got = [is_palindrome(w) for w in (\"Шалаш\", \"python\", \"a\", \"abba\", \"abca\")]\n    assert got == [True, False, True, True, False], f\"Получено {got}\"\n\ndef test_no_slices():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"[::-1]\" not in src and \"reversed\" not in src, \"Реши через индексы, без [::-1] и reversed\"\n",
+                  "solution": "def is_palindrome(word):\n    w = word.lower()\n    for i in range(len(w) // 2):\n        if w[i] != w[-1 - i]:\n            return False\n    return True\n",
+                  "hint": "`w[-1 - i]` — i-й символ с конца.",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nИндекс — адрес элемента в последовательности. Взять первый символ кода ответа, последний элемент истории, предпоследний шаг теста — всё это индексы. Отрицательные индексы Python делают доступ к концу последовательности очень удобным.\n\n## Как это работает\n\n- Индексы начинаются с **0**: первый элемент — `x[0]`.\n- Последний — `x[len(x) - 1]`, короче — `x[-1]`.\n- Отрицательный индекс `-k` означает «k-й с конца»: `x[-k] == x[len(x) - k]`.\n- Допустимые индексы: от `-len(x)` до `len(x) - 1`.\n\nИндексы одинаково работают для всех последовательностей: `str`, `list`, `tuple`, `range`.\n\n### Строки неизменяемы\n\nЧитать `s[0]` можно, менять — нельзя: `s[0] = \"X\"` → `TypeError`. У списков — можно.\n\n## Примеры\n\n### Пример 1. Карта индексов\n\n```python\ns = \"Python\"\nfor i in range(len(s)):\n    print(f\"{i:>2} {i - len(s):>3}  {s[i]}\")\n```\n\n### Пример 2. Разные последовательности\n\n```python\nprint(\"hello\"[1], [10, 20, 30][-1], (1, 2, 3)[0], range(10, 20)[-1])\n```\n\n### Пример 3. Первая цифра кода ответа\n\n```python\nfor code in [\"200\", \"404\", \"503\"]:\n    kind = {\"2\": \"успех\", \"4\": \"ошибка клиента\", \"5\": \"ошибка сервера\"}[code[0]]\n    print(code, kind)\n```\n\n### Пример 4. Сравнение с двух концов\n\n```python\ndef is_palindrome(word):\n    w = word.lower()\n    for i in range(len(w) // 2):\n        if w[i] != w[-1 - i]:\n            return False\n    return True\n\nprint([is_palindrome(w) for w in [\"Шалаш\", \"python\", \"abba\"]])\n```\n\n## Частые ошибки\n\n**Индексация с единицы.**\n\n**`x[len(x)]`** — за границей.\n\n**Изменение символа строки** — строки неизменяемые, нужно собирать новую.\n\n## Шпаргалка\n\n```py\nx[0]   x[-1]   x[-2]\nx[-k] == x[len(x) - k]\nиндексы: от -len(x) до len(x) - 1\n```",
+              "quiz": [
+                {
+                  "q": "Чему равно `\"hello\"[-2]`?",
+                  "options": [
+                    "`e`",
+                    "`l`",
+                    "`o`",
+                    "`h`"
+                  ],
+                  "answer": 1,
+                  "explain": "`-1` — `o`, `-2` — `l`."
+                },
+                {
+                  "q": "Какой индекс у первого элемента списка длины 5, если считать отрицательными индексами?",
+                  "options": [
+                    "`-1`",
+                    "`-5`",
+                    "`-4`",
+                    "`0`"
+                  ],
+                  "answer": 1,
+                  "explain": "`x[-len(x)]` — первый элемент, то есть `-5`."
+                },
+                {
+                  "q": "Что произойдёт при `s = \"cat\"; s[0] = \"b\"`?",
+                  "options": [
+                    "s станет \"bat\"",
+                    "`TypeError`: строки неизменяемые",
+                    "Ничего",
+                    "`IndexError`"
+                  ],
+                  "answer": 1,
+                  "explain": "Строку нельзя изменить на месте."
+                }
+              ]
+            },
+            {
+              "slug": "slc-m1-l2",
+              "title": "IndexError и безопасный доступ",
+              "theory": "# Выход за границы\n\n```\nitems = [1, 2, 3]\nitems[3]        # IndexError: list index out of range\n```\n\nСпособы защититься:\n- проверить длину: `items[i] if i < len(items) else None`\n- проверить пустоту: `items[0] if items else None`\n- `try` / `except IndexError`\n- срез не падает: `items[:1]` вернёт `[]` для пустого списка\n",
+              "exercises": [
+                {
+                  "slug": "slc-m1-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "items = []\nprint(items[:1])\nprint(items[0] if items else \"пусто\")\ntry:\n    items[0]\nexcept IndexError:\n    print(\"IndexError\")\n",
+                  "expected_output": "[]\nпусто\nIndexError",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m1-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "data = [5, 6]\nfor i in range(4):\n    print(data[i] if i < len(data) else \"-\")\n",
+                  "expected_output": "5\n6\n-\n-",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m1-l2-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `get_or_default(items, index, default=None)` — элемент по индексу, а если индекс вне списка — `default`. Отрицательные индексы тоже должны работать.\n\nПримеры:\n```\nget_or_default([1, 2, 3], 1)        # → 2\nget_or_default([1, 2, 3], 5, 0)     # → 0\nget_or_default([1, 2, 3], -1)       # → 3\nget_or_default([1, 2, 3], -4, \"x\")  # → \"x\"\n```",
+                  "starter_code": "def get_or_default(items, index, default=None):\n    pass\n",
+                  "tests": "def test_values():\n    got = [get_or_default([1, 2, 3], 1), get_or_default([1, 2, 3], 5, 0), get_or_default([1, 2, 3], -1), get_or_default([1, 2, 3], -4, \"x\"), get_or_default([], 0)]\n    assert got == [2, 0, 3, \"x\", None], f\"Получено {got}\"\n",
+                  "solution": "def get_or_default(items, index, default=None):\n    try:\n        return items[index]\n    except IndexError:\n        return default\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m1-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `first_word(text)` — первое слово строки или пустая строка `\"\"`, если слов нет.\n\nПримеры:\n```\nfirst_word(\"ERROR db down\")   # → \"ERROR\"\nfirst_word(\"   \")             # → \"\"\n```\nОсторожно: `\"   \".split()` — пустой список, `[0]` у него упадёт.",
+                  "starter_code": "def first_word(text):\n    return text.split()[0]\n",
+                  "tests": "def test_values():\n    assert first_word(\"ERROR db down\") == \"ERROR\" and first_word(\"   \") == \"\" and first_word(\"\") == \"\", \"Неверный результат\"\n",
+                  "solution": "def first_word(text):\n    words = text.split()\n    return words[0] if words else \"\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m1-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `latest_status(history)`, где `history` — список статусов прогонов по времени. Вернуть **последний** статус, а для пустой истории — `\"нет данных\"`.\n\nПримеры:\n```\nlatest_status([\"pass\", \"fail\", \"pass\"])   # → \"pass\"\nlatest_status([])                         # → \"нет данных\"\n```",
+                  "starter_code": "def latest_status(history):\n    pass\n",
+                  "tests": "def test_values():\n    assert latest_status([\"pass\", \"fail\", \"pass\"]) == \"pass\" and latest_status([\"fail\"]) == \"fail\" and latest_status([]) == \"нет данных\", \"Неверный статус\"\n",
+                  "solution": "def latest_status(history):\n    return history[-1] if history else \"нет данных\"\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`IndexError: list index out of range` — одна из самых частых ошибок в Python. В автотестах она означает «падение теста не из-за бага продукта, а из-за самого теста»: например, API вернул пустой список, а тест сразу взял `items[0]`. Хороший код и хорошие тесты заранее решают, что делать с пустыми данными.\n\n## Как это работает\n\nОбращение к несуществующему индексу бросает `IndexError`. Способы обработки:\n\n1. **Проверка пустоты**: `items[0] if items else None` — самый частый случай.\n2. **Проверка длины**: `items[i] if -len(items) <= i < len(items) else default`.\n3. **try/except**: попробовать и перехватить `IndexError`. Удобно, когда индекс может быть любым, включая отрицательный.\n4. **Срезы**: `items[:1]`, `items[-1:]` никогда не падают — вернут пустой список.\n\n### Что выбрать в тестах\n\nЕсли пустой ответ — это баг, тест должен падать **понятно**: `assert items, \"API вернул пустой список\"`, а не с безликим `IndexError`.\n\n## Примеры\n\n### Пример 1. Ошибка и её перехват\n\n```python\nitems = [1, 2, 3]\ntry:\n    print(items[10])\nexcept IndexError as e:\n    print(\"поймали:\", e)\n```\n\n### Пример 2. Разные способы безопасного доступа\n\n```python\nfor items in [[], [42]]:\n    print(\"условие:\", items[0] if items else None,\n          \"| срез:\", items[:1],\n          \"| next:\", next(iter(items), None))\n```\n\n### Пример 3. Понятная ошибка в тесте\n\n```python\ndef check_first_user(users):\n    assert users, \"API вернул пустой список пользователей\"\n    assert users[0][\"id\"] == 1, f\"первый пользователь: {users[0]}\"\n\nfor data in [[{\"id\": 1}], []]:\n    try:\n        check_first_user(data)\n        print(\"ok\")\n    except AssertionError as e:\n        print(\"тест упал:\", e)\n```\n\n### Пример 4. Универсальный геттер\n\n```python\ndef get_or_default(items, index, default=None):\n    try:\n        return items[index]\n    except IndexError:\n        return default\n\nprint(get_or_default([1, 2, 3], -1), get_or_default([1, 2, 3], 7, \"нет\"))\n```\n\n## Частые ошибки\n\n**`text.split()[0]`** на пустой строке.\n\n**Проверка `if index < len(items)`** без учёта отрицательных индексов.\n\n**Голый `except:`** — ловит всё подряд и прячет другие баги. Лови `IndexError`.\n\n## Шпаргалка\n\n```py\nxs[0] if xs else None\nxs[:1]                         # не падает\ntry: xs[i]\nexcept IndexError: ...\nassert xs, \"понятное сообщение\"\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `[][:1]`?",
+                  "options": [
+                    "`IndexError`",
+                    "`[]`",
+                    "`None`",
+                    "`[None]`"
+                  ],
+                  "answer": 1,
+                  "explain": "Срезы не выходят за границы с ошибкой — вернут пустой список."
+                },
+                {
+                  "q": "Что вернёт `\"   \".split()`?",
+                  "options": [
+                    "`['', '', '']`",
+                    "`[]`",
+                    "`['   ']`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "`split()` без аргумента игнорирует пробелы, слов нет — пустой список."
+                },
+                {
+                  "q": "Как лучше написать проверку в тесте, если пустой ответ API — это баг?",
+                  "options": [
+                    "Сразу брать `users[0]`",
+                    "`assert users, \"API вернул пустой список\"`",
+                    "Обернуть в try и молча пропустить",
+                    "Ничего не проверять"
+                  ],
+                  "answer": 1,
+                  "explain": "Тест должен падать с понятным сообщением о причине."
+                }
+              ]
+            },
+            {
+              "slug": "slc-m1-l3",
+              "title": "Индексы во вложенных структурах",
+              "theory": "# Цепочки индексов\n\n```\nresp = {\"data\": {\"users\": [{\"name\": \"Аня\", \"roles\": [\"qa\", \"admin\"]}]}}\nresp[\"data\"][\"users\"][0][\"roles\"][-1]     # \"admin\"\n```\n\nЧитается слева направо: ключ → ключ → индекс → ключ → индекс.\nКаждый шаг может упасть: `KeyError` для словаря, `IndexError` для списка.\n",
+              "exercises": [
+                {
+                  "slug": "slc-m1-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "resp = {\"data\": {\"users\": [{\"name\": \"Аня\", \"roles\": [\"qa\", \"admin\"]}, {\"name\": \"Боря\", \"roles\": []}]}}\nprint(resp[\"data\"][\"users\"][0][\"name\"])\nprint(resp[\"data\"][\"users\"][0][\"roles\"][-1])\nprint(len(resp[\"data\"][\"users\"][1][\"roles\"]))\n",
+                  "expected_output": "Аня\nadmin\n0",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m1-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "board = [[\"X\", \"O\", \"X\"], [\" \", \"X\", \"O\"], [\"O\", \" \", \"X\"]]\nprint(board[1][1], board[0][-1], board[-1][0])\nprint([board[i][i] for i in range(3)])\n",
+                  "expected_output": "X X O\n['X', 'X', 'X']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m1-l3-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `first_user_email(resp)` — email первого пользователя из ответа API вида:\n\n```\n{\"data\": {\"users\": [{\"email\": \"a@b.ru\"}, ...]}}\n```\n\nЕсли список пользователей пуст — вернуть `None`.\n\nПримеры:\n```\nfirst_user_email({\"data\": {\"users\": [{\"email\": \"a@b.ru\"}]}})   # → \"a@b.ru\"\nfirst_user_email({\"data\": {\"users\": []}})                      # → None\n```",
+                  "starter_code": "def first_user_email(resp):\n    pass\n",
+                  "tests": "def test_values():\n    assert first_user_email({\"data\": {\"users\": [{\"email\": \"a@b.ru\"}, {\"email\": \"c@d.ru\"}]}}) == \"a@b.ru\", \"Нужен email первого пользователя\"\n    assert first_user_email({\"data\": {\"users\": []}}) is None, \"Пустой список — None\"\n",
+                  "solution": "def first_user_email(resp):\n    users = resp[\"data\"][\"users\"]\n    return users[0][\"email\"] if users else None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m1-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `diagonal(matrix)` — список элементов главной диагонали квадратной матрицы (`m[0][0]`, `m[1][1]`, …).\n\nПример:\n```\ndiagonal([[1, 2, 3], [4, 5, 6], [7, 8, 9]])   # → [1, 5, 9]\n```",
+                  "starter_code": "def diagonal(matrix):\n    pass\n",
+                  "tests": "def test_values():\n    assert diagonal([[1, 2, 3], [4, 5, 6], [7, 8, 9]]) == [1, 5, 9] and diagonal([[7]]) == [7], \"Неверная диагональ\"\n",
+                  "solution": "def diagonal(matrix):\n    return [matrix[i][i] for i in range(len(matrix))]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m1-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `dig(data, path, default=None)`, которая идёт по вложенной структуре по списку ключей/индексов `path`. Если на любом шаге ключа или индекса нет — вернуть `default`.\n\nПримеры:\n```\nresp = {\"data\": {\"users\": [{\"roles\": [\"qa\", \"admin\"]}]}}\ndig(resp, [\"data\", \"users\", 0, \"roles\", -1])   # → \"admin\"\ndig(resp, [\"data\", \"users\", 5, \"roles\"])       # → None\ndig(resp, [\"data\", \"items\"], [])               # → []\n```\nПерехватывай `KeyError`, `IndexError` и `TypeError` (на случай, если по пути попался не контейнер).",
+                  "starter_code": "def dig(data, path, default=None):\n    pass\n",
+                  "tests": "def test_values():\n    resp = {\"data\": {\"users\": [{\"roles\": [\"qa\", \"admin\"]}]}}\n    assert dig(resp, [\"data\", \"users\", 0, \"roles\", -1]) == \"admin\", \"Путь до admin\"\n    assert dig(resp, [\"data\", \"users\", 5, \"roles\"]) is None, \"Нет индекса 5 → None\"\n    assert dig(resp, [\"data\", \"items\"], []) == [], \"Нет ключа → default\"\n    assert dig(resp, [\"data\", \"users\", 0, \"roles\", 0, \"x\"]) is None, \"Индексация строки по ключу → default\"\n",
+                  "solution": "def dig(data, path, default=None):\n    current = data\n    try:\n        for step in path:\n            current = current[step]\n    except (KeyError, IndexError, TypeError):\n        return default\n    return current\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОтветы API — это вложенные словари и списки. Чтобы проверить нужное поле, приходится «спускаться» по цепочке ключей и индексов. Важно уметь читать такие цепочки и понимать, где они могут сломаться.\n\n## Как это работает\n\nКаждый `[...]` применяется к результату предыдущего:\n\n```py\nresp[\"data\"][\"users\"][0][\"roles\"][-1]\n#  dict  →  dict  → list → dict → list → str\n```\n\nЧтобы не запутаться, разбирай ответ по шагам — или сохраняй промежуточные значения в переменные с понятными именами:\n\n```py\nusers = resp[\"data\"][\"users\"]\nfirst = users[0]\nlast_role = first[\"roles\"][-1]\n```\n\n### Где падает\n\n- нет ключа → `KeyError`;\n- нет индекса → `IndexError`;\n- не тот тип (индексируем `None` или число) → `TypeError`.\n\n### Матрицы\n\n`m[строка][столбец]`. Главная диагональ — `m[i][i]`, побочная — `m[i][-1 - i]`.\n\n## Примеры\n\n### Пример 1. Разбор ответа по шагам\n\n```python\nresp = {\"data\": {\"users\": [{\"name\": \"Аня\", \"roles\": [\"qa\", \"admin\"]}, {\"name\": \"Боря\", \"roles\": []}]}}\nusers = resp[\"data\"][\"users\"]\nprint(\"пользователей:\", len(users))\nfor u in users:\n    roles = u[\"roles\"]\n    print(u[\"name\"], \"— последняя роль:\", roles[-1] if roles else \"нет ролей\")\n```\n\n### Пример 2. Где ломается цепочка\n\n```python\nresp = {\"data\": {\"users\": []}}\nfor path in ['resp[\"data\"][\"users\"][0]', 'resp[\"meta\"]', 'resp[\"data\"][\"users\"][\"x\"]']:\n    try:\n        eval(path)\n    except Exception as e:\n        print(f\"{path:30} -> {type(e).__name__}: {e}\")\n```\n\n### Пример 3. Безопасный спуск\n\n```python\ndef dig(data, path, default=None):\n    current = data\n    try:\n        for step in path:\n            current = current[step]\n    except (KeyError, IndexError, TypeError):\n        return default\n    return current\n\nresp = {\"data\": {\"users\": [{\"roles\": [\"qa\", \"admin\"]}]}}\nprint(dig(resp, [\"data\", \"users\", 0, \"roles\", -1]))\nprint(dig(resp, [\"data\", \"users\", 3, \"roles\"], \"нет такого\"))\n```\n\n### Пример 4. Диагонали\n\n```python\nm = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]\nn = len(m)\nprint([m[i][i] for i in range(n)], [m[i][n - 1 - i] for i in range(n)])\n```\n\n## Частые ошибки\n\n**Длинная цепочка без промежуточных переменных** — при падении непонятно, какой шаг сломался.\n\n**Пустой список в середине пути** — `users[0]` на пустом ответе.\n\n**Строки тоже индексируются** — `\"abc\"[0]` работает, а `\"abc\"[\"x\"]` даст `TypeError`.\n\n## Шпаргалка\n\n```py\nresp[\"data\"][\"items\"][0][\"id\"]\nusers = resp[\"data\"][\"users\"]; first = users[0] if users else None\nKeyError — нет ключа · IndexError — нет индекса · TypeError — не тот тип\n```",
+              "quiz": [
+                {
+                  "q": "Какую ошибку даст `{\"a\": []}[\"a\"][0]`?",
+                  "options": [
+                    "`KeyError`",
+                    "`IndexError`",
+                    "`TypeError`",
+                    "Никакую"
+                  ],
+                  "answer": 1,
+                  "explain": "Ключ есть, но список пуст — нет элемента с индексом 0."
+                },
+                {
+                  "q": "Что вернёт `[[1, 2], [3, 4]][-1][-1]`?",
+                  "options": [
+                    "`1`",
+                    "`2`",
+                    "`3`",
+                    "`4`"
+                  ],
+                  "answer": 3,
+                  "explain": "Последняя строка `[3, 4]`, её последний элемент — 4."
+                },
+                {
+                  "q": "Какую ошибку даст `None[0]`?",
+                  "options": [
+                    "`IndexError`",
+                    "`KeyError`",
+                    "`TypeError`",
+                    "`ValueError`"
+                  ],
+                  "answer": 2,
+                  "explain": "`None` не поддерживает индексацию — это ошибка типа."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "slc-m2",
+          "title": "Срезы",
+          "icon": "✂️",
+          "description": "start:stop:step, разворот и подстроки",
+          "lessons": [
+            {
+              "slug": "slc-m2-l1",
+              "title": "Срез start:stop",
+              "theory": "# Срезы\n\n`x[start:stop]` — новый список/строка с элементами от `start` до `stop - 1`.\n\n```\na = [0, 1, 2, 3, 4, 5]\na[1:4]     # [1, 2, 3] — stop не входит\na[:3]      # [0, 1, 2] — первые три\na[3:]      # [3, 4, 5] — начиная с индекса 3\na[-2:]     # [4, 5]   — последние два\na[:]       # копия\n```\n\nСрез **не падает**, если границы за пределами.\n",
+              "exercises": [
+                {
+                  "slug": "slc-m2-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "a = [0, 1, 2, 3, 4, 5]\nprint(a[1:4], a[:2], a[4:])\nprint(a[-3:], a[:-3])\n",
+                  "expected_output": "[1, 2, 3] [0, 1] [4, 5]\n[3, 4, 5] [0, 1, 2]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m2-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Границы за пределами.",
+                  "code": "a = [1, 2, 3]\nprint(a[1:100])\nprint(a[5:])\nprint(a[-100:2])\n",
+                  "expected_output": "[2, 3]\n[]\n[1, 2]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m2-l1-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `first_n(items, n)` — первые `n` элементов списка. Если элементов меньше — вернуть сколько есть.\n\nПримеры:\n```\nfirst_n([1, 2, 3, 4], 2)   # → [1, 2]\nfirst_n([1], 5)            # → [1]\n```",
+                  "starter_code": "def first_n(items, n):\n    pass\n",
+                  "tests": "def test_values():\n    assert first_n([1, 2, 3, 4], 2) == [1, 2] and first_n([1], 5) == [1] and first_n([], 3) == [], \"Неверный срез\"\n",
+                  "solution": "def first_n(items, n):\n    return items[:n]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m2-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `last_n(items, n)` — последние `n` элементов. При `n = 0` вернуть пустой список.\n\nПримеры:\n```\nlast_n([1, 2, 3, 4], 2)   # → [3, 4]\nlast_n([1, 2], 5)         # → [1, 2]\nlast_n([1, 2], 0)         # → []\n```\nОсторожно: `items[-0:]` — это `items[0:]`, то есть весь список!",
+                  "starter_code": "def last_n(items, n):\n    return items[-n:]\n",
+                  "tests": "def test_values():\n    assert last_n([1, 2, 3, 4], 2) == [3, 4] and last_n([1, 2], 5) == [1, 2], \"Неверный срез\"\n\ndef test_zero():\n    assert last_n([1, 2], 0) == [], \"При n = 0 — пустой список (ловушка -0)\"\n",
+                  "solution": "def last_n(items, n):\n    return items[len(items) - n:] if n > 0 else []\n",
+                  "hint": "Либо отдельно обработай `n == 0`, либо используй `items[len(items) - n:]` с проверкой.",
+                  "xp": 20
+                },
+                {
+                  "slug": "slc-m2-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `without_edges(items)` — список без первого и последнего элемента.\n\nПримеры:\n```\nwithout_edges([1, 2, 3, 4])   # → [2, 3]\nwithout_edges([1, 2])         # → []\n```",
+                  "starter_code": "def without_edges(items):\n    pass\n",
+                  "tests": "def test_values():\n    assert without_edges([1, 2, 3, 4]) == [2, 3] and without_edges([1, 2]) == [] and without_edges([\"a\", \"b\", \"c\"]) == [\"b\"], \"Неверный срез\"\n",
+                  "solution": "def without_edges(items):\n    return items[1:-1]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВзять первые 10 строк лога, последние 5 прогонов теста, всё кроме заголовка CSV, часть строки — срезы решают это одной конструкцией, без циклов и без риска `IndexError`.\n\n## Как это работает\n\n`x[start:stop]`:\n- берёт элементы с индекса `start` **включительно** до `stop` **не включительно**;\n- пропущенный `start` — с начала, пропущенный `stop` — до конца;\n- отрицательные значения считаются с конца: `x[-3:]` — последние три;\n- всегда возвращает **новый** объект того же типа (список → список, строка → строка);\n- границы за пределами просто «обрезаются» — ошибки не будет.\n\nДлина среза `x[a:b]` (при корректных границах) — `b - a`.\n\n### Полезные шаблоны\n\n- `x[:n]` — первые n;\n- `x[-n:]` — последние n (но осторожно с `n = 0`!);\n- `x[1:]` — всё, кроме первого (например, без заголовка);\n- `x[:-1]` — всё, кроме последнего;\n- `x[1:-1]` — без краёв;\n- `x[:]` — мелкая копия.\n\n### Ловушка -0\n\n`-0` — это `0`. Поэтому `x[-0:]` — весь список, а не пустой.\n\n## Примеры\n\n### Пример 1. Основные срезы\n\n```python\na = list(range(10))\nprint(a[2:5], a[:3], a[7:], a[-3:], a[:-7])\n```\n\n### Пример 2. Лог без заголовка, последние записи\n\n```python\nlines = [\"time;level;msg\", \"10:00;INFO;start\", \"10:01;ERROR;db\", \"10:02;INFO;retry\", \"10:03;INFO;ok\"]\nheader, rows = lines[0], lines[1:]\nprint(\"колонки:\", header.split(\";\"))\nprint(\"последние 2:\", rows[-2:])\n```\n\n### Пример 3. Ловушка -0\n\n```python\nitems = [1, 2, 3]\nfor n in [2, 1, 0]:\n    print(n, items[-n:], items[len(items) - n:])\n```\n\n### Пример 4. Срез — копия\n\n```python\noriginal = [1, 2, 3]\ncopy_ = original[:]\ncopy_.append(4)\nprint(original, copy_)\n```\n\n## Частые ошибки\n\n**Ожидание, что `stop` входит** — `a[1:3]` содержит 2 элемента.\n\n**`x[-n:]` при `n = 0`** — вернёт всё.\n\n**Ожидание ошибки** — срез за границами молча вернёт меньше элементов; в тестах это может скрыть проблему.\n\n## Шпаргалка\n\n```py\nx[a:b]   # a включительно, b нет\nx[:n]  x[-n:]  x[1:]  x[:-1]  x[1:-1]  x[:]\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `[0, 1, 2, 3, 4][1:3]`?",
+                  "options": [
+                    "`[1, 2, 3]`",
+                    "`[1, 2]`",
+                    "`[0, 1, 2]`",
+                    "`[2, 3]`"
+                  ],
+                  "answer": 1,
+                  "explain": "Индекс 3 не входит в срез."
+                },
+                {
+                  "q": "Что вернёт `[1, 2, 3][-0:]`?",
+                  "options": [
+                    "`[]`",
+                    "`[1, 2, 3]`",
+                    "`[3]`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "`-0` равно `0`, срез с начала до конца — весь список."
+                },
+                {
+                  "q": "Что вернёт `\"hello\"[10:]`?",
+                  "options": [
+                    "Ошибка",
+                    "`''`",
+                    "`None`",
+                    "`'hello'`"
+                  ],
+                  "answer": 1,
+                  "explain": "Срезы не падают за границами — получится пустая строка."
+                }
+              ]
+            },
+            {
+              "slug": "slc-m2-l2",
+              "title": "Шаг и разворот",
+              "theory": "# Шаг среза\n\n`x[start:stop:step]`\n\n```\na = [0, 1, 2, 3, 4, 5, 6]\na[::2]      # [0, 2, 4, 6] — каждый второй\na[1::2]     # [1, 3, 5]    — нечётные позиции\na[::-1]     # [6, 5, 4, 3, 2, 1, 0] — задом наперёд\na[5:1:-1]   # [5, 4, 3, 2]\n```\n\nПри отрицательном шаге `start` должен быть **правее** `stop`.\n",
+              "exercises": [
+                {
+                  "slug": "slc-m2-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "a = list(range(8))\nprint(a[::2], a[1::2], a[::3])\n",
+                  "expected_output": "[0, 2, 4, 6] [1, 3, 5, 7] [0, 3, 6]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m2-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Отрицательный шаг.",
+                  "code": "a = [0, 1, 2, 3, 4, 5]\nprint(a[::-1])\nprint(a[4:1:-1])\nprint(a[1:4:-1])\nprint(\"abc\"[::-1])\n",
+                  "expected_output": "[5, 4, 3, 2, 1, 0]\n[4, 3, 2]\n[]\ncba",
+                  "hint": "При шаге -1 срез идёт справа налево; если start левее stop — результат пустой.",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m2-l2-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `reverse_words(text)` — слова в обратном порядке, через один пробел.\n\nПример:\n```\nreverse_words(\"one two three\")   # → \"three two one\"\n```\nРазбей на слова, разверни список срезом `[::-1]`, склей через `\" \".join`.",
+                  "starter_code": "def reverse_words(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert reverse_words(\"one two three\") == \"three two one\" and reverse_words(\"solo\") == \"solo\", \"Неверный порядок слов\"\n",
+                  "solution": "def reverse_words(text):\n    return \" \".join(text.split()[::-1])\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m2-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `split_even_odd(items)` — пара списков: элементы на **чётных** позициях (0, 2, 4…) и на **нечётных** (1, 3, 5…). Используй срезы с шагом.\n\nПример:\n```\nsplit_even_odd([\"a\", \"b\", \"c\", \"d\", \"e\"])   # → ([\"a\", \"c\", \"e\"], [\"b\", \"d\"])\n```",
+                  "starter_code": "def split_even_odd(items):\n    pass\n",
+                  "tests": "def test_values():\n    assert split_even_odd([\"a\", \"b\", \"c\", \"d\", \"e\"]) == ([\"a\", \"c\", \"e\"], [\"b\", \"d\"]) and split_even_odd([]) == ([], []), \"Неверное разбиение\"\n",
+                  "solution": "def split_even_odd(items):\n    return items[::2], items[1::2]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m2-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_palindrome(text)` — палиндром ли фраза, **игнорируя регистр и пробелы**. Используй срез `[::-1]`.\n\nПримеры:\n```\nis_palindrome(\"А роза упала на лапу Азора\")   # → True\nis_palindrome(\"Python\")                        # → False\n```",
+                  "starter_code": "def is_palindrome(text):\n    pass\n",
+                  "tests": "def test_values():\n    got = [is_palindrome(s) for s in (\"А роза упала на лапу Азора\", \"Python\", \"Шалаш\", \"a\")]\n    assert got == [True, False, True, True], f\"Получено {got}\"\n",
+                  "solution": "def is_palindrome(text):\n    clean = text.replace(\" \", \"\").lower()\n    return clean == clean[::-1]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКаждый второй элемент, чётные и нечётные позиции, разворот строки или списка — задачи на «шаг» встречаются и в работе, и на собеседованиях. Срез с шагом решает их без циклов.\n\n## Как это работает\n\n`x[start:stop:step]`:\n- `step` — через сколько элементов брать; по умолчанию 1;\n- `step = 2` — каждый второй, `3` — каждый третий;\n- **отрицательный** шаг — движение справа налево;\n- `x[::-1]` — классический разворот (новый объект).\n\nПри отрицательном шаге значения по умолчанию меняются местами: `start` — конец последовательности, `stop` — «до начала включительно». Если явно указать `start` левее `stop`, результат будет пустым: `a[1:4:-1]` → `[]`.\n\nШаг не может быть нулём (`ValueError`).\n\n### Альтернативы развороту\n\n- `reversed(x)` — ленивый итератор, без копии;\n- `list.reverse()` — на месте.\n\n## Примеры\n\n### Пример 1. Шаги\n\n```python\na = list(range(10))\nprint(a[::2])\nprint(a[1::2])\nprint(a[::3])\nprint(a[2:8:2])\n```\n\n### Пример 2. Отрицательный шаг\n\n```python\na = list(range(6))\nprint(a[::-1])\nprint(a[4:1:-1])\nprint(a[::-2])\nprint(a[1:4:-1])       # пусто: start левее stop\n```\n\n### Пример 3. Палиндром\n\n```python\ndef is_palindrome(text):\n    clean = \"\".join(ch for ch in text.lower() if ch.isalnum())\n    return clean == clean[::-1]\n\nfor s in [\"А роза упала на лапу Азора\", \"Python\", \"Madam, I'm Adam\"]:\n    print(s, \"->\", is_palindrome(s))\n```\n\n### Пример 4. Разворот слов и чередование\n\n```python\ntext = \"сборка тесты деплой\"\nprint(\" \".join(text.split()[::-1]))\nplayers = [\"Аня\", \"Боря\", \"Вика\", \"Гоша\", \"Даша\"]\nprint(\"команда 1:\", players[::2], \"| команда 2:\", players[1::2])\n```\n\n## Частые ошибки\n\n**`a[1:4:-1]`** с отрицательным шагом — пусто; нужно `a[3:0:-1]`.\n\n**`step = 0`** — `ValueError`.\n\n**Разворот огромного списка ради перебора** — `reversed()` не создаёт копию.\n\n## Шпаргалка\n\n```py\nx[::2]    # каждый второй с начала\nx[1::2]   # нечётные позиции\nx[::-1]   # задом наперёд\nx[5:1:-1] # 5, 4, 3, 2\nreversed(x)  # без копии\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `\"abcdef\"[::2]`?",
+                  "options": [
+                    "`'ace'`",
+                    "`'bdf'`",
+                    "`'ab'`",
+                    "`'fdb'`"
+                  ],
+                  "answer": 0,
+                  "explain": "Каждый второй символ начиная с индекса 0."
+                },
+                {
+                  "q": "Что вернёт `[0, 1, 2, 3][1:3:-1]`?",
+                  "options": [
+                    "`[2, 1]`",
+                    "`[]`",
+                    "`[1, 2]`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "При отрицательном шаге start должен быть правее stop, иначе результат пуст."
+                },
+                {
+                  "q": "Чем `reversed(x)` отличается от `x[::-1]`?",
+                  "options": [
+                    "Ничем",
+                    "`reversed` возвращает ленивый итератор без копии",
+                    "`reversed` сортирует",
+                    "`x[::-1]` меняет список на месте"
+                  ],
+                  "answer": 1,
+                  "explain": "Срез создаёт новый объект, `reversed` — только итератор."
+                }
+              ]
+            },
+            {
+              "slug": "slc-m2-l3",
+              "title": "Срезы строк",
+              "theory": "# Срезы строк\n\n```\ns = \"2024-09-27\"\ns[:4]     # \"2024\"\ns[5:7]    # \"09\"\ns[-2:]    # \"27\"\n```\n\nСтроки неизменяемые — срез всегда создаёт **новую** строку.\nУдобно сочетать с `find`: `s[s.find(\":\") + 1:]` — всё после двоеточия.\n",
+              "exercises": [
+                {
+                  "slug": "slc-m2-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "date = \"2024-09-27\"\nprint(date[:4], date[5:7], date[-2:])\nprint(date[::-1])\n",
+                  "expected_output": "2024 09 27\n72-90-4202",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m2-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "line = \"Authorization: Bearer abc123\"\ntoken = line[line.find(\"Bearer \") + len(\"Bearer \"):]\nprint(token)\nprint(line[:13])\n",
+                  "expected_output": "abc123\nAuthorization",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m2-l3-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `mask_card(number)` — маскирование номера карты: оставить **последние 4 цифры**, остальное заменить на `*` (длина сохраняется).\n\nПример:\n```\nmask_card(\"1234567812345678\")   # → \"************5678\"\n```",
+                  "starter_code": "def mask_card(number):\n    pass\n",
+                  "tests": "def test_values():\n    assert mask_card(\"1234567812345678\") == \"************5678\", f\"Получено {mask_card('1234567812345678')!r}\"\n    assert mask_card(\"12345\") == \"*2345\", \"Длина должна сохраняться\"\n",
+                  "solution": "def mask_card(number):\n    return \"*\" * (len(number) - 4) + number[-4:]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m2-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `truncate(text, limit)` — обрезать текст до `limit` символов. Если текст обрезан — последние **3** символа результата заменить на `\"...\"` (итоговая длина ровно `limit`). Если текст не длиннее лимита — вернуть как есть.\n\nПримеры:\n```\ntruncate(\"Очень длинное сообщение об ошибке\", 12)   # → \"Очень дли...\"\ntruncate(\"коротко\", 12)                             # → \"коротко\"\n```",
+                  "starter_code": "def truncate(text, limit):\n    pass\n",
+                  "tests": "def test_values():\n    assert truncate(\"Очень длинное сообщение об ошибке\", 12) == \"Очень дли...\", f\"Получено {truncate('Очень длинное сообщение об ошибке', 12)!r}\"\n    assert truncate(\"коротко\", 12) == \"коротко\", \"Короткий текст не трогаем\"\n    assert len(truncate(\"x\" * 50, 10)) == 10, \"Длина результата — ровно limit\"\n",
+                  "solution": "def truncate(text, limit):\n    if len(text) <= limit:\n        return text\n    return text[:limit - 3] + \"...\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m2-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `domain(email)` — часть email после `@`. Если `@` нет — вернуть пустую строку.\n\nПримеры:\n```\ndomain(\"anna@mail.ru\")   # → \"mail.ru\"\ndomain(\"no-at\")          # → \"\"\n```\nИспользуй `find(\"@\")` и срез.",
+                  "starter_code": "def domain(email):\n    pass\n",
+                  "tests": "def test_values():\n    assert domain(\"anna@mail.ru\") == \"mail.ru\" and domain(\"x@y\") == \"y\" and domain(\"no-at\") == \"\", \"Неверный домен\"\n",
+                  "solution": "def domain(email):\n    pos = email.find(\"@\")\n    return email[pos + 1:] if pos != -1 else \"\"\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСтроки с фиксированной структурой встречаются постоянно: даты `2024-09-27`, коды `ERR-042`, токены после `Bearer `, домены после `@`. Срезы вместе с `find` позволяют вырезать нужную часть без регулярных выражений. А ещё — маскировать секреты в логах и обрезать длинные сообщения.\n\n## Как это работает\n\nСрезы строк работают так же, как у списков, и возвращают **новую строку**.\n\n### Срез + find\n\n`find(x)` возвращает позицию подстроки (или `-1`). Отсюда:\n- всё **после** разделителя: `s[s.find(sep) + len(sep):]`;\n- всё **до** разделителя: `s[:s.find(sep)]`;\n- не забывай проверять `-1`, иначе получишь неожиданный результат.\n\nАльтернативы без индексов: `s.partition(sep)` → `(до, sep, после)`, `s.split(sep, 1)`.\n\n### Маскирование\n\n`\"*\" * (len(s) - 4) + s[-4:]` — стандарт для карт, телефонов, токенов в логах.\n\n## Примеры\n\n### Пример 1. Разбор даты\n\n```python\ndate = \"2024-09-27\"\nyear, month, day = date[:4], date[5:7], date[8:]\nprint(year, month, day)\nprint(int(month) == 9)\n```\n\n### Пример 2. Токен из заголовка\n\n```python\nheader = \"Authorization: Bearer abc123\"\nprefix = \"Bearer \"\npos = header.find(prefix)\ntoken = header[pos + len(prefix):] if pos != -1 else None\nprint(token)\nprint(header.partition(prefix))\n```\n\n### Пример 3. Маскирование секретов\n\n```python\ndef mask(value, visible=4):\n    return \"*\" * max(0, len(value) - visible) + value[-visible:]\n\nprint(mask(\"1234567812345678\"))\nprint(mask(\"sk-test-9f8e7d6c5b\"))\n```\n\n### Пример 4. Обрезка длинного текста\n\n```python\ndef truncate(text, limit):\n    return text if len(text) <= limit else text[:limit - 3] + \"...\"\n\nmsg = \"AssertionError: expected status 201, got 500 with body {...}\"\nprint(truncate(msg, 30))\n```\n\n## Частые ошибки\n\n**`s[s.find(x):]` без проверки** — если `find` вернул `-1`, получишь последний символ.\n\n**Забыли `+ len(sep)`** — в результат попадёт сам разделитель.\n\n**Ожидание изменения исходной строки** — срез создаёт новую.\n\n## Шпаргалка\n\n```py\ns[:4]  s[5:7]  s[-2:]\ns[s.find(sep) + len(sep):]     # после разделителя\nbefore, _, after = s.partition(sep)\n\"*\" * (len(s) - 4) + s[-4:]    # маска\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `\"2024-09-27\"[5:7]`?",
+                  "options": [
+                    "`'09'`",
+                    "`'-0'`",
+                    "`'09-'`",
+                    "`'9-'`"
+                  ],
+                  "answer": 0,
+                  "explain": "Индексы 5 и 6 — символы `0` и `9`."
+                },
+                {
+                  "q": "Что вернёт `\"abc\"[\"abc\".find(\"z\"):]`?",
+                  "options": [
+                    "`''`",
+                    "`'c'`",
+                    "`'abc'`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "`find` вернул -1, срез `[-1:]` — последний символ. Классический баг без проверки."
+                },
+                {
+                  "q": "Что вернёт `\"key=value\".partition(\"=\")`?",
+                  "options": [
+                    "`['key', 'value']`",
+                    "`('key', '=', 'value')`",
+                    "`('key', 'value')`",
+                    "`'value'`"
+                  ],
+                  "answer": 1,
+                  "explain": "`partition` возвращает кортеж: до, разделитель, после."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "slc-m3",
+          "title": "Приёмы со срезами",
+          "icon": "🧩",
+          "description": "Изменение срезами, окна, пачки и распаковка",
+          "lessons": [
+            {
+              "slug": "slc-m3-l1",
+              "title": "Изменение списка срезами",
+              "theory": "# Присваивание и удаление срезом (только списки)\n\n```\na = [0, 1, 2, 3, 4]\na[1:3] = [\"x\", \"y\", \"z\"]   # заменить часть: [0, 'x', 'y', 'z', 3, 4]\ndel a[:2]                  # удалить первые два\na[:] = []                  # очистить, сохранив тот же объект\n```\n\nДлина вставки может отличаться от длины заменяемого куска.\n",
+              "exercises": [
+                {
+                  "slug": "slc-m3-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "a = [0, 1, 2, 3, 4]\na[1:3] = [\"x\", \"y\", \"z\"]\nprint(a)\ndel a[-2:]\nprint(a)\n",
+                  "expected_output": "[0, 'x', 'y', 'z', 3, 4]\n[0, 'x', 'y', 'z']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m3-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "a = [1, 2, 3]\nb = a\na[:] = [9]\nprint(a, b)\nc = a\na = []\nprint(a, c)\n",
+                  "expected_output": "[9] [9]\n[] [9]",
+                  "hint": "`a[:] = ...` меняет содержимое того же объекта, а `a = []` создаёт новый.",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m3-l1-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `drop_first(items, n)`, которая **удаляет** первые `n` элементов из самого списка (через `del` со срезом) и возвращает этот же список.\n\nПример:\n```\ndata = [1, 2, 3, 4]\ndrop_first(data, 2)   # → [3, 4], и data == [3, 4]\n```",
+                  "starter_code": "def drop_first(items, n):\n    pass\n",
+                  "tests": "def test_values():\n    data = [1, 2, 3, 4]\n    assert drop_first(data, 2) == [3, 4] and data == [3, 4], \"Удалить нужно из самого списка\"\n",
+                  "solution": "def drop_first(items, n):\n    del items[:n]\n    return items\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m3-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `replace_middle(items, new)` — заменить всё, кроме первого и последнего элемента, на элементы из `new` (изменить сам список и вернуть его).\n\nПример:\n```\nreplace_middle([1, 2, 3, 4], [\"a\"])   # → [1, \"a\", 4]\n```",
+                  "starter_code": "def replace_middle(items, new):\n    pass\n",
+                  "tests": "def test_values():\n    data = [1, 2, 3, 4]\n    assert replace_middle(data, [\"a\"]) == [1, \"a\", 4] and data == [1, \"a\", 4], \"Замена середины через срез\"\n    assert replace_middle([1, 2], [\"x\", \"y\"]) == [1, \"x\", \"y\", 2], \"Середину можно и расширить\"\n",
+                  "solution": "def replace_middle(items, new):\n    items[1:-1] = new\n    return items\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m3-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `keep_last(history, n)` — оставить в списке истории только **последние** `n` записей (изменить сам список, вернуть его). Так ограничивают размер лога.\n\nПример:\n```\nh = [1, 2, 3, 4, 5]\nkeep_last(h, 3)   # → [3, 4, 5], h == [3, 4, 5]\n```",
+                  "starter_code": "def keep_last(history, n):\n    pass\n",
+                  "tests": "def test_values():\n    h = [1, 2, 3, 4, 5]\n    assert keep_last(h, 3) == [3, 4, 5] and h == [3, 4, 5], \"Должен измениться сам список\"\n    h2 = [1, 2]\n    assert keep_last(h2, 5) == [1, 2], \"Если записей меньше — оставить все\"\n",
+                  "solution": "def keep_last(history, n):\n    del history[:max(0, len(history) - n)]\n    return history\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nИногда нужно изменить не один элемент, а целый кусок списка: удалить первые N записей, заменить середину, обрезать историю до последних 100 событий, очистить список, на который ссылаются другие части программы. Для списков срезы работают и «на запись».\n\n## Как это работает\n\nТолько для **изменяемых** последовательностей (списков):\n\n- `a[i:j] = iterable` — заменить кусок. Длины могут не совпадать: список вырастет или сократится.\n- `a[i:i] = [x, y]` — вставка без удаления.\n- `del a[i:j]` — удалить кусок.\n- `a[:] = new` — заменить **всё содержимое**, сохранив тот же объект (все ссылки увидят изменение).\n- Со срезом с шагом длины должны совпадать: `a[::2] = [...]`.\n\n### a[:] = ... против a = ...\n\n- `a = []` — имя `a` теперь указывает на новый пустой список; старый список (и другие ссылки на него) не изменились.\n- `a[:] = []` — очищается сам объект; это видно через все ссылки.\n\n## Примеры\n\n### Пример 1. Замена и вставка\n\n```python\na = [0, 1, 2, 3, 4]\na[1:3] = [\"x\", \"y\", \"z\"]\nprint(a)\na[1:1] = [\"NEW\"]\nprint(a)\na[::2] = [\"-\"] * len(a[::2])\nprint(a)\n```\n\n### Пример 2. Ограничение размера истории\n\n```python\nhistory = list(range(1, 11))\nLIMIT = 3\ndel history[:-LIMIT]\nprint(history)\n```\n\n### Пример 3. Очистка «для всех»\n\n```python\nshared = [\"a\", \"b\"]\nalias = shared\nshared[:] = []\nprint(alias)\n\nshared = [\"a\", \"b\"]\nalias = shared\nshared = []\nprint(alias)\n```\n\n## Частые ошибки\n\n**Присваивание срезом строке** — строки неизменяемые, `TypeError`.\n\n**`a[1:3] = \"xy\"`** — строка разобьётся на символы (это итерируемое).\n\n**Разная длина при шаге** — `ValueError: attempt to assign sequence of size ...`.\n\n## Шпаргалка\n\n```py\na[i:j] = [...]     # заменить кусок\na[i:i] = [...]     # вставить\ndel a[i:j]         # удалить кусок\ndel a[:-n]         # оставить последние n\na[:] = []          # очистить этот же объект\n```",
+              "quiz": [
+                {
+                  "q": "Что станет с `a = [1, 2, 3, 4]` после `a[1:3] = [\"x\"]`?",
+                  "options": [
+                    "`[1, 'x', 4]`",
+                    "`[1, 'x', 3, 4]`",
+                    "Ошибка",
+                    "`['x']`"
+                  ],
+                  "answer": 0,
+                  "explain": "Кусок из двух элементов заменён одним — список укоротился."
+                },
+                {
+                  "q": "После `a = [1]; b = a; a[:] = []` чему равно `b`?",
+                  "options": [
+                    "`[1]`",
+                    "`[]`",
+                    "`None`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "`a[:] = []` очищает сам объект, на который ссылается и `b`."
+                },
+                {
+                  "q": "Можно ли сделать `s = \"abc\"; s[0:1] = \"X\"`?",
+                  "options": [
+                    "Да",
+                    "Нет, строки неизменяемые",
+                    "Только для латиницы",
+                    "Да, но s станет списком"
+                  ],
+                  "answer": 1,
+                  "explain": "Присваивание срезом работает только для изменяемых последовательностей."
+                }
+              ]
+            },
+            {
+              "slug": "slc-m3-l2",
+              "title": "Пачки и скользящее окно",
+              "theory": "# Пачки (chunks)\n\n```\nitems[i:i + size]  for i in range(0, len(items), size)\n```\n\n# Скользящее окно\n\n```\nitems[i:i + k]     for i in range(len(items) - k + 1)\n```\n\nПачки не пересекаются, окна — сдвигаются на один элемент.\n",
+              "exercises": [
+                {
+                  "slug": "slc-m3-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "items = [1, 2, 3, 4, 5]\nfor i in range(0, len(items), 2):\n    print(items[i:i + 2])\n",
+                  "expected_output": "[1, 2]\n[3, 4]\n[5]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m3-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "items = [1, 2, 3, 4]\nfor i in range(len(items) - 2 + 1):\n    print(items[i:i + 2])\n",
+                  "expected_output": "[1, 2]\n[2, 3]\n[3, 4]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m3-l2-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `chunks(items, size)` — разбить список на куски длины `size` (последний может быть короче).\n\nПримеры:\n```\nchunks([1, 2, 3, 4, 5], 2)   # → [[1, 2], [3, 4], [5]]\nchunks([], 3)                # → []\n```",
+                  "starter_code": "def chunks(items, size):\n    pass\n",
+                  "tests": "def test_values():\n    assert chunks([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]] and chunks([], 3) == [] and chunks([1, 2], 5) == [[1, 2]], \"Неверное разбиение\"\n",
+                  "solution": "def chunks(items, size):\n    return [items[i:i + size] for i in range(0, len(items), size)]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m3-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `moving_average(values, k)` — список средних по окну длины `k` (окно сдвигается на 1). Каждое среднее округли до 2 знаков.\n\nПример:\n```\nmoving_average([1, 2, 3, 4, 5], 3)   # → [2.0, 3.0, 4.0]\n```\nЕсли элементов меньше `k` — пустой список.",
+                  "starter_code": "def moving_average(values, k):\n    pass\n",
+                  "tests": "def test_values():\n    assert moving_average([1, 2, 3, 4, 5], 3) == [2.0, 3.0, 4.0], \"Неверные средние\"\n    assert moving_average([1, 2], 3) == [], \"Меньше k элементов — пусто\"\n    assert moving_average([0.3, 0.3, 0.4], 2) == [0.3, 0.35], \"Округление до 2 знаков\"\n",
+                  "solution": "def moving_average(values, k):\n    return [round(sum(values[i:i + k]) / k, 2) for i in range(len(values) - k + 1)]\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "slc-m3-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `has_streak(results, k)` — есть ли в истории прогонов **`k` падений подряд** (`\"fail\"`). Используй окна.\n\nПримеры:\n```\nhas_streak([\"pass\", \"fail\", \"fail\", \"fail\", \"pass\"], 3)   # → True\nhas_streak([\"fail\", \"pass\", \"fail\"], 2)                  # → False\n```",
+                  "starter_code": "def has_streak(results, k):\n    pass\n",
+                  "tests": "def test_values():\n    assert has_streak([\"pass\", \"fail\", \"fail\", \"fail\", \"pass\"], 3) is True, \"Три fail подряд есть\"\n    assert has_streak([\"fail\", \"pass\", \"fail\"], 2) is False, \"Двух подряд нет\"\n    assert has_streak([], 1) is False, \"Пустая история — False\"\n",
+                  "solution": "def has_streak(results, k):\n    for i in range(len(results) - k + 1):\n        if results[i:i + k] == [\"fail\"] * k:\n            return True\n    return False\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nДва приёма, которые постоянно встречаются на практике:\n- **пачки** — отправить 1000 записей в API по 100, разбить тесты между воркерами, выводить таблицу постранично;\n- **скользящее окно** — среднее время ответа за последние N запросов, поиск серии из N падений подряд, сглаживание графиков.\n\n## Как это работает\n\n### Пачки\n\nНачала пачек идут с шагом `size`: `0, size, 2*size, …`\n\n```py\n[items[i:i + size] for i in range(0, len(items), size)]\n```\n\nПоследняя пачка может быть короче — срез не падает.\n\n### Окна\n\nОкно длины `k` сдвигается на 1. Окон всего `len(items) - k + 1` (если элементов меньше `k` — ни одного).\n\n```py\n[items[i:i + k] for i in range(len(items) - k + 1)]\n```\n\nДля больших данных окна пересчитывают инкрементально (прибавить новый элемент, вычесть ушедший), но принцип тот же.\n\n## Примеры\n\n### Пример 1. Пачки запросов\n\n```python\nids = list(range(1, 11))\nBATCH = 4\nfor n, i in enumerate(range(0, len(ids), BATCH), start=1):\n    print(f\"запрос {n}: ids={ids[i:i + BATCH]}\")\n```\n\n### Пример 2. Скользящее среднее\n\n```python\nresponse_ms = [120, 130, 125, 900, 880, 140, 135]\nk = 3\nfor i in range(len(response_ms) - k + 1):\n    window = response_ms[i:i + k]\n    avg = sum(window) / k\n    flag = \"⚠️\" if avg > 500 else \"\"\n    print(window, round(avg), flag)\n```\n\n### Пример 3. Серия падений\n\n```python\nruns = [\"pass\", \"fail\", \"fail\", \"pass\", \"fail\", \"fail\", \"fail\"]\nk = 3\nstreaks = [i for i in range(len(runs) - k + 1) if runs[i:i + k] == [\"fail\"] * k]\nprint(\"серия из 3 падений начинается на позиции:\", streaks)\n```\n\n### Пример 4. Попарные разницы\n\n```python\nvalues = [10, 12, 9, 15]\nprint([b - a for a, b in zip(values, values[1:])])\n```\n\n## Частые ошибки\n\n**`range(len(items) - k)`** без `+ 1` — теряется последнее окно.\n\n**Шаг `range` для пачек равен 1** — пачки пересекаются.\n\n**Окно больше данных** — формула даёт отрицательный `range`, результат пустой (это нормально, но проверь, что так и задумано).\n\n## Шпаргалка\n\n```py\n[xs[i:i + n] for i in range(0, len(xs), n)]      # пачки\n[xs[i:i + k] for i in range(len(xs) - k + 1)]    # окна\nzip(xs, xs[1:])                                  # соседние пары\n```",
+              "quiz": [
+                {
+                  "q": "Сколько окон длины 3 в списке из 5 элементов?",
+                  "options": [
+                    "2",
+                    "3",
+                    "5",
+                    "15"
+                  ],
+                  "answer": 1,
+                  "explain": "`5 - 3 + 1 = 3` окна."
+                },
+                {
+                  "q": "Что вернёт `[items[i:i + 2] for i in range(0, 5, 2)]` для `items = [1, 2, 3, 4, 5]`?",
+                  "options": [
+                    "`[[1, 2], [3, 4]]`",
+                    "`[[1, 2], [3, 4], [5]]`",
+                    "`[[1, 2], [2, 3], [3, 4], [4, 5]]`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Три пачки; последняя короче."
+                },
+                {
+                  "q": "Что даст `list(zip([1, 2, 3], [2, 3]))`?",
+                  "options": [
+                    "`[(1, 2), (2, 3)]`",
+                    "`[(1, 2), (2, 3), (3, None)]`",
+                    "`[1, 2, 3, 2, 3]`",
+                    "Ошибка"
+                  ],
+                  "answer": 0,
+                  "explain": "`zip(xs, xs[1:])` — пары соседних элементов."
+                }
+              ]
+            },
+            {
+              "slug": "slc-m3-l3",
+              "title": "Распаковка",
+              "theory": "# Распаковка\n\n```\na, b = [1, 2]\nfirst, *rest = [1, 2, 3, 4]      # first=1, rest=[2, 3, 4]\n*start, last = [1, 2, 3]         # start=[1, 2], last=3\nhead, *_, tail = \"Python\"        # head=\"P\", tail=\"n\"\nname, (x, y) = [\"point\", (3, 4)] # вложенная распаковка\n```\n\nЧисло переменных без `*` должно совпадать с числом элементов.\n",
+              "exercises": [
+                {
+                  "slug": "slc-m3-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "first, *rest = [10, 20, 30, 40]\nprint(first, rest)\n*start, last = \"abc\"\nprint(start, last)\n",
+                  "expected_output": "10 [20, 30, 40]\n['a', 'b'] c",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m3-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "header, *rows = [\"name;status\", \"login;pass\", \"pay;fail\"]\nprint(header)\nfor row in rows:\n    name, status = row.split(\";\")\n    print(name, status)\n",
+                  "expected_output": "name;status\nlogin pass\npay fail",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "slc-m3-l3-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `split_head(items)` — пара `(первый, остальные)` через распаковку со звёздочкой. Для пустого списка вернуть `(None, [])`.\n\nПримеры:\n```\nsplit_head([1, 2, 3])   # → (1, [2, 3])\nsplit_head([5])         # → (5, [])\nsplit_head([])          # → (None, [])\n```",
+                  "starter_code": "def split_head(items):\n    pass\n",
+                  "tests": "def test_values():\n    assert split_head([1, 2, 3]) == (1, [2, 3]) and split_head([5]) == (5, []) and split_head([]) == (None, []), \"Неверная распаковка\"\n",
+                  "solution": "def split_head(items):\n    if not items:\n        return None, []\n    first, *rest = items\n    return first, rest\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "slc-m3-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_log(line)` — разобрать строку лога `\"дата время уровень сообщение из нескольких слов\"`:\n\n- вернуть словарь `{\"date\": ..., \"time\": ..., \"level\": ..., \"message\": ...}`;\n- `message` — все оставшиеся слова, склеенные через пробел.\n\nПример:\n```\nparse_log(\"2024-09-27 12:00:01 ERROR нет связи с БД\")\n# → {\"date\": \"2024-09-27\", \"time\": \"12:00:01\", \"level\": \"ERROR\", \"message\": \"нет связи с БД\"}\n```\nИспользуй `date, time, level, *words = line.split()`.",
+                  "starter_code": "def parse_log(line):\n    pass\n",
+                  "tests": "def test_values():\n    got = parse_log(\"2024-09-27 12:00:01 ERROR нет связи с БД\")\n    assert got == {\"date\": \"2024-09-27\", \"time\": \"12:00:01\", \"level\": \"ERROR\", \"message\": \"нет связи с БД\"}, f\"Получено {got}\"\n    assert parse_log(\"d t INFO ok\")[\"message\"] == \"ok\", \"Одно слово в сообщении\"\n",
+                  "solution": "def parse_log(line):\n    date, time, level, *words = line.split()\n    return {\"date\": date, \"time\": time, \"level\": level, \"message\": \" \".join(words)}\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "slc-m3-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `swap_ends(items)` — вернуть **новый** список, где первый и последний элементы поменялись местами (список минимум из 2 элементов). Используй распаковку `first, *middle, last = items`.\n\nПример:\n```\nswap_ends([1, 2, 3, 4])   # → [4, 2, 3, 1]\nswap_ends([\"a\", \"b\"])     # → [\"b\", \"a\"]\n```",
+                  "starter_code": "def swap_ends(items):\n    pass\n",
+                  "tests": "def test_values():\n    data = [1, 2, 3, 4]\n    assert swap_ends(data) == [4, 2, 3, 1] and swap_ends([\"a\", \"b\"]) == [\"b\", \"a\"], \"Неверный результат\"\n    assert data == [1, 2, 3, 4], \"Исходный список не должен меняться\"\n",
+                  "solution": "def swap_ends(items):\n    first, *middle, last = items\n    return [last, *middle, first]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nРаспаковка позволяет разложить последовательность по переменным одной строкой: заголовок и строки CSV, первый аргумент и остальные, дата/время/уровень и сообщение лога. Код становится короче и понятнее, чем с индексами `[0]`, `[1]`, `[2:]`.\n\n## Как это работает\n\n### Простая распаковка\n\n`a, b, c = [1, 2, 3]` — число переменных должно **совпадать** с числом элементов, иначе `ValueError`. Работает с любым итерируемым: списком, кортежем, строкой, результатом `split`.\n\n### Звёздочка\n\nОдна переменная со `*` собирает «всё остальное» в **список** (может оказаться пустым):\n- `first, *rest = xs`\n- `*start, last = xs`\n- `head, *middle, tail = xs`\n\nЗвёздочка в распаковке — только одна.\n\n### _ для ненужного\n\nПо соглашению ненужные значения называют `_`: `name, _, status = row`, `head, *_ = xs`.\n\n### Вложенная распаковка\n\n`name, (x, y) = [\"p\", (3, 4)]` и в циклах: `for i, (k, v) in enumerate(d.items()):`.\n\n### Распаковка при сборке\n\n`*` работает и в обратную сторону: `[last, *middle, first]`, `print(*items)`.\n\n## Примеры\n\n### Пример 1. Звёздочка в разных позициях\n\n```python\ndata = [1, 2, 3, 4, 5]\nfirst, *rest = data\n*start, last = data\nhead, *middle, tail = data\nprint(first, rest)\nprint(start, last)\nprint(head, middle, tail)\n```\n\n### Пример 2. CSV: заголовок и строки\n\n```python\ncsv_lines = [\"name;status;time\", \"login;pass;1.2\", \"pay;fail;3.4\"]\nheader, *rows = csv_lines\ncolumns = header.split(\";\")\nfor row in rows:\n    record = dict(zip(columns, row.split(\";\")))\n    print(record)\n```\n\n### Пример 3. Строка лога\n\n```python\nline = \"2024-09-27 12:00:01 ERROR нет связи с БД\"\ndate, time, level, *words = line.split()\nprint(level, \"|\", \" \".join(words))\n```\n\n### Пример 4. Ошибка количества\n\n```python\ntry:\n    a, b = [1, 2, 3]\nexcept ValueError as e:\n    print(\"ошибка:\", e)\na, b, *_ = [1, 2, 3]\nprint(a, b)\n```\n\n### Пример 5. Сборка со звёздочкой\n\n```python\nfirst, *middle, last = [1, 2, 3, 4]\nprint([last, *middle, first])\nprint(*middle, sep=\" | \")\n```\n\n## Частые ошибки\n\n**Несовпадение количества** — `ValueError: too many values to unpack`.\n\n**Две звёздочки** — `SyntaxError`.\n\n**Ожидание кортежа в `*rest`** — там всегда список.\n\n## Шпаргалка\n\n```py\na, b = pair\nfirst, *rest = xs\n*init, last = xs\nhead, *_, tail = xs\nfor i, (k, v) in enumerate(d.items()): ...\n[*a, *b]              # склейка распаковкой\n```",
+              "quiz": [
+                {
+                  "q": "Что будет в `rest` после `first, *rest = [1]`?",
+                  "options": [
+                    "`None`",
+                    "`[]`",
+                    "Ошибка",
+                    "`[1]`"
+                  ],
+                  "answer": 1,
+                  "explain": "Звёздочка собирает оставшиеся элементы; их нет — пустой список."
+                },
+                {
+                  "q": "Что произойдёт при `a, b = \"abc\"`?",
+                  "options": [
+                    "a='a', b='bc'",
+                    "`ValueError`: слишком много значений",
+                    "a='ab', b='c'",
+                    "Ошибка типа"
+                  ],
+                  "answer": 1,
+                  "explain": "Строка из трёх символов не раскладывается на две переменные."
+                },
+                {
+                  "q": "Какой тип у `middle` в `head, *middle, tail = (1, 2, 3, 4)`?",
+                  "options": [
+                    "`tuple`",
+                    "`list`",
+                    "`int`",
+                    "Зависит от исходного типа"
+                  ],
+                  "answer": 1,
+                  "explain": "Переменная со звёздочкой всегда получает список."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -191,7 +191,7 @@ def test_daily_goal_event(client):
 def test_reimport_keeps_progress(client):
     lessons = first_lessons(client)
     solve_lesson(client, lessons[0]["id"])
-    pkg = json.loads((ROOT / "content" / "python-basics.json").read_text(encoding="utf-8"))
+    pkg = json.loads((ROOT / "content" / "py-vars.json").read_text(encoding="utf-8"))
     pkg["topics"][0]["title"] = "Переименовано"
     r = client.post("/api/admin/import", json=pkg).json()
     assert r["created"] == 0 and r["updated"] > 0
@@ -326,7 +326,7 @@ def test_continue_banner(client):
     # прошли его — плашка предлагает следующий урок той же темы
     solve_lesson(client, lessons[0]["id"])
     c = client.get("/api/continue").json()
-    assert c["lesson"]["id"] == lessons[1]["id"] and c["topic"]["title"] == "Python: основы"
+    assert c["lesson"]["id"] == lessons[1]["id"] and c["topic"]["title"] == "Переменные и типы данных"
 
 
 def test_admin_can_set_topic_group(client):

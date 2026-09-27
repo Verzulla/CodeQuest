@@ -20,10 +20,13 @@ OUT = SRC.parent
 def attach_theory(name: str, topic: dict) -> None:
     """Подробная теория и «Проверь себя» лежат в content/src/theory_<name>.py:
     THEORY = {slug_урока: {"full": markdown, "quiz": [вопросы]}}."""
-    if not (SRC / f"theory_{name}.py").exists():
+    lessons = {l["slug"]: l for m in topic["modules"] for l in m["lessons"]}
+    if not (SRC / f"theory_{name}.py").exists():   # теория описана прямо в уроках
+        for slug, lesson in lessons.items():
+            if not lesson.get("theory_full"):
+                print(f"  ⚠️  {slug}: нет подробной теории")
         return
     theory = importlib.import_module(f"content.src.theory_{name}").THEORY
-    lessons = {l["slug"]: l for m in topic["modules"] for l in m["lessons"]}
     unknown = set(theory) - set(lessons)
     if unknown:
         raise SystemExit(f"theory_{name}.py: нет таких уроков {sorted(unknown)}")

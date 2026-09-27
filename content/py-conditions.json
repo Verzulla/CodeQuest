@@ -1,0 +1,857 @@
+{
+  "topics": [
+    {
+      "slug": "py-conditions",
+      "title": "Условные операторы",
+      "icon": "🔀",
+      "color": "#ff9600",
+      "description": "if/elif/else, логика, истинность, тернарный оператор и match",
+      "group": "Python",
+      "modules": [
+        {
+          "slug": "cnd-m1",
+          "title": "if и сравнения",
+          "icon": "⚖️",
+          "description": "if/else, операторы сравнения и elif",
+          "lessons": [
+            {
+              "slug": "cnd-m1-l1",
+              "title": "if и else",
+              "theory": "# Условие if\n\n```\nif age >= 18:\n    print(\"Можно\")\nelse:\n    print(\"Нельзя\")\n```\n\n- После условия — **двоеточие**.\n- Тело — с **отступом** 4 пробела. Отступ — часть синтаксиса.\n- `else` необязателен.\n- Код без отступа после блока выполняется всегда.\n",
+              "exercises": [
+                {
+                  "slug": "cnd-m1-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "t = 25\nif t > 20:\n    print(\"жарко\")\nelse:\n    print(\"прохладно\")\nprint(\"конец\")\n",
+                  "expected_output": "жарко\nконец",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m1-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Внимание на отступы.",
+                  "code": "x = 3\nif x > 5:\n    print(\"A\")\n    print(\"B\")\nprint(\"C\")\n",
+                  "expected_output": "C",
+                  "hint": "«A» и «B» внутри if, «C» — снаружи.",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m1-l1-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_adult(age)`, которая проверяет совершеннолетие.\n\n- Возвращает `True`, если возраст **18 или больше**, иначе `False`.\n\nПримеры:\n```\nis_adult(30)   # → True\nis_adult(10)   # → False\nis_adult(18)   # → True\n```",
+                  "starter_code": "def is_adult(age):\n    pass\n",
+                  "tests": "def test_values():\n    got = [is_adult(a) for a in (30, 10, 18, 17)]\n    assert got == [True, False, True, False], f\"Получено {got} — проверь границу 18\"\n",
+                  "solution": "def is_adult(age):\n    return age >= 18\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "cnd-m1-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `max2(a, b)`, которая возвращает большее из двух чисел, **без** встроенной `max`.\n\nПримеры:\n```\nmax2(5, 3)    # → 5\nmax2(-1, 8)   # → 8\nmax2(4, 4)    # → 4\n```",
+                  "starter_code": "def max2(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    assert [max2(5, 3), max2(-1, 8), max2(4, 4)] == [5, 8, 4], \"Неверный максимум\"\n\ndef test_no_max():\n    assert \"max(\" not in open(\"solution.py\", encoding=\"utf-8\").read().replace(\"max2(\", \"\"), \"Не используй встроенную max\"\n",
+                  "solution": "def max2(a, b):\n    if a > b:\n        return a\n    return b\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "cnd-m1-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `check_status(code)` для проверки ответа API.\n\n- Если `code` равен `200` — вернуть строку `\"OK\"`.\n- Иначе — вернуть `\"FAIL: <код>\"`, например `\"FAIL: 404\"`.\n\nПримеры:\n```\ncheck_status(200)   # → \"OK\"\ncheck_status(500)   # → \"FAIL: 500\"\n```",
+                  "starter_code": "def check_status(code):\n    pass\n",
+                  "tests": "def test_values():\n    assert check_status(200) == \"OK\", \"200 → OK\"\n    assert check_status(404) == \"FAIL: 404\" and check_status(500) == \"FAIL: 500\", \"Иначе — FAIL: код\"\n",
+                  "solution": "def check_status(code):\n    if code == 200:\n        return \"OK\"\n    else:\n        return f\"FAIL: {code}\"\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПрограмма, которая всегда делает одно и то же, мало полезна. Условия позволяют **реагировать на данные**: пустить на сайт только взрослых, показать ошибку при неверном пароле, пометить тест как упавший.\n\n## Как это работает\n\n```py\nif условие:\n    код, если условие истинно\nelse:\n    код, если ложно\n```\n\n1. Python вычисляет условие. Результат приводится к `True`/`False`.\n2. Выполняется ровно одна ветка.\n3. Затем программа продолжается после всего блока.\n\n**Отступ** — не украшение: по нему Python понимает, какие строки относятся к ветке. Стандарт — 4 пробела (в редакторе CodeQuest это делает Tab).\n\n### Условие — любое выражение\n\nНеобязательно сравнение: `if items:` (список не пуст), `if name:` (строка не пустая), `if user is None:`.\n\n### Ранний return вместо else\n\nВ функции после `return` код ветки завершается, поэтому `else` часто не нужен:\n\n```py\ndef max2(a, b):\n    if a > b:\n        return a\n    return b\n```\n\n## Примеры\n\n### Пример 1. Базовый if/else\n\n```python\nfor temperature in [25, 12]:\n    if temperature > 20:\n        print(temperature, \"— жарко\")\n    else:\n        print(temperature, \"— прохладно\")\n```\n\n### Пример 2. Отступ решает всё\n\n```python\nx = 3\nif x > 5:\n    print(\"A — внутри if\")\n    print(\"B — тоже внутри\")\nprint(\"C — выполняется всегда\")\n```\n\n### Пример 3. Функция с проверкой\n\n```python\ndef check_status(code):\n    if code == 200:\n        return \"OK\"\n    return f\"FAIL: {code}\"\n\nfor code in [200, 404, 500]:\n    print(code, check_status(code))\n```\n\n### Пример 4. Вернуть результат сравнения\n\n```python\ndef is_adult(age):\n    return age >= 18          # сравнение уже даёт True/False\n\nprint([is_adult(a) for a in [30, 18, 17]])\n```\n\n## Частые ошибки\n\n**Забытое двоеточие** — `SyntaxError`.\n\n**Смешанные табы и пробелы** — `IndentationError`.\n\n**`if x = 5:`** — присваивание вместо сравнения, синтаксическая ошибка.\n\n**Лишний if ради True/False**: `if a > b: return True else: return False` — просто `return a > b`.\n\n## Шпаргалка\n\n```py\nif cond:\n    ...\nelse:\n    ...\nreturn a >= b     # сравнение само по себе bool\n```",
+              "quiz": [
+                {
+                  "q": "Что выведет код?\n```py\nx = 10\nif x > 5:\n    print(\"A\")\nprint(\"B\")\n```",
+                  "options": [
+                    "`A`",
+                    "`B`",
+                    "`A` и `B`",
+                    "Ничего"
+                  ],
+                  "answer": 2,
+                  "explain": "Условие истинно — печатается `A`; строка без отступа выполняется всегда — `B`."
+                },
+                {
+                  "q": "Какой вариант функции `is_even(n)` самый лаконичный и верный?",
+                  "options": [
+                    "`if n % 2 == 0: return True`",
+                    "`return n % 2 == 0`",
+                    "`return n / 2`",
+                    "`if n % 2: return True else: return False`"
+                  ],
+                  "answer": 1,
+                  "explain": "Сравнение само даёт `True`/`False`, дополнительный `if` не нужен."
+                },
+                {
+                  "q": "Что обязательно после условия в `if`?",
+                  "options": [
+                    "Точка с запятой",
+                    "Двоеточие",
+                    "Скобки",
+                    "Слово then"
+                  ],
+                  "answer": 1,
+                  "explain": "Строка `if` заканчивается двоеточием, дальше — блок с отступом."
+                }
+              ]
+            },
+            {
+              "slug": "cnd-m1-l2",
+              "title": "Операторы сравнения",
+              "theory": "# Сравнения\n\n`==` равно · `!=` не равно · `<` `>` `<=` `>=`\n\n- Результат — `True` или `False`.\n- Цепочки: `0 < x < 10` — то же, что `0 < x and x < 10`.\n- Строки сравниваются по алфавиту посимвольно, заглавные «меньше» строчных.\n- `==` сравнивает **значения**, `is` — что это **один и тот же объект** (для `None`).\n",
+              "exercises": [
+                {
+                  "slug": "cnd-m1-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "print(5 == 5.0, 5 != 6)\nprint(3 < 7 < 10, 3 < 7 > 10)\nprint(\"apple\" < \"banana\", \"Z\" < \"a\")\n",
+                  "expected_output": "True True\nTrue False\nTrue True",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m1-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Сравнение строк с числами.",
+                  "code": "print(\"10\" == 10)\nprint(\"10\" < \"9\")\nprint(int(\"10\") < int(\"9\"))\n",
+                  "expected_output": "False\nTrue\nFalse",
+                  "hint": "Строки сравниваются посимвольно: `\"1\"` меньше `\"9\"`.",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m1-l2-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `in_range(x, low, high)` — лежит ли `x` в отрезке **от `low` до `high` включительно**.\n\nИспользуй цепочку сравнений.\n\nПримеры:\n```\nin_range(5, 1, 10)    # → True\nin_range(10, 1, 10)   # → True   граница входит\nin_range(0, 1, 10)    # → False\n```",
+                  "starter_code": "def in_range(x, low, high):\n    pass\n",
+                  "tests": "def test_values():\n    got = [in_range(5, 1, 10), in_range(10, 1, 10), in_range(1, 1, 10), in_range(0, 1, 10), in_range(11, 1, 10)]\n    assert got == [True, True, True, False, False], f\"Получено {got}\"\n",
+                  "solution": "def in_range(x, low, high):\n    return low <= x <= high\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "cnd-m1-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_valid_port(port)` — проверка номера порта.\n\nПорт корректен, если это целое число от **1 до 65535** включительно.\n\nПримеры:\n```\nis_valid_port(8080)    # → True\nis_valid_port(0)       # → False\nis_valid_port(65536)   # → False\n```",
+                  "starter_code": "def is_valid_port(port):\n    pass\n",
+                  "tests": "def test_values():\n    got = [is_valid_port(p) for p in (8080, 1, 65535, 0, 65536, -1)]\n    assert got == [True, True, True, False, False, False], f\"Получено {got}\"\n",
+                  "solution": "def is_valid_port(port):\n    return 1 <= port <= 65535\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "cnd-m1-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `compare_versions(a, b)` для версий вида `\"1.10\"` и `\"1.9\"` (ровно две части через точку).\n\n- Возвращает `-1`, если `a` меньше `b`; `1`, если больше; `0`, если равны.\n- Сравнивать нужно **как числа**, а не как строки: `1.10` больше `1.9`.\n\nПримеры:\n```\ncompare_versions(\"1.10\", \"1.9\")   # → 1\ncompare_versions(\"2.0\", \"2.0\")    # → 0\ncompare_versions(\"0.9\", \"1.0\")    # → -1\n```\nПодсказка: `tuple(int(p) for p in a.split(\".\"))` превращает `\"1.10\"` в `(1, 10)`, а кортежи сравниваются поэлементно.",
+                  "starter_code": "def compare_versions(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    got = [compare_versions(\"1.10\", \"1.9\"), compare_versions(\"2.0\", \"2.0\"), compare_versions(\"0.9\", \"1.0\")]\n    assert got == [1, 0, -1], f\"Получено {got}\"\n",
+                  "solution": "def compare_versions(a, b):\n    va = tuple(int(p) for p in a.split(\".\"))\n    vb = tuple(int(p) for p in b.split(\".\"))\n    if va < vb:\n        return -1\n    if va > vb:\n        return 1\n    return 0\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЛюбая проверка в программе и в тесте — это сравнение: статус равен 200? время ответа меньше секунды? версия не ниже требуемой? Важно знать тонкости: как сравниваются строки, чем `==` отличается от `is` и почему `\"10\" < \"9\"`.\n\n## Как это работает\n\nОператоры: `==`, `!=`, `<`, `>`, `<=`, `>=`. Результат — `bool`.\n\n### Цепочки\n\n`a < b < c` — это `a < b and b < c`, причём `b` вычисляется один раз. Удобно для диапазонов: `1 <= port <= 65535`.\n\n### Числа разных типов\n\n`5 == 5.0` — `True`: сравниваются значения. А вот число и строка никогда не равны: `10 == \"10\"` — `False` (и `<` между ними — `TypeError`).\n\n### Строки\n\nСравниваются **посимвольно по кодам символов** (лексикографически):\n- `\"apple\" < \"banana\"` — по первой букве;\n- `\"Z\" < \"a\"` — заглавные латинские имеют меньшие коды;\n- `\"10\" < \"9\"` — потому что `\"1\" < \"9\"`.\n\nПоэтому числа, версии и даты в виде строк сравнивать напрямую нельзя.\n\n### == и is\n\n- `==` — равны ли **значения**;\n- `is` — один ли это **объект** в памяти.\n\n`is` используют только для `None`, `True`, `False`.\n\n## Примеры\n\n### Пример 1. Базовые сравнения\n\n```python\nprint(5 == 5.0, 5 != 5, 3 <= 3)\nprint(1 <= 8080 <= 65535)\nprint(\"abc\" == \"ABC\", \"abc\" == \"ABC\".lower())\n```\n\n### Пример 2. Строки против чисел\n\n```python\nversions = [\"1.10\", \"1.9\", \"1.2\"]\nprint(sorted(versions))\nprint(sorted(versions, key=lambda v: tuple(int(p) for p in v.split(\".\"))))\n```\n\n### Пример 3. Кортежи сравниваются поэлементно\n\n```python\nprint((1, 9) < (1, 10))\nprint((2, 0) > (1, 99))\nprint((1, 2, 3) == (1, 2, 3))\n```\n\n### Пример 4. == и is\n\n```python\na = [1, 2]\nb = [1, 2]\nprint(a == b, a is b)\nx = None\nprint(x is None)\n```\n\n## Частые ошибки\n\n**Сравнение строковых чисел** — `\"10\" < \"9\"` даёт `True`.\n\n**`is` для чисел и строк** — может «случайно» работать для маленьких значений и сломаться для больших. Для значений — только `==`.\n\n**Сравнение float через `==`** — используй `round` или `math.isclose`.\n\n## Шпаргалка\n\n```py\n==  !=  <  >  <=  >=\nlow <= x <= high               # диапазон\ntuple(map(int, v.split(\".\")))  # версия для сравнения\nx is None                      # только для None/True/False\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `\"10\" < \"9\"`?",
+                  "options": [
+                    "`False`",
+                    "`True`",
+                    "Ошибка",
+                    "`None`"
+                  ],
+                  "answer": 1,
+                  "explain": "Строки сравниваются посимвольно: `\"1\"` меньше `\"9\"`, поэтому `\"10\" < \"9\"` истинно."
+                },
+                {
+                  "q": "Что вернёт `1 < 5 > 3`?",
+                  "options": [
+                    "`True`",
+                    "`False`",
+                    "Ошибка",
+                    "`3`"
+                  ],
+                  "answer": 0,
+                  "explain": "Это `1 < 5 and 5 > 3` — оба истинны."
+                },
+                {
+                  "q": "Когда уместно использовать `is`?",
+                  "options": [
+                    "Для сравнения чисел",
+                    "Для сравнения строк",
+                    "Для проверки на `None`",
+                    "Всегда вместо `==`"
+                  ],
+                  "answer": 2,
+                  "explain": "`is` проверяет идентичность объектов; для значений используют `==`."
+                }
+              ]
+            },
+            {
+              "slug": "cnd-m1-l3",
+              "title": "elif — много вариантов",
+              "theory": "# elif\n\n```\nif score >= 90:\n    grade = \"A\"\nelif score >= 75:\n    grade = \"B\"\nelse:\n    grade = \"C\"\n```\n\n- Условия проверяются **сверху вниз**.\n- Выполняется **только первая** подходящая ветка.\n- Поэтому более строгие условия ставят **выше**.\n",
+              "exercises": [
+                {
+                  "slug": "cnd-m1-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "n = 15\nif n > 10:\n    print(\"A\")\nelif n > 5:\n    print(\"B\")\nelse:\n    print(\"C\")\n",
+                  "expected_output": "A",
+                  "hint": "Сработает только первая подходящая ветка.",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m1-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Здесь два отдельных if.",
+                  "code": "n = 15\nif n > 10:\n    print(\"A\")\nif n > 5:\n    print(\"B\")\n",
+                  "expected_output": "A\nB",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m1-l3-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sign(n)`, которая называет знак числа.\n\n- `\"плюс\"` — если больше нуля;\n- `\"минус\"` — если меньше нуля;\n- `\"ноль\"` — если равно нулю.\n\nПримеры:\n```\nsign(5)    # → \"плюс\"\nsign(-3)   # → \"минус\"\nsign(0)    # → \"ноль\"\n```",
+                  "starter_code": "def sign(n):\n    pass\n",
+                  "tests": "def test_values():\n    assert [sign(5), sign(-3), sign(0)] == [\"плюс\", \"минус\", \"ноль\"], \"Неверный знак\"\n",
+                  "solution": "def sign(n):\n    if n > 0:\n        return \"плюс\"\n    elif n < 0:\n        return \"минус\"\n    return \"ноль\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "cnd-m1-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `grade(score)`, которая переводит баллы (0–100) в оценку:\n\n- 90 и больше → `\"A\"`\n- от 75 до 89 → `\"B\"`\n- от 60 до 74 → `\"C\"`\n- меньше 60 → `\"F\"`\n\nПримеры:\n```\ngrade(95)   # → \"A\"\ngrade(75)   # → \"B\"\ngrade(59)   # → \"F\"\n```",
+                  "starter_code": "def grade(score):\n    pass\n",
+                  "tests": "def test_values():\n    got = [grade(s) for s in (95, 90, 89, 75, 74, 60, 59, 0)]\n    assert got == [\"A\", \"A\", \"B\", \"B\", \"C\", \"C\", \"F\", \"F\"], f\"Получено {got}\"\n",
+                  "solution": "def grade(score):\n    if score >= 90:\n        return \"A\"\n    elif score >= 75:\n        return \"B\"\n    elif score >= 60:\n        return \"C\"\n    return \"F\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "cnd-m1-l3-e5",
+                  "type": "code",
+                  "prompt": "Классика собеседований — FizzBuzz. Напиши функцию `fizzbuzz(n)`, которая возвращает **строку**:\n\n- `\"FizzBuzz\"` — если `n` делится и на 3, и на 5;\n- `\"Fizz\"` — если делится только на 3;\n- `\"Buzz\"` — если делится только на 5;\n- иначе — само число строкой: `str(n)`.\n\nПримеры:\n```\nfizzbuzz(9)    # → \"Fizz\"\nfizzbuzz(10)   # → \"Buzz\"\nfizzbuzz(30)   # → \"FizzBuzz\"\nfizzbuzz(7)    # → \"7\"\n```",
+                  "starter_code": "def fizzbuzz(n):\n    pass\n",
+                  "tests": "def test_values():\n    got = [fizzbuzz(n) for n in (9, 10, 30, 7, 15)]\n    assert got == [\"Fizz\", \"Buzz\", \"FizzBuzz\", \"7\", \"FizzBuzz\"], f\"Получено {got} — проверь порядок условий\"\n",
+                  "solution": "def fizzbuzz(n):\n    if n % 15 == 0:\n        return \"FizzBuzz\"\n    elif n % 3 == 0:\n        return \"Fizz\"\n    elif n % 5 == 0:\n        return \"Buzz\"\n    return str(n)\n",
+                  "hint": "Проверку «на 3 и 5 одновременно» (`n % 15 == 0`) ставь первой.",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВариантов часто больше двух: оценка A/B/C/F, класс HTTP-ответа, уровень серьёзности бага. Вложенные `if/else` превращаются в «лестницу», а `elif` делает выбор плоским и читаемым.\n\n## Как это работает\n\n```py\nif условие1:\n    ...\nelif условие2:\n    ...\nelse:\n    ...\n```\n\n- Условия проверяются по порядку.\n- Выполняется **первая** истинная ветка, остальные пропускаются — даже если их условия тоже истинны.\n- `else` — если не подошло ничего.\n\nСледствие: в каждой следующей ветке ты уже **знаешь**, что предыдущие условия ложны. Поэтому не нужно писать `elif 75 <= score < 90` — достаточно `elif score >= 75`.\n\n### elif против нескольких if\n\nОтдельные `if` проверяются все, и может выполниться несколько веток. `elif` — взаимоисключающий выбор.\n\n## Примеры\n\n### Пример 1. Шкала\n\n```python\ndef grade(score):\n    if score >= 90:\n        return \"A\"\n    elif score >= 75:\n        return \"B\"\n    elif score >= 60:\n        return \"C\"\n    return \"F\"\n\nprint([grade(s) for s in [95, 90, 80, 60, 10]])\n```\n\n### Пример 2. elif против двух if\n\n```python\nn = 15\nif n > 10:\n    print(\"elif-версия: больше 10\")\nelif n > 5:\n    print(\"elif-версия: больше 5\")\n\nif n > 10:\n    print(\"if-версия: больше 10\")\nif n > 5:\n    print(\"if-версия: больше 5\")\n```\n\n### Пример 3. Порядок решает — FizzBuzz\n\n```python\ndef wrong(n):\n    if n % 3 == 0:\n        return \"Fizz\"\n    elif n % 15 == 0:\n        return \"FizzBuzz\"     # сюда 15 уже не дойдёт\n    return str(n)\n\ndef right(n):\n    if n % 15 == 0:\n        return \"FizzBuzz\"\n    elif n % 3 == 0:\n        return \"Fizz\"\n    return str(n)\n\nprint(wrong(15), right(15))\n```\n\n### Пример 4. Классификация статуса\n\n```python\ndef status_class(code):\n    if code < 300:\n        return \"success\"\n    elif code < 400:\n        return \"redirect\"\n    elif code < 500:\n        return \"client error\"\n    return \"server error\"\n\nfor c in [200, 302, 404, 503]:\n    print(c, status_class(c))\n```\n\n## Частые ошибки\n\n**Широкое условие выше узкого** — узкое никогда не сработает.\n\n**Лишние проверки в elif** — усложняют код и провоцируют ошибки на границах.\n\n**Нет `else`** — функция молча вернёт `None` для неучтённых значений.\n\n## Шпаргалка\n\n```py\nif a:       # самое строгое\n    ...\nelif b:     # только если a ложно\n    ...\nelse:       # всё остальное\n    ...\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт функция при `n = 20`?\n```py\nif n > 5:\n    return \"A\"\nelif n > 10:\n    return \"B\"\nreturn \"C\"\n```",
+                  "options": [
+                    "`\"A\"`",
+                    "`\"B\"`",
+                    "`\"C\"`",
+                    "Оба"
+                  ],
+                  "answer": 0,
+                  "explain": "Первое же истинное условие `n > 5` срабатывает, дальше не проверяется."
+                },
+                {
+                  "q": "Сколько веток может выполниться в цепочке `if/elif/elif/else`?",
+                  "options": [
+                    "Сколько угодно",
+                    "Ровно одна",
+                    "Не больше двух",
+                    "Ни одной"
+                  ],
+                  "answer": 1,
+                  "explain": "Ровно одна: первая истинная или `else`."
+                },
+                {
+                  "q": "В `grade`: `if s >= 90: ... elif s >= 75:` — нужно ли во второй ветке проверять `s < 90`?",
+                  "options": [
+                    "Да, обязательно",
+                    "Нет, это уже известно — первая ветка не сработала",
+                    "Только для s = 90",
+                    "Да, иначе SyntaxError"
+                  ],
+                  "answer": 1,
+                  "explain": "Раз мы дошли до `elif`, условие `s >= 90` ложно."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "cnd-m2",
+          "title": "Логика",
+          "icon": "🧠",
+          "description": "and, or, not, истинность и вложенные условия",
+          "lessons": [
+            {
+              "slug": "cnd-m2-l1",
+              "title": "and, or, not",
+              "theory": "# Логические операторы\n\n- `a and b` — истина, если **оба** истинны\n- `a or b` — истина, если **хотя бы один**\n- `not a` — отрицание\n\nПриоритет: `not` → `and` → `or`. Сомневаешься — ставь скобки.\n\n**Короткое замыкание**: в `a and b` при ложном `a` часть `b` не вычисляется.\n",
+              "exercises": [
+                {
+                  "slug": "cnd-m2-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "print(True and False, True or False, not True)\nprint(True or False and False)\nprint((True or False) and False)\n",
+                  "expected_output": "False True False\nTrue\nFalse",
+                  "hint": "`and` выполняется раньше `or`.",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m2-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Короткое замыкание.",
+                  "code": "def check(name, result):\n    print(\"проверяю\", name)\n    return result\n\nprint(check(\"A\", False) and check(\"B\", True))\nprint(check(\"C\", True) or check(\"D\", True))\n",
+                  "expected_output": "проверяю A\nFalse\nпроверяю C\nTrue",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m2-l1-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `can_login(login, password)`.\n\nВход разрешён (`True`), только если **оба** условия выполнены:\n1. логин не пустая строка;\n2. в пароле 8 символов или больше.\n\nПримеры:\n```\ncan_login(\"anna\", \"12345678\")   # → True\ncan_login(\"anna\", \"123\")        # → False\ncan_login(\"\", \"supersecret\")    # → False\n```",
+                  "starter_code": "def can_login(login, password):\n    pass\n",
+                  "tests": "def test_values():\n    got = [can_login(\"anna\", \"12345678\"), can_login(\"anna\", \"123\"), can_login(\"\", \"supersecret\")]\n    assert got == [True, False, False], f\"Получено {got}\"\n",
+                  "solution": "def can_login(login, password):\n    return login != \"\" and len(password) >= 8\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "cnd-m2-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_leap(year)` — високосный ли год.\n\nПравило: год високосный, если он делится на 4, **но не** на 100 — **или** если делится на 400.\n\nПримеры:\n```\nis_leap(2024)   # → True\nis_leap(2023)   # → False\nis_leap(1900)   # → False   делится на 100, но не на 400\nis_leap(2000)   # → True    делится на 400\n```",
+                  "starter_code": "def is_leap(year):\n    pass\n",
+                  "tests": "def test_values():\n    got = [is_leap(y) for y in (2024, 2023, 1900, 2000)]\n    assert got == [True, False, False, True], f\"Получено {got}\"\n",
+                  "solution": "def is_leap(year):\n    return (year % 4 == 0 and year % 100 != 0) or year % 400 == 0\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "cnd-m2-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `need_retry(status, attempt, max_attempts)` — нужно ли повторить запрос.\n\nПовторять (`True`), если выполнены **оба** условия:\n- статус — ошибка сервера (от 500 до 599 включительно) **или** статус `429` (слишком много запросов);\n- номер попытки `attempt` **меньше** `max_attempts`.\n\nПримеры:\n```\nneed_retry(503, 1, 3)   # → True\nneed_retry(429, 2, 3)   # → True\nneed_retry(503, 3, 3)   # → False   попытки кончились\nneed_retry(404, 1, 3)   # → False   клиентская ошибка — повтор бессмысленен\n```",
+                  "starter_code": "def need_retry(status, attempt, max_attempts):\n    pass\n",
+                  "tests": "def test_values():\n    got = [need_retry(503, 1, 3), need_retry(429, 2, 3), need_retry(503, 3, 3), need_retry(404, 1, 3), need_retry(200, 1, 3)]\n    assert got == [True, True, False, False, False], f\"Получено {got}\"\n",
+                  "solution": "def need_retry(status, attempt, max_attempts):\n    return (500 <= status <= 599 or status == 429) and attempt < max_attempts\n",
+                  "hint": "Скобки вокруг `or`-части обязательны: `and` выполняется раньше `or`.",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nРеальные условия составные: «вход разрешён, если логин есть **и** пароль верный», «повторить запрос, если ошибка сервера **или** лимит запросов, **и** попытки ещё остались». Логические операторы соединяют простые условия в сложные.\n\n## Как это работает\n\n- `a and b` — `True`, только если оба истинны.\n- `a or b` — `True`, если хотя бы один истинен.\n- `not a` — переворачивает.\n\nПриоритет: сначала `not`, потом `and`, потом `or`. То есть `a or b and c` — это `a or (b and c)`.\n\n### Короткое замыкание\n\nPython вычисляет ровно столько, сколько нужно:\n- `a and b`: если `a` ложно — ответ ясен, `b` не вычисляется;\n- `a or b`: если `a` истинно — `b` не вычисляется.\n\nЭто защищает от ошибок: `if items and items[0] > 0:` не упадёт на пустом списке.\n\n### and/or возвращают операнд\n\nНа самом деле `and`/`or` возвращают **один из операндов**, а не обязательно `True`/`False`: `\"\" or \"гость\"` → `\"гость\"`. Подробнее — в уроке про значения по умолчанию.\n\n## Примеры\n\n### Пример 1. Таблица истинности\n\n```python\nfor a in [True, False]:\n    for b in [True, False]:\n        print(f\"{a!s:5} {b!s:5} | and={a and b!s:5} or={a or b}\")\n```\n\n### Пример 2. Приоритет\n\n```python\nprint(True or False and False)       # or (False and False)\nprint((True or False) and False)\n```\n\n### Пример 3. Короткое замыкание защищает\n\n```python\nfor items in [[], [5], [-1]]:\n    if items and items[0] > 0:\n        print(items, \"— первый положительный\")\n    else:\n        print(items, \"— пусто или не положительный\")\n```\n\n### Пример 4. Условие повтора запроса\n\n```python\ndef need_retry(status, attempt, max_attempts):\n    return (500 <= status <= 599 or status == 429) and attempt < max_attempts\n\nfor args in [(503, 1, 3), (503, 3, 3), (404, 1, 3), (429, 2, 3)]:\n    print(args, need_retry(*args))\n```\n\n## Частые ошибки\n\n**`day == \"сб\" or \"вс\"`** — всегда истинно: это `(day == \"сб\") or \"вс\"`, а непустая строка — истина. Правильно: `day in (\"сб\", \"вс\")`.\n\n**Забытые скобки** при смешивании `and` и `or`.\n\n**`if flag == True:`** — достаточно `if flag:`.\n\n## Шпаргалка\n\n```py\na and b     a or b     not a\n(x or y) and z          # скобки при смешивании\nitems and items[0]      # безопасный доступ\n```",
+              "quiz": [
+                {
+                  "q": "Чему равно `True or False and False`?",
+                  "options": [
+                    "`True`",
+                    "`False`",
+                    "Ошибка",
+                    "`None`"
+                  ],
+                  "answer": 0,
+                  "explain": "`and` выполняется первым: `False and False` → `False`; затем `True or False` → `True`."
+                },
+                {
+                  "q": "Чему равно `day == \"сб\" or \"вс\"` при `day = \"пн\"`?",
+                  "options": [
+                    "`False`",
+                    "`True`",
+                    "`\"вс\"`",
+                    "Ошибка"
+                  ],
+                  "answer": 2,
+                  "explain": "Первая часть ложна, поэтому `or` возвращает вторую — строку `\"вс\"`, а она истинна. Классический баг."
+                },
+                {
+                  "q": "Почему `items and items[0] > 0` не падает на пустом списке?",
+                  "options": [
+                    "Python игнорирует ошибки в условиях",
+                    "Пустой список ложен, и правая часть не вычисляется",
+                    "`items[0]` пустого списка — 0",
+                    "Падает"
+                  ],
+                  "answer": 1,
+                  "explain": "Короткое замыкание: при ложной левой части `and` правую не вычисляет."
+                }
+              ]
+            },
+            {
+              "slug": "cnd-m2-l2",
+              "title": "Истинность и оператор in",
+              "theory": "# Истинность\n\nЛожью считаются: `False`, `None`, `0`, `0.0`, `\"\"`, `[]`, `{}`, `set()`, `()`.\nВсё остальное — истина (даже `\"0\"` и `[0]`).\n\n```\nif items:        # список не пуст\nif not name:     # строка пустая\n```\n\n# Оператор in\n\n`x in коллекция` — есть ли элемент: `day in (\"сб\", \"вс\")`, `\"err\" in line`, `key in dict`.\n",
+              "exercises": [
+                {
+                  "slug": "cnd-m2-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "for v in [0, \"\", \"0\", [], [0], None]:\n    print(repr(v), bool(v))\n",
+                  "expected_output": "0 False\n'' False\n'0' True\n[] False\n[0] True\nNone False",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m2-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "print(\"сб\" in (\"сб\", \"вс\"))\nprint(\"err\" in \"ERROR: timeout\")\nprint(3 in [1, 2, 3])\nprint(\"name\" in {\"name\": \"Аня\"})\n",
+                  "expected_output": "True\nFalse\nTrue\nTrue",
+                  "hint": "Для словаря `in` проверяет ключи.",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m2-l2-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_weekend(day)`, которая принимает сокращение дня (`\"пн\"`, …, `\"сб\"`, `\"вс\"`) и возвращает `True` для субботы и воскресенья.\n\nИспользуй оператор `in`, а не цепочку `or`.\n\nПримеры:\n```\nis_weekend(\"сб\")   # → True\nis_weekend(\"пн\")   # → False\n```",
+                  "starter_code": "def is_weekend(day):\n    pass\n",
+                  "tests": "def test_values():\n    got = [is_weekend(d) for d in (\"пн\", \"пт\", \"сб\", \"вс\")]\n    assert got == [False, False, True, True], f\"Получено {got}\"\n",
+                  "solution": "def is_weekend(day):\n    return day in (\"сб\", \"вс\")\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "cnd-m2-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `describe_list(items)`:\n\n- если список пустой — вернуть `\"пусто\"`;\n- иначе — `\"<количество> шт.\"`.\n\nПроверку пустоты сделай через истинность (`if not items:`), а не через `len(items) == 0`.\n\nПримеры:\n```\ndescribe_list([])          # → \"пусто\"\ndescribe_list([1, 2, 3])   # → \"3 шт.\"\n```",
+                  "starter_code": "def describe_list(items):\n    pass\n",
+                  "tests": "def test_values():\n    assert describe_list([]) == \"пусто\" and describe_list([1, 2, 3]) == \"3 шт.\", \"Неверный результат\"\n",
+                  "solution": "def describe_list(items):\n    if not items:\n        return \"пусто\"\n    return f\"{len(items)} шт.\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "cnd-m2-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_forbidden(word, banned)` — есть ли слово в списке запрещённых **без учёта регистра** и пробелов по краям.\n\nПримеры:\n```\nis_forbidden(\" Спам \", [\"спам\", \"реклама\"])   # → True\nis_forbidden(\"привет\", [\"спам\"])             # → False\n```\nНормализуй слово: `word.strip().lower()`, затем проверь через `in`.",
+                  "starter_code": "def is_forbidden(word, banned):\n    pass\n",
+                  "tests": "def test_values():\n    assert is_forbidden(\" Спам \", [\"спам\", \"реклама\"]) is True, \"Регистр и пробелы не важны\"\n    assert is_forbidden(\"привет\", [\"спам\"]) is False, \"Разрешённое слово — False\"\n    assert is_forbidden(\"РЕКЛАМА\", [\"спам\", \"реклама\"]) is True, \"Заглавные тоже должны находиться\"\n",
+                  "solution": "def is_forbidden(word, banned):\n    return word.strip().lower() in banned\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПроверки «пусто ли?» и «есть ли среди вариантов?» встречаются в каждом втором условии. Python позволяет писать их коротко и читаемо — если знать, что считается ложью и как работает `in`.\n\n## Как это работает\n\n### Истинность (truthiness)\n\nВ условии любое значение приводится к `bool`. **Ложь**:\n- `False`, `None`;\n- ноль любого числового типа: `0`, `0.0`;\n- пустые коллекции: `\"\"`, `[]`, `()`, `{}`, `set()`, `range(0)`.\n\nВсё остальное — **истина**. Внимание: `\"0\"`, `\" \"`, `[0]`, `[[]]` — истинны, это непустые значения.\n\nПитоничный стиль:\n- `if items:` вместо `if len(items) > 0:`\n- `if not name:` вместо `if name == \"\":`\n\n### Оператор in\n\n- для строк — есть ли **подстрока**;\n- для списков, кортежей, множеств — есть ли **элемент**;\n- для словарей — есть ли **ключ**.\n\n`not in` — отрицание: `if x not in banned:`.\n\nДля частых проверок по большому набору используй `set` — поиск в множестве мгновенный, а в списке — перебором.\n\n## Примеры\n\n### Пример 1. Что ложно, что истинно\n\n```python\nfor v in [0, 0.0, \"\", \" \", \"0\", [], [0], {}, None, False]:\n    print(f\"{v!r:6} -> {bool(v)}\")\n```\n\n### Пример 2. Проверка пустоты\n\n```python\ndef report(failed):\n    if not failed:\n        return \"всё зелёное\"\n    return \"упали: \" + \", \".join(failed)\n\nprint(report([]))\nprint(report([\"test_login\", \"test_pay\"]))\n```\n\n### Пример 3. in для разных коллекций\n\n```python\nprint(\"time\" in \"timeout\")\nprint(404 in [200, 404, 500])\nprint(\"admin\" in {\"admin\", \"qa\"})\nprint(\"id\" in {\"id\": 1, \"name\": \"Аня\"})\nprint(\"Аня\" in {\"id\": 1, \"name\": \"Аня\"})     # значения не проверяются!\n```\n\n### Пример 4. in вместо цепочки or\n\n```python\ndef is_error(level):\n    return level.upper() in (\"ERROR\", \"CRITICAL\", \"FATAL\")\n\nprint([is_error(l) for l in [\"info\", \"error\", \"Fatal\"]])\n```\n\n## Частые ошибки\n\n**`if value:` для чисел, где 0 — допустимое значение** — ноль воспримется как «нет значения». Проверяй `if value is not None:`.\n\n**`in` по словарю ищет значения** — нет, только ключи. Для значений — `x in d.values()`.\n\n**`\"0\"` считается ложью** — нет, это непустая строка.\n\n## Шпаргалка\n\n```py\nif items:            # непустой\nif not text:         # пустой\nx in (1, 2, 3)       # один из вариантов\nkey in d             # ключ в словаре\nx not in banned\n```",
+              "quiz": [
+                {
+                  "q": "Какое значение **истинно**?",
+                  "options": [
+                    "`0`",
+                    "`\"\"`",
+                    "`[0]`",
+                    "`None`"
+                  ],
+                  "answer": 2,
+                  "explain": "`[0]` — непустой список, значит истина, хотя внутри ноль."
+                },
+                {
+                  "q": "Что проверяет `\"Аня\" in {\"name\": \"Аня\"}`?",
+                  "options": [
+                    "Есть ли такое значение",
+                    "Есть ли такой ключ",
+                    "Есть ли подстрока",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Для словаря `in` проверяет только ключи — результат `False`."
+                },
+                {
+                  "q": "Как по-питоничному проверить, что список `items` пустой?",
+                  "options": [
+                    "`if items == []:`",
+                    "`if len(items) == 0:`",
+                    "`if not items:`",
+                    "`if items is None:`"
+                  ],
+                  "answer": 2,
+                  "explain": "Пустой список ложен, поэтому `not items` — истина."
+                }
+              ]
+            },
+            {
+              "slug": "cnd-m2-l3",
+              "title": "Вложенные условия и ранний выход",
+              "theory": "# Вложенные условия\n\n```\nif user:\n    if user.active:\n        if user.is_admin:\n            ...\n```\n\nГлубокая вложенность («лесенка») читается плохо. Лучше **ранний выход** (guard clauses):\n\n```\nif not user:\n    return \"нет пользователя\"\nif not user.active:\n    return \"заблокирован\"\nreturn \"ok\"\n```\n",
+              "exercises": [
+                {
+                  "slug": "cnd-m2-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "age, has_ticket = 20, False\nif age >= 18:\n    if has_ticket:\n        print(\"проходите\")\n    else:\n        print(\"купите билет\")\nelse:\n    print(\"только со взрослыми\")\n",
+                  "expected_output": "купите билет",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m2-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def access(role, active):\n    if not active:\n        return \"заблокирован\"\n    if role == \"admin\":\n        return \"полный доступ\"\n    return \"обычный доступ\"\n\nprint(access(\"admin\", False))\nprint(access(\"admin\", True))\nprint(access(\"qa\", True))\n",
+                  "expected_output": "заблокирован\nполный доступ\nобычный доступ",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m2-l3-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `ticket_price(age, is_student)` — цена билета в музей:\n\n- младше 7 лет — `0`;\n- от 7 до 17 включительно — `150`;\n- от 18 и старше — `300`, **но** студентам — `200`.\n\nПримеры:\n```\nticket_price(5, False)    # → 0\nticket_price(12, False)   # → 150\nticket_price(20, True)    # → 200\nticket_price(40, False)   # → 300\n```",
+                  "starter_code": "def ticket_price(age, is_student):\n    pass\n",
+                  "tests": "def test_values():\n    got = [ticket_price(5, False), ticket_price(7, False), ticket_price(17, True), ticket_price(18, False), ticket_price(20, True), ticket_price(40, False)]\n    assert got == [0, 150, 150, 300, 200, 300], f\"Получено {got}\"\n",
+                  "solution": "def ticket_price(age, is_student):\n    if age < 7:\n        return 0\n    if age < 18:\n        return 150\n    return 200 if is_student else 300\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "cnd-m2-l3-e4",
+                  "type": "code",
+                  "prompt": "Перепиши функцию `validate(password)` **без вложенных if** — через ранние `return`.\n\nПравила (проверять по порядку, вернуть первое нарушение):\n1. длина меньше 8 → `\"короткий\"`;\n2. нет ни одной цифры → `\"нет цифр\"`;\n3. всё в нижнем регистре (`password == password.lower()`) → `\"нет заглавных\"`;\n4. иначе → `\"ok\"`.\n\nПроверь, что поведение не изменилось, и что в коде нет `else`.",
+                  "starter_code": "def validate(password):\n    if len(password) >= 8:\n        if any(ch.isdigit() for ch in password):\n            if password != password.lower():\n                return \"ok\"\n            else:\n                return \"нет заглавных\"\n        else:\n            return \"нет цифр\"\n    else:\n        return \"короткий\"\n",
+                  "tests": "def test_values():\n    got = [validate(p) for p in (\"abc\", \"abcdefgh\", \"abcdefg1\", \"Abcdefg1\")]\n    assert got == [\"короткий\", \"нет цифр\", \"нет заглавных\", \"ok\"], f\"Получено {got}\"\n\ndef test_flat():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"else\" not in src, \"Избавься от else — используй ранние return\"\n",
+                  "solution": "def validate(password):\n    if len(password) < 8:\n        return \"короткий\"\n    if not any(ch.isdigit() for ch in password):\n        return \"нет цифр\"\n    if password == password.lower():\n        return \"нет заглавных\"\n    return \"ok\"\n",
+                  "hint": "Проверяй «плохие» случаи и сразу возвращай ошибку; в конце — `return \"ok\"`.",
+                  "xp": 20
+                },
+                {
+                  "slug": "cnd-m2-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `bug_priority(severity, users_affected)`, которая определяет приоритет бага:\n\n- `severity == \"critical\"` → `\"P1\"` (всегда);\n- `severity == \"major\"` и затронуто **больше 100** пользователей → `\"P1\"`;\n- `severity == \"major\"` → `\"P2\"`;\n- любая другая серьёзность → `\"P3\"`.\n\nПримеры:\n```\nbug_priority(\"critical\", 1)   # → \"P1\"\nbug_priority(\"major\", 500)    # → \"P1\"\nbug_priority(\"major\", 10)     # → \"P2\"\nbug_priority(\"minor\", 1000)   # → \"P3\"\n```",
+                  "starter_code": "def bug_priority(severity, users_affected):\n    pass\n",
+                  "tests": "def test_values():\n    got = [bug_priority(\"critical\", 1), bug_priority(\"major\", 500), bug_priority(\"major\", 100), bug_priority(\"minor\", 1000)]\n    assert got == [\"P1\", \"P1\", \"P2\", \"P3\"], f\"Получено {got}\"\n",
+                  "solution": "def bug_priority(severity, users_affected):\n    if severity == \"critical\":\n        return \"P1\"\n    if severity == \"major\":\n        return \"P1\" if users_affected > 100 else \"P2\"\n    return \"P3\"\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nБизнес-правила часто многоступенчатые: цена зависит от возраста, а для взрослых — ещё и от статуса студента; доступ зависит от активности аккаунта и роли. Если просто вкладывать `if` в `if`, код уезжает вправо и становится нечитаемым. Навык — выстроить проверки так, чтобы логика была очевидна.\n\n## Как это работает\n\n### Вложенность\n\n`if` внутри `if` — нормально, когда второе условие имеет смысл только при выполненном первом. Но уже на третьем уровне стоит остановиться.\n\n### Ранний выход (guard clauses)\n\nИдея: сначала отсечь все «плохие» и особые случаи, сразу вернув результат, а основную логику оставить без отступов.\n\n```py\ndef process(order):\n    if order is None:\n        return \"нет заказа\"\n    if not order[\"items\"]:\n        return \"пустой заказ\"\n    if order[\"total\"] <= 0:\n        return \"некорректная сумма\"\n    # здесь всё проверено — основная логика\n    return \"ok\"\n```\n\nПлюсы: каждое правило — одна строка, порядок проверок очевиден, нет `else`.\n\n### Объединение условий\n\nИногда вложенность заменяется одним условием с `and`: `if age >= 18 and has_ticket:`.\n\n## Примеры\n\n### Пример 1. Лесенка\n\n```python\ndef access_nested(user):\n    if user is not None:\n        if user[\"active\"]:\n            if user[\"role\"] == \"admin\":\n                return \"полный доступ\"\n            else:\n                return \"обычный доступ\"\n        else:\n            return \"заблокирован\"\n    else:\n        return \"нет пользователя\"\n\nprint(access_nested({\"active\": True, \"role\": \"admin\"}))\n```\n\n### Пример 2. То же с ранним выходом\n\n```python\ndef access(user):\n    if user is None:\n        return \"нет пользователя\"\n    if not user[\"active\"]:\n        return \"заблокирован\"\n    if user[\"role\"] == \"admin\":\n        return \"полный доступ\"\n    return \"обычный доступ\"\n\nfor u in [None, {\"active\": False, \"role\": \"admin\"}, {\"active\": True, \"role\": \"admin\"}, {\"active\": True, \"role\": \"qa\"}]:\n    print(access(u))\n```\n\n### Пример 3. Валидация с первой ошибкой\n\n```python\ndef validate(password):\n    if len(password) < 8:\n        return \"короткий\"\n    if not any(ch.isdigit() for ch in password):\n        return \"нет цифр\"\n    if password == password.lower():\n        return \"нет заглавных\"\n    return \"ok\"\n\nfor p in [\"abc\", \"abcdefgh\", \"abcdefg1\", \"Abcdefg1\"]:\n    print(f\"{p:10} -> {validate(p)}\")\n```\n\n## Частые ошибки\n\n**Больше трёх уровней вложенности** — сигнал переписать через ранний выход или вынести часть в функцию.\n\n**Разные ветки делают одно и то же** — объедини условие.\n\n**Потерянная ветка** в глубокой вложенности — функция возвращает `None`.\n\n## Шпаргалка\n\n```py\ndef f(x):\n    if плохо_1:\n        return ...\n    if плохо_2:\n        return ...\n    return основной_результат\n```",
+              "quiz": [
+                {
+                  "q": "В чём главная идея «раннего выхода» (guard clause)?",
+                  "options": [
+                    "Вызывать `exit()`",
+                    "Сразу возвращать результат для особых случаев, а основную логику писать без вложенности",
+                    "Проверять условия в конце функции",
+                    "Использовать только else"
+                  ],
+                  "answer": 1,
+                  "explain": "Отсекаем плохие случаи вверху функции — дальше код без лишних отступов."
+                },
+                {
+                  "q": "Что вернёт `access(None)` из примера 2?",
+                  "options": [
+                    "`\"заблокирован\"`",
+                    "`\"нет пользователя\"`",
+                    "Ошибка",
+                    "`None`"
+                  ],
+                  "answer": 1,
+                  "explain": "Первая же проверка `user is None` срабатывает."
+                },
+                {
+                  "q": "Когда вложенный `if` уместен?",
+                  "options": [
+                    "Никогда",
+                    "Когда внутреннее условие имеет смысл только при выполненном внешнем",
+                    "Всегда вместо and",
+                    "Только в циклах"
+                  ],
+                  "answer": 1,
+                  "explain": "Вложенность нормальна, если отражает реальную зависимость условий; проблема — глубокая «лесенка»."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "cnd-m3",
+          "title": "Короткие условия",
+          "icon": "⚡",
+          "description": "Тернарный оператор, значения по умолчанию и match",
+          "lessons": [
+            {
+              "slug": "cnd-m3-l1",
+              "title": "Тернарный оператор",
+              "theory": "# Условие в одну строку\n\n```\nstatus = \"взрослый\" if age >= 18 else \"ребёнок\"\n```\n\nЧитается: «значение-да, **если** условие, **иначе** значение-нет».\n\n- Это **выражение** — его можно присвоить, вернуть, вставить в f-строку.\n- `else` обязателен.\n- Вычисляется только выбранная ветка.\n- Вложенный: `A if c1 else B if c2 else C` — не больше одного уровня.\n",
+              "exercises": [
+                {
+                  "slug": "cnd-m3-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "x = -5\nprint(\"плюс\" if x > 0 else \"не плюс\")\nprint(x if x > 0 else -x)\n",
+                  "expected_output": "не плюс\n5",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m3-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Вложенный тернарник.",
+                  "code": "for x in [5, 0, -2]:\n    print(\"плюс\" if x > 0 else \"минус\" if x < 0 else \"ноль\")\n",
+                  "expected_output": "плюс\nноль\nминус",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m3-l1-e3",
+                  "type": "code",
+                  "prompt": "Перепиши функцию `parity(n)` так, чтобы тело было **одной строкой** `return ... if ... else ...`.\n\nПоведение не меняется:\n```\nparity(4)   # → \"чёт\"\nparity(7)   # → \"нечет\"\n```",
+                  "starter_code": "def parity(n):\n    if n % 2 == 0:\n        return \"чёт\"\n    else:\n        return \"нечет\"\n",
+                  "tests": "import inspect\n\ndef test_values():\n    assert parity(4) == \"чёт\" and parity(7) == \"нечет\", \"parity(4) → чёт, parity(7) → нечет\"\n\ndef test_one_line():\n    body = [l for l in inspect.getsource(parity).splitlines()[1:] if l.strip()]\n    assert len(body) == 1 and \" if \" in body[0] and \" else \" in body[0], \"Тело — одна строка с тернарником\"\n",
+                  "solution": "def parity(n):\n    return \"чёт\" if n % 2 == 0 else \"нечет\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "cnd-m3-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `plural_bugs(n)`, которая склоняет слово «баг» после числа (для чисел 0–20):\n\n- `1` → `\"1 баг\"`;\n- `2`–`4` → `\"N бага\"`;\n- `0`, `5`–`20` → `\"N багов\"`.\n\nВыбери форму слова тернарником (можно вложенным), результат собери f-строкой.\n\nПримеры:\n```\nplural_bugs(1)    # → \"1 баг\"\nplural_bugs(3)    # → \"3 бага\"\nplural_bugs(12)   # → \"12 багов\"\n```",
+                  "starter_code": "def plural_bugs(n):\n    pass\n",
+                  "tests": "def test_values():\n    got = [plural_bugs(n) for n in (0, 1, 2, 4, 5, 12)]\n    assert got == [\"0 багов\", \"1 баг\", \"2 бага\", \"4 бага\", \"5 багов\", \"12 багов\"], f\"Получено {got}\"\n",
+                  "solution": "def plural_bugs(n):\n    word = \"баг\" if n == 1 else \"бага\" if 2 <= n <= 4 else \"багов\"\n    return f\"{n} {word}\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "cnd-m3-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `clamp(x, low, high)`, которая «зажимает» число в границы — как ползунок громкости:\n\n- меньше `low` → вернуть `low`;\n- больше `high` → вернуть `high`;\n- иначе — само `x`.\n\nРеши одной строкой с вложенным тернарником.\n\nПримеры:\n```\nclamp(5, 0, 10)    # → 5\nclamp(-3, 0, 10)   # → 0\nclamp(42, 0, 10)   # → 10\n```",
+                  "starter_code": "def clamp(x, low, high):\n    pass\n",
+                  "tests": "def test_values():\n    got = [clamp(5, 0, 10), clamp(-3, 0, 10), clamp(42, 0, 10), clamp(0, 0, 10)]\n    assert got == [5, 0, 10, 0], f\"Получено {got}\"\n",
+                  "solution": "def clamp(x, low, high):\n    return low if x < low else high if x > high else x\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЧасто `if/else` нужен только для того, чтобы **выбрать одно из двух значений**. Четыре строки ради одной мысли — многовато. Тернарный оператор записывает такой выбор в одну строку и, главное, делает его **выражением**, которое можно подставить куда угодно: в `return`, в f-строку, в аргумент функции, в генератор списка.\n\n## Как это работает\n\n```py\nзначение_да if условие else значение_нет\n```\n\n1. Вычисляется условие.\n2. Истинно — вычисляется и возвращается левая часть, ложно — правая.\n3. Невыбранная ветка **не выполняется** вовсе.\n\n### Вложенный тернарник\n\n`A if c1 else B if c2 else C` читается слева направо: «A, если c1; иначе B, если c2; иначе C». Три варианта — предел читаемости.\n\n### Где особенно удобно\n\n- `return \"OK\" if passed else \"FAIL\"`\n- `f\"{n} {'файл' if n == 1 else 'файлов'}\"`\n- `[\"pass\" if ok else \"fail\" for ok in results]`\n\n## Примеры\n\n### Пример 1. Присвоение и return\n\n```python\ndef label(code):\n    return \"OK\" if code < 400 else \"ERROR\"\n\nfor code in [200, 301, 404, 500]:\n    print(code, label(code))\n```\n\n### Пример 2. Вычисляется только одна ветка\n\n```python\nitems = []\nfirst = items[0] if items else \"список пуст\"    # items[0] не вычисляется\nprint(first)\n```\n\n### Пример 3. В f-строке и генераторе\n\n```python\nresults = {\"login\": True, \"pay\": False}\nfor name, ok in results.items():\n    print(f\"{name}: {'✅' if ok else '❌'}\")\nprint([\"pass\" if ok else \"fail\" for ok in results.values()])\n```\n\n### Пример 4. Скобки в выражениях\n\n```python\nprice, is_member = 1000, True\ntotal = price * (0.9 if is_member else 1.0)\nprint(total)\nwrong = price * 0.9 if is_member else 1.0      # то же? нет! без скобок смысл другой\nprint(wrong, \"(для не-участника было бы 1.0, а не 1000)\")\n```\n\n## Частые ошибки\n\n**Нет `else`** — синтаксическая ошибка.\n\n**Действия вместо значений** — `print(\"да\") if x else print(\"нет\")` работает, но это плохой стиль; для действий — обычный `if`.\n\n**Глубокая вложенность** — для трёх и более вариантов пиши `if/elif/else`.\n\n## Шпаргалка\n\n```py\nx = a if cond else b\nreturn a if cond else b\nf\"{'да' if ok else 'нет'}\"\n[a if cond(x) else b for x in xs]\n```",
+              "quiz": [
+                {
+                  "q": "Что выведет `print(\"да\" if 0 else \"нет\")`?",
+                  "options": [
+                    "`да`",
+                    "`нет`",
+                    "`0`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Ноль — ложь, выбирается ветка после `else`."
+                },
+                {
+                  "q": "Какая запись правильная?",
+                  "options": [
+                    "`x = a > b ? a : b`",
+                    "`x = a if a > b else b`",
+                    "`x = if a > b a else b`",
+                    "`x = a if a > b`"
+                  ],
+                  "answer": 1,
+                  "explain": "Порядок: значение-да, `if`, условие, `else`, значение-нет."
+                },
+                {
+                  "q": "Что будет при `first = items[0] if items else None` для пустого `items`?",
+                  "options": [
+                    "IndexError",
+                    "`first` = `None`",
+                    "`first` = `[]`",
+                    "SyntaxError"
+                  ],
+                  "answer": 1,
+                  "explain": "Пустой список ложен, выполняется только ветка `else`."
+                }
+              ]
+            },
+            {
+              "slug": "cnd-m3-l2",
+              "title": "Значения по умолчанию: or и is None",
+              "theory": "# Значение по умолчанию\n\n`a or b` возвращает `a`, если оно истинно, иначе `b`:\n\n```\nname = user_name or \"Гость\"\n```\n\n⚠️ `or` заменит **любое** ложное значение: и `\"\"`, и `0`, и `[]`.\nЕсли `0` допустим — проверяй именно `None`:\n\n```\ntimeout = 30 if value is None else value\n```\n",
+              "exercises": [
+                {
+                  "slug": "cnd-m3-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "print(\"\" or \"Гость\")\nprint(\"Аня\" or \"Гость\")\nprint(0 or 10)\nprint(None or 0 or \"последний\")\n",
+                  "expected_output": "Гость\nАня\n10\nпоследний",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m3-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Ловушка с нулём.",
+                  "code": "timeout = 0\na = timeout or 30\nb = 30 if timeout is None else timeout\nprint(a, b)\n",
+                  "expected_output": "30 0",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m3-l2-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `display_name(name)`:\n\n- вернуть `name`, если это непустая строка;\n- если `name` — пустая строка или `None`, вернуть `\"Аноним\"`.\n\nРеши одной строкой через `or`.\n\nПримеры:\n```\ndisplay_name(\"Вася\")   # → \"Вася\"\ndisplay_name(\"\")       # → \"Аноним\"\ndisplay_name(None)     # → \"Аноним\"\n```",
+                  "starter_code": "def display_name(name):\n    pass\n",
+                  "tests": "def test_values():\n    assert [display_name(\"Вася\"), display_name(\"\"), display_name(None)] == [\"Вася\", \"Аноним\", \"Аноним\"], \"Неверный результат\"\n",
+                  "solution": "def display_name(name):\n    return name or \"Аноним\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "cnd-m3-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `get_timeout(value)`:\n\n- если `value is None` — вернуть `30`;\n- иначе — само значение, **даже если это `0`** (ноль — осознанный выбор «без ожидания»).\n\nПримеры:\n```\nget_timeout(None)   # → 30\nget_timeout(5)      # → 5\nget_timeout(0)      # → 0\n```",
+                  "starter_code": "def get_timeout(value):\n    pass\n",
+                  "tests": "def test_values():\n    assert get_timeout(None) == 30 and get_timeout(5) == 5, \"None → 30, 5 → 5\"\n    assert get_timeout(0) == 0, \"0 должен остаться 0 — не используй or\"\n",
+                  "solution": "def get_timeout(value):\n    return 30 if value is None else value\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "cnd-m3-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `get_setting(config, key, default)`, которая достаёт настройку из словаря:\n\n- если ключа нет или значение равно `None` — вернуть `default`;\n- иначе вернуть значение (в том числе `0`, `False`, `\"\"`).\n\nПримеры:\n```\ncfg = {\"retries\": 0, \"browser\": None, \"headless\": False}\nget_setting(cfg, \"retries\", 3)       # → 0\nget_setting(cfg, \"browser\", \"chrome\")  # → \"chrome\"\nget_setting(cfg, \"timeout\", 30)      # → 30\nget_setting(cfg, \"headless\", True)   # → False\n```\n`config.get(key)` вернёт `None`, если ключа нет.",
+                  "starter_code": "def get_setting(config, key, default):\n    pass\n",
+                  "tests": "def test_values():\n    cfg = {\"retries\": 0, \"browser\": None, \"headless\": False}\n    got = [get_setting(cfg, \"retries\", 3), get_setting(cfg, \"browser\", \"chrome\"), get_setting(cfg, \"timeout\", 30), get_setting(cfg, \"headless\", True)]\n    assert got == [0, \"chrome\", 30, False], f\"Получено {got}\"\n",
+                  "solution": "def get_setting(config, key, default):\n    value = config.get(key)\n    return default if value is None else value\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПодставить значение по умолчанию — одна из самых частых задач: имя «Гость», таймаут 30 секунд, браузер Chrome, если в настройках пусто. Это делают через `or` или через проверку на `None`. Путаница между ними — источник реальных багов: «ретраи отключили, а они всё равно работают».\n\n## Как это работает\n\n### or возвращает операнд\n\n`a or b`:\n- если `a` истинно — возвращается `a` (и `b` даже не вычисляется);\n- иначе — возвращается `b`.\n\nЦепочка `a or b or c` вернёт первое истинное значение (или последнее, если все ложны).\n\nАналогично `a and b` возвращает `a`, если оно ложно, иначе `b`.\n\n### Когда or опасен\n\n`or` считает «пустыми» **все** ложные значения: `0`, `0.0`, `False`, `\"\"`, `[]`. Если хоть одно из них — допустимое значение, `or` его «съест».\n\n### Проверка на None\n\n```py\nvalue = default if value is None else value\n```\n\nЗаменяется только отсутствие значения. `0` и `False` сохраняются.\n\nДля словарей — `d.get(key, default)`, но осторожно: если ключ **есть** со значением `None`, `get` вернёт `None`, а не default.\n\n## Примеры\n\n### Пример 1. or с разными значениями\n\n```python\nfor v in [\"Аня\", \"\", None, 0, 5, [], [\"x\"]]:\n    print(f\"{v!r:8} or 'default' -> {v or 'default'!r}\")\n```\n\n### Пример 2. Баг с ретраями\n\n```python\ndef retries_bad(value):\n    return value or 3\n\ndef retries_good(value):\n    return 3 if value is None else value\n\nfor v in [None, 5, 0]:\n    print(f\"{v!r:5} bad={retries_bad(v)} good={retries_good(v)}\")\n```\n\n### Пример 3. Настройки с разными источниками\n\n```python\ncli_arg = None\nenv_value = \"\"\nfile_value = \"firefox\"\nbrowser = cli_arg or env_value or file_value or \"chrome\"\nprint(browser)\n```\n\n### Пример 4. get с default против None в значении\n\n```python\ncfg = {\"browser\": None}\nprint(cfg.get(\"browser\", \"chrome\"))       # ключ есть — вернётся None!\nprint(cfg.get(\"browser\") or \"chrome\")\nvalue = cfg.get(\"browser\")\nprint(\"chrome\" if value is None else value)\n```\n\n## Частые ошибки\n\n**`count or 1`, `enabled or True`** — ломаются на `0`/`False`.\n\n**`d.get(k, default)` при `None` в значении** — вернёт `None`.\n\n**`== None` вместо `is None`.**\n\n## Шпаргалка\n\n```py\nname = x or \"Гость\"                     # любое пустое → по умолчанию\nt = 30 if x is None else x              # только None → по умолчанию\nfirst = a or b or c or \"fallback\"       # первое непустое\n```",
+              "quiz": [
+                {
+                  "q": "Что вернёт `0 or \"\" or []`?",
+                  "options": [
+                    "`0`",
+                    "`\"\"`",
+                    "`[]`",
+                    "`False`"
+                  ],
+                  "answer": 2,
+                  "explain": "Все три ложны, поэтому `or` вернёт последний операнд — `[]`."
+                },
+                {
+                  "q": "`retries = value or 3`. Пользователь передал `0` (без повторов). Что получится?",
+                  "options": [
+                    "`0`",
+                    "`3`",
+                    "`None`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Ноль — ложь, `or` подставит 3. Правильно — `3 if value is None else value`."
+                },
+                {
+                  "q": "Что вернёт `{\"a\": None}.get(\"a\", 5)`?",
+                  "options": [
+                    "`5`",
+                    "`None`",
+                    "`KeyError`",
+                    "`\"a\"`"
+                  ],
+                  "answer": 1,
+                  "explain": "Ключ существует, его значение — `None`; default используется только при отсутствии ключа."
+                }
+              ]
+            },
+            {
+              "slug": "cnd-m3-l3",
+              "title": "match / case",
+              "theory": "# Сопоставление с образцом (Python 3.10+)\n\n```\nmatch command:\n    case \"start\":\n        ...\n    case \"stop\" | \"exit\":         # несколько вариантов\n        ...\n    case _:                        # всё остальное\n        ...\n```\n\n- Выполняется первый подходящий `case`.\n- `_` — «что угодно», как `else`.\n- Умеет разбирать структуры: `case [x, y]:`, `case {\"status\": 200}:`.\n",
+              "exercises": [
+                {
+                  "slug": "cnd-m3-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def handle(cmd):\n    match cmd:\n        case \"start\":\n            return \"запуск\"\n        case \"stop\" | \"exit\":\n            return \"остановка\"\n        case _:\n            return \"неизвестно\"\n\nprint(handle(\"start\"), handle(\"exit\"), handle(\"pause\"))\n",
+                  "expected_output": "запуск остановка неизвестно",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m3-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? match умеет разбирать списки.",
+                  "code": "def describe(point):\n    match point:\n        case [0, 0]:\n            return \"начало координат\"\n        case [x, 0]:\n            return f\"на оси X, x={x}\"\n        case [x, y]:\n            return f\"точка {x}, {y}\"\n\nprint(describe([0, 0]))\nprint(describe([5, 0]))\nprint(describe([2, 3]))\n",
+                  "expected_output": "начало координат\nна оси X, x=5\nточка 2, 3",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "cnd-m3-l3-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `http_method_action(method)` через `match/case`:\n\n- `\"GET\"` → `\"читать\"`\n- `\"POST\"` → `\"создать\"`\n- `\"PUT\"` или `\"PATCH\"` → `\"изменить\"`\n- `\"DELETE\"` → `\"удалить\"`\n- любой другой → `\"неизвестно\"`\n\nИспользуй `|` для объединения вариантов и `_` для «остального».",
+                  "starter_code": "def http_method_action(method):\n    pass\n",
+                  "tests": "def test_values():\n    got = [http_method_action(m) for m in (\"GET\", \"POST\", \"PUT\", \"PATCH\", \"DELETE\", \"HEAD\")]\n    assert got == [\"читать\", \"создать\", \"изменить\", \"изменить\", \"удалить\", \"неизвестно\"], f\"Получено {got}\"\n\ndef test_uses_match():\n    assert \"match \" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй match/case\"\n",
+                  "solution": "def http_method_action(method):\n    match method:\n        case \"GET\":\n            return \"читать\"\n        case \"POST\":\n            return \"создать\"\n        case \"PUT\" | \"PATCH\":\n            return \"изменить\"\n        case \"DELETE\":\n            return \"удалить\"\n        case _:\n            return \"неизвестно\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "cnd-m3-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `classify_response(resp)` для словаря-ответа API через `match/case` с **шаблонами словарей**:\n\n- `{\"status\": 200, \"data\": ...}` → вернуть значение `data`;\n- `{\"status\": 404}` → `\"не найдено\"`;\n- `{\"status\": код}`, где код ≥ 500 → `\"ошибка сервера <код>\"` (используй `case {\"status\": code} if code >= 500:`);\n- всё остальное → `\"неожиданный ответ\"`.\n\nПримеры:\n```\nclassify_response({\"status\": 200, \"data\": [1, 2]})   # → [1, 2]\nclassify_response({\"status\": 404})                   # → \"не найдено\"\nclassify_response({\"status\": 503})                   # → \"ошибка сервера 503\"\nclassify_response({\"status\": 302})                   # → \"неожиданный ответ\"\n```",
+                  "starter_code": "def classify_response(resp):\n    pass\n",
+                  "tests": "def test_values():\n    got = [classify_response({\"status\": 200, \"data\": [1, 2]}), classify_response({\"status\": 404}),\n           classify_response({\"status\": 503}), classify_response({\"status\": 302}), classify_response({})]\n    assert got == [[1, 2], \"не найдено\", \"ошибка сервера 503\", \"неожиданный ответ\", \"неожиданный ответ\"], f\"Получено {got}\"\n",
+                  "solution": "def classify_response(resp):\n    match resp:\n        case {\"status\": 200, \"data\": data}:\n            return data\n        case {\"status\": 404}:\n            return \"не найдено\"\n        case {\"status\": code} if code >= 500:\n            return f\"ошибка сервера {code}\"\n        case _:\n            return \"неожиданный ответ\"\n",
+                  "hint": "Шаблон `{\"status\": 200, \"data\": data}` сразу кладёт значение в переменную `data`. Условие после шаблона — `if`.",
+                  "xp": 25
+                },
+                {
+                  "slug": "cnd-m3-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_command(text)`, которая разбирает текстовую команду через `match` по **списку слов** (`text.split()`):\n\n- `[\"go\", направление]` → `\"иду: <направление>\"`\n- `[\"take\", предмет]` → `\"беру: <предмет>\"`\n- `[\"look\"]` → `\"осматриваюсь\"`\n- всё остальное → `\"не понимаю\"`\n\nПримеры:\n```\nparse_command(\"go north\")   # → \"иду: north\"\nparse_command(\"take key\")   # → \"беру: key\"\nparse_command(\"look\")       # → \"осматриваюсь\"\nparse_command(\"dance now please\")  # → \"не понимаю\"\n```",
+                  "starter_code": "def parse_command(text):\n    pass\n",
+                  "tests": "def test_values():\n    got = [parse_command(s) for s in (\"go north\", \"take key\", \"look\", \"dance now please\", \"\")]\n    assert got == [\"иду: north\", \"беру: key\", \"осматриваюсь\", \"не понимаю\", \"не понимаю\"], f\"Получено {got}\"\n",
+                  "solution": "def parse_command(text):\n    match text.split():\n        case [\"go\", direction]:\n            return f\"иду: {direction}\"\n        case [\"take\", item]:\n            return f\"беру: {item}\"\n        case [\"look\"]:\n            return \"осматриваюсь\"\n        case _:\n            return \"не понимаю\"\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКогда нужно выбрать действие по значению (команда, HTTP-метод, код ответа), длинная цепочка `if/elif` с `==` становится однообразной. `match/case` (Python 3.10+) делает такой выбор нагляднее, а главное — умеет **разбирать структуру** данных: списки, словари, объекты, сразу раскладывая части по переменным. Для разбора JSON-ответов это очень удобно.\n\n## Как это работает\n\n```py\nmatch значение:\n    case шаблон1:\n        ...\n    case шаблон2 | шаблон3:\n        ...\n    case шаблон if условие:\n        ...\n    case _:\n        ...\n```\n\nВыполняется **первый** подходящий `case`.\n\n### Виды шаблонов\n\n- **литерал**: `case 200:`, `case \"GET\":`;\n- **или**: `case \"PUT\" | \"PATCH\":`;\n- **захват**: `case x:` — подходит всё, значение кладётся в `x` (осторожно: это не сравнение с переменной `x`!);\n- **wildcard**: `case _:` — всё остальное;\n- **последовательность**: `case [x, y]:`, `case [\"go\", direction]:`, `case [first, *rest]:`;\n- **словарь**: `case {\"status\": 200, \"data\": data}:` — ключи должны быть, лишние ключи допускаются;\n- **охранное условие**: `case {\"status\": code} if code >= 500:`.\n\n## Примеры\n\n### Пример 1. Простой выбор\n\n```python\ndef action(method):\n    match method:\n        case \"GET\":\n            return \"читать\"\n        case \"POST\":\n            return \"создать\"\n        case \"PUT\" | \"PATCH\":\n            return \"изменить\"\n        case _:\n            return \"?\"\n\nprint([action(m) for m in [\"GET\", \"PATCH\", \"HEAD\"]])\n```\n\n### Пример 2. Разбор ответа API\n\n```python\ndef handle(resp):\n    match resp:\n        case {\"status\": 200, \"data\": {\"items\": [first, *rest]}}:\n            return f\"первый: {first}, ещё {len(rest)}\"\n        case {\"status\": 200, \"data\": {\"items\": []}}:\n            return \"пустой список\"\n        case {\"status\": code, \"error\": msg} if code >= 400:\n            return f\"ошибка {code}: {msg}\"\n        case _:\n            return \"неожиданный ответ\"\n\nprint(handle({\"status\": 200, \"data\": {\"items\": [1, 2, 3]}}))\nprint(handle({\"status\": 200, \"data\": {\"items\": []}}))\nprint(handle({\"status\": 422, \"error\": \"email invalid\"}))\nprint(handle({\"status\": 302}))\n```\n\n### Пример 3. Команды из текста\n\n```python\ndef parse(text):\n    match text.split():\n        case [\"go\", direction]:\n            return f\"идём на {direction}\"\n        case [\"say\", *words]:\n            return \"говорим: \" + \" \".join(words)\n        case []:\n            return \"пусто\"\n        case _:\n            return \"не понимаю\"\n\nfor t in [\"go north\", \"say hello world\", \"\", \"fly\"]:\n    print(repr(t), \"->\", parse(t))\n```\n\n## Частые ошибки\n\n**`case имя_переменной:`** не сравнивает с переменной, а захватывает любое значение — все следующие `case` станут недостижимы. Для сравнения с константой используй точечное имя (`case Status.OK:`) или литерал.\n\n**Забытый `case _:`** — если ничего не подошло, `match` просто ничего не делает, и функция вернёт `None`.\n\n**Python старше 3.10** — `match` не поддерживается.\n\n## Шпаргалка\n\n```py\nmatch x:\n    case 1 | 2:              ...\n    case [a, b]:             ...\n    case {\"k\": v}:           ...\n    case {\"code\": c} if c >= 500: ...\n    case _:                  ...\n```",
+              "quiz": [
+                {
+                  "q": "Что делает `case _:`?",
+                  "options": [
+                    "Ничего не ловит",
+                    "Ловит всё, что не подошло выше",
+                    "Ловит только None",
+                    "Синтаксическая ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "`_` — шаблон-«что угодно», аналог `else`."
+                },
+                {
+                  "q": "Что вернёт `match [1, 2]: case [x, y]: return x + y`?",
+                  "options": [
+                    "`[1, 2]`",
+                    "`3`",
+                    "`None`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Шаблон `[x, y]` раскладывает список: x=1, y=2."
+                },
+                {
+                  "q": "Подойдёт ли `{\"status\": 200, \"data\": 1, \"extra\": 5}` под `case {\"status\": 200}:`?",
+                  "options": [
+                    "Нет, лишние ключи мешают",
+                    "Да, лишние ключи допускаются",
+                    "Только если extra=None",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Шаблон словаря проверяет только указанные ключи; остальные игнорируются."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

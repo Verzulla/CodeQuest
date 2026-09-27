@@ -26,8 +26,15 @@ def cod(slug, prompt, starter, tests, solution, hint="", xp=15):
             "tests": d(tests), "solution": d(solution), "hint": hint, "xp": xp}
 
 
-def lesson(slug, title, theory, *exercises):
-    return {"slug": slug, "title": title, "theory": d(theory), "exercises": list(exercises)}
+def lesson(slug, title, theory, *exercises, full="", quiz=None):
+    """full — подробный урок (markdown, ```python-блоки запускаются), quiz — «Проверь себя»."""
+    return {"slug": slug, "title": title, "theory": d(theory), "exercises": list(exercises),
+            "theory_full": t(full) if full else "", "quiz": quiz or []}
+
+
+def q(question, options, answer, explain):
+    """Вопрос «Проверь себя»."""
+    return {"q": question, "options": options, "answer": answer, "explain": explain}
 
 
 def module(slug, title, icon, description, *lessons):
