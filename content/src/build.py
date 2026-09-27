@@ -18,8 +18,9 @@ OUT = SRC.parent
 
 
 def attach_theory(name: str, topic: dict) -> None:
-    """Подробная теория и «Проверь себя» лежат в content/src/theory_<name>.py:
-    THEORY = {slug_урока: {"full": markdown, "quiz": [вопросы]}}."""
+    """Теория и «Проверь себя» лежат в content/src/theory_<name>.py:
+    THEORY = {slug_урока: {"short": краткая теория, "full": подробный урок, "quiz": [вопросы]}}.
+    short можно не указывать — тогда остаётся краткая теория из самого урока."""
     lessons = {l["slug"]: l for m in topic["modules"] for l in m["lessons"]}
     if not (SRC / f"theory_{name}.py").exists():   # теория описана прямо в уроках
         for slug, lesson in lessons.items():
@@ -35,6 +36,8 @@ def attach_theory(name: str, topic: dict) -> None:
         if item is None:
             print(f"  ⚠️  {slug}: нет подробной теории")
             continue
+        if "short" in item:
+            lesson["theory"] = item["short"]
         lesson["theory_full"] = item["full"]
         lesson["quiz"] = item.get("quiz", [])
 

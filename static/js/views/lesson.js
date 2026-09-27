@@ -131,10 +131,11 @@ export function runSession(view, opts) {
     });
     const tb = $("#theory-btn", view);
     if (tb) tb.onclick = () => {
-      const m = modal(`<div class="theory md" style="text-align:left;max-height:60vh;overflow:auto">${md(opts.theory)}</div>
+      const m = modal(`<div class="theory md" style="text-align:left;max-height:60vh;overflow:auto">${md(opts.theory, { runnable: true })}</div>
         <div class="btns">${hasFull ? `<button class="btn blue" data-a="full">📚 Подробное описание</button>` : ""}
         <button class="btn" data-a="ok">Понятно</button></div>`);
       m.root.style.maxWidth = "720px";
+      bindRunnable(m.root);
       m.root.querySelector('[data-a="ok"]').onclick = m.close;
       m.root.querySelector('[data-a="full"]')?.addEventListener("click", () => {
         m.close();
@@ -169,13 +170,14 @@ export function runSession(view, opts) {
     s.theorySeen = true;
     view.innerHTML = `${top()}
       <div class="lesson-body"><div class="ex-kind">📖 Теория</div><h1>${esc(opts.title)}</h1>
-      <div class="theory md">${md(opts.theory)}</div>
+      <div class="theory md">${md(opts.theory, { runnable: true })}</div>
       ${hasFull ? `<div class="full-cta"><div><b>📚 Хочешь разобраться глубже?</b>
         <span class="muted">Подробный урок: как это работает, примеры, которые можно запустить и изменить, частые ошибки и шпаргалка.</span></div>
         <button class="btn blue" id="full">Подробное описание</button></div>` : ""}</div>
       <div class="footer"><div class="inner"><div class="spacer"></div>
         <button class="btn" id="go">${anySolved || s.solvedNow ? "Дальше →" : "Поехали!"}</button></div></div>`;
     bindTop();
+    bindRunnable(view);
     $("#full", view)?.addEventListener("click", () => { returnTo = null; goTo(FULL); });
     $("#go", view).onclick = () => goTo(0);
     $("#go", view).focus();

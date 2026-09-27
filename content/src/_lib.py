@@ -26,8 +26,12 @@ def cod(slug, prompt, starter, tests, solution, hint="", xp=15):
             "tests": d(tests), "solution": d(solution), "hint": hint, "xp": xp}
 
 
-def lesson(slug, title, theory, *exercises, full="", quiz=None):
-    """full — подробный урок (markdown, ```python-блоки запускаются), quiz — «Проверь себя»."""
+def lesson(slug, title, *items, full="", quiz=None):
+    """lesson(slug, title, [краткая теория,] *задания, full=подробный урок, quiz=«Проверь себя»).
+
+    Теорию можно не указывать здесь, а описать в content/src/theory_<тема>.py —
+    build.py подставит её (так устроены все новые темы)."""
+    theory, exercises = (items[0], items[1:]) if items and isinstance(items[0], str) else ("", items)
     return {"slug": slug, "title": title, "theory": d(theory), "exercises": list(exercises),
             "theory_full": t(full) if full else "", "quiz": quiz or []}
 

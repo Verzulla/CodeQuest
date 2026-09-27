@@ -34,11 +34,12 @@ def validate(pkg: content.Package) -> list[str]:
     for t in pkg.topics:
         for m in t.modules:
             for l in m.lessons:
-                # примеры из подробной теории с кнопкой «Запустить» обязаны работать
-                for k, block in enumerate(PY_BLOCK.findall(l.theory_full), 1):
-                    res = runner.run(block)
-                    if res.error:
-                        problems.append(f"{t.slug} / {l.slug}: пример №{k} в подробной теории упал — {res.error}")
+                # примеры теории с кнопкой «Запустить» обязаны работать
+                for kind, text in (("краткой", l.theory), ("подробной", l.theory_full)):
+                    for k, block in enumerate(PY_BLOCK.findall(text), 1):
+                        res = runner.run(block)
+                        if res.error:
+                            problems.append(f"{t.slug} / {l.slug}: пример №{k} в {kind} теории упал — {res.error}")
                 for e in l.exercises:
                     where = f"{t.slug} / {m.slug} / {l.slug} / {e.slug}"
                     if e.slug in slugs:

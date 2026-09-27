@@ -1,6 +1,6 @@
 // «Учиться»: каталог тем (сгруппированный) → страница темы с дорожкой уроков.
 import { api, esc, sound, plural } from "../util.js";
-import { pills } from "../store.js";
+import { pills, statusStrip } from "../store.js";
 
 const OFFSETS = [0, 44, 70, 44, 0, -44, -70, -44]; // зигзаг дорожки
 const NO_GROUP = "Другие темы";
@@ -25,6 +25,7 @@ export async function renderCatalog(view) {
 
   view.innerHTML = `
     <div class="topbar path-top">${pills()}</div>
+    <div class="card status-strip" id="status-strip">${statusStrip()}</div>
     ${cont ? continueBanner(cont) : ""}
     ${[...groups].map(([name, list]) => `
       <section class="topic-group">

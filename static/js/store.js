@@ -36,7 +36,33 @@ export function pills(s = store.state) {
     ${hearts}`;
 }
 
+// Компактная сводка для телефона и планшета: там боковой колонки нет (см. .status-strip в CSS).
+export function statusStrip(s = store.state) {
+  if (!s) return "";
+  const goalPct = Math.min(100, Math.round((100 * s.today_xp) / s.daily_goal));
+  const lvlPct = Math.round((100 * s.level_xp) / s.level_size);
+  const streakText = !s.streak ? "Реши задание, чтобы начать"
+    : s.streak_at_risk ? "Под угрозой — позанимайся!" : `${s.streak} ${plural(s.streak, "день", "дня", "дней")} подряд`;
+  const hearts = s.hearts_enabled
+    ? `<div class="ss-item"><b>❤️ Сердечки</b><div class="ss-hearts">${"❤️".repeat(s.hearts)}${"🤍".repeat(s.max_hearts - s.hearts)}</div>
+        <small class="muted">${s.hearts < s.max_hearts && s.next_heart_in != null ? `+1 через ${fmtTime(s.next_heart_in)}` : "Все на месте"}</small></div>`
+    : `<div class="ss-item"><b>❤️ Сердечки</b><div class="ss-hearts">∞</div><small class="muted">Выключены</small></div>`;
+  return `
+    <div class="ss-item"><b>🎯 Цель дня</b>
+      ${goalPct >= 100 ? `<div class="goal-done">Выполнено!</div>`
+        : `<div class="bar" style="--c:var(--gold)"><i style="width:${goalPct}%"></i></div>`}
+      <small class="muted">${s.today_xp} / ${s.daily_goal} XP</small></div>
+    <div class="ss-item"><b>🦉 Уровень ${s.level}</b>
+      <div class="bar" style="--c:var(--purple)"><i style="width:${lvlPct}%"></i></div>
+      <small class="muted">${s.level_xp} / ${s.level_size} XP</small></div>
+    <div class="ss-item"><b>🔥 Серия</b><div>${esc(streakText)}</div>
+      <small class="muted">Рекорд ${s.longest_streak} · ${"🧊".repeat(s.freezes) || "без заморозок"}</small></div>
+    ${hearts}`;
+}
+
 function renderRail() {
+  const strip = document.getElementById("status-strip");
+  if (strip) strip.innerHTML = statusStrip();
   const rail = document.getElementById("rail");
   const s = store.state;
   if (!rail || !s) return;

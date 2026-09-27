@@ -581,7 +581,11 @@ def test_validator_runs_theory_examples():
     pkg = content.Package.model_validate({"topics": [{"slug": "t", "title": "T", "modules": [{"slug": "m", "title": "M", "lessons": [
         {"slug": "l", "title": "L", "theory_full": "```python\nprint(1)\n```\n\n```python\n1/0\n```\n\n```py\nnot run(\n```"}]}]}]})
     problems = cli.validate(pkg)
-    assert len(problems) == 1 and "пример №2" in problems[0]
+    assert len(problems) == 1 and "пример №2 в подробной" in problems[0]
+    short = content.Package.model_validate({"topics": [{"slug": "t", "title": "T", "modules": [{"slug": "m", "title": "M", "lessons": [
+        {"slug": "l", "title": "L", "theory": "```python\nprint(undefined_name)\n```"}]}]}]})
+    problems = cli.validate(short)
+    assert len(problems) == 1 and "пример №1 в краткой" in problems[0] and "NameError" in problems[0]
 
 
 def test_code_runs_rate_limited_per_user(client):
