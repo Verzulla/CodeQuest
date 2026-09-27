@@ -36,13 +36,15 @@ export function runSession(view, opts) {
   });
   const n = items.length;
   const s = { mistakes: 0, xp: 0, events: [], solvedNow: 0, firstTry: 0, theorySeen: false };
-  const hasTheory = opts.mode === "lesson" && !!opts.theory.trim();
+  // Теория урока: полный урок (theoryFull) — основной экран, краткая (theory) — шпаргалка.
+  const hasCheat = opts.mode === "lesson" && !!(opts.theory || "").trim();
   const hasFull = opts.mode === "lesson" && !!(opts.theoryFull || "").trim();
+  const hasTheory = hasCheat || hasFull;
   // «Проверь себя» — после всех заданий; страницы вопросов идут следом за заданиями: cur = n + k.
   const quiz = opts.mode === "lesson" ? (opts.quiz || []) : [];
   const quizAnswers = quiz.map(() => null);
-  const FULL = -2;                 // страница подробной теории
-  let returnTo = null;             // задание, из которого открыли подробную теорию через 📖
+  const FULL = -2;                 // полный урок, открытый из задания через 📖 (с возвратом к заданию)
+  let returnTo = null;             // задание, из которого открыли полный урок
   const allSolved = () => items.every((it) => it.solved);
   document.body.classList.add("focus");
   view.style.setProperty("--tc", opts.color || "var(--green)");
@@ -107,7 +109,7 @@ export function runSession(view, opts) {
     <div class="lesson-top">
       <button class="close" title="Выйти" id="quit">✕</button>
       <div class="segs">${hasTheory ? segHtml(-1) : ""}${items.map((_, i) => segHtml(i)).join("")}${quiz.length ? segHtml(n) : ""}</div>
-      ${hasTheory ? `<button class="btn ghost small" id="theory-btn" title="Теория">📖</button>` : ""}
+      ${hasTheory ? `<button class="btn ghost small" id="theory-btn" title="Шпаргалка и урок">📖</button>` : ""}
       ${store.state.hearts_enabled && opts.mode === "lesson"
         ? `<span class="pill heart">❤️ ${store.state.hearts}</span>`
         : opts.mode === "review" ? `<span class="pill heart" title="В повторении сердечки не тратятся, а восстанавливаются">❤️ +</span>` : ""}
@@ -131,8 +133,10 @@ export function runSession(view, opts) {
     });
     const tb = $("#theory-btn", view);
     if (tb) tb.onclick = () => {
-      const m = modal(`<div class="theory md" style="text-align:left;max-height:60vh;overflow:auto">${md(opts.theory, { runnable: true })}</div>
-        <div class="btns">${hasFull ? `<button class="btn blue" data-a="full">📚 Подробное описание</button>` : ""}
+      if (!hasCheat) { returnTo = cur >= 0 && cur < n ? cur : null; goTo(FULL); return; }
+      const m = modal(`<h2 style="margin-top:0">📝 Шпаргалка</h2>
+        <div class="theory md" style="text-align:left;max-height:60vh;overflow:auto">${md(opts.theory, { runnable: true })}</div>
+        <div class="btns">${hasFull ? `<button class="btn blue" data-a="full">📚 Открыть полный урок</button>` : ""}
         <button class="btn" data-a="ok">Понятно</button></div>`);
       m.root.style.maxWidth = "720px";
       bindRunnable(m.root);
@@ -165,37 +169,37 @@ export function runSession(view, opts) {
   const backBtn = () => backTarget() === null ? "" : `<button class="btn ghost" id="back" title="Предыдущая страница">← Назад</button>`;
   const bindBack = () => { const b = $("#back", view); if (b) b.onclick = () => goTo(backTarget()); };
 
-  // ---------- Теория ----------
+  // ---------- Урок (теория) ----------
+  // Основной экран — полный урок; шпаргалка свёрнута внизу (и доступна по 📖 во время заданий).
+  const cheatBlock = () => hasFull && hasCheat
+    ? `<details class="cheat"><summary>📝 Шпаргалка — коротко всё главное из урока</summary>
+        <div class="theory md">${md(opts.theory, { runnable: true })}</div></details>` : "";
   function showTheory() {
     s.theorySeen = true;
     view.innerHTML = `${top()}
-      <div class="lesson-body"><div class="ex-kind">📖 Теория</div><h1>${esc(opts.title)}</h1>
-      <div class="theory md">${md(opts.theory, { runnable: true })}</div>
-      ${hasFull ? `<div class="full-cta"><div><b>📚 Хочешь разобраться глубже?</b>
-        <span class="muted">Подробный урок: как это работает, примеры, которые можно запустить и изменить, частые ошибки и шпаргалка.</span></div>
-        <button class="btn blue" id="full">Подробное описание</button></div>` : ""}</div>
+      <div class="lesson-body"><div class="ex-kind">📖 Урок</div><h1>${esc(opts.title)}</h1>
+      <div class="theory md full">${md(hasFull ? opts.theoryFull : opts.theory, { runnable: true })}</div>
+      ${cheatBlock()}</div>
       <div class="footer"><div class="inner"><div class="spacer"></div>
         <button class="btn" id="go">${anySolved || s.solvedNow ? "Дальше →" : "Поехали!"}</button></div></div>`;
     bindTop();
     bindRunnable(view);
-    $("#full", view)?.addEventListener("click", () => { returnTo = null; goTo(FULL); });
     $("#go", view).onclick = () => goTo(0);
     $("#go", view).focus();
   }
 
-  // ---------- Подробная теория ----------
+  // ---------- Полный урок, открытый из задания ----------
   function showTheoryFull() {
     s.theorySeen = true;
     const back = returnTo;
     view.innerHTML = `${top()}
-      <div class="lesson-body"><div class="ex-kind">📚 Подробный урок</div><h1>${esc(opts.title)}</h1>
-      <div class="theory md full">${md(opts.theoryFull, { runnable: true })}</div></div>
-      <div class="footer"><div class="inner">
-        <button class="btn ghost" id="short">← К краткому</button><div class="spacer"></div>
+      <div class="lesson-body"><div class="ex-kind">📖 Урок</div><h1>${esc(opts.title)}</h1>
+      <div class="theory md full">${md(opts.theoryFull, { runnable: true })}</div>
+      ${cheatBlock()}</div>
+      <div class="footer"><div class="inner"><div class="spacer"></div>
         <button class="btn" id="go">${back !== null ? `Вернуться к заданию ${back + 1} →` : anySolved || s.solvedNow ? "Дальше →" : "Поехали!"}</button></div></div>`;
     bindTop();
     bindRunnable(view);
-    $("#short", view).onclick = () => goTo(-1);
     $("#go", view).onclick = () => { returnTo = null; goTo(back !== null ? back : 0); };
   }
 

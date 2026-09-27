@@ -107,10 +107,10 @@ function drawForm(view, tree) {
   if (k === "modules") fields = f("title", "Название", text("title")) + f("description", "Описание", area("description", "prose"))
     + f("icon", "Иконка награды (эмодзи)", text("icon"), "её получишь, завершив модуль");
   if (k === "lessons") fields = f("title", "Название", text("title"))
-    + f("theory", "Теория (markdown)", `<textarea class="input" name="theory" style="min-height:260px">${esc(it.theory)}</textarea>`,
-      "показывается перед заданиями; поддерживаются # заголовки, **жирный**, `код`, ```блоки```, списки")
-    + f("theory_full", "Подробный урок (markdown)", `<textarea class="input" name="theory_full" style="min-height:360px">${esc(it.theory_full || "")}</textarea>`,
-      "открывается кнопкой «Подробное описание»; блоки ```python получают кнопки «Запустить» и «Изменить», ```yaml / ```bash — просто подсветка")
+    + f("theory_full", "Урок (markdown)", `<textarea class="input" name="theory_full" style="min-height:360px">${esc(it.theory_full || "")}</textarea>`,
+      "основной экран теории перед заданиями; # заголовки, **жирный**, `код`, списки; блоки ```python получают кнопки «Запустить» и «Изменить», ```yaml / ```bash — просто подсветка")
+    + f("theory", "Шпаргалка (markdown)", `<textarea class="input" name="theory" style="min-height:220px">${esc(it.theory)}</textarea>`,
+      "коротко главное: свёрнута под уроком и открывается кнопкой 📖 во время заданий (если урока нет — показывается вместо него)")
     + f("quiz", "Проверь себя (JSON)", `<textarea class="input" name="quiz" style="min-height:200px">${esc(prettyQuiz(it.quiz))}</textarea>`,
       'после всех заданий, без штрафов. Формат: [{"q": "вопрос", "options": ["А", "Б"], "answer": 0, "explain": "почему"}]');
   if (k === "exercises") fields = `
