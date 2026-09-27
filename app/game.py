@@ -1,7 +1,7 @@
 """Игровая логика: XP, уровни, streak, сердечки, дневная цель, награды, достижения.
 
-Все функции принимают открытое соединение и работают внутри транзакции
-вызывающего кода. Время берётся через now() — тесты подменяют его.
+Все функции принимают открытое соединение и id пользователя (uid) и работают
+внутри транзакции вызывающего кода. Время берётся через now() — тесты подменяют его.
 """
 import sqlite3
 from datetime import date, datetime, timedelta
@@ -43,30 +43,42 @@ def level_info(xp: int) -> dict:
 
 # ---------- состояние ----------
 
-def _state(conn) -> sqlite3.Row:
-    return conn.execute("SELECT * FROM user_state WHERE id = 1").fetchone()
+def _state(conn, uid: int) -> sqlite3.Row:
+    conn.execute("INSERT OR IGNORE INTO user_state (user_id) VALUES (?)", (uid,))
+    return conn.execute("SELECT * FROM user_state WHERE user_id = ?", (uid,)).fetchone()
 
 
-def _counter(conn, name: str) -> int:
-    row = conn.execute("SELECT value FROM counters WHERE name = ?", (name,)).fetchone()
+def _counter(conn, uid: int, name: str) -> int:
+    row = conn.execute(
+        "SELECT value FROM counters WHERE user_id = ? AND name = ?", (uid, name)
+    ).fetchone()
     return row["value"] if row else 0
 
 
-def _bump(conn, name: str, by: int = 1) -> None:
+def _bump(conn, uid: int, name: str, by: int = 1) -> None:
     conn.execute(
-        "INSERT INTO counters (name, value) VALUES (?, ?) "
-        "ON CONFLICT(name) DO UPDATE SET value = value + excluded.value",
-        (name, by),
+        "INSERT INTO counters (user_id, name, value) VALUES (?, ?, ?) "
+        "ON CONFLICT(user_id, name) DO UPDATE SET value = value + excluded.value",
+        (uid, name, by),
     )
 
 
-def refresh_hearts(conn) -> None:
-    st = _state(conn)
+def _day_add(conn, uid: int, column: str, amount: int) -> None:
+    conn.execute(
+        f"INSERT INTO daily_activity (user_id, day, {column}) VALUES (?, ?, ?) "
+        f"ON CONFLICT(user_id, day) DO UPDATE SET {column} = {column} + excluded.{column}",
+        (uid, today().isoformat(), amount),
+    )
+
+
+def refresh_hearts(conn, uid: int) -> None:
+    st = _state(conn, uid)
     if st["hearts"] >= MAX_HEARTS:
         return
     t = now()
     if not st["hearts_updated_at"]:
-        conn.execute("UPDATE user_state SET hearts_updated_at = ? WHERE id = 1", (t.isoformat(),))
+        conn.execute("UPDATE user_state SET hearts_updated_at = ? WHERE user_id = ?",
+                     (t.isoformat(), uid))
         return
     updated = datetime.fromisoformat(st["hearts_updated_at"])
     gained = int((t - updated) / HEART_REGEN)
@@ -75,8 +87,8 @@ def refresh_hearts(conn) -> None:
     hearts = min(MAX_HEARTS, st["hearts"] + gained)
     new_updated = t if hearts == MAX_HEARTS else updated + gained * HEART_REGEN
     conn.execute(
-        "UPDATE user_state SET hearts = ?, hearts_updated_at = ? WHERE id = 1",
-        (hearts, new_updated.isoformat()),
+        "UPDATE user_state SET hearts = ?, hearts_updated_at = ? WHERE user_id = ?",
+        (hearts, new_updated.isoformat(), uid),
     )
 
 
@@ -94,12 +106,12 @@ def _displayed_streak(st) -> tuple[int, bool]:
     return 0, False
 
 
-def get_state(conn) -> dict:
-    refresh_hearts(conn)
-    st = _state(conn)
+def get_state(conn, uid: int) -> dict:
+    refresh_hearts(conn, uid)
+    st = _state(conn, uid)
     streak, at_risk = _displayed_streak(st)
     day = conn.execute(
-        "SELECT xp FROM daily_activity WHERE day = ?", (today().isoformat(),)
+        "SELECT xp FROM daily_activity WHERE user_id = ? AND day = ?", (uid, today().isoformat())
     ).fetchone()
     next_heart_in = None
     if st["hearts"] < MAX_HEARTS and st["hearts_updated_at"]:
@@ -121,15 +133,15 @@ def get_state(conn) -> dict:
         "theme": st["theme"],
         "review_count": conn.execute(
             "SELECT COUNT(*) FROM exercise_progress ep JOIN exercises e ON e.slug = ep.exercise_slug "
-            "WHERE ep.in_review = 1"
+            "WHERE ep.user_id = ? AND ep.in_review = 1", (uid,)
         ).fetchone()[0],
     }
 
 
 # ---------- XP и streak ----------
 
-def _touch_streak(conn, events: list) -> None:
-    st = _state(conn)
+def _touch_streak(conn, uid: int, events: list) -> None:
+    st = _state(conn, uid)
     t = today()
     last = date.fromisoformat(st["last_active_date"]) if st["last_active_date"] else None
     if last == t:
@@ -153,29 +165,28 @@ def _touch_streak(conn, events: list) -> None:
     events.append({"type": "streak", "streak": streak})
     conn.execute(
         "UPDATE user_state SET streak = ?, longest_streak = MAX(longest_streak, ?), "
-        "freezes = ?, last_active_date = ? WHERE id = 1",
-        (streak, streak, freezes, t.isoformat()),
+        "freezes = ?, last_active_date = ? WHERE user_id = ?",
+        (streak, streak, freezes, t.isoformat(), uid),
     )
 
 
-def add_xp(conn, amount: int, events: list, reason: str) -> None:
+def add_xp(conn, uid: int, amount: int, events: list, reason: str) -> None:
     if amount <= 0:
         return
-    before = level_info(_state(conn)["xp"])["level"]
-    _touch_streak(conn, events)
-    conn.execute("UPDATE user_state SET xp = xp + ? WHERE id = 1", (amount,))
-    day = today().isoformat()
-    conn.execute(
-        "INSERT INTO daily_activity (day, xp) VALUES (?, ?) "
-        "ON CONFLICT(day) DO UPDATE SET xp = xp + excluded.xp",
-        (day, amount),
-    )
+    before = level_info(_state(conn, uid)["xp"])["level"]
+    _touch_streak(conn, uid, events)
+    conn.execute("UPDATE user_state SET xp = xp + ? WHERE user_id = ?", (amount, uid))
+    _day_add(conn, uid, "xp", amount)
     events.append({"type": "xp", "amount": amount, "reason": reason})
 
-    st = _state(conn)
-    row = conn.execute("SELECT xp, goal_met FROM daily_activity WHERE day = ?", (day,)).fetchone()
+    st = _state(conn, uid)
+    day = today().isoformat()
+    row = conn.execute(
+        "SELECT xp, goal_met FROM daily_activity WHERE user_id = ? AND day = ?", (uid, day)
+    ).fetchone()
     if not row["goal_met"] and row["xp"] >= st["daily_goal"]:
-        conn.execute("UPDATE daily_activity SET goal_met = 1 WHERE day = ?", (day,))
+        conn.execute("UPDATE daily_activity SET goal_met = 1 WHERE user_id = ? AND day = ?",
+                     (uid, day))
         events.append({"type": "goal_met", "goal": st["daily_goal"]})
     after = level_info(st["xp"])["level"]
     if after > before:
@@ -188,84 +199,81 @@ class NoHearts(Exception):
     pass
 
 
-def record_answer(conn, ex: sqlite3.Row, correct: bool, answer: str, mode: str) -> list:
+def record_answer(conn, uid: int, ex: sqlite3.Row, correct: bool, answer: str, mode: str) -> list:
     """mode:
     'lesson'   — обычное прохождение: ошибка стоит сердечко и попадает в повторение;
     'review'   — работа над ошибками/тренировка: сердечки не тратятся, а возвращаются;
     'practice' — «решить заново» уже решённое задание: ошибка ничего не отнимает."""
     events: list = []
-    refresh_hearts(conn)
-    st = _state(conn)
+    refresh_hearts(conn, uid)
+    st = _state(conn, uid)
     hearts_on = bool(st["hearts_enabled"])
     if mode == "lesson" and hearts_on and st["hearts"] <= 0:
         raise NoHearts()
 
+    key = (uid, ex["slug"])
     conn.execute(
-        "INSERT OR IGNORE INTO exercise_progress (exercise_slug) VALUES (?)", (ex["slug"],)
+        "INSERT OR IGNORE INTO exercise_progress (user_id, exercise_slug) VALUES (?, ?)", key
     )
     prog = conn.execute(
-        "SELECT * FROM exercise_progress WHERE exercise_slug = ?", (ex["slug"],)
+        "SELECT * FROM exercise_progress WHERE user_id = ? AND exercise_slug = ?", key
     ).fetchone()
-    _bump(conn, "attempts")
+    _bump(conn, uid, "attempts")
 
     if correct:
-        _bump(conn, "correct")
+        _bump(conn, uid, "correct")
         conn.execute(
-            "UPDATE exercise_progress SET last_answer = ?, draft = '' WHERE exercise_slug = ?",
-            (answer, ex["slug"]),
+            "UPDATE exercise_progress SET last_answer = ?, draft = '' "
+            "WHERE user_id = ? AND exercise_slug = ?",
+            (answer, *key),
         )
         if not prog["solved"]:
             conn.execute(
-                "UPDATE exercise_progress SET solved = 1, solved_at = ? WHERE exercise_slug = ?",
-                (now().isoformat(), ex["slug"]),
+                "UPDATE exercise_progress SET solved = 1, solved_at = ? "
+                "WHERE user_id = ? AND exercise_slug = ?",
+                (now().isoformat(), *key),
             )
-            _bump(conn, "solved")
+            _bump(conn, uid, "solved")
             if ex["type"] == "code":
-                _bump(conn, "code_solved")
-            add_xp(conn, ex["xp"], events, "exercise")
+                _bump(conn, uid, "code_solved")
+            add_xp(conn, uid, ex["xp"], events, "exercise")
         elif mode == "review" and prog["in_review"]:
-            add_xp(conn, XP_REVIEW_FIX, events, "review_fix")
+            add_xp(conn, uid, XP_REVIEW_FIX, events, "review_fix")
         else:
-            add_xp(conn, XP_PRACTICE, events, "practice")
+            add_xp(conn, uid, XP_PRACTICE, events, "practice")
 
         if mode == "review" and prog["in_review"]:
             conn.execute(
-                "UPDATE exercise_progress SET in_review = 0 WHERE exercise_slug = ?", (ex["slug"],)
+                "UPDATE exercise_progress SET in_review = 0 WHERE user_id = ? AND exercise_slug = ?",
+                key,
             )
-            _bump(conn, "review_fixed")
+            _bump(conn, uid, "review_fixed")
         if mode == "review" and hearts_on and st["hearts"] < MAX_HEARTS:
-            conn.execute("UPDATE user_state SET hearts = hearts + 1 WHERE id = 1")
+            conn.execute("UPDATE user_state SET hearts = hearts + 1 WHERE user_id = ?", (uid,))
             events.append({"type": "heart_restored"})
         if 0 <= now().hour < 5:
-            _bump(conn, "night_solves")
-        conn.execute(
-            "INSERT INTO daily_activity (day, solved) VALUES (?, 1) "
-            "ON CONFLICT(day) DO UPDATE SET solved = solved + 1",
-            (today().isoformat(),),
-        )
+            _bump(conn, uid, "night_solves")
+        _day_add(conn, uid, "solved", 1)
     elif mode == "practice":
         pass  # перерешивание решённого: без штрафов и без попадания в повторение
     else:
         conn.execute(
             "UPDATE exercise_progress SET mistakes = mistakes + 1, in_review = 1 "
-            "WHERE exercise_slug = ?",
-            (ex["slug"],),
+            "WHERE user_id = ? AND exercise_slug = ?",
+            key,
         )
-        conn.execute(
-            "INSERT INTO daily_activity (day, mistakes) VALUES (?, 1) "
-            "ON CONFLICT(day) DO UPDATE SET mistakes = mistakes + 1",
-            (today().isoformat(),),
-        )
+        _day_add(conn, uid, "mistakes", 1)
         if mode == "lesson" and hearts_on:
             if st["hearts"] >= MAX_HEARTS:
                 conn.execute(
-                    "UPDATE user_state SET hearts_updated_at = ? WHERE id = 1",
-                    (now().isoformat(),),
+                    "UPDATE user_state SET hearts_updated_at = ? WHERE user_id = ?",
+                    (now().isoformat(), uid),
                 )
-            conn.execute("UPDATE user_state SET hearts = MAX(0, hearts - 1) WHERE id = 1")
+            conn.execute("UPDATE user_state SET hearts = MAX(0, hearts - 1) WHERE user_id = ?",
+                         (uid,))
             events.append({"type": "heart_lost"})
 
-    events += check_achievements(conn)
+    events += check_achievements(conn, uid)
     return events
 
 
@@ -275,72 +283,75 @@ class LessonNotFinished(Exception):
     pass
 
 
-def complete_lesson(conn, lesson: sqlite3.Row, mistakes: int) -> list:
+def complete_lesson(conn, uid: int, lesson: sqlite3.Row, mistakes: int) -> list:
     events: list = []
     unsolved = conn.execute(
-        "SELECT COUNT(*) FROM exercises e LEFT JOIN exercise_progress ep ON ep.exercise_slug = e.slug "
+        "SELECT COUNT(*) FROM exercises e LEFT JOIN exercise_progress ep "
+        "ON ep.exercise_slug = e.slug AND ep.user_id = ? "
         "WHERE e.lesson_id = ? AND COALESCE(ep.solved, 0) = 0",
-        (lesson["id"],),
+        (uid, lesson["id"]),
     ).fetchone()[0]
     if unsolved:
         raise LessonNotFinished()
 
     perfect = mistakes == 0
     prev = conn.execute(
-        "SELECT * FROM lesson_completions WHERE lesson_slug = ?", (lesson["slug"],)
+        "SELECT * FROM lesson_completions WHERE user_id = ? AND lesson_slug = ?",
+        (uid, lesson["slug"]),
     ).fetchone()
     if prev is None:
         conn.execute(
-            "INSERT INTO lesson_completions (lesson_slug, completed_at, perfect) VALUES (?, ?, ?)",
-            (lesson["slug"], now().isoformat(), int(perfect)),
+            "INSERT INTO lesson_completions (user_id, lesson_slug, completed_at, perfect) "
+            "VALUES (?, ?, ?, ?)",
+            (uid, lesson["slug"], now().isoformat(), int(perfect)),
         )
-        add_xp(conn, XP_LESSON_FIRST, events, "lesson")
+        add_xp(conn, uid, XP_LESSON_FIRST, events, "lesson")
     else:
         conn.execute(
             "UPDATE lesson_completions SET times = times + 1, perfect = MAX(perfect, ?) "
-            "WHERE lesson_slug = ?",
-            (int(perfect), lesson["slug"]),
+            "WHERE user_id = ? AND lesson_slug = ?",
+            (int(perfect), uid, lesson["slug"]),
         )
-        add_xp(conn, XP_LESSON_REPEAT, events, "lesson_repeat")
+        add_xp(conn, uid, XP_LESSON_REPEAT, events, "lesson_repeat")
     if perfect:
-        _bump(conn, "perfect_lessons")
-        add_xp(conn, XP_LESSON_PERFECT, events, "perfect")
+        _bump(conn, uid, "perfect_lessons")
+        add_xp(conn, uid, XP_LESSON_PERFECT, events, "perfect")
         events.append({"type": "perfect"})
 
     module = conn.execute("SELECT * FROM modules WHERE id = ?", (lesson["module_id"],)).fetchone()
-    if _all_lessons_done(conn, "l.module_id = ?", module["id"]):
-        if _grant_trophy(conn, "module", module["slug"]):
-            add_xp(conn, XP_MODULE, events, "module")
+    if _all_lessons_done(conn, uid, "l.module_id = ?", module["id"]):
+        if _grant_trophy(conn, uid, "module", module["slug"]):
+            add_xp(conn, uid, XP_MODULE, events, "module")
             events.append({"type": "trophy", "kind": "module", "title": module["title"],
                            "icon": module["icon"]})
             topic = conn.execute(
                 "SELECT * FROM topics WHERE id = ?", (module["topic_id"],)
             ).fetchone()
-            if _all_lessons_done(conn, "m.topic_id = ?", topic["id"]):
-                if _grant_trophy(conn, "topic", topic["slug"]):
-                    add_xp(conn, XP_TOPIC, events, "topic")
+            if _all_lessons_done(conn, uid, "m.topic_id = ?", topic["id"]):
+                if _grant_trophy(conn, uid, "topic", topic["slug"]):
+                    add_xp(conn, uid, XP_TOPIC, events, "topic")
                     events.append({"type": "trophy", "kind": "topic", "title": topic["title"],
                                    "icon": topic["icon"]})
 
-    events += check_achievements(conn)
+    events += check_achievements(conn, uid)
     return events
 
 
-def _all_lessons_done(conn, where: str, arg) -> bool:
+def _all_lessons_done(conn, uid: int, where: str, arg) -> bool:
     row = conn.execute(
         "SELECT COUNT(*) AS total, COUNT(lc.lesson_slug) AS done FROM lessons l "
         "JOIN modules m ON m.id = l.module_id "
-        "LEFT JOIN lesson_completions lc ON lc.lesson_slug = l.slug "
+        "LEFT JOIN lesson_completions lc ON lc.lesson_slug = l.slug AND lc.user_id = ? "
         f"WHERE {where}",
-        (arg,),
+        (uid, arg),
     ).fetchone()
     return row["total"] > 0 and row["total"] == row["done"]
 
 
-def _grant_trophy(conn, kind: str, slug: str) -> bool:
+def _grant_trophy(conn, uid: int, kind: str, slug: str) -> bool:
     cur = conn.execute(
-        "INSERT OR IGNORE INTO trophies (kind, slug, earned_at) VALUES (?, ?, ?)",
-        (kind, slug, now().isoformat()),
+        "INSERT OR IGNORE INTO trophies (user_id, kind, slug, earned_at) VALUES (?, ?, ?, ?)",
+        (uid, kind, slug, now().isoformat()),
     )
     return cur.rowcount == 1
 
@@ -374,46 +385,46 @@ ACHIEVEMENTS = [
 ]
 
 
-def stats(conn) -> dict:
-    st = _state(conn)
+def stats(conn, uid: int) -> dict:
+    st = _state(conn, uid)
+    count = lambda sql: conn.execute(sql, (uid,)).fetchone()[0]  # noqa: E731
     return {
         "xp": st["xp"],
         "level": level_info(st["xp"])["level"],
         "longest_streak": st["longest_streak"],
-        "solved": _counter(conn, "solved"),
-        "code_solved": _counter(conn, "code_solved"),
-        "perfect_lessons": _counter(conn, "perfect_lessons"),
-        "review_fixed": _counter(conn, "review_fixed"),
-        "night_solves": _counter(conn, "night_solves"),
-        "attempts": _counter(conn, "attempts"),
-        "correct": _counter(conn, "correct"),
-        "lessons": conn.execute("SELECT COUNT(*) FROM lesson_completions").fetchone()[0],
-        "modules": conn.execute("SELECT COUNT(*) FROM trophies WHERE kind='module'").fetchone()[0],
-        "topics": conn.execute("SELECT COUNT(*) FROM trophies WHERE kind='topic'").fetchone()[0],
-        "goal_days": conn.execute(
-            "SELECT COUNT(*) FROM daily_activity WHERE goal_met = 1"
-        ).fetchone()[0],
+        "solved": _counter(conn, uid, "solved"),
+        "code_solved": _counter(conn, uid, "code_solved"),
+        "perfect_lessons": _counter(conn, uid, "perfect_lessons"),
+        "review_fixed": _counter(conn, uid, "review_fixed"),
+        "night_solves": _counter(conn, uid, "night_solves"),
+        "attempts": _counter(conn, uid, "attempts"),
+        "correct": _counter(conn, uid, "correct"),
+        "lessons": count("SELECT COUNT(*) FROM lesson_completions WHERE user_id = ?"),
+        "modules": count("SELECT COUNT(*) FROM trophies WHERE user_id = ? AND kind = 'module'"),
+        "topics": count("SELECT COUNT(*) FROM trophies WHERE user_id = ? AND kind = 'topic'"),
+        "goal_days": count("SELECT COUNT(*) FROM daily_activity WHERE user_id = ? AND goal_met = 1"),
     }
 
 
-def check_achievements(conn) -> list:
-    s = stats(conn)
-    have = {r["code"] for r in conn.execute("SELECT code FROM achievements")}
+def check_achievements(conn, uid: int) -> list:
+    s = stats(conn, uid)
+    have = {r["code"] for r in conn.execute("SELECT code FROM achievements WHERE user_id = ?", (uid,))}
     events = []
     for code, icon, title, desc, (metric, need) in ACHIEVEMENTS:
         if code not in have and s[metric] >= need:
             conn.execute(
-                "INSERT INTO achievements (code, unlocked_at) VALUES (?, ?)",
-                (code, now().isoformat()),
+                "INSERT INTO achievements (user_id, code, unlocked_at) VALUES (?, ?, ?)",
+                (uid, code, now().isoformat()),
             )
             events.append({"type": "achievement", "code": code, "icon": icon,
                            "title": title, "description": desc})
     return events
 
 
-def achievements_view(conn) -> list:
-    s = stats(conn)
-    got = {r["code"]: r["unlocked_at"] for r in conn.execute("SELECT * FROM achievements")}
+def achievements_view(conn, uid: int) -> list:
+    s = stats(conn, uid)
+    got = {r["code"]: r["unlocked_at"]
+           for r in conn.execute("SELECT * FROM achievements WHERE user_id = ?", (uid,))}
     return [
         {"code": code, "icon": icon, "title": title, "description": desc,
          "unlocked_at": got.get(code), "progress": min(s[metric], need), "goal": need}

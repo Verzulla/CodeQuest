@@ -1,13 +1,22 @@
 // Общие утилиты: запросы к API, экранирование, markdown, подсветка, звуки, эффекты.
 
 export async function api(path, { method = "GET", body } = {}) {
-  const res = await fetch(`/api${path}`, {
-    method,
-    headers: body ? { "Content-Type": "application/json" } : {},
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  let res;
+  try {
+    res = await fetch(`/api${path}`, {
+      method,
+      headers: body ? { "Content-Type": "application/json" } : {},
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch {
+    const err = new Error(navigator.onLine === false ? "Нет подключения к интернету" : "Сервер не отвечает");
+    err.status = 0;
+    throw err;
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
+    // Сессия истекла или завершена — показываем экран входа (сами запросы входа не в счёт).
+    if (res.status === 401 && !path.startsWith("/auth/")) window.dispatchEvent(new Event("cq:unauthorized"));
     const err = new Error(typeof data.detail === "string" ? data.detail : `Ошибка ${res.status}`);
     err.status = res.status;
     err.data = data;

@@ -1,0 +1,25 @@
+[Unit]
+Description=CodeQuest — обучающее приложение
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+User=codequest
+Group=codequest
+WorkingDirectory=/opt/codequest
+Environment=PORT=8765
+Environment=CODEQUEST_SANDBOX=docker
+Environment=CODEQUEST_SECURE_COOKIE=1
+Environment=CODEQUEST_MAX_RUNS=__MAX_RUNS__
+ExecStart=/opt/codequest/.venv/bin/python -m app
+Restart=always
+RestartSec=3
+# Сам сервер (не код учеников — тот в контейнерах) тоже ограничиваем
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+ReadWritePaths=/opt/codequest/data
+
+[Install]
+WantedBy=multi-user.target

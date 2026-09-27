@@ -1,11 +1,12 @@
 // Глобальное состояние игрока (XP, сердечки, streak…) и его отображение.
 import { api, esc, toast, fmtTime, plural } from "./util.js";
 
-export const store = { state: null, listeners: new Set() };
+export const store = { state: null, user: null, listeners: new Set() };
 
 export function setState(state) {
   store.state = state;
   document.documentElement.dataset.theme = state.theme;
+  document.getElementById("theme-color")?.setAttribute("content", state.theme === "dark" ? "#131f24" : "#ffffff");
   try { localStorage.setItem("cq-theme", state.theme); } catch { /* ok */ }
   const badge = document.getElementById("review-badge");
   badge.hidden = !state.review_count;

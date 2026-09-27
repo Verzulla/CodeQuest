@@ -1,6 +1,7 @@
 // Точка входа: хэш-роутер и загрузка состояния.
-import { esc } from "./util.js";
-import { refreshState } from "./store.js";
+import { api, esc, toast } from "./util.js";
+import { store, refreshState } from "./store.js";
+import { renderAuth } from "./views/auth.js";
 import { renderCatalog, renderTopic } from "./views/path.js";
 import { renderLesson } from "./views/lesson.js";
 import { renderReview, renderAwards, renderStats, renderSettings } from "./views/pages.js";
@@ -19,11 +20,12 @@ const ROUTES = [
   [/^awards$/, "awards", (v) => renderAwards(v)],
   [/^stats$/, "stats", (v) => renderStats(v)],
   [/^settings$/, "settings", (v) => renderSettings(v)],
-  [/^admin$/, "admin", (v) => renderAdmin(v)],
+  [/^admin$/, "admin", (v) => (store.user.is_admin ? renderAdmin(v) : (location.hash = "#/"))],
   [/^about$/, "about", (v) => renderAbout(v)],
 ];
 
 async function route() {
+  if (!store.user) return;
   const hash = location.hash.replace(/^#\/?/, "");
   const view = document.getElementById("view");
   document.body.classList.remove("focus", "wide");
@@ -47,7 +49,49 @@ async function route() {
   location.hash = "#/";
 }
 
-window.addEventListener("hashchange", route);
-refreshState().then(route, (e) => {
-  document.getElementById("view").innerHTML = `<div class="empty"><div class="big">🔌</div><h2>Сервер недоступен</h2><p class="muted">${esc(e.message)}. Запусти <code>./run.sh</code>.</p></div>`;
+// ---------- Аккаунт ----------
+function showAuth() {
+  store.user = null;
+  store.state = null;
+  document.body.classList.remove("focus", "wide");
+  document.body.classList.add("auth");
+  document.getElementById("overlay").innerHTML = "";
+  document.getElementById("rail").innerHTML = "";
+  const view = document.getElementById("view");
+  view.onclick = null;
+  renderAuth(view, (user) => {
+    if (user.claimed_progress) toast("🎁", "Прогресс перенесён", "Всё, что было решено раньше, теперь в твоём аккаунте");
+    enter(user);
+  });
+}
+
+async function enter(user) {
+  store.user = user;
+  document.body.classList.remove("auth");
+  document.getElementById("nav-admin").hidden = !user.is_admin;
+  await refreshState();
+  route();
+}
+
+function serverDown(e) {
+  document.body.classList.add("auth");   // без меню: без сервера оно всё равно бесполезно
+  document.getElementById("view").innerHTML = `<div class="empty"><div class="big">🔌</div><h2>${esc(e.message)}</h2>
+    <p class="muted">Прогресс хранится на сервере, поэтому без связи учиться не получится. Проверь интернет и попробуй снова.</p>
+    <button class="btn" onclick="location.reload()">Повторить</button></div>`;
+}
+
+// ---------- PWA ----------
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+}
+// Chrome/Android: запоминаем предложение установки, кнопку покажем в настройках.
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  window.cqInstallPrompt = e;
+  window.dispatchEvent(new Event("cq:installable"));
 });
+window.addEventListener("appinstalled", () => { window.cqInstallPrompt = null; });
+
+window.addEventListener("hashchange", route);
+window.addEventListener("cq:unauthorized", () => { if (store.user) showAuth(); });
+api("/auth/me").then(enter, (e) => (e.status === 401 ? showAuth() : serverDown(e))).catch(serverDown);

@@ -1,10 +1,14 @@
 import json
+import os
 from datetime import datetime, timedelta
+
+# Тесты гоняют код без Docker; сам docker-режим проверяет test_sandbox.py.
+os.environ.setdefault("CODEQUEST_SANDBOX", "local")
 
 import pytest
 from fastapi.testclient import TestClient
 
-from app import game, runner
+from app import auth, game, runner
 from app.db import ROOT
 
 
@@ -19,11 +23,30 @@ def clock(monkeypatch):
 
 
 @pytest.fixture
-def client(tmp_path, monkeypatch, clock):
+def anon(tmp_path, monkeypatch, clock):
+    """Клиент без входа в аккаунт."""
     monkeypatch.setenv("CODEQUEST_DB", str(tmp_path / "test.db"))
+    auth.limiter.clear()
     from app.main import app
     with TestClient(app) as c:
         yield c
+
+
+@pytest.fixture
+def client(anon):
+    """Клиент, вошедший как первый (и потому админ) пользователь."""
+    r = anon.post("/api/auth/register", json={"username": "tester", "password": "secret1"})
+    assert r.status_code == 200, r.text
+    return anon
+
+
+def new_client(anon, username, password="secret1", register=True):
+    """Второй браузер к тому же серверу — со своими cookie."""
+    c = TestClient(anon.app)
+    r = c.post(f"/api/auth/{'register' if register else 'login'}",
+               json={"username": username, "password": password})
+    assert r.status_code == 200, r.text
+    return c
 
 
 def first_lessons(client):
@@ -292,21 +315,200 @@ def test_practice_mode_is_free(client):
     assert [e["amount"] for e in r["events"] if e["type"] == "xp"] == [game.XP_PRACTICE]
 
 
-def test_migration_adds_draft_column(tmp_path, monkeypatch):
+def _make_single_user_db(path):
+    """База однопользовательской версии: прогресс без user_id, старая колонка draft отсутствует."""
     import sqlite3
-    from app import db
-    path = tmp_path / "old.db"
     old = sqlite3.connect(path)
-    old.execute("CREATE TABLE exercise_progress (exercise_slug TEXT PRIMARY KEY, solved INTEGER NOT NULL DEFAULT 0, "
-                "solved_at TEXT, mistakes INTEGER NOT NULL DEFAULT 0, in_review INTEGER NOT NULL DEFAULT 0, "
-                "last_answer TEXT NOT NULL DEFAULT '')")
-    old.execute("INSERT INTO exercise_progress (exercise_slug, solved) VALUES ('x', 1)")
-    old.commit(); old.close()
+    old.executescript("""
+        CREATE TABLE user_state (id INTEGER PRIMARY KEY CHECK (id = 1), xp INTEGER NOT NULL DEFAULT 0,
+            hearts INTEGER NOT NULL DEFAULT 5, hearts_updated_at TEXT, hearts_enabled INTEGER NOT NULL DEFAULT 1,
+            streak INTEGER NOT NULL DEFAULT 0, longest_streak INTEGER NOT NULL DEFAULT 0, last_active_date TEXT,
+            freezes INTEGER NOT NULL DEFAULT 1, daily_goal INTEGER NOT NULL DEFAULT 30,
+            theme TEXT NOT NULL DEFAULT 'light', last_lesson_slug TEXT);
+        INSERT INTO user_state (id, xp, theme, daily_goal) VALUES (1, 80, 'dark', 50);
+        CREATE TABLE exercise_progress (exercise_slug TEXT PRIMARY KEY, solved INTEGER NOT NULL DEFAULT 0,
+            solved_at TEXT, mistakes INTEGER NOT NULL DEFAULT 0, in_review INTEGER NOT NULL DEFAULT 0,
+            last_answer TEXT NOT NULL DEFAULT '');
+        INSERT INTO exercise_progress (exercise_slug, solved, last_answer) VALUES ('x', 1, 'print(1)');
+        CREATE TABLE achievements (code TEXT PRIMARY KEY, unlocked_at TEXT NOT NULL);
+        INSERT INTO achievements VALUES ('first_step', '2026-01-01T10:00:00');
+    """)
+    old.commit()
+    old.close()
+
+
+def test_single_user_progress_goes_to_first_account(tmp_path, monkeypatch, clock):
+    path = tmp_path / "old.db"
+    _make_single_user_db(path)
     monkeypatch.setenv("CODEQUEST_DB", str(path))
-    db.init_db()
-    with db.transaction() as conn:
-        row = conn.execute("SELECT * FROM exercise_progress").fetchone()
-    assert row["solved"] == 1 and row["draft"] == ""
+    auth.limiter.clear()
+    from app.main import app
+    from app.db import transaction
+    with TestClient(app) as c:
+        r = c.post("/api/auth/register", json={"username": "Валера", "password": "secret1"}).json()
+        assert r["claimed_progress"] is True and r["is_admin"] is True
+        st = c.get("/api/state").json()
+        assert st["xp"] == 80 and st["theme"] == "dark" and st["daily_goal"] == 50
+        assert any(a["code"] == "first_step" and a["unlocked_at"]
+                   for a in c.get("/api/achievements").json()["achievements"])
+        with transaction() as conn:
+            row = conn.execute("SELECT * FROM exercise_progress WHERE exercise_slug = 'x'").fetchone()
+            assert row["solved"] == 1 and row["last_answer"] == "print(1)" and row["draft"] == ""
+            legacy = conn.execute("SELECT name FROM sqlite_master WHERE name LIKE 'legacy_%'").fetchall()
+            assert legacy == []
+        # второй аккаунт начинает с нуля и не админ
+        other = new_client(c, "second")
+        r = other.get("/api/auth/me").json()
+        assert r["is_admin"] is False and other.get("/api/state").json()["xp"] == 0
+
+
+# ---------- аккаунты ----------
+
+def test_api_requires_login(anon):
+    for url in ("/api/state", "/api/path", "/api/continue", "/api/review", "/api/stats",
+                "/api/achievements", "/api/auth/me", "/api/admin/tree"):
+        assert anon.get(url).status_code == 401, url
+    assert anon.post("/api/run", json={"code": "print(1)"}).status_code == 401
+    assert anon.get("/api/rules").status_code == 200
+
+
+def test_register_login_logout(anon):
+    r = anon.post("/api/auth/register", json={"username": "Аня_1", "password": "secret1"})
+    assert r.status_code == 200 and r.json()["username"] == "Аня_1"
+    cookie = r.headers["set-cookie"].lower()
+    assert "httponly" in cookie and "samesite=lax" in cookie and "max-age=432000" in cookie
+    assert anon.get("/api/state").status_code == 200
+    assert anon.post("/api/auth/logout").status_code == 200
+    assert anon.get("/api/state").status_code == 401
+    # ник без учёта регистра, в том числе для кириллицы
+    assert anon.post("/api/auth/login", json={"username": "аня_1", "password": "secret1"}).status_code == 200
+    assert anon.get("/api/auth/me").json()["username"] == "Аня_1"
+    assert anon.post("/api/auth/login", json={"username": "Аня_1", "password": "wrong!!"}).status_code == 401
+    assert anon.post("/api/auth/login", json={"username": "nobody", "password": "secret1"}).status_code == 401
+
+
+def test_registration_rules(anon):
+    bad = [("ab", "secret1"), ("a" * 21, "secret1"), ("with space", "secret1"), ("dash-name", "secret1"),
+           ("valid", "12345"), ("valid", "x" * 129)]
+    for username, password in bad:
+        r = anon.post("/api/auth/register", json={"username": username, "password": password})
+        assert r.status_code == 400, (username, r.text)
+    assert anon.post("/api/auth/register", json={"username": "Boris", "password": "secret1"}).status_code == 200
+    dup = TestClient(anon.app)
+    assert dup.post("/api/auth/register", json={"username": "BORIS", "password": "secret1"}).status_code == 409
+
+
+def test_progress_is_per_user(client):
+    lesson_id = first_lessons(client)[0]["id"]
+    solve_lesson(client, lesson_id)
+    other = new_client(client, "second")
+    assert other.get("/api/state").json()["xp"] == 0
+    assert other.get("/api/stats").json()["solved"] == 0
+    assert first_lessons(other)[0]["status"] == "current"
+    assert all(not e["solved"] for e in other.get(f"/api/lessons/{lesson_id}").json()["exercises"])
+    # черновик одного не виден другому
+    ex = other.get(f"/api/lessons/{lesson_id}").json()["exercises"][0]
+    other.put(f"/api/exercises/{ex['id']}/draft", json={"draft": "мой черновик"})
+    mine = client.get(f"/api/lessons/{lesson_id}").json()["exercises"][0]
+    assert mine["draft"] == "" and mine["solved"]
+    # сброс прогресса второго не трогает первого
+    other.post("/api/progress/reset", json={"confirm": "RESET"})
+    assert client.get("/api/state").json()["xp"] > 0
+    # настройки тоже свои
+    other.put("/api/settings", json={"theme": "dark"})
+    assert client.get("/api/state").json()["theme"] == "light"
+
+
+def test_only_admin_edits_content(client):
+    other = new_client(client, "student")
+    assert other.get("/api/admin/tree").status_code == 403
+    assert other.post("/api/admin/topics", json={"title": "Взлом"}).status_code == 403
+    assert other.get("/api/admin/export").status_code == 403
+    assert client.get("/api/admin/tree").status_code == 200
+
+
+def test_cli_admin_commands(client, capsys):
+    from app import cli
+    other = new_client(client, "student")
+    assert cli.main(["make-admin", "STUDENT"]) == 0
+    assert other.get("/api/admin/tree").status_code == 200
+    assert cli.main(["revoke-admin", "student"]) == 0
+    assert other.get("/api/admin/tree").status_code == 403
+    assert cli.main(["make-admin", "ghost"]) == 1
+    assert cli.main(["users"]) == 0
+    assert "tester" in capsys.readouterr().out
+
+
+def test_session_expires_after_idle_and_refreshes(client, clock):
+    clock.t += timedelta(days=4)
+    r = client.get("/api/state")
+    assert r.status_code == 200 and "cq_session" in r.headers.get("set-cookie", "")   # продлена
+    clock.t += timedelta(days=4)                     # 8 дней с входа, но 4 с последней активности
+    assert client.get("/api/state").status_code == 200
+    clock.t += timedelta(days=5, minutes=1)          # 5 дней без активности — сессия истекла
+    assert client.get("/api/state").status_code == 401
+
+
+def test_change_password_ends_other_sessions(client):
+    laptop = new_client(client, "tester", register=False)
+    bad = client.put("/api/account/password", json={"current_password": "nope!!", "new_password": "newpass1"})
+    assert bad.status_code == 400
+    short = client.put("/api/account/password", json={"current_password": "secret1", "new_password": "123"})
+    assert short.status_code == 400
+    ok = client.put("/api/account/password", json={"current_password": "secret1", "new_password": "newpass1"})
+    assert ok.status_code == 200
+    assert client.get("/api/state").status_code == 200       # текущая сессия жива
+    assert laptop.get("/api/state").status_code == 401       # другая завершена
+    fresh = TestClient(client.app)
+    assert fresh.post("/api/auth/login", json={"username": "tester", "password": "secret1"}).status_code == 401
+    assert fresh.post("/api/auth/login", json={"username": "tester", "password": "newpass1"}).status_code == 200
+
+
+def test_delete_account_removes_progress(client):
+    from app.db import transaction
+    solve_lesson(client, first_lessons(client)[0]["id"])
+    assert client.post("/api/account/delete", json={"password": "wrong!!"}).status_code == 400
+    assert client.post("/api/account/delete", json={"password": "secret1"}).status_code == 200
+    assert client.get("/api/state").status_code == 401
+    with transaction() as conn:
+        for table in ("users", "sessions", "user_state", "exercise_progress", "lesson_completions",
+                      "daily_activity", "counters", "achievements"):
+            assert conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] == 0, table
+        assert conn.execute("SELECT COUNT(*) FROM exercises").fetchone()[0] > 0   # контент на месте
+    again = TestClient(client.app)
+    assert again.post("/api/auth/login", json={"username": "tester", "password": "secret1"}).status_code == 401
+
+
+def test_login_rate_limit(anon):
+    anon.post("/api/auth/register", json={"username": "victim", "password": "secret1"})
+    anon.post("/api/auth/logout")
+    codes = [anon.post("/api/auth/login", json={"username": "victim", "password": f"guess{i:02}"}).status_code
+             for i in range(11)]
+    assert codes[:10] == [401] * 10 and codes[10] == 429
+    # даже верный пароль не пускает, пока не истечёт окно
+    assert anon.post("/api/auth/login", json={"username": "victim", "password": "secret1"}).status_code == 429
+
+
+def test_registration_rate_limit(anon):
+    codes = [TestClient(anon.app).post("/api/auth/register", json={"username": f"bot{i}", "password": "secret1"}).status_code
+             for i in range(6)]
+    assert codes == [200] * 5 + [429]
+
+
+def test_cross_origin_writes_rejected(client):
+    r = client.post("/api/progress/reset", json={"confirm": "RESET"}, headers={"Origin": "https://evil.example"})
+    assert r.status_code == 403
+    r = client.put("/api/settings", json={"theme": "dark"}, headers={"Origin": "http://testserver"})
+    assert r.status_code == 200
+
+
+def test_password_stored_hashed(client):
+    from app.db import transaction
+    with transaction() as conn:
+        user = conn.execute("SELECT password_hash FROM users").fetchone()
+        session = conn.execute("SELECT token_hash FROM sessions").fetchone()
+    assert user["password_hash"].startswith("scrypt$") and "secret1" not in user["password_hash"]
+    assert session["token_hash"] != client.cookies.get("cq_session")
 
 
 def test_topics_have_groups(client):
@@ -341,7 +543,7 @@ def test_continue_falls_back_to_last_solved(client):
     client.post(f"/api/exercises/{ex['id']}/check", json={"answer": answer_for(ex["id"])})
     from app.db import transaction
     with transaction() as conn:   # как у пользователя до обновления: поле ещё пустое
-        conn.execute("UPDATE user_state SET last_lesson_slug = NULL")
+        conn.execute("UPDATE user_state SET last_lesson_slug = NULL")   # единственный пользователь
     c = client.get("/api/continue").json()
     assert c["started"] is True and c["lesson"]["id"] == lessons[0]["id"]
 
@@ -380,3 +582,42 @@ def test_validator_runs_theory_examples():
         {"slug": "l", "title": "L", "theory_full": "```python\nprint(1)\n```\n\n```python\n1/0\n```\n\n```py\nnot run(\n```"}]}]}]})
     problems = cli.validate(pkg)
     assert len(problems) == 1 and "пример №2" in problems[0]
+
+
+def test_code_runs_rate_limited_per_user(client):
+    codes = [client.post("/api/run", json={"code": "print(1)"}).status_code for _ in range(31)]
+    assert codes[:30] == [200] * 30 and codes[30] == 429
+    other = new_client(client, "second")                     # у другого пользователя свой лимит
+    assert other.post("/api/run", json={"code": "print(1)"}).status_code == 200
+
+
+# ---------- PWA ----------
+
+def test_manifest_and_icons(anon):
+    r = anon.get("/manifest.webmanifest")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("application/manifest+json")
+    m = r.json()
+    assert m["display"] == "standalone" and m["start_url"] == "/"
+    purposes = {i["purpose"] for i in m["icons"]}
+    assert {"any", "maskable"} <= purposes
+    import struct
+    for icon in m["icons"]:
+        png = anon.get(icon["src"]).content
+        assert png[:8] == b"\x89PNG\r\n\x1a\n"
+        w, h = struct.unpack(">II", png[16:24])
+        assert f"{w}x{h}" == icon["sizes"]
+    html = anon.get("/").text
+    assert 'rel="manifest"' in html and 'rel="apple-touch-icon"' in html and "viewport-fit=cover" in html
+
+
+def test_service_worker_served_from_root(anon):
+    r = anon.get("/sw.js")
+    assert r.status_code == 200 and "javascript" in r.headers["content-type"]
+    assert r.headers["cache-control"] == "no-cache"
+    body = r.text
+    assert "__VERSION__" not in body and "__SHELL__" not in body
+    shell = json.loads(body.split("const SHELL = ", 1)[1].split(";\n", 1)[0])
+    assert "/" in shell and "/static/js/app.js" in shell and "/static/icons/icon-192.png" in shell
+    assert not any(p.startswith("/api") for p in shell)
+    for path in shell:                       # всё, что кладём в кэш при установке, реально отдаётся
+        assert anon.get(path).status_code == 200, path

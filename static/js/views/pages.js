@@ -1,5 +1,5 @@
 // Повторение, награды, статистика, настройки.
-import { api, esc, modal, soundOn, sound, plural } from "../util.js";
+import { api, esc, modal, soundOn, sound, plural, toast } from "../util.js";
 import { store, setState, pills } from "../store.js";
 import { runSession } from "./lesson.js";
 
@@ -98,12 +98,34 @@ export async function renderStats(view) {
 const stat = (icon, value, label) =>
   `<div class="card stat"><div class="si">${icon}</div><div><b>${esc(value)}</b><small>${label}</small></div></div>`;
 
+// ---------- Установка на телефон (PWA) ----------
+const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const isIOS = () => !/android/i.test(navigator.userAgent)
+  && (/iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));  // iPadOS притворяется Mac
+
+function installCard() {
+  let body;
+  if (isStandalone()) {
+    body = `<p style="margin:0">✅ CodeQuest открыт как приложение.</p>`;
+  } else if (window.cqInstallPrompt) {
+    body = `<p class="muted" style="margin:0">Иконка на главном экране, запуск без адресной строки — как обычное приложение.</p>
+      <div><button class="btn small" id="install">Установить приложение</button></div>`;
+  } else if (isIOS()) {
+    body = `<p class="muted" style="margin:0">Открой сайт в <b>Safari</b>, нажми <b>«Поделиться»</b> (квадрат со стрелкой вверх) и выбери
+      <b>«На экран „Домой“»</b>. CodeQuest появится среди приложений. Войти в аккаунт нужно будет один раз заново.</p>`;
+  } else {
+    body = `<p class="muted" style="margin:0">На телефоне открой сайт в <b>Chrome</b> и выбери в меню <b>⋮ → «Установить приложение»</b>
+      (или «Добавить на главный экран»).</p>`;
+  }
+  return `<div class="card form"><h3>📱 Приложение на телефоне</h3>${body}</div>`;
+}
+
 // ---------- Настройки ----------
 const GOALS = [[10, "Легко"], [20, "Нормально"], [30, "Серьёзно"], [50, "Интенсив"], [100, "Хардкор"]];
 
 export function renderSettings(view) {
   const draw = () => {
-    const s = store.state;
+    const s = store.state, u = store.user;
     view.innerHTML = `<div class="settings">
       <h1 class="section-title">⚙️ Настройки</h1>
       <div class="card"><h3>Дневная цель</h3>
@@ -115,10 +137,27 @@ export function renderSettings(view) {
           <button class="toggle ${s.hearts_enabled ? "on" : ""}" id="hearts"></button></div>
         <div class="switch"><div><b>🔊 Звуки</b></div><button class="toggle ${soundOn() ? "on" : ""}" id="sound"></button></div>
       </div>
-      <div class="card form"><h3>🗄️ Данные</h3>
-        <p class="muted" style="margin:0">Весь прогресс хранится в базе <code>data/codequest.db</code> — он не пропадёт после перезапуска.
-        Чтобы сделать резервную копию, просто скопируй этот файл.</p>
-        <div><button class="btn red small" id="reset">Сбросить прогресс</button></div>
+      ${installCard()}
+      <div class="card form"><h3>👤 Аккаунт</h3>
+        <div class="account-row">
+          <div class="avatar">${esc(u.username[0].toUpperCase())}</div>
+          <div style="flex:1;min-width:0"><b>${esc(u.username)}</b>${u.is_admin ? ` <span class="chip">администратор</span>` : ""}
+            <br><small class="muted">Прогресс хранится на сервере в твоём аккаунте — войди с любого устройства.</small></div>
+          <button class="btn ghost small" id="logout">Выйти</button>
+        </div>
+      </div>
+      <form class="card form" id="pw-form" novalidate><h3>🔑 Смена пароля</h3>
+        <label>Текущий пароль<input class="input" type="password" name="current" autocomplete="current-password" maxlength="128"></label>
+        <label>Новый пароль<small>Не меньше 6 символов. На других устройствах придётся войти заново.</small>
+          <input class="input" type="password" name="next" autocomplete="new-password" maxlength="128"></label>
+        <label>Повтори новый пароль<input class="input" type="password" name="next2" autocomplete="new-password" maxlength="128"></label>
+        <p class="auth-error" id="pw-error" hidden></p>
+        <div><button class="btn blue small" type="submit">Сменить пароль</button></div>
+      </form>
+      <div class="card form"><h3>⚠️ Опасная зона</h3>
+        <p class="muted" style="margin:0">Сброс прогресса обнулит XP, серию, награды и решённые задания. Удаление аккаунта сотрёт аккаунт вместе со всем прогрессом.</p>
+        <div class="row" style="gap:10px;flex-wrap:wrap"><button class="btn red small" id="reset">Сбросить прогресс</button>
+          <button class="btn red small" id="delete">Удалить аккаунт</button></div>
       </div></div>`;
     view.querySelectorAll("[data-goal]").forEach((b) => b.onclick = () => save({ daily_goal: Number(b.dataset.goal) }));
     view.querySelector("#theme").onclick = () => save({ theme: s.theme === "dark" ? "light" : "dark" });
@@ -129,6 +168,34 @@ export function renderSettings(view) {
       draw();
     };
     view.querySelector("#reset").onclick = confirmReset;
+    view.querySelector("#delete").onclick = confirmDelete;
+    const install = view.querySelector("#install");
+    if (install) install.onclick = async () => {
+      const prompt = window.cqInstallPrompt;
+      if (!prompt) return;
+      prompt.prompt();
+      await prompt.userChoice.catch(() => {});
+      window.cqInstallPrompt = null;
+      draw();
+    };
+    view.querySelector("#logout").onclick = async () => {
+      await api("/auth/logout", { method: "POST" }).catch(() => {});
+      window.dispatchEvent(new Event("cq:unauthorized"));
+    };
+    const pw = view.querySelector("#pw-form");
+    pw.onsubmit = async (e) => {
+      e.preventDefault();
+      const err = view.querySelector("#pw-error");
+      const fail = (msg) => { err.textContent = msg; err.hidden = false; };
+      if (!pw.current.value || !pw.next.value) return fail("Заполни текущий и новый пароль");
+      if (pw.next.value !== pw.next2.value) return fail("Новые пароли не совпадают");
+      try {
+        await api("/account/password", { method: "PUT", body: { current_password: pw.current.value, new_password: pw.next.value } });
+        pw.reset();
+        err.hidden = true;
+        toast("🔑", "Пароль изменён", "Другие устройства вышли из аккаунта");
+      } catch (e2) { fail(e2.message); }
+    };
   };
   const save = async (patch) => { setState(await api("/settings", { method: "PUT", body: patch })); draw(); };
   const confirmReset = () => {
@@ -141,5 +208,27 @@ export function renderSettings(view) {
     m.root.querySelector("#no").onclick = m.close;
     yes.onclick = async () => { setState(await api("/progress/reset", { method: "POST", body: { confirm: "RESET" } })); m.close(); draw(); };
   };
+  const confirmDelete = () => {
+    const m = modal(`<div class="big">🗑️</div><h2>Удалить аккаунт «${esc(store.user.username)}»?</h2>
+      <p class="muted">Аккаунт и весь прогресс будут стёрты безвозвратно. Ник освободится.</p>
+      <input class="input" id="pwd" type="password" placeholder="Введи пароль для подтверждения" autocomplete="current-password">
+      <p class="auth-error" id="del-error" hidden></p>
+      <div class="btns"><button class="btn red" id="yes" disabled>Удалить навсегда</button><button class="btn ghost" id="no">Отмена</button></div>`);
+    const inp = m.root.querySelector("#pwd"), yes = m.root.querySelector("#yes"), err = m.root.querySelector("#del-error");
+    inp.focus();
+    inp.oninput = () => { yes.disabled = !inp.value; };
+    m.root.querySelector("#no").onclick = m.close;
+    yes.onclick = async () => {
+      yes.disabled = true;
+      try {
+        await api("/account/delete", { method: "POST", body: { password: inp.value } });
+        m.close();
+        window.dispatchEvent(new Event("cq:unauthorized"));
+      } catch (e) { err.textContent = e.message; err.hidden = false; yes.disabled = false; }
+    };
+  };
+  // предложение установки может прийти уже после открытия настроек
+  const onInstallable = () => { if (document.body.contains(view.firstElementChild)) draw(); };
+  window.addEventListener("cq:installable", onInstallable, { once: true });
   draw();
 }

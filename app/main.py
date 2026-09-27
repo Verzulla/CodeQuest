@@ -1,17 +1,23 @@
 """HTTP API + раздача фронтенда. Запуск: ./run.sh (или python -m app)."""
+import hashlib
 import json
+import logging
+import os
 import random
+import sqlite3
 from contextlib import asynccontextmanager
 from datetime import timedelta
-from typing import Literal
+from pathlib import Path
+from typing import Annotated, Literal
+from urllib.parse import urlsplit
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import content, game, runner
-from .db import ROOT, init_db, transaction
+from . import auth, content, game, runner
+from .db import PROGRESS_TABLES, ROOT, init_db, transaction
 
 STATIC = ROOT / "static"
 CONTENT_DIR = ROOT / "content"
@@ -30,6 +36,10 @@ def seed_if_empty() -> None:
 
 @asynccontextmanager
 async def lifespan(_app):
+    if runner.sandbox_mode() == "local":
+        logging.getLogger("codequest").warning(
+            "CODEQUEST_SANDBOX=local: код учеников выполняется БЕЗ изоляции. "
+            "Для сервера в интернете используй docker-песочницу.")
     init_db()
     seed_if_empty()
     yield
@@ -47,6 +57,156 @@ async def no_stale_static(request, call_next):
     return response
 
 
+@app.middleware("http")
+async def same_origin_writes(request, call_next):
+    """Защита от CSRF: изменяющие запросы к API принимаем только со своей страницы.
+    Браузер всегда шлёт Origin для кросс-доменных POST/PUT/DELETE."""
+    if request.method not in ("GET", "HEAD", "OPTIONS") and request.url.path.startswith("/api/"):
+        origin = request.headers.get("origin")
+        if origin and urlsplit(origin).netloc != request.headers.get("host"):
+            return JSONResponse({"detail": "Запрос с чужого сайта отклонён"}, status_code=403)
+    return await call_next(request)
+
+
+# =================== Аккаунты ===================
+
+COOKIE = "cq_session"
+
+
+def _secure_cookie(request: Request) -> bool:
+    # За HTTPS-прокси схема запроса может быть http — тогда включается переменной окружения.
+    return request.url.scheme == "https" or os.environ.get("CODEQUEST_SECURE_COOKIE") == "1"
+
+
+def _set_session_cookie(response: Response, request: Request, token: str) -> None:
+    response.set_cookie(COOKIE, token, max_age=int(auth.SESSION_TTL.total_seconds()),
+                        httponly=True, samesite="lax", secure=_secure_cookie(request), path="/")
+
+
+def _client_ip(request: Request) -> str:
+    return request.client.host if request.client else "?"
+
+
+def current_user(request: Request, response: Response) -> sqlite3.Row:
+    token = request.cookies.get(COOKIE)
+    if token:
+        with transaction() as conn:
+            user, refreshed = auth.session_user(conn, token)
+        if user:
+            if refreshed:
+                _set_session_cookie(response, request, token)
+            return user
+    raise HTTPException(401, "Нужно войти в аккаунт")
+
+
+def admin_user(user: Annotated[sqlite3.Row, Depends(current_user)]) -> sqlite3.Row:
+    if not user["is_admin"]:
+        raise HTTPException(403, "Раздел доступен только администратору")
+    return user
+
+
+User = Annotated[sqlite3.Row, Depends(current_user)]
+Admin = Annotated[sqlite3.Row, Depends(admin_user)]
+
+
+class Credentials(BaseModel):
+    username: str = Field(max_length=64)
+    password: str = Field(max_length=256)
+
+
+def _auth_error(e: auth.AuthError):
+    return HTTPException(e.status, e.message)
+
+
+@app.post("/api/auth/register")
+def register(body: Credentials, request: Request, response: Response):
+    key = f"register:{_client_ip(request)}"
+    if not auth.limiter.allowed(key, *auth.REGISTRATIONS):
+        raise HTTPException(429, "Слишком много регистраций с этого адреса — попробуй позже")
+    with transaction() as conn:
+        try:
+            user, claimed = auth.create_user(conn, body.username, body.password)
+        except auth.AuthError as e:
+            raise _auth_error(e)
+        token = auth.new_session(conn, user["id"])
+    auth.limiter.add(key)
+    _set_session_cookie(response, request, token)
+    return {**auth.public(user), "claimed_progress": claimed}
+
+
+def _check_login_limit(request: Request) -> str:
+    key = f"login:{_client_ip(request)}"
+    if not auth.limiter.allowed(key, *auth.LOGIN_FAILS):
+        raise HTTPException(429, "Слишком много неудачных попыток — подожди 15 минут")
+    return key
+
+
+@app.post("/api/auth/login")
+def login(body: Credentials, request: Request, response: Response):
+    key = _check_login_limit(request)
+    with transaction() as conn:
+        user = auth.authenticate(conn, body.username, body.password)
+        if not user:
+            auth.limiter.add(key)
+            raise HTTPException(401, "Неверный ник или пароль")
+        token = auth.new_session(conn, user["id"])
+    _set_session_cookie(response, request, token)
+    return auth.public(user)
+
+
+@app.post("/api/auth/logout")
+def logout(request: Request, response: Response):
+    token = request.cookies.get(COOKIE)
+    if token:
+        with transaction() as conn:
+            auth.end_session(conn, token)
+    response.delete_cookie(COOKIE, path="/")
+    return {"ok": True}
+
+
+@app.get("/api/auth/me")
+def me(user: User):
+    return auth.public(user)
+
+
+class PasswordIn(BaseModel):
+    current_password: str = Field(max_length=256)
+    new_password: str = Field(max_length=256)
+
+
+@app.put("/api/account/password")
+def change_password(body: PasswordIn, user: User, request: Request):
+    """Смена пароля завершает все остальные сессии — на других устройствах придётся войти заново."""
+    key = _check_login_limit(request)
+    with transaction() as conn:
+        if not auth.verify_password(body.current_password, user["password_hash"]):
+            auth.limiter.add(key)
+            raise HTTPException(400, "Текущий пароль неверный")
+        try:
+            auth.set_password(conn, user["id"], body.new_password)
+        except auth.AuthError as e:
+            raise _auth_error(e)
+        auth.end_other_sessions(conn, user["id"], request.cookies[COOKIE])
+    return {"ok": True}
+
+
+class DeleteAccountIn(BaseModel):
+    password: str = Field(max_length=256)
+
+
+@app.post("/api/account/delete")
+def delete_account(body: DeleteAccountIn, user: User, request: Request, response: Response):
+    """Удаляет аккаунт и весь его прогресс (каскадом по user_id). Контент не трогается."""
+    key = _check_login_limit(request)
+    if not auth.verify_password(body.password, user["password_hash"]):
+        auth.limiter.add(key)
+        raise HTTPException(400, "Неверный пароль")
+    with transaction() as conn:
+        conn.execute("DELETE FROM users WHERE id = ?", (user["id"],))
+    response.delete_cookie(COOKIE, path="/")
+    return {"ok": True}
+
+
 def _get(conn, table: str, id_: int):
     row = conn.execute(f"SELECT * FROM {table} WHERE id = ?", (id_,)).fetchone()
     if not row:
@@ -57,9 +217,9 @@ def _get(conn, table: str, id_: int):
 # =================== Обучение ===================
 
 @app.get("/api/state")
-def state():
+def state(user: User):
     with transaction() as conn:
-        return game.get_state(conn)
+        return game.get_state(conn, user["id"])
 
 
 @app.get("/api/rules")
@@ -89,15 +249,15 @@ def rules():
 
 
 @app.get("/api/continue")
-def continue_learning():
+def continue_learning(user: User):
     with transaction() as conn:
-        return content.continue_target(conn)
+        return content.continue_target(conn, user["id"])
 
 
 @app.get("/api/path")
-def path():
+def path(user: User):
     with transaction() as conn:
-        return content.learning_path(conn)
+        return content.learning_path(conn, user["id"])
 
 
 def _public_exercise(e, progress: dict) -> dict:
@@ -114,26 +274,30 @@ def _public_exercise(e, progress: dict) -> dict:
     }
 
 
-def _progress(conn) -> dict:
-    return {r["exercise_slug"]: r for r in conn.execute("SELECT * FROM exercise_progress")}
+def _progress(conn, uid: int) -> dict:
+    return {r["exercise_slug"]: r
+            for r in conn.execute("SELECT * FROM exercise_progress WHERE user_id = ?", (uid,))}
 
 
 @app.get("/api/lessons/{lesson_id}")
-def get_lesson(lesson_id: int):
+def get_lesson(lesson_id: int, user: User):
+    uid = user["id"]
     with transaction() as conn:
         lesson = _get(conn, "lessons", lesson_id)
-        if not content.lesson_is_unlocked(conn, lesson_id):
+        if not content.lesson_is_unlocked(conn, uid, lesson_id):
             raise HTTPException(403, "Урок ещё закрыт — сначала пройди предыдущие")
         module = _get(conn, "modules", lesson["module_id"])
         topic = _get(conn, "topics", module["topic_id"])
-        progress = _progress(conn)
+        progress = _progress(conn, uid)
         exs = conn.execute(
             "SELECT * FROM exercises WHERE lesson_id = ? ORDER BY position, id", (lesson_id,)
         ).fetchall()
         completed = conn.execute(
-            "SELECT 1 FROM lesson_completions WHERE lesson_slug = ?", (lesson["slug"],)
+            "SELECT 1 FROM lesson_completions WHERE user_id = ? AND lesson_slug = ?",
+            (uid, lesson["slug"]),
         ).fetchone() is not None
-        conn.execute("UPDATE user_state SET last_lesson_slug = ? WHERE id = 1", (lesson["slug"],))
+        conn.execute("UPDATE user_state SET last_lesson_slug = ? WHERE user_id = ?",
+                     (lesson["slug"], uid))
         return {
             "id": lesson["id"], "title": lesson["title"], "theory": lesson["theory"],
             "theory_full": lesson["theory_full"], "quiz": json.loads(lesson["quiz"] or "[]"),
@@ -144,13 +308,21 @@ def get_lesson(lesson_id: int):
         }
 
 
+def _limit_runs(user) -> None:
+    key = f"run:{user['id']}"
+    if not auth.limiter.allowed(key, *auth.CODE_RUNS):
+        raise HTTPException(429, "Слишком много запусков подряд — подожди минутку")
+    auth.limiter.add(key)
+
+
 class RunIn(BaseModel):
     code: str = Field(max_length=20_000)
 
 
 @app.post("/api/run")
-def run_code(body: RunIn):
+def run_code(body: RunIn, user: User):
     """Просто запустить код (без тестов и без штрафа) — песочница."""
+    _limit_runs(user)
     return runner.run(body.code).to_dict()
 
 
@@ -160,19 +332,20 @@ class CheckIn(BaseModel):
 
 
 @app.post("/api/exercises/{ex_id}/check")
-def check(ex_id: int, body: CheckIn):
+def check(ex_id: int, body: CheckIn, user: User):
     with transaction() as conn:
         ex = _get(conn, "exercises", ex_id)
     # Код запускаем вне транзакции — это может занять секунды.
     details = None
     if ex["type"] == "code":
+        _limit_runs(user)
         res = runner.run(body.answer, ex["tests"])
         correct, details = res.passed, res.to_dict()
     else:
         correct = runner.normalize_output(body.answer) == runner.normalize_output(ex["expected_output"])
     with transaction() as conn:
         try:
-            events = game.record_answer(conn, ex, correct, body.answer, body.mode)
+            events = game.record_answer(conn, user["id"], ex, correct, body.answer, body.mode)
         except game.NoHearts:
             raise HTTPException(409, "Сердечки закончились")
         return {
@@ -180,7 +353,7 @@ def check(ex_id: int, body: CheckIn):
             "details": details,
             "expected": ex["expected_output"] if (ex["type"] == "output" and not correct) else None,
             "events": events,
-            "state": game.get_state(conn),
+            "state": game.get_state(conn, user["id"]),
         }
 
 
@@ -189,20 +362,20 @@ class DraftIn(BaseModel):
 
 
 @app.put("/api/exercises/{ex_id}/draft")
-def save_draft(ex_id: int, body: DraftIn):
+def save_draft(ex_id: int, body: DraftIn, user: User):
     """Автосохранение недописанного ответа — чтобы после перезахода продолжить с того же места."""
     with transaction() as conn:
         ex = _get(conn, "exercises", ex_id)
         conn.execute(
-            "INSERT INTO exercise_progress (exercise_slug, draft) VALUES (?, ?) "
-            "ON CONFLICT(exercise_slug) DO UPDATE SET draft = excluded.draft",
-            (ex["slug"], body.draft),
+            "INSERT INTO exercise_progress (user_id, exercise_slug, draft) VALUES (?, ?, ?) "
+            "ON CONFLICT(user_id, exercise_slug) DO UPDATE SET draft = excluded.draft",
+            (user["id"], ex["slug"], body.draft),
         )
         return {"ok": True}
 
 
 @app.get("/api/exercises/{ex_id}/solution")
-def solution(ex_id: int):
+def solution(ex_id: int, _user: User):
     with transaction() as conn:
         ex = _get(conn, "exercises", ex_id)
         return {"solution": ex["solution"] or ex["expected_output"]}
@@ -213,40 +386,42 @@ class CompleteIn(BaseModel):
 
 
 @app.post("/api/lessons/{lesson_id}/complete")
-def complete(lesson_id: int, body: CompleteIn):
+def complete(lesson_id: int, body: CompleteIn, user: User):
     with transaction() as conn:
         lesson = _get(conn, "lessons", lesson_id)
         try:
-            events = game.complete_lesson(conn, lesson, body.mistakes)
+            events = game.complete_lesson(conn, user["id"], lesson, body.mistakes)
         except game.LessonNotFinished:
             raise HTTPException(400, "В уроке остались нерешённые задания")
-        return {"events": events, "state": game.get_state(conn)}
+        return {"events": events, "state": game.get_state(conn, user["id"])}
 
 
 @app.get("/api/review")
-def review():
+def review(user: User):
     """Работа над ошибками; если ошибок нет — тренировка на уже решённом."""
+    uid = user["id"]
     with transaction() as conn:
-        progress = _progress(conn)
+        progress = _progress(conn, uid)
         rows = conn.execute(
             "SELECT e.* FROM exercises e JOIN exercise_progress ep ON ep.exercise_slug = e.slug "
-            "WHERE ep.in_review = 1 ORDER BY ep.mistakes DESC LIMIT 10"
+            "WHERE ep.user_id = ? AND ep.in_review = 1 ORDER BY ep.mistakes DESC LIMIT 10", (uid,)
         ).fetchall()
         kind = "mistakes"
         if not rows:
             kind = "practice"
             rows = conn.execute(
                 "SELECT e.* FROM exercises e JOIN exercise_progress ep ON ep.exercise_slug = e.slug "
-                "WHERE ep.solved = 1"
+                "WHERE ep.user_id = ? AND ep.solved = 1", (uid,)
             ).fetchall()
             rows = random.sample(rows, min(5, len(rows)))
         return {"kind": kind, "exercises": [_public_exercise(e, progress) for e in rows]}
 
 
 @app.get("/api/achievements")
-def achievements():
+def achievements(user: User):
     with transaction() as conn:
-        earned = {(r["kind"], r["slug"]): r["earned_at"] for r in conn.execute("SELECT * FROM trophies")}
+        earned = {(r["kind"], r["slug"]): r["earned_at"]
+                  for r in conn.execute("SELECT * FROM trophies WHERE user_id = ?", (user["id"],))}
         trophies = []
         for t in conn.execute("SELECT * FROM topics ORDER BY position, id"):
             mods = [
@@ -256,16 +431,17 @@ def achievements():
             ]
             trophies.append({"title": t["title"], "icon": t["icon"], "color": t["color"],
                              "earned_at": earned.get(("topic", t["slug"])), "modules": mods})
-        return {"achievements": game.achievements_view(conn), "trophies": trophies}
+        return {"achievements": game.achievements_view(conn, user["id"]), "trophies": trophies}
 
 
 @app.get("/api/stats")
-def stats():
+def stats(user: User):
+    uid = user["id"]
     with transaction() as conn:
-        s = game.stats(conn)
+        s = game.stats(conn, uid)
         start = game.today() - timedelta(days=7 * 20 - 1)
         days = {r["day"]: dict(r) for r in conn.execute(
-            "SELECT * FROM daily_activity WHERE day >= ?", (start.isoformat(),))}
+            "SELECT * FROM daily_activity WHERE user_id = ? AND day >= ?", (uid, start.isoformat()))}
         activity = []
         for i in range(7 * 20):
             d = (start + timedelta(days=i)).isoformat()
@@ -273,7 +449,7 @@ def stats():
             activity.append({"day": d, "xp": row.get("xp", 0), "goal_met": bool(row.get("goal_met"))})
         s["accuracy"] = round(100 * s["correct"] / s["attempts"]) if s["attempts"] else None
         s["activity"] = activity
-        s["state"] = game.get_state(conn)
+        s["state"] = game.get_state(conn, uid)
         return s
 
 
@@ -284,13 +460,15 @@ class SettingsIn(BaseModel):
 
 
 @app.put("/api/settings")
-def settings(body: SettingsIn):
+def settings(body: SettingsIn, user: User):
+    uid = user["id"]
     with transaction() as conn:
+        game.get_state(conn, uid)   # гарантирует строку user_state
         for key, value in body.model_dump(exclude_none=True).items():
-            conn.execute(f"UPDATE user_state SET {key} = ? WHERE id = 1", (value,))
+            conn.execute(f"UPDATE user_state SET {key} = ? WHERE user_id = ?", (value, uid))
         if body.hearts_enabled is False:
-            conn.execute("UPDATE user_state SET hearts = ? WHERE id = 1", (game.MAX_HEARTS,))
-        return game.get_state(conn)
+            conn.execute("UPDATE user_state SET hearts = ? WHERE user_id = ?", (game.MAX_HEARTS, uid))
+        return game.get_state(conn, uid)
 
 
 class ResetIn(BaseModel):
@@ -298,19 +476,17 @@ class ResetIn(BaseModel):
 
 
 @app.post("/api/progress/reset")
-def reset_progress(_body: ResetIn):
+def reset_progress(_body: ResetIn, user: User):
     with transaction() as conn:
-        for table in ("exercise_progress", "lesson_completions", "trophies", "achievements",
-                      "daily_activity", "counters", "user_state"):
-            conn.execute(f"DELETE FROM {table}")
-        conn.execute("INSERT INTO user_state (id) VALUES (1)")
-        return game.get_state(conn)
+        for table in PROGRESS_TABLES:
+            conn.execute(f"DELETE FROM {table} WHERE user_id = ?", (user["id"],))
+        return game.get_state(conn, user["id"])
 
 
 # =================== Админка ===================
 
 @app.get("/api/admin/tree")
-def admin_tree():
+def admin_tree(_admin: Admin):
     with transaction() as conn:
         tree = []
         for t in conn.execute("SELECT * FROM topics ORDER BY position, id"):
@@ -334,7 +510,7 @@ class ValidateIn(BaseModel):
 
 
 @app.post("/api/admin/validate")
-def admin_validate(body: ValidateIn):
+def admin_validate(body: ValidateIn, _admin: Admin):
     """code: прогнать эталонное решение через тесты. output: вычислить вывод кода."""
     if body.type == "code":
         return runner.run(body.solution, body.tests).to_dict()
@@ -342,13 +518,13 @@ def admin_validate(body: ValidateIn):
 
 
 @app.post("/api/admin/import")
-def admin_import(pkg: content.Package):
+def admin_import(pkg: content.Package, _admin: Admin):
     with transaction() as conn:
         return content.import_package(conn, pkg)
 
 
 @app.get("/api/admin/export")
-def admin_export():
+def admin_export(_admin: Admin):
     with transaction() as conn:
         return content.export_package(conn)
 
@@ -383,7 +559,7 @@ def _clean_quiz(data: dict) -> None:
 
 
 @app.post("/api/admin/{kind}")
-def admin_create(kind: str, body: dict):
+def admin_create(kind: str, body: dict, _admin: Admin):
     table, parent, fields = _kind(kind)
     data = {k: body[k] for k in fields if k in body}
     _clean_quiz(data)
@@ -408,7 +584,7 @@ def admin_create(kind: str, body: dict):
 
 
 @app.put("/api/admin/{kind}/{item_id}")
-def admin_update(kind: str, item_id: int, body: dict):
+def admin_update(kind: str, item_id: int, body: dict, _admin: Admin):
     table, _parent, fields = _kind(kind)
     data = {k: body[k] for k in fields if k in body}
     if not data:
@@ -422,7 +598,7 @@ def admin_update(kind: str, item_id: int, body: dict):
 
 
 @app.delete("/api/admin/{kind}/{item_id}")
-def admin_delete(kind: str, item_id: int):
+def admin_delete(kind: str, item_id: int, _admin: Admin):
     table, _parent, _fields = _kind(kind)
     with transaction() as conn:
         _get(conn, table, item_id)
@@ -435,7 +611,7 @@ class MoveIn(BaseModel):
 
 
 @app.post("/api/admin/{kind}/{item_id}/move")
-def admin_move(kind: str, item_id: int, body: MoveIn):
+def admin_move(kind: str, item_id: int, body: MoveIn, _admin: Admin):
     table, parent, _fields = _kind(kind)
     with transaction() as conn:
         item = _get(conn, table, item_id)
@@ -454,6 +630,38 @@ def admin_move(kind: str, item_id: int, body: MoveIn):
 # =================== Фронтенд ===================
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
+
+SHELL_EXT = {".html", ".css", ".js", ".png", ".webmanifest"}
+
+
+def _shell_files() -> list[Path]:
+    return sorted(p for p in STATIC.rglob("*") if p.suffix in SHELL_EXT and p.name != "sw.js")
+
+
+@app.get("/sw.js")
+def service_worker():
+    """Service worker должен жить в корне, чтобы управлять всем сайтом. Версия — хеш файлов
+    фронтенда: изменился любой файл — браузер ставит новый worker и обновляет кэш."""
+    files = _shell_files()
+    digest = hashlib.sha256()
+    for f in files:
+        digest.update(f.read_bytes())
+    shell = ["/"] + [f"/static/{f.relative_to(STATIC).as_posix()}" for f in files if f.name != "index.html"]
+    js = ((STATIC / "sw.js").read_text(encoding="utf-8")
+          .replace("__VERSION__", digest.hexdigest()[:12])
+          .replace("__SHELL__", json.dumps(shell)))
+    return Response(js, media_type="application/javascript", headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return FileResponse(STATIC / "icons" / "favicon-32.png", media_type="image/png")
+
+
+@app.get("/manifest.webmanifest")
+def manifest():
+    return FileResponse(STATIC / "manifest.webmanifest", media_type="application/manifest+json",
+                        headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/")

@@ -155,14 +155,17 @@ def export_package(conn) -> dict:
     return {"topics": topics}
 
 
-def learning_path(conn) -> list:
+def learning_path(conn, uid: int) -> list:
     """Карта пути. Внутри темы уроки открываются последовательно;
     темы независимы друг от друга — можно учить несколько параллельно."""
-    done = {r["lesson_slug"]: r for r in conn.execute("SELECT * FROM lesson_completions")}
-    trophies = {(r["kind"], r["slug"]) for r in conn.execute("SELECT kind, slug FROM trophies")}
+    done = {r["lesson_slug"]: r
+            for r in conn.execute("SELECT * FROM lesson_completions WHERE user_id = ?", (uid,))}
+    trophies = {(r["kind"], r["slug"])
+                for r in conn.execute("SELECT kind, slug FROM trophies WHERE user_id = ?", (uid,))}
     solved = {
         r["exercise_slug"]
-        for r in conn.execute("SELECT exercise_slug FROM exercise_progress WHERE solved = 1")
+        for r in conn.execute(
+            "SELECT exercise_slug FROM exercise_progress WHERE user_id = ? AND solved = 1", (uid,))
     }
     result = []
     for t in conn.execute("SELECT * FROM topics ORDER BY position, id"):
@@ -198,8 +201,8 @@ def learning_path(conn) -> list:
     return result
 
 
-def lesson_is_unlocked(conn, lesson_id: int) -> bool:
-    for topic in learning_path(conn):
+def lesson_is_unlocked(conn, uid: int, lesson_id: int) -> bool:
+    for topic in learning_path(conn, uid):
         for m in topic["modules"]:
             for l in m["lessons"]:
                 if l["id"] == lesson_id:
@@ -207,18 +210,19 @@ def lesson_is_unlocked(conn, lesson_id: int) -> bool:
     return False
 
 
-def continue_target(conn) -> dict | None:
+def continue_target(conn, uid: int) -> dict | None:
     """Куда ведёт плашка «Продолжить»: последний открытый урок, если он не пройден,
     иначе следующий открытый урок той же темы. Если ничего не начато — первый урок первой темы."""
-    last = conn.execute("SELECT last_lesson_slug FROM user_state WHERE id = 1").fetchone()[0]
+    row = conn.execute("SELECT last_lesson_slug FROM user_state WHERE user_id = ?", (uid,)).fetchone()
+    last = row[0] if row else None
     if not last:  # урок ещё не открывали после обновления — берём урок последнего решённого задания
         row = conn.execute(
             "SELECT l.slug FROM exercise_progress ep JOIN exercises e ON e.slug = ep.exercise_slug "
-            "JOIN lessons l ON l.id = e.lesson_id WHERE ep.solved_at IS NOT NULL "
-            "ORDER BY ep.solved_at DESC LIMIT 1"
+            "JOIN lessons l ON l.id = e.lesson_id WHERE ep.user_id = ? AND ep.solved_at IS NOT NULL "
+            "ORDER BY ep.solved_at DESC LIMIT 1", (uid,)
         ).fetchone()
         last = row["slug"] if row else None
-    path = learning_path(conn)
+    path = learning_path(conn, uid)
     last_topic = None
     if last:
         row = conn.execute("SELECT id FROM lessons WHERE slug = ?", (last,)).fetchone()

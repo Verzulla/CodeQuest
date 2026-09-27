@@ -1,6 +1,6 @@
 """SQLite: подключение и схема.
 
-Весь прогресс и весь контент живут в одном файле data/codequest.db.
+Контент, аккаунты и прогресс всех пользователей живут в одном файле data/codequest.db.
 Путь можно переопределить переменной окружения CODEQUEST_DB (используют тесты).
 """
 import os
@@ -59,10 +59,33 @@ CREATE TABLE IF NOT EXISTS exercises (
     position        INTEGER NOT NULL DEFAULT 0
 );
 
--- ===== Прогресс =====
+-- ===== Аккаунты =====
+
+-- username — как ввёл пользователь, username_key — casefold() для уникальности без учёта
+-- регистра (COLLATE NOCASE не понимает кириллицу).
+CREATE TABLE IF NOT EXISTS users (
+    id            INTEGER PRIMARY KEY,
+    username      TEXT NOT NULL,
+    username_key  TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    is_admin      INTEGER NOT NULL DEFAULT 0,
+    created_at    TEXT NOT NULL
+);
+
+-- В базе только sha256 от токена: утечка файла БД не даёт готовых сессий.
+CREATE TABLE IF NOT EXISTS sessions (
+    token_hash   TEXT PRIMARY KEY,
+    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at   TEXT NOT NULL,
+    expires_at   TEXT NOT NULL,
+    refreshed_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS sessions_user ON sessions(user_id);
+
+-- ===== Прогресс (у каждого пользователя свой) =====
 
 CREATE TABLE IF NOT EXISTS user_state (
-    id                 INTEGER PRIMARY KEY CHECK (id = 1),
+    user_id            INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     xp                 INTEGER NOT NULL DEFAULT 0,
     hearts             INTEGER NOT NULL DEFAULT 5,
     hearts_updated_at  TEXT,
@@ -72,54 +95,64 @@ CREATE TABLE IF NOT EXISTS user_state (
     last_active_date   TEXT,
     freezes            INTEGER NOT NULL DEFAULT 1,
     daily_goal         INTEGER NOT NULL DEFAULT 30,
-    theme              TEXT NOT NULL DEFAULT 'light'
+    theme              TEXT NOT NULL DEFAULT 'light',
+    last_lesson_slug   TEXT                           -- для плашки «Продолжить»
 );
 
 -- Слаги (а не id) — чтобы прогресс переживал переимпорт контента.
 CREATE TABLE IF NOT EXISTS exercise_progress (
-    exercise_slug TEXT PRIMARY KEY,
+    user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    exercise_slug TEXT NOT NULL,
     solved        INTEGER NOT NULL DEFAULT 0,
     solved_at     TEXT,
     mistakes      INTEGER NOT NULL DEFAULT 0,
     in_review     INTEGER NOT NULL DEFAULT 0,
     last_answer   TEXT NOT NULL DEFAULT '',   -- последнее верное решение
-    draft         TEXT NOT NULL DEFAULT ''    -- недописанный ответ (автосохранение)
+    draft         TEXT NOT NULL DEFAULT '',   -- недописанный ответ (автосохранение)
+    PRIMARY KEY (user_id, exercise_slug)
 );
 
 CREATE TABLE IF NOT EXISTS lesson_completions (
-    lesson_slug  TEXT PRIMARY KEY,
+    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    lesson_slug  TEXT NOT NULL,
     completed_at TEXT NOT NULL,
     times        INTEGER NOT NULL DEFAULT 1,
-    perfect      INTEGER NOT NULL DEFAULT 0
+    perfect      INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (user_id, lesson_slug)
 );
 
 -- Награды за модули и темы (kind = 'module' | 'topic')
 CREATE TABLE IF NOT EXISTS trophies (
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     kind       TEXT NOT NULL,
     slug       TEXT NOT NULL,
     earned_at  TEXT NOT NULL,
-    PRIMARY KEY (kind, slug)
+    PRIMARY KEY (user_id, kind, slug)
 );
 
 CREATE TABLE IF NOT EXISTS achievements (
-    code        TEXT PRIMARY KEY,
-    unlocked_at TEXT NOT NULL
+    user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    code        TEXT NOT NULL,
+    unlocked_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, code)
 );
 
 CREATE TABLE IF NOT EXISTS daily_activity (
-    day             TEXT PRIMARY KEY,
+    user_id         INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    day             TEXT NOT NULL,
     xp              INTEGER NOT NULL DEFAULT 0,
     solved          INTEGER NOT NULL DEFAULT 0,
     mistakes        INTEGER NOT NULL DEFAULT 0,
-    goal_met        INTEGER NOT NULL DEFAULT 0
+    goal_met        INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (user_id, day)
 );
 
 CREATE TABLE IF NOT EXISTS counters (
-    name  TEXT PRIMARY KEY,
-    value INTEGER NOT NULL DEFAULT 0
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name    TEXT NOT NULL,
+    value   INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (user_id, name)
 );
-
-INSERT OR IGNORE INTO user_state (id) VALUES (1);
 """
 
 
@@ -154,16 +187,54 @@ def transaction():
 # Колонки, добавленные после первой версии: (таблица, колонка, определение).
 # Для уже существующих баз добавляются через ALTER TABLE — прогресс не теряется.
 MIGRATIONS = [
-    ("exercise_progress", "draft", "TEXT NOT NULL DEFAULT ''"),
     ("topics", "group_name", "TEXT NOT NULL DEFAULT ''"),          # группа в каталоге тем
-    ("user_state", "last_lesson_slug", "TEXT"),                     # для плашки «Продолжить»
     ("lessons", "theory_full", "TEXT NOT NULL DEFAULT ''"),        # подробный теоретический урок
     ("lessons", "quiz", "TEXT NOT NULL DEFAULT '[]'"),             # «Проверь себя»: JSON-список вопросов
 ]
 
 
+PROGRESS_TABLES = ("user_state", "exercise_progress", "lesson_completions", "trophies",
+                   "achievements", "daily_activity", "counters")
+
+
+def _columns(conn, table: str) -> list[str]:
+    return [r["name"] for r in conn.execute(f"PRAGMA table_info({table})")]
+
+
+def _park_legacy_progress(conn) -> None:
+    """База из однопользовательской версии: таблицы прогресса без user_id.
+    Откладываем их как legacy_* — их заберёт первый зарегистрированный аккаунт."""
+    for table in PROGRESS_TABLES:
+        cols = _columns(conn, table)
+        if cols and "user_id" not in cols and not _columns(conn, f"legacy_{table}"):
+            conn.execute(f"ALTER TABLE {table} RENAME TO legacy_{table}")
+
+
+def has_legacy_progress(conn) -> bool:
+    return any(_columns(conn, f"legacy_{t}") for t in PROGRESS_TABLES)
+
+
+def claim_legacy_progress(conn, user_id: int) -> bool:
+    """Переносит прогресс однопользовательской версии в аккаунт user_id и удаляет legacy_*."""
+    claimed = False
+    for table in PROGRESS_TABLES:
+        legacy = f"legacy_{table}"
+        old_cols = _columns(conn, legacy)
+        if not old_cols:
+            continue
+        common = [c for c in _columns(conn, table) if c in old_cols and c != "user_id"]
+        if table == "user_state":
+            conn.execute("DELETE FROM user_state WHERE user_id = ?", (user_id,))
+        cols = ", ".join(common)
+        conn.execute(f"INSERT INTO {table} (user_id, {cols}) SELECT ?, {cols} FROM {legacy}", (user_id,))
+        conn.execute(f"DROP TABLE {legacy}")
+        claimed = True
+    return claimed
+
+
 def init_db() -> None:
     with transaction() as conn:
+        _park_legacy_progress(conn)
         conn.executescript(SCHEMA)
         for table, column, definition in MIGRATIONS:
             existing = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
