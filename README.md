@@ -68,6 +68,9 @@ PWA работает только по **HTTPS** (исключение — `loca
 
 ## Перед выкладкой в интернет
 
+Пошаговая выкладка на VPS с Ubuntu — [`deploy/README.md`](deploy/README.md) (скрипт `deploy/install.sh` делает всё ниже сам).
+
+
 1. HTTPS-прокси (nginx/Caddy) перед `python -m app`, прокси передаёт `Host` и `X-Forwarded-For`.
 2. `CODEQUEST_SECURE_COOKIE=1`.
 3. `CODEQUEST_SANDBOX` не задан или `docker`; `app.cli sandbox-check` прошёл.
