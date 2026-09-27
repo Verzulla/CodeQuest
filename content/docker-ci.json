@@ -1,0 +1,397 @@
+{
+  "topics": [
+    {
+      "slug": "docker-ci",
+      "title": "Docker и CI/CD",
+      "icon": "🐳",
+      "color": "#2496ed",
+      "description": "Контейнеры, Dockerfile, пайплайны и GitHub Actions для тестировщика",
+      "group": "Тестирование и DevOps",
+      "modules": [
+        {
+          "slug": "dci-m1",
+          "title": "Docker",
+          "icon": "🐳",
+          "description": "Образы, контейнеры и Dockerfile",
+          "lessons": [
+            {
+              "slug": "dci-m1-l1",
+              "title": "Образы и контейнеры",
+              "theory": "# Зачем тестировщику Docker\n\n«У меня работает, а в CI падает» — классика. Docker упаковывает приложение **вместе с окружением** (версия Python, библиотеки, настройки), и оно одинаково запускается везде.\n\n- **Образ (image)** — шаблон, «слепок» окружения. Неизменяемый. Пример: `python:3.12-slim`.\n- **Контейнер** — запущенный экземпляр образа. Из одного образа можно запустить сколько угодно контейнеров.\n- **Тег** — версия образа после двоеточия. Без тега подставится `latest` (в CI так лучше не делать — версия может смениться).\n\n# Основные команды\n\n```\ndocker pull postgres:16                  # скачать образ\ndocker run --rm -p 8080:80 nginx         # запустить; --rm удалит контейнер после остановки\ndocker run -d --name db -e POSTGRES_PASSWORD=secret postgres:16   # в фоне, с переменной окружения\ndocker ps                                # запущенные контейнеры\ndocker logs db                           # логи контейнера — первое, что смотреть при падении\ndocker exec -it db psql -U postgres      # выполнить команду внутри контейнера\ndocker stop db\n```\n\n- `-p 8080:80` — порт **хоста**:порт **контейнера**.\n- `-v $(pwd)/reports:/app/reports` — пробросить папку (чтобы забрать отчёты тестов).\n- Код выхода контейнера = код выхода команды внутри. `137` — контейнер убит (часто нехватка памяти).\n",
+              "exercises": [
+                {
+                  "slug": "dci-m1-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Разбираем ссылку на образ.",
+                  "code": "for ref in [\"python:3.12-slim\", \"nginx\", \"postgres:16\"]:\n    name, _, tag = ref.partition(\":\")\n    print(name, tag or \"latest\")\n",
+                  "expected_output": "python 3.12-slim\nnginx latest\npostgres 16",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dci-m1-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Конфигурацию тестов часто передают через переменные окружения (`-e` в docker run).",
+                  "code": "env = {\"BASE_URL\": \"http://app:8000\", \"BROWSER\": \"\"}\nbase_url = env.get(\"BASE_URL\", \"http://localhost\")\nbrowser = env.get(\"BROWSER\") or \"chrome\"\nheadless = env.get(\"HEADLESS\", \"true\") == \"true\"\nprint(base_url, browser, headless)\n",
+                  "expected_output": "http://app:8000 chrome True",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dci-m1-l1-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_image(ref)`, которая разбирает ссылку на Docker-образ.\n\nСсылка имеет вид `имя:тег`, тег необязателен.\n\n- Получает: `ref` — строку-ссылку.\n- Возвращает: пару `(имя, тег)`. Если тега нет — тег `\"latest\"`.\n\nПримеры:\n```\nparse_image(\"python:3.12-slim\")   # → (\"python\", \"3.12-slim\")\nparse_image(\"nginx\")              # → (\"nginx\", \"latest\")\n```",
+                  "starter_code": "def parse_image(ref):\n    pass\n",
+                  "tests": "def test_with_tag():\n    assert parse_image(\"python:3.12-slim\") == (\"python\", \"3.12-slim\"), f\"Получено {parse_image('python:3.12-slim')}\"\n\ndef test_no_tag():\n    assert parse_image(\"nginx\") == (\"nginx\", \"latest\"), \"Без тега → latest\"\n",
+                  "solution": "def parse_image(ref):\n    name, _, tag = ref.partition(\":\")\n    return name, tag or \"latest\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dci-m1-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `docker_run_cmd(image, ports=None, env=None, rm=True)`, которая собирает команду `docker run`.\n\n- Получает:\n  - `image` — образ;\n  - `ports` — словарь `{порт_хоста: порт_контейнера}` или `None`;\n  - `env` — словарь переменных окружения `{ИМЯ: значение}` или `None`;\n  - `rm` — добавлять ли флаг `--rm`.\n- Возвращает: команду одной строкой, части через пробел, **строго в таком порядке**:\n  1. `docker run`\n  2. `--rm` — если `rm` истинно\n  3. `-p хост:контейнер` — для каждой пары из `ports`\n  4. `-e ИМЯ=значение` — для каждой переменной из `env`\n  5. образ\n\nПримеры:\n```\ndocker_run_cmd(\"app:1.0\", ports={8080: 80}, env={\"DEBUG\": \"1\", \"MODE\": \"test\"})\n# → \"docker run --rm -p 8080:80 -e DEBUG=1 -e MODE=test app:1.0\"\n\ndocker_run_cmd(\"nginx\", rm=False)\n# → \"docker run nginx\"\n```",
+                  "starter_code": "def docker_run_cmd(image, ports=None, env=None, rm=True):\n    pass\n",
+                  "tests": "def test_full():\n    got = docker_run_cmd(\"app:1.0\", ports={8080: 80}, env={\"DEBUG\": \"1\", \"MODE\": \"test\"})\n    assert got == \"docker run --rm -p 8080:80 -e DEBUG=1 -e MODE=test app:1.0\", f\"Получено {got!r}\"\n\ndef test_minimal():\n    assert docker_run_cmd(\"nginx\", rm=False) == \"docker run nginx\", f\"Получено {docker_run_cmd('nginx', rm=False)!r}\"\n",
+                  "solution": "def docker_run_cmd(image, ports=None, env=None, rm=True):\n    parts = [\"docker\", \"run\"]\n    if rm:\n        parts.append(\"--rm\")\n    for host, container in (ports or {}).items():\n        parts.append(f\"-p {host}:{container}\")\n    for key, value in (env or {}).items():\n        parts.append(f\"-e {key}={value}\")\n    parts.append(image)\n    return \" \".join(parts)\n",
+                  "hint": "Собери части в список и соедини через `\" \".join(parts)`. `ports or {}` спасает от None.",
+                  "xp": 20
+                },
+                {
+                  "slug": "dci-m1-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `explain_exit(code)`, которая объясняет код выхода упавшего контейнера.\n\n- Получает: `code` — код выхода (число).\n- Возвращает строку-пояснение:\n  - `0` → `\"ok\"`\n  - `1` → `\"app error\"` — ошибка в самом приложении\n  - `125` → `\"docker error\"` — ошибка самого Docker\n  - `127` → `\"command not found\"` — команда не найдена\n  - `137` → `\"killed (OOM?)\"` — процесс убит, часто из-за нехватки памяти\n  - любой другой код → `\"unknown\"`\n\nПримеры:\n```\nexplain_exit(137)   # → \"killed (OOM?)\"\nexplain_exit(42)    # → \"unknown\"\n```",
+                  "starter_code": "def explain_exit(code):\n    pass\n",
+                  "tests": "def test_known():\n    got = [explain_exit(c) for c in (0, 1, 125, 127, 137)]\n    assert got == [\"ok\", \"app error\", \"docker error\", \"command not found\", \"killed (OOM?)\"], f\"Получено {got}\"\n\ndef test_unknown():\n    assert explain_exit(42) == \"unknown\", \"Неизвестный код → unknown\"\n",
+                  "solution": "def explain_exit(code):\n    return {0: \"ok\", 1: \"app error\", 125: \"docker error\", 127: \"command not found\",\n            137: \"killed (OOM?)\"}.get(code, \"unknown\")\n",
+                  "hint": "Словарь + `.get(code, \"unknown\")`.",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n«У меня всё проходит, а в CI падает», «на стенде другая версия Python», «чтобы поднять проект, нужен день» — знакомо каждому тестировщику. Docker упаковывает приложение **вместе с окружением** (ОС, версия Python, библиотеки, настройки) в образ, который одинаково запускается на ноутбуке, у коллеги и в CI. Для QA это ещё и способ за минуту поднять БД, браузер или всё приложение для тестов.\n\n## Как это работает\n\n### Образ и контейнер\n\n- **Образ (image)** — неизменяемый «слепок» окружения. Аналогия — класс или установочный диск.\n- **Контейнер** — запущенный экземпляр образа со своим состоянием. Аналогия — объект. Из одного образа можно запустить сколько угодно контейнеров.\n- **Реестр** (Docker Hub, GitLab Registry) — хранилище образов.\n- **Тег** — версия образа: `python:3.12-slim`, `postgres:16`. Без тега подставляется `latest` — в CI так делать не стоит, «последняя» версия может смениться без предупреждения.\n\n### Основные команды\n\n```bash\ndocker pull postgres:16                         # скачать образ\ndocker run --rm -p 8080:80 nginx                # запустить; удалить контейнер после остановки\ndocker run -d --name db -e POSTGRES_PASSWORD=secret -p 5432:5432 postgres:16\ndocker ps                                       # запущенные контейнеры (-a — все)\ndocker logs -f db                               # логи — первое, куда смотреть при падении\ndocker exec -it db psql -U postgres             # команда внутри контейнера\ndocker stop db && docker rm db                  # остановить и удалить\n```\n\nФлаги `docker run`:\n- `-d` — в фоне; `--name` — имя; `--rm` — удалить после остановки;\n- `-p ХОСТ:КОНТЕЙНЕР` — пробросить порт;\n- `-e КЛЮЧ=значение` — переменная окружения (так настраивают тесты: адрес стенда, браузер);\n- `-v ./reports:/app/reports` — пробросить папку (например, чтобы забрать отчёты тестов).\n\n### Коды выхода\n\nКод выхода контейнера = код выхода команды внутри. `0` — успех; `1` — ошибка приложения (например, упали тесты); `125` — ошибка самого Docker; `127` — команда не найдена; `137` — процесс убит (часто нехватка памяти, OOM).\n\n### docker compose\n\nНесколько связанных контейнеров (приложение + БД + браузер) описывают в `compose.yaml` и поднимают одной командой `docker compose up -d`:\n\n```yaml\nservices:\n  app:\n    image: my-shop:1.4\n    ports: [\"8000:8000\"]\n    environment:\n      DATABASE_URL: postgres://postgres:secret@db:5432/shop\n    depends_on: [db]\n  db:\n    image: postgres:16\n    environment:\n      POSTGRES_PASSWORD: secret\n```\n\nКонтейнеры видят друг друга по имени сервиса: приложение подключается к `db:5432`.\n\n## Примеры\n\n### Пример 1. Разбор ссылки на образ\n\n```python\ndef parse_image(ref):\n    name, _, tag = ref.partition(\":\")\n    return name, tag or \"latest\"\n\nfor ref in [\"python:3.12-slim\", \"nginx\", \"selenium/standalone-chrome:124.0\"]:\n    print(ref, \"->\", parse_image(ref))\n```\n\n### Пример 2. Сборка команды запуска\n\n```python\ndef docker_run_cmd(image, ports=None, env=None, rm=True):\n    parts = [\"docker\", \"run\"]\n    if rm:\n        parts.append(\"--rm\")\n    for host, container in (ports or {}).items():\n        parts.append(f\"-p {host}:{container}\")\n    for key, value in (env or {}).items():\n        parts.append(f\"-e {key}={value}\")\n    parts.append(image)\n    return \" \".join(parts)\n\nprint(docker_run_cmd(\"my-tests:1.0\", env={\"BASE_URL\": \"http://app:8000\", \"BROWSER\": \"chrome\"}))\nprint(docker_run_cmd(\"nginx\", ports={8080: 80}, rm=False))\n```\n\n### Пример 3. Настройка тестов через окружение\n\nВнутри контейнера тесты читают настройки из переменных окружения — так один образ запускается против разных стендов:\n\n```python\nimport os\n\nos.environ[\"BASE_URL\"] = \"http://staging:8000\"     # в жизни задаётся через docker run -e\nbase_url = os.environ.get(\"BASE_URL\", \"http://localhost:8000\")\nbrowser = os.environ.get(\"BROWSER\") or \"chrome\"\nheadless = os.environ.get(\"HEADLESS\", \"true\").lower() == \"true\"\nprint(base_url, browser, headless)\n```\n\n### Пример 4. Расшифровка кода выхода\n\n```python\nMEANING = {0: \"ok\", 1: \"app error (упали тесты?)\", 125: \"docker error\",\n           127: \"command not found\", 137: \"killed — нехватка памяти?\"}\nfor code in [0, 1, 137, 42]:\n    print(code, \"->\", MEANING.get(code, \"unknown\"))\n```\n\n## Частые ошибки\n\n**`latest` в CI.** Сегодня один Python, завтра другой — «вдруг всё упало».\n\n**Ожидание, что данные сохранятся.** Файлы внутри контейнера исчезают вместе с ним. Отчёты и данные — через `-v`.\n\n**`localhost` внутри контейнера** — это сам контейнер, а не твоя машина. Другие сервисы в compose — по имени сервиса.\n\n**Игнорировать `docker logs`.** Почти любая загадка «контейнер сразу завершился» решается чтением логов.\n\n## Шпаргалка\n\n```bash\ndocker run --rm -e KEY=val -p 8080:80 -v ./reports:/app/reports image:tag\ndocker ps -a · docker logs -f NAME · docker exec -it NAME sh\ndocker compose up -d · docker compose logs -f · docker compose down\n```",
+              "quiz": [
+                {
+                  "q": "Чем образ отличается от контейнера?",
+                  "options": [
+                    "Ничем, это синонимы",
+                    "Образ — неизменяемый шаблон, контейнер — запущенный экземпляр образа",
+                    "Контейнер хранится в реестре, образ — нет",
+                    "Образ — это запущенный процесс"
+                  ],
+                  "answer": 1,
+                  "explain": "Как класс и объект: из одного образа можно запустить много контейнеров."
+                },
+                {
+                  "q": "Что значит `-p 8080:80` в `docker run`?",
+                  "options": [
+                    "Порт 80 хоста → порт 8080 контейнера",
+                    "Порт 8080 хоста → порт 80 контейнера",
+                    "Ограничить процессор",
+                    "Запустить 80 копий"
+                  ],
+                  "answer": 1,
+                  "explain": "Формат `ХОСТ:КОНТЕЙНЕР` — на машине открываешь `localhost:8080`, а внутри отвечает сервис на порту 80."
+                },
+                {
+                  "q": "Контейнер с тестами завершился с кодом 137. Что проверить в первую очередь?",
+                  "options": [
+                    "Опечатки в тестах",
+                    "Нехватку памяти — процесс был убит",
+                    "Сеть",
+                    "Версию Python"
+                  ],
+                  "answer": 1,
+                  "explain": "137 = 128 + 9 (SIGKILL). Чаще всего процесс убивает ядро из-за нехватки памяти."
+                }
+              ]
+            },
+            {
+              "slug": "dci-m1-l2",
+              "title": "Dockerfile и слои",
+              "theory": "# Dockerfile — рецепт образа\n\n```\nFROM python:3.12-slim              # базовый образ\nWORKDIR /app                       # рабочая папка внутри образа\nCOPY requirements.txt .            # сначала только зависимости…\nRUN pip install -r requirements.txt\nCOPY . .                           # …потом весь код\nENV BASE_URL=http://app:8000       # переменная окружения по умолчанию\nCMD [\"pytest\", \"-v\", \"--junitxml=reports/junit.xml\"]   # что запустить при старте\n```\n\nСобрать и запустить: `docker build -t my-tests .` → `docker run --rm my-tests`.\n\n# Слои и кэш\n\nКаждая инструкция — **слой**. При пересборке Docker берёт слои из кэша, пока не встретит изменение; **всё после изменённого слоя пересобирается**.\n\nПоэтому `requirements.txt` копируют **до** остального кода: код меняется постоянно, а зависимости редко — и долгий `pip install` берётся из кэша.\n\n`.dockerignore` исключает лишнее из контекста сборки: `.git`, `.venv`, `__pycache__`, отчёты.\n",
+              "exercises": [
+                {
+                  "slug": "dci-m1-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Какой шаг сборки первым пересоберётся, если поменять только код тестов?",
+                  "code": "steps = [\n    (\"FROM python:3.12-slim\", []),\n    (\"COPY requirements.txt .\", [\"requirements.txt\"]),\n    (\"RUN pip install -r requirements.txt\", []),\n    (\"COPY . .\", [\"tests/test_login.py\", \"requirements.txt\"]),\n    ('CMD [\"pytest\"]', []),\n]\nchanged = {\"tests/test_login.py\"}\nfor i, (cmd, files) in enumerate(steps):\n    if changed & set(files):\n        print(i, cmd)\n        break\n",
+                  "expected_output": "3 COPY . .",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dci-m1-l2-e2",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_dockerfile(text)`, которая разбирает Dockerfile на инструкции.\n\n- Получает: `text` — содержимое Dockerfile (многострочная строка).\n- Возвращает: список пар `(ИНСТРУКЦИЯ, аргументы)` — по одной паре на каждую значимую строку:\n  - инструкция — первое слово строки, приведённое к **верхнему регистру**;\n  - аргументы — всё после первого пробела, без пробелов по краям;\n  - пустые строки и комментарии (начинаются с `#`) пропускаются.\n\nПример:\n```\ntext = \"# тесты\\nFROM python:3.12\\n\\nworkdir /app\\nRUN pip install -r requirements.txt\\n\"\nparse_dockerfile(text)\n# → [(\"FROM\", \"python:3.12\"), (\"WORKDIR\", \"/app\"), (\"RUN\", \"pip install -r requirements.txt\")]\n```",
+                  "starter_code": "def parse_dockerfile(text):\n    pass\n",
+                  "tests": "def test_parse():\n    text = \"# тесты\\nFROM python:3.12\\n\\nworkdir /app\\nRUN pip install -r requirements.txt\\n\"\n    assert parse_dockerfile(text) == [(\"FROM\", \"python:3.12\"), (\"WORKDIR\", \"/app\"), (\"RUN\", \"pip install -r requirements.txt\")], \\\n        f\"Получено {parse_dockerfile(text)}\"\n",
+                  "solution": "def parse_dockerfile(text):\n    result = []\n    for line in text.splitlines():\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        instr, _, args = line.partition(\" \")\n        result.append((instr.upper(), args.strip()))\n    return result\n",
+                  "hint": "`line.partition(\" \")` делит строку по первому пробелу.",
+                  "xp": 15
+                },
+                {
+                  "slug": "dci-m1-l2-e3",
+                  "type": "code",
+                  "prompt": "Напиши Dockerfile для запуска автотестов — строкой в переменной `DOCKERFILE`.\n\nТребования (инструкции по порядку):\n1. `FROM python:3.12-slim` — базовый образ (**первой** строкой);\n2. `WORKDIR /app` — рабочая папка;\n3. `COPY requirements.txt .` — сначала только файл зависимостей;\n4. `RUN pip install -r requirements.txt` — установка зависимостей;\n5. `COPY . .` — потом весь остальной код;\n6. `CMD`, который запускает `pytest` (**последней** строкой), например `CMD [\"pytest\", \"-v\"]`.\n\nПочему зависимости копируются отдельно и раньше кода — объяснено в теории про кэш слоёв.\n\nТесты разберут твою строку построчно и проверят наличие и порядок инструкций.",
+                  "starter_code": "DOCKERFILE = \"\"\"\nFROM ...\n\"\"\"\n",
+                  "tests": "def _instructions(text):\n    result = []\n    for line in text.splitlines():\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        instr, _, args = line.partition(\" \")\n        result.append((instr.upper(), args.strip()))\n    return result\n\n\ndef test_from():\n    ins = _instructions(DOCKERFILE)\n    assert ins and ins[0] == (\"FROM\", \"python:3.12-slim\"), \"Первая инструкция — FROM python:3.12-slim\"\n\ndef test_workdir():\n    assert (\"WORKDIR\", \"/app\") in _instructions(DOCKERFILE), \"Нужен WORKDIR /app\"\n\ndef test_cache_order():\n    ins = _instructions(DOCKERFILE)\n    names = [f\"{i} {a}\" for i, a in ins]\n    req = next((k for k, s in enumerate(names) if s.startswith(\"COPY requirements.txt\")), None)\n    pip = next((k for k, s in enumerate(names) if s.startswith(\"RUN pip install -r requirements.txt\")), None)\n    code = next((k for k, s in enumerate(names) if s.startswith(\"COPY . \")), None)\n    assert None not in (req, pip, code), \"Нужны COPY requirements.txt, RUN pip install -r requirements.txt и COPY . .\"\n    assert req < pip < code, \"Порядок для кэша: COPY requirements.txt → RUN pip install → COPY . .\"\n\ndef test_cmd():\n    ins = _instructions(DOCKERFILE)\n    assert ins[-1][0] == \"CMD\" and \"pytest\" in ins[-1][1], \"Последняя инструкция — CMD с pytest\"\n",
+                  "solution": "DOCKERFILE = \"\"\"\nFROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install -r requirements.txt\nCOPY . .\nCMD [\"pytest\", \"-v\"]\n\"\"\"\n",
+                  "hint": "Шесть строк: FROM, WORKDIR, COPY requirements.txt ., RUN pip install -r requirements.txt, COPY . ., CMD [\"pytest\"].",
+                  "xp": 25
+                },
+                {
+                  "slug": "dci-m1-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `first_rebuilt(steps, changed)`: с какого шага Docker начнёт пересобирать образ.\n\n- Получает:\n  - `steps` — шаги сборки: список пар `(команда, [файлы, которые шаг использует])`;\n  - `changed` — **множество** изменённых файлов.\n- Возвращает: **индекс** первого шага, который использует хотя бы один изменённый файл (с него кэш перестаёт работать). Если ни один шаг не затронут — `None`.\n\nПример:\n```\nsteps = [\n    (\"FROM python:3.12-slim\", []),\n    (\"COPY requirements.txt .\", [\"requirements.txt\"]),\n    (\"RUN pip install -r requirements.txt\", []),\n    (\"COPY . .\", [\"app.py\", \"requirements.txt\", \"tests/test_api.py\"]),\n]\nfirst_rebuilt(steps, {\"tests/test_api.py\"})   # → 3\nfirst_rebuilt(steps, {\"requirements.txt\"})    # → 1\nfirst_rebuilt(steps, {\"README.md\"})           # → None\n```\nПересечение множеств: `changed & set(files)` — не пустое, если есть общие файлы.",
+                  "starter_code": "def first_rebuilt(steps, changed):\n    pass\n",
+                  "tests": "STEPS = [\n    (\"FROM python:3.12-slim\", []),\n    (\"COPY requirements.txt .\", [\"requirements.txt\"]),\n    (\"RUN pip install -r requirements.txt\", []),\n    (\"COPY . .\", [\"app.py\", \"requirements.txt\", \"tests/test_api.py\"]),\n]\n\ndef test_code_change():\n    assert first_rebuilt(STEPS, {\"tests/test_api.py\"}) == 3, \"Изменение теста пересобирает с COPY . .\"\n\ndef test_requirements_change():\n    assert first_rebuilt(STEPS, {\"requirements.txt\"}) == 1, \"Изменение зависимостей — с COPY requirements.txt\"\n\ndef test_nothing():\n    assert first_rebuilt(STEPS, {\"README.md\"}) is None, \"Файл не используется в сборке → None\"\n",
+                  "solution": "def first_rebuilt(steps, changed):\n    for i, (_, files) in enumerate(steps):\n        if changed & set(files):\n            return i\n    return None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dci-m1-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `ignored(path, patterns)` — упрощённый `.dockerignore`.\n\n- Получает: `path` — путь к файлу через `/`, например `\"app/__pycache__/x.pyc\"`; `patterns` — список шаблонов.\n- Возвращает: `True`, если файл нужно исключить из сборки: **хотя бы одна часть пути** (кусок между `/`) подходит **хотя бы под один** шаблон. Иначе `False`.\n\nШаблоны могут содержать `*` — «любые символы». Сравнивай через `fnmatch(часть, шаблон)`: `fnmatch(\"old.pyc\", \"*.pyc\")` → `True`.\n\nПримеры (`patterns = [\".git\", \".venv\", \"__pycache__\", \"*.pyc\", \"reports\"]`):\n```\nignored(\".git/config\", patterns)           # → True    часть \".git\"\nignored(\"tests/old.pyc\", patterns)         # → True    \"old.pyc\" подходит под \"*.pyc\"\nignored(\"tests/test_api.py\", patterns)     # → False\n```",
+                  "starter_code": "from fnmatch import fnmatch\n\ndef ignored(path, patterns):\n    pass\n",
+                  "tests": "PATTERNS = [\".git\", \".venv\", \"__pycache__\", \"*.pyc\", \"reports\"]\n\ndef test_ignored():\n    assert ignored(\".git/config\", PATTERNS), \".git исключается\"\n    assert ignored(\"app/__pycache__/x.cpython.pyc\", PATTERNS), \"__pycache__ исключается\"\n    assert ignored(\"tests/old.pyc\", PATTERNS), \"*.pyc исключается\"\n\ndef test_kept():\n    assert not ignored(\"tests/test_api.py\", PATTERNS), \"Тесты должны попасть в образ\"\n    assert not ignored(\"requirements.txt\", PATTERNS), \"requirements.txt нужен\"\n",
+                  "solution": "from fnmatch import fnmatch\n\ndef ignored(path, patterns):\n    return any(fnmatch(part, p) for part in path.split(\"/\") for p in patterns)\n",
+                  "hint": "`path.split(\"/\")` даёт части пути; `fnmatch(\"x.pyc\", \"*.pyc\")` → True.",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nГотовых образов недостаточно, когда нужно упаковать **свои** автотесты: нужная версия Python, зависимости, код тестов, команда запуска. Рецепт образа — `Dockerfile`. Хорошо написанный Dockerfile собирается за секунды благодаря кэшу, плохо написанный — каждый раз заново качает все зависимости.\n\n## Как это работает\n\n### Основные инструкции\n\n```dockerfile\nFROM python:3.12-slim                      # базовый образ\nWORKDIR /app                               # рабочая папка (создаётся сама)\nENV PYTHONDONTWRITEBYTECODE=1              # переменная окружения по умолчанию\nCOPY requirements.txt .                    # скопировать файл из контекста сборки\nRUN pip install --no-cache-dir -r requirements.txt   # выполнить команду при сборке\nCOPY . .                                   # скопировать остальной код\nCMD [\"pytest\", \"-v\", \"--junitxml=reports/junit.xml\"] # команда при запуске контейнера\n```\n\n- `RUN` выполняется **при сборке** образа, `CMD` — **при запуске** контейнера.\n- `CMD` в форме списка (`[\"pytest\", \"-v\"]`) — рекомендуемая: без лишнего shell.\n- Аргументы `docker run my-tests pytest -k login` заменяют `CMD`.\n\nСборка и запуск:\n\n```bash\ndocker build -t my-tests:1.0 .\ndocker run --rm -e BASE_URL=http://staging:8000 -v ./reports:/app/reports my-tests:1.0\n```\n\n### Слои и кэш\n\nКаждая инструкция — **слой**. При повторной сборке Docker берёт слои из кэша, пока входные данные не изменились. Как только слой изменился — **он и все последующие** пересобираются.\n\nОтсюда главное правило порядка: **что меняется редко — выше, что часто — ниже**. Зависимости (`requirements.txt`) меняются редко, код тестов — постоянно. Поэтому сначала копируем только `requirements.txt` и ставим зависимости, а потом — весь код. Тогда правка теста не запускает долгий `pip install`.\n\n### .dockerignore\n\nВсё, что лежит в папке сборки (контекст), отправляется Docker. `.dockerignore` исключает лишнее — сборка быстрее, образ меньше, секреты не утекают:\n\n```text\n.git\n.venv\n__pycache__\n*.pyc\nreports/\n.env\n```\n\n## Примеры\n\n### Пример 1. Разбор Dockerfile\n\n```python\nDOCKERFILE = '''\n# образ для автотестов\nFROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install -r requirements.txt\nCOPY . .\nCMD [\"pytest\", \"-v\"]\n'''\n\ndef parse(text):\n    result = []\n    for line in text.splitlines():\n        line = line.strip()\n        if line and not line.startswith(\"#\"):\n            instr, _, args = line.partition(\" \")\n            result.append((instr.upper(), args))\n    return result\n\nfor instr, args in parse(DOCKERFILE):\n    print(f\"{instr:8} {args}\")\n```\n\n### Пример 2. Какой слой пересоберётся\n\n```python\ndef first_rebuilt(steps, changed):\n    for i, (cmd, files) in enumerate(steps):\n        if changed & set(files):\n            return i\n    return None\n\ngood = [(\"FROM python:3.12-slim\", []), (\"COPY requirements.txt .\", [\"requirements.txt\"]),\n        (\"RUN pip install -r requirements.txt\", []), (\"COPY . .\", [\"requirements.txt\", \"tests/test_api.py\"])]\nbad = [(\"FROM python:3.12-slim\", []), (\"COPY . .\", [\"requirements.txt\", \"tests/test_api.py\"]),\n       (\"RUN pip install -r requirements.txt\", [])]\n\nfor name, steps in [(\"правильный порядок\", good), (\"неправильный\", bad)]:\n    i = first_rebuilt(steps, {\"tests/test_api.py\"})\n    rebuilt = [cmd for cmd, _ in steps[i:]]\n    print(f\"{name}: пересоберутся {rebuilt}\")\n```\n\nВо втором варианте правка одного теста заставляет заново ставить все зависимости.\n\n### Пример 3. Проверка порядка для кэша\n\n```python\ndef cache_friendly(instructions):\n    texts = [f\"{i} {a}\" for i, a in instructions]\n    try:\n        pip = next(k for k, s in enumerate(texts) if s.startswith(\"RUN pip install\"))\n        code = next(k for k, s in enumerate(texts) if s.startswith(\"COPY . \"))\n    except StopIteration:\n        return False\n    return pip < code\n\nprint(cache_friendly([(\"COPY\", \"requirements.txt .\"), (\"RUN\", \"pip install -r requirements.txt\"), (\"COPY\", \". .\")]))\nprint(cache_friendly([(\"COPY\", \". .\"), (\"RUN\", \"pip install -r requirements.txt\")]))\n```\n\n### Пример 4. Упрощённый .dockerignore\n\n```python\nfrom fnmatch import fnmatch\n\nPATTERNS = [\".git\", \".venv\", \"__pycache__\", \"*.pyc\", \"reports\", \".env\"]\n\ndef ignored(path):\n    return any(fnmatch(part, p) for part in path.split(\"/\") for p in PATTERNS)\n\nfor path in [\".git/config\", \"tests/test_api.py\", \"app/__pycache__/x.pyc\", \".env\", \"requirements.txt\"]:\n    print(f\"{path:28} {'исключён' if ignored(path) else 'в образ'}\")\n```\n\n## Частые ошибки\n\n**`COPY . .` до `pip install`** — кэш зависимостей сбрасывается при каждой правке кода.\n\n**Путаница `RUN` и `CMD`.** `RUN pytest` запустит тесты при **сборке** образа, а не при запуске контейнера.\n\n**Секреты в образе.** `COPY .env` или `ENV TOKEN=...` — токен останется в слоях образа навсегда. Передавай секреты при запуске (`-e`) или через секреты CI.\n\n**Нет `.dockerignore`** — в контекст уходят `.git` и `.venv` на сотни мегабайт.\n\n## Шпаргалка\n\n```dockerfile\nFROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nCMD [\"pytest\", \"-v\"]\n```\n\nРедко меняется — выше, часто — ниже. `RUN` — при сборке, `CMD` — при запуске.",
+              "quiz": [
+                {
+                  "q": "Когда выполняется инструкция `RUN` в Dockerfile?",
+                  "options": [
+                    "При запуске контейнера",
+                    "При сборке образа",
+                    "При каждом `docker ps`",
+                    "При остановке контейнера"
+                  ],
+                  "answer": 1,
+                  "explain": "`RUN` — шаг сборки образа. При запуске контейнера выполняется `CMD` (или `ENTRYPOINT`)."
+                },
+                {
+                  "q": "Почему `requirements.txt` копируют и устанавливают **до** `COPY . .`?",
+                  "options": [
+                    "Так требует синтаксис",
+                    "Чтобы правка кода не сбрасывала кэш долгой установки зависимостей",
+                    "Чтобы образ был безопаснее",
+                    "Иначе pip не найдёт файл"
+                  ],
+                  "answer": 1,
+                  "explain": "Слой пересобирается, если изменились его входные файлы, и вместе с ним все последующие. Зависимости меняются редко — их слой должен быть выше."
+                },
+                {
+                  "q": "Где правильно хранить токен для тестов, чтобы он не попал в образ?",
+                  "options": [
+                    "`ENV TOKEN=...` в Dockerfile",
+                    "`COPY .env .`",
+                    "Передавать при запуске: `docker run -e TOKEN=...` или через секреты CI",
+                    "В коде тестов"
+                  ],
+                  "answer": 2,
+                  "explain": "Всё, что попало в Dockerfile, остаётся в слоях образа. Секреты передают только в момент запуска."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "dci-m2",
+          "title": "CI/CD",
+          "icon": "🚀",
+          "description": "Пайплайны, GitHub Actions и отчёты",
+          "lessons": [
+            {
+              "slug": "dci-m2-l1",
+              "title": "Пайплайн",
+              "theory": "# CI и CD\n\n- **CI (Continuous Integration)** — на каждый push/pull request автоматически собрать проект и прогнать тесты.\n- **CD (Continuous Delivery/Deployment)** — если всё зелёное, автоматически выкатить на стенд или в прод.\n\nТипичный пайплайн — последовательность **стадий**:\n```\nlint → unit → build (docker) → api-tests → ui-tests → deploy\n```\n\n- **Fail fast**: быстрые проверки — первыми. Упал линтер — нет смысла 20 минут гонять UI-тесты.\n- Job-ы могут зависеть друг от друга (`needs:`) и идти параллельно, если не зависят.\n- **Артефакты** — файлы, которые job сохраняет: отчёты, скриншоты, логи.\n\n# Коды выхода\n\nCI смотрит только на код выхода команды: `0` — успех, иначе — провал.\n\nКоды выхода `pytest`:\n- `0` — все тесты прошли\n- `1` — есть упавшие тесты\n- `2` — прерван пользователем\n- `3` — внутренняя ошибка\n- `4` — ошибка в параметрах командной строки\n- `5` — не найдено ни одного теста (частая ошибка конфигурации!)\n",
+              "exercises": [
+                {
+                  "slug": "dci-m2-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Имитация пайплайна с fail fast.",
+                  "code": "jobs = [(\"lint\", 0), (\"unit\", 0), (\"api-tests\", 1), (\"ui-tests\", 0), (\"deploy\", 0)]\nfor name, code in jobs:\n    if code != 0:\n        print(\"❌\", name)\n        break\n    print(\"✅\", name)\nelse:\n    print(\"🚀 всё зелёное\")\n",
+                  "expected_output": "✅ lint\n✅ unit\n❌ api-tests",
+                  "hint": "`else` у цикла выполняется, только если не было break.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dci-m2-l1-e2",
+                  "type": "code",
+                  "prompt": "Напиши функцию `pipeline_status(jobs)`, которая вычисляет итог CI-пайплайна.\n\n- Получает: `jobs` — список пар `(имя_job, код_выхода)` в порядке запуска. Код `0` — успех, любой другой — провал.\n- Возвращает:\n  - `(\"failed\", имя)` — где имя — **первого** упавшего job-а;\n  - `(\"success\", None)` — если все завершились с кодом 0.\n\nПримеры:\n```\npipeline_status([(\"lint\", 0), (\"unit\", 1), (\"ui\", 1)])   # → (\"failed\", \"unit\")\npipeline_status([(\"lint\", 0), (\"unit\", 0)])              # → (\"success\", None)\n```",
+                  "starter_code": "def pipeline_status(jobs):\n    pass\n",
+                  "tests": "def test_failed():\n    assert pipeline_status([(\"lint\", 0), (\"unit\", 1), (\"ui\", 1)]) == (\"failed\", \"unit\"), \"Первый упавший — unit\"\n\ndef test_success():\n    assert pipeline_status([(\"lint\", 0), (\"unit\", 0)]) == (\"success\", None), \"Все с кодом 0 → success\"\n",
+                  "solution": "def pipeline_status(jobs):\n    for name, code in jobs:\n        if code != 0:\n            return \"failed\", name\n    return \"success\", None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dci-m2-l1-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `pytest_exit(code)`, которая расшифровывает код выхода pytest.\n\n- Получает: `code` — число от 0 до 5.\n- Возвращает строку:\n  - `0` → `\"all passed\"`\n  - `1` → `\"tests failed\"`\n  - `2` → `\"interrupted\"`\n  - `3` → `\"internal error\"`\n  - `4` → `\"usage error\"`\n  - `5` → `\"no tests collected\"`\n\nПример:\n```\npytest_exit(5)   # → \"no tests collected\"\n```",
+                  "starter_code": "def pytest_exit(code):\n    pass\n",
+                  "tests": "def test_codes():\n    got = [pytest_exit(c) for c in range(6)]\n    assert got == [\"all passed\", \"tests failed\", \"interrupted\", \"internal error\", \"usage error\", \"no tests collected\"], f\"Получено {got}\"\n",
+                  "solution": "def pytest_exit(code):\n    return [\"all passed\", \"tests failed\", \"interrupted\", \"internal error\", \"usage error\", \"no tests collected\"][code]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dci-m2-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `should_deploy(branch, jobs)`, которая решает, можно ли выкатывать релиз.\n\n- Получает: `branch` — имя git-ветки; `jobs` — список кодов выхода всех job-ов пайплайна.\n- Возвращает `True`, только если выполнены **оба** условия:\n  1. ветка — `\"main\"`;\n  2. **все** коды выхода равны `0`.\n\nПримеры:\n```\nshould_deploy(\"main\", [0, 0, 0])          # → True\nshould_deploy(\"feature/login\", [0, 0])    # → False   не main\nshould_deploy(\"main\", [0, 1])             # → False   есть упавший job\n```",
+                  "starter_code": "def should_deploy(branch, jobs):\n    pass\n",
+                  "tests": "def test_main_green():\n    assert should_deploy(\"main\", [0, 0, 0]) is True, \"main + всё зелёное → деплой\"\n\ndef test_feature_branch():\n    assert should_deploy(\"feature/login\", [0, 0]) is False, \"Не main → не деплоим\"\n\ndef test_red():\n    assert should_deploy(\"main\", [0, 1]) is False, \"Есть упавший job → не деплоим\"\n",
+                  "solution": "def should_deploy(branch, jobs):\n    return branch == \"main\" and all(code == 0 for code in jobs)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dci-m2-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `run_order(needs)`, которая определяет порядок запуска job-ов с зависимостями.\n\n- Получает: `needs` — словарь `{job: [список job-ов, от которых он зависит]}`. Job можно запустить только когда **все** его зависимости уже выполнены.\n- Возвращает: список всех job-ов в порядке запуска. Если одновременно готовы несколько — сначала запускается тот, чьё имя раньше **по алфавиту**, и после него готовность пересчитывается заново.\n\nПример:\n```\nrun_order({\n    \"deploy\":    [\"api-tests\", \"ui-tests\"],\n    \"api-tests\": [\"build\"],\n    \"ui-tests\":  [\"build\"],\n    \"build\":     [\"lint\", \"unit\"],\n    \"lint\":      [],\n    \"unit\":      [],\n})\n# → [\"lint\", \"unit\", \"build\", \"api-tests\", \"ui-tests\", \"deploy\"]\n```\nАлгоритм: пока не все выполнены — найди готовые (ещё не выполнен и все зависимости выполнены), отсортируй, возьми первый.",
+                  "starter_code": "def run_order(needs):\n    pass\n",
+                  "tests": "def test_pipeline():\n    needs = {\n        \"deploy\": [\"api-tests\", \"ui-tests\"],\n        \"api-tests\": [\"build\"],\n        \"ui-tests\": [\"build\"],\n        \"build\": [\"lint\", \"unit\"],\n        \"lint\": [],\n        \"unit\": [],\n    }\n    assert run_order(needs) == [\"lint\", \"unit\", \"build\", \"api-tests\", \"ui-tests\", \"deploy\"], f\"Получено {run_order(needs)}\"\n\ndef test_independent():\n    assert run_order({\"b\": [], \"a\": []}) == [\"a\", \"b\"], \"Независимые — по алфавиту\"\n",
+                  "solution": "def run_order(needs):\n    done = []\n    while len(done) < len(needs):\n        ready = sorted(j for j, deps in needs.items() if j not in done and all(d in done for d in deps))\n        done.append(ready[0])\n    return done\n",
+                  "hint": "Пока не все выполнены: найди готовые (не выполнен, все зависимости в done), отсортируй, возьми первый.",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nТесты, которые никто не запускает, не ловят баги. **CI** (Continuous Integration) запускает сборку и тесты автоматически на каждый push и pull request — ошибку видно через минуты после коммита, а не через неделю на регрессе. **CD** (Continuous Delivery/Deployment) идёт дальше: если всё зелёное, приложение само выкатывается на стенд или в прод. Тестировщик в современной команде настраивает и поддерживает свою часть пайплайна.\n\n## Как это работает\n\n### Пайплайн\n\nПоследовательность **стадий** (stages), в каждой — один или несколько **job**-ов:\n\n```text\nlint → unit → build (docker) → api-tests → ui-tests → deploy\n```\n\n- **Fail fast**: быстрые и дешёвые проверки — первыми. Упал линтер за 20 секунд — незачем 30 минут гонять UI-тесты.\n- **Зависимости** (`needs:`): job запускается, когда готовы его зависимости. Независимые job-ы идут **параллельно** (api-tests и ui-tests после build).\n- **Артефакты** — файлы, которые job сохраняет и передаёт дальше или прикладывает к результату: отчёты, скриншоты, логи, собранный образ.\n\n### Код выхода — язык CI\n\nCI не читает вывод тестов — он смотрит только на **код выхода** команды: `0` — job зелёный, любое другое — красный.\n\nКоды выхода `pytest`:\n- `0` — все тесты прошли;\n- `1` — есть упавшие тесты;\n- `2` — прерван (Ctrl+C);\n- `3` — внутренняя ошибка;\n- `4` — неверные аргументы командной строки;\n- `5` — **не найдено ни одного теста**. Частая ошибка конфигурации: тесты «прошли», потому что их не запустили.\n\n### Когда деплоить\n\nОбычно: только из основной ветки (`main`) и только если **все** проверки зелёные. Feature-ветки гоняют тесты, но не выкатываются.\n\n## Примеры\n\n### Пример 1. Fail fast\n\n```python\njobs = [(\"lint\", 0), (\"unit\", 0), (\"api-tests\", 1), (\"ui-tests\", 0), (\"deploy\", 0)]\nfor name, code in jobs:\n    if code != 0:\n        print(f\"❌ {name} (код {code}) — дальше не идём\")\n        break\n    print(f\"✅ {name}\")\nelse:\n    print(\"🚀 всё зелёное\")\n```\n\n### Пример 2. Расшифровка кода pytest\n\n```python\nPYTEST = [\"all passed\", \"tests failed\", \"interrupted\", \"internal error\", \"usage error\", \"no tests collected\"]\nfor code in [0, 1, 5]:\n    print(code, PYTEST[code])\n```\n\n### Пример 3. Решение о деплое\n\n```python\ndef should_deploy(branch, codes):\n    return branch == \"main\" and all(c == 0 for c in codes)\n\nfor branch, codes in [(\"main\", [0, 0, 0]), (\"feature/login\", [0, 0]), (\"main\", [0, 1])]:\n    print(f\"{branch:15} {codes} -> {'деплой' if should_deploy(branch, codes) else 'без деплоя'}\")\n```\n\n### Пример 4. Порядок job-ов по зависимостям\n\n```python\nneeds = {\n    \"deploy\": [\"api-tests\", \"ui-tests\"],\n    \"api-tests\": [\"build\"],\n    \"ui-tests\": [\"build\"],\n    \"build\": [\"lint\", \"unit\"],\n    \"lint\": [],\n    \"unit\": [],\n}\ndone, wave = set(), 1\nwhile len(done) < len(needs):\n    ready = sorted(j for j, deps in needs.items() if j not in done and all(d in done for d in deps))\n    print(f\"волна {wave} (параллельно): {ready}\")\n    done.update(ready)\n    wave += 1\n```\n\nТак CI-система понимает, что можно запускать одновременно.\n\n## Частые ошибки\n\n**Тяжёлые проверки первыми** — долгое ожидание обратной связи.\n\n**Команда, которая «глотает» код выхода** (`pytest || true`, `pytest | tee log.txt` без `set -o pipefail`) — job зелёный при упавших тестах.\n\n**Код 5 не считается ошибкой** — пустой прогон выглядит как успех.\n\n**Флаки в пайплайне** — команда привыкает к красному и перестаёт на него реагировать.\n\n## Шпаргалка\n\n```text\nCI  = собрать + протестировать на каждый push/PR\nCD  = выкатить автоматически, если всё зелёное\n0 — успех, всё остальное — провал\npytest: 0 ok · 1 упали тесты · 5 тестов не найдено\nПорядок: быстрые проверки → сборка → медленные тесты → деплой\n```",
+              "quiz": [
+                {
+                  "q": "По какому признаку CI решает, что job прошёл?",
+                  "options": [
+                    "По тексту в логе",
+                    "По коду выхода команды: 0 — успех",
+                    "По времени выполнения",
+                    "По количеству тестов"
+                  ],
+                  "answer": 1,
+                  "explain": "CI смотрит только на код выхода. Именно поэтому команды, «глотающие» ненулевой код, опасны."
+                },
+                {
+                  "q": "Что означает код выхода pytest `5`?",
+                  "options": [
+                    "5 тестов упало",
+                    "Не найдено ни одного теста",
+                    "Таймаут",
+                    "Все тесты прошли"
+                  ],
+                  "answer": 1,
+                  "explain": "Код 5 — «no tests collected». Часто это ошибка в путях или маске файлов, и её важно не пропустить."
+                },
+                {
+                  "q": "Почему линтер и модульные тесты ставят в начало пайплайна?",
+                  "options": [
+                    "Они важнее UI-тестов",
+                    "Они быстрые: при ошибке пайплайн остановится рано и не потратит время на долгие этапы",
+                    "Так требует GitHub",
+                    "Они не зависят от кода"
+                  ],
+                  "answer": 1,
+                  "explain": "Принцип fail fast: дешёвые проверки дают обратную связь за секунды и отсекают заведомо сломанные сборки."
+                }
+              ]
+            },
+            {
+              "slug": "dci-m2-l2",
+              "title": "GitHub Actions и отчёты",
+              "theory": "# Workflow в GitHub Actions\n\nФайл `.github/workflows/tests.yml`:\n\n```\nname: tests\non: [push, pull_request]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    strategy:\n      matrix:\n        python: [\"3.11\", \"3.12\"]\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n        with:\n          python-version: ${{ matrix.python }}\n      - run: pip install -r requirements.txt\n      - run: pytest --junitxml=reports/junit.xml\n        env:\n          API_TOKEN: ${{ secrets.API_TOKEN }}\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: reports-${{ matrix.python }}\n          path: reports/\n```\n\n- `on` — когда запускать. `runs-on` — на какой машине.\n- `uses` — готовое действие, `run` — shell-команда.\n- `matrix` — запустить job для всех комбинаций параметров.\n- `secrets` — пароли и токены. GitHub **маскирует** их в логах как `***`.\n- `if: always()` — сохранить отчёт, даже если тесты упали (особенно если упали!).\n\n**JUnit XML** — универсальный формат отчёта о тестах, его понимают GitHub, GitLab, Jenkins, Allure.\n",
+              "exercises": [
+                {
+                  "slug": "dci-m2-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Секреты маскируются в логах.",
+                  "code": "log = \"login with token=abc123 to https://user:pa55@host\"\nfor secret in [\"abc123\", \"pa55\"]:\n    log = log.replace(secret, \"***\")\nprint(log)\n",
+                  "expected_output": "login with token=*** to https://user:***@host",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dci-m2-l2-e2",
+                  "type": "code",
+                  "prompt": "Напиши workflow для GitHub Actions — строкой YAML в переменной `WORKFLOW`.\n\nТребования:\n1. запуск на событиях `push` **и** `pull_request`;\n2. job работает на `runs-on: ubuntu-latest`;\n3. шаги по порядку:\n   - `uses: actions/checkout@v4` — скачать код репозитория;\n   - `uses: actions/setup-python@v5` — установить Python;\n   - `run: pip install -r requirements.txt` — установить зависимости;\n   - `run: pytest` — запустить тесты (**после** установки зависимостей).\n\nЗа основу возьми пример из теории и упрости его: матрица и артефакты не нужны. Следи за отступами — в YAML они важны.",
+                  "starter_code": "WORKFLOW = \"\"\"\nname: tests\non: [push]\n\"\"\"\n",
+                  "tests": "import re\n\ndef lines():\n    return [l.strip() for l in WORKFLOW.splitlines() if l.strip()]\n\ndef test_triggers():\n    on = next((l for l in lines() if l.startswith(\"on:\")), \"\")\n    text = WORKFLOW\n    assert \"push\" in on or re.search(r\"^\\s*push:\", text, re.M), \"Нужен триггер push\"\n    assert \"pull_request\" in text, \"Нужен триггер pull_request\"\n\ndef test_runner():\n    assert \"runs-on: ubuntu-latest\" in lines(), \"Нужно runs-on: ubuntu-latest\"\n\ndef test_steps():\n    text = WORKFLOW\n    assert \"actions/checkout\" in text, \"Нужен шаг actions/checkout — без него в раннере нет кода\"\n    assert \"actions/setup-python\" in text, \"Нужен шаг actions/setup-python\"\n    assert \"pip install -r requirements.txt\" in text, \"Нужна установка зависимостей\"\n\ndef test_pytest_after_install():\n    text = WORKFLOW\n    assert \"pytest\" in text, \"Нужен запуск pytest\"\n    assert text.index(\"pip install -r requirements.txt\") < text.rindex(\"pytest\"), \"pytest запускается после установки зависимостей\"\n",
+                  "solution": "WORKFLOW = \"\"\"\nname: tests\non: [push, pull_request]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n        with:\n          python-version: \"3.12\"\n      - run: pip install -r requirements.txt\n      - run: pytest\n\"\"\"\n",
+                  "hint": "Возьми пример из теории и упрости: без matrix и артефактов.",
+                  "xp": 25
+                },
+                {
+                  "slug": "dci-m2-l2-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `mask_secrets(log, secrets)`, которая прячет секреты в логах CI.\n\n- Получает: `log` — текст лога; `secrets` — список секретных значений (пароли, токены).\n- Возвращает: лог, в котором каждое вхождение каждого секрета заменено на `***`.\n- Пустые строки в `secrets` нужно **пропускать** — иначе замена пустой строки испортит весь текст.\n\nПримеры:\n```\nmask_secrets(\"token=abc pass=xyz\", [\"abc\", \"xyz\"])   # → \"token=*** pass=***\"\nmask_secrets(\"hello\", [\"\"])                          # → \"hello\"\n```",
+                  "starter_code": "def mask_secrets(log, secrets):\n    pass\n",
+                  "tests": "def test_mask():\n    assert mask_secrets(\"token=abc pass=xyz\", [\"abc\", \"xyz\"]) == \"token=*** pass=***\", f\"Получено {mask_secrets('token=abc pass=xyz', ['abc', 'xyz'])!r}\"\n\ndef test_empty_secret():\n    assert mask_secrets(\"hello\", [\"\"]) == \"hello\", \"Пустой секрет не должен ничего ломать\"\n",
+                  "solution": "def mask_secrets(log, secrets):\n    for s in secrets:\n        if s:\n            log = log.replace(s, \"***\")\n    return log\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dci-m2-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `matrix_jobs(matrix)`, которая разворачивает матрицу GitHub Actions в список запусков.\n\n- Получает: `matrix` — словарь `{параметр: [возможные значения]}`.\n- Возвращает: список словарей — по одному на **каждую комбинацию** значений. Порядок — как у `itertools.product`: первый параметр меняется медленнее всех.\n\nПримеры:\n```\nmatrix_jobs({\"python\": [\"3.11\", \"3.12\"], \"os\": [\"ubuntu\", \"windows\"]})\n# → [{\"python\": \"3.11\", \"os\": \"ubuntu\"},\n#    {\"python\": \"3.11\", \"os\": \"windows\"},\n#    {\"python\": \"3.12\", \"os\": \"ubuntu\"},\n#    {\"python\": \"3.12\", \"os\": \"windows\"}]\n\nmatrix_jobs({\"browser\": [\"chrome\"]})   # → [{\"browser\": \"chrome\"}]\n```\n`product(*matrix.values())` даёт кортежи значений, а `dict(zip(ключи, кортеж))` превращает кортеж в словарь.",
+                  "starter_code": "from itertools import product\n\ndef matrix_jobs(matrix):\n    pass\n",
+                  "tests": "def test_matrix():\n    got = matrix_jobs({\"python\": [\"3.11\", \"3.12\"], \"os\": [\"ubuntu\", \"windows\"]})\n    assert got == [\n        {\"python\": \"3.11\", \"os\": \"ubuntu\"},\n        {\"python\": \"3.11\", \"os\": \"windows\"},\n        {\"python\": \"3.12\", \"os\": \"ubuntu\"},\n        {\"python\": \"3.12\", \"os\": \"windows\"},\n    ], f\"Получено {got}\"\n\ndef test_single():\n    assert matrix_jobs({\"browser\": [\"chrome\"]}) == [{\"browser\": \"chrome\"}], \"Один параметр — одна комбинация\"\n",
+                  "solution": "from itertools import product\n\ndef matrix_jobs(matrix):\n    keys = list(matrix)\n    return [dict(zip(keys, combo)) for combo in product(*matrix.values())]\n",
+                  "hint": "`product(*matrix.values())` даёт кортежи значений; `dict(zip(keys, combo))` превращает их в словари.",
+                  "xp": 20
+                },
+                {
+                  "slug": "dci-m2-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `junit_summary(xml_text)`, которая читает отчёт о тестах в формате JUnit XML.\n\nТакой отчёт создаёт `pytest --junitxml=...`: каждый тест — тег `<testcase name=\"...\">`. Внутри упавшего теста есть тег `<failure>` или `<error>`, внутри пропущенного — `<skipped>`.\n\n- Получает: `xml_text` — текст отчёта.\n- Возвращает словарь:\n  - `\"total\"` — сколько всего `<testcase>` (на любой глубине);\n  - `\"failed\"` — сколько из них содержат `<failure>` **или** `<error>`;\n  - `\"skipped\"` — сколько содержат `<skipped>`;\n  - `\"failed_names\"` — список атрибутов `name` упавших тестов, в порядке в отчёте.\n\nПример результата для отчёта из 4 тестов, где один упал с failure, один с error и один пропущен:\n```\n{\"total\": 4, \"failed\": 2, \"skipped\": 1, \"failed_names\": [\"test_create_user\", \"test_login\"]}\n```\nРазобрать XML: `root = ET.fromstring(xml_text)`; все testcase: `root.iter(\"testcase\")`; есть ли вложенный тег: `case.find(\"failure\") is not None`; атрибут: `case.get(\"name\")`.",
+                  "starter_code": "import xml.etree.ElementTree as ET\n\ndef junit_summary(xml_text):\n    pass\n",
+                  "tests": "REPORT = '''<testsuites>\n  <testsuite name=\"api\" tests=\"4\">\n    <testcase name=\"test_get_user\" time=\"0.1\"/>\n    <testcase name=\"test_create_user\" time=\"0.2\"><failure message=\"assert 200 == 201\"/></testcase>\n    <testcase name=\"test_delete\" time=\"0.1\"><skipped/></testcase>\n  </testsuite>\n  <testsuite name=\"ui\" tests=\"1\">\n    <testcase name=\"test_login\" time=\"3.1\"><error message=\"TimeoutError\"/></testcase>\n  </testsuite>\n</testsuites>'''\n\ndef test_summary():\n    got = junit_summary(REPORT)\n    assert got == {\"total\": 4, \"failed\": 2, \"skipped\": 1, \"failed_names\": [\"test_create_user\", \"test_login\"]}, f\"Получено {got}\"\n",
+                  "solution": "import xml.etree.ElementTree as ET\n\ndef junit_summary(xml_text):\n    root = ET.fromstring(xml_text)\n    cases = list(root.iter(\"testcase\"))\n    failed = [c for c in cases if c.find(\"failure\") is not None or c.find(\"error\") is not None]\n    return {\n        \"total\": len(cases),\n        \"failed\": len(failed),\n        \"skipped\": sum(1 for c in cases if c.find(\"skipped\") is not None),\n        \"failed_names\": [c.get(\"name\") for c in failed],\n    }\n",
+                  "hint": "`root.iter(\"testcase\")` найдёт все testcase на любой глубине; `case.find(\"failure\") is not None` — есть ли вложенный тег.",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nGitHub Actions — встроенная CI/CD-система GitHub, одна из самых популярных. Тестировщику нужно уметь прочитать и поправить workflow: добавить прогон своих тестов, матрицу браузеров, сохранение отчётов, передачу секретов. А результаты тестов CI понимает через стандартный формат отчёта **JUnit XML**.\n\n## Как это работает\n\n### Workflow\n\nФайл `.github/workflows/tests.yml`:\n\n```yaml\nname: tests\non:\n  push:\n    branches: [main]\n  pull_request:\n\njobs:\n  api-tests:\n    runs-on: ubuntu-latest\n    strategy:\n      fail-fast: false\n      matrix:\n        python: [\"3.11\", \"3.12\"]\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n        with:\n          python-version: ${{ matrix.python }}\n      - run: pip install -r requirements.txt\n      - run: pytest --junitxml=reports/junit.xml\n        env:\n          BASE_URL: https://staging.example.com\n          API_TOKEN: ${{ secrets.API_TOKEN }}\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: reports-${{ matrix.python }}\n          path: reports/\n```\n\nРазбор:\n- `on` — события-триггеры: push в main, любой pull request, расписание (`schedule`), ручной запуск (`workflow_dispatch`).\n- `jobs` — задачи; каждая выполняется на свежей виртуальной машине (`runs-on`).\n- `steps` — шаги: `uses` — готовое действие из маркетплейса, `run` — shell-команда.\n- `actions/checkout` — **обязательный** первый шаг: без него в машине нет кода репозитория.\n- `matrix` — запустить job для всех комбинаций параметров (версии, браузеры, ОС). `fail-fast: false` — не отменять остальные комбинации при падении одной.\n- `secrets.*` — пароли и токены из настроек репозитория. В логах GitHub автоматически заменяет их на `***`.\n- `if: always()` — выполнить шаг даже если предыдущие упали. Для отчётов это критично: они нужнее всего именно при падении.\n\nОтступы в YAML — часть синтаксиса, как в Python.\n\n### JUnit XML\n\n`pytest --junitxml=report.xml` создаёт отчёт, который понимают GitHub, GitLab, Jenkins и Allure:\n\n```xml\n<testsuites>\n  <testsuite name=\"api\" tests=\"3\" failures=\"1\" skipped=\"1\">\n    <testcase name=\"test_get_user\" time=\"0.12\"/>\n    <testcase name=\"test_create_user\" time=\"0.20\">\n      <failure message=\"assert 200 == 201\"/>\n    </testcase>\n    <testcase name=\"test_delete\" time=\"0.01\"><skipped/></testcase>\n  </testsuite>\n</testsuites>\n```\n\n## Примеры\n\n### Пример 1. Разворачивание матрицы\n\n```python\nfrom itertools import product\n\nmatrix = {\"python\": [\"3.11\", \"3.12\"], \"browser\": [\"chromium\", \"firefox\", \"webkit\"]}\nkeys = list(matrix)\njobs = [dict(zip(keys, combo)) for combo in product(*matrix.values())]\nprint(len(jobs), \"job-ов:\")\nfor j in jobs:\n    print(\" \", j)\n```\n\n### Пример 2. Маскирование секретов\n\n```python\ndef mask(log, secrets):\n    for s in secrets:\n        if s:                           # пустая строка замаскировала бы всё\n            log = log.replace(s, \"***\")\n    return log\n\nlog = \"curl -H 'Authorization: Bearer abc123' https://user:pa55@host/api\"\nprint(mask(log, [\"abc123\", \"pa55\", \"\"]))\n```\n\n### Пример 3. Разбор JUnit-отчёта\n\n```python\nimport xml.etree.ElementTree as ET\n\nREPORT = '''<testsuites>\n  <testsuite name=\"api\">\n    <testcase name=\"test_get_user\" time=\"0.12\"/>\n    <testcase name=\"test_create_user\" time=\"0.20\"><failure message=\"assert 200 == 201\"/></testcase>\n    <testcase name=\"test_delete\" time=\"0.01\"><skipped/></testcase>\n  </testsuite>\n  <testsuite name=\"ui\">\n    <testcase name=\"test_login\" time=\"3.10\"><error message=\"TimeoutError\"/></testcase>\n  </testsuite>\n</testsuites>'''\n\nroot = ET.fromstring(REPORT)\ncases = list(root.iter(\"testcase\"))\nfailed = [c for c in cases if c.find(\"failure\") is not None or c.find(\"error\") is not None]\nskipped = [c for c in cases if c.find(\"skipped\") is not None]\nprint(f\"всего {len(cases)}, упало {len(failed)}, пропущено {len(skipped)}\")\nfor c in failed:\n    reason = (c.find(\"failure\") if c.find(\"failure\") is not None else c.find(\"error\")).get(\"message\")\n    print(f\"  ❌ {c.get('name')}: {reason}\")\nslowest = max(cases, key=lambda c: float(c.get(\"time\")))\nprint(\"самый долгий:\", slowest.get(\"name\"), slowest.get(\"time\"), \"с\")\n```\n\n### Пример 4. Проверка workflow на типичные ошибки\n\n```python\nWORKFLOW = '''\nname: tests\non: [push, pull_request]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/setup-python@v5\n      - run: pytest\n'''\n\nproblems = []\nif \"actions/checkout\" not in WORKFLOW:\n    problems.append(\"нет checkout — в раннере не будет кода\")\nif \"pip install\" not in WORKFLOW:\n    problems.append(\"зависимости не устанавливаются\")\nif \"upload-artifact\" not in WORKFLOW:\n    problems.append(\"отчёты не сохраняются\")\nprint(\"\\n\".join(problems) or \"выглядит нормально\")\n```\n\n## Частые ошибки\n\n**Забыли `actions/checkout`** — «pytest: no tests collected» или «requirements.txt not found».\n\n**Отчёты без `if: always()`** — при упавших тестах шаг загрузки не выполнится, и разбирать будет нечего.\n\n**Секреты прямо в YAML** — они навсегда остаются в истории git. Только `secrets.*`.\n\n**Неправильные отступы** в YAML — workflow не запускается или ведёт себя странно.\n\n## Шпаргалка\n\n```yaml\non: [push, pull_request]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n        with: {python-version: \"3.12\"}\n      - run: pip install -r requirements.txt\n      - run: pytest --junitxml=reports/junit.xml\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with: {name: reports, path: reports/}\n```",
+              "quiz": [
+                {
+                  "q": "Зачем шаг `actions/checkout` в начале job-а?",
+                  "options": [
+                    "Чтобы проверить синтаксис",
+                    "Чтобы скачать код репозитория в раннер — без него кода нет",
+                    "Чтобы установить Python",
+                    "Чтобы отправить отчёт"
+                  ],
+                  "answer": 1,
+                  "explain": "Каждый job выполняется на чистой машине. Код репозитория туда попадает только через checkout."
+                },
+                {
+                  "q": "Зачем шагу загрузки отчётов условие `if: always()`?",
+                  "options": [
+                    "Чтобы он выполнялся быстрее",
+                    "Чтобы отчёт сохранился, даже если тесты упали",
+                    "Чтобы шаг запускался по расписанию",
+                    "Это обязательно для всех шагов"
+                  ],
+                  "answer": 1,
+                  "explain": "По умолчанию после упавшего шага остальные пропускаются. А отчёт нужнее всего именно при падении."
+                },
+                {
+                  "q": "Сколько job-ов создаст матрица `python: [\"3.11\", \"3.12\"]` × `browser: [\"chromium\", \"firefox\"]`?",
+                  "options": [
+                    "2",
+                    "3",
+                    "4",
+                    "1"
+                  ],
+                  "answer": 2,
+                  "explain": "Матрица запускает все комбинации: 2 × 2 = 4 job-а."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

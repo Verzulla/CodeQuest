@@ -1,0 +1,472 @@
+"""HTTP API + раздача фронтенда. Запуск: ./run.sh (или python -m app)."""
+import json
+import random
+from contextlib import asynccontextmanager
+from datetime import timedelta
+from typing import Literal
+
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
+
+from . import content, game, runner
+from .db import ROOT, init_db, transaction
+
+STATIC = ROOT / "static"
+CONTENT_DIR = ROOT / "content"
+
+
+def content_files() -> list:
+    """Пакеты из content/ в порядке файла content/ORDER, остальные — по алфавиту."""
+    order_file = CONTENT_DIR / "ORDER"
+    order = []
+    if order_file.exists():
+        order = [l.strip() for l in order_file.read_text(encoding="utf-8").splitlines()
+                 if l.strip() and not l.startswith("#")]
+    files = {f.stem: f for f in CONTENT_DIR.glob("*.json")}
+    return [files[n] for n in order if n in files] + [f for n, f in sorted(files.items()) if n not in order]
+
+
+def seed_if_empty() -> None:
+    """При самом первом запуске загружаем стартовые пакеты из content/.
+    Дальше импорт — только явный (админка или CLI), чтобы не затирать правки."""
+    with transaction() as conn:
+        if conn.execute("SELECT COUNT(*) FROM topics").fetchone()[0]:
+            return
+        for f in content_files():
+            pkg = content.Package.model_validate_json(f.read_text(encoding="utf-8"))
+            content.import_package(conn, pkg)
+
+
+@asynccontextmanager
+async def lifespan(_app):
+    init_db()
+    seed_if_empty()
+    yield
+
+
+app = FastAPI(title="CodeQuest", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def no_stale_static(request, call_next):
+    """Браузер перепроверяет статику при каждом запросе — после обновления кода не нужен жёсткий релоад."""
+    response = await call_next(request)
+    if request.url.path.startswith("/static"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
+def _get(conn, table: str, id_: int):
+    row = conn.execute(f"SELECT * FROM {table} WHERE id = ?", (id_,)).fetchone()
+    if not row:
+        raise HTTPException(404, "Не найдено")
+    return row
+
+
+# =================== Обучение ===================
+
+@app.get("/api/state")
+def state():
+    with transaction() as conn:
+        return game.get_state(conn)
+
+
+@app.get("/api/rules")
+def rules():
+    """Правила игры для вкладки «О приложении» — прямо из констант движка,
+    чтобы описание никогда не расходилось с реальным поведением."""
+    return {
+        "xp": {
+            "exercise_default": 10,
+            "practice": game.XP_PRACTICE,
+            "review_fix": game.XP_REVIEW_FIX,
+            "lesson_first": game.XP_LESSON_FIRST,
+            "lesson_perfect": game.XP_LESSON_PERFECT,
+            "lesson_repeat": game.XP_LESSON_REPEAT,
+            "module": game.XP_MODULE,
+            "topic": game.XP_TOPIC,
+        },
+        "levels": [{"level": n, "xp": game.level_threshold(n)} for n in range(1, 11)],
+        "hearts": {"max": game.MAX_HEARTS, "regen_minutes": int(game.HEART_REGEN.total_seconds() // 60)},
+        "freezes": {"max": game.MAX_FREEZES, "every_days": 7},
+        "run_timeout_sec": runner.TIMEOUT_SEC,
+        "achievements": [
+            {"icon": icon, "title": title, "description": desc}
+            for _code, icon, title, desc, _rule in game.ACHIEVEMENTS
+        ],
+    }
+
+
+@app.get("/api/continue")
+def continue_learning():
+    with transaction() as conn:
+        return content.continue_target(conn)
+
+
+@app.get("/api/path")
+def path():
+    with transaction() as conn:
+        return content.learning_path(conn)
+
+
+def _public_exercise(e, progress: dict) -> dict:
+    """Задание для ученика: без тестов и эталона, но с его прогрессом —
+    чтобы урок продолжался с того же места и показывал прежние решения."""
+    p = progress.get(e["slug"])
+    solved = bool(p and p["solved"])
+    return {
+        "id": e["id"], "type": e["type"], "prompt": e["prompt"], "code": e["code"],
+        "starter_code": e["starter_code"], "hint": e["hint"], "xp": e["xp"],
+        "solved": solved,
+        "answer": p["last_answer"] if solved else "",   # последнее верное решение
+        "draft": p["draft"] if p else "",               # недописанный ответ
+    }
+
+
+def _progress(conn) -> dict:
+    return {r["exercise_slug"]: r for r in conn.execute("SELECT * FROM exercise_progress")}
+
+
+@app.get("/api/lessons/{lesson_id}")
+def get_lesson(lesson_id: int):
+    with transaction() as conn:
+        lesson = _get(conn, "lessons", lesson_id)
+        if not content.lesson_is_unlocked(conn, lesson_id):
+            raise HTTPException(403, "Урок ещё закрыт — сначала пройди предыдущие")
+        module = _get(conn, "modules", lesson["module_id"])
+        topic = _get(conn, "topics", module["topic_id"])
+        progress = _progress(conn)
+        exs = conn.execute(
+            "SELECT * FROM exercises WHERE lesson_id = ? ORDER BY position, id", (lesson_id,)
+        ).fetchall()
+        completed = conn.execute(
+            "SELECT 1 FROM lesson_completions WHERE lesson_slug = ?", (lesson["slug"],)
+        ).fetchone() is not None
+        conn.execute("UPDATE user_state SET last_lesson_slug = ? WHERE id = 1", (lesson["slug"],))
+        return {
+            "id": lesson["id"], "title": lesson["title"], "theory": lesson["theory"],
+            "theory_full": lesson["theory_full"], "quiz": json.loads(lesson["quiz"] or "[]"),
+            "completed": completed,
+            "module": {"title": module["title"], "icon": module["icon"]},
+            "topic": {"id": topic["id"], "title": topic["title"], "color": topic["color"]},
+            "exercises": [_public_exercise(e, progress) for e in exs],
+        }
+
+
+class RunIn(BaseModel):
+    code: str = Field(max_length=20_000)
+
+
+@app.post("/api/run")
+def run_code(body: RunIn):
+    """Просто запустить код (без тестов и без штрафа) — песочница."""
+    return runner.run(body.code).to_dict()
+
+
+class CheckIn(BaseModel):
+    answer: str = Field(max_length=20_000)
+    mode: Literal["lesson", "review", "practice"] = "lesson"
+
+
+@app.post("/api/exercises/{ex_id}/check")
+def check(ex_id: int, body: CheckIn):
+    with transaction() as conn:
+        ex = _get(conn, "exercises", ex_id)
+    # Код запускаем вне транзакции — это может занять секунды.
+    details = None
+    if ex["type"] == "code":
+        res = runner.run(body.answer, ex["tests"])
+        correct, details = res.passed, res.to_dict()
+    else:
+        correct = runner.normalize_output(body.answer) == runner.normalize_output(ex["expected_output"])
+    with transaction() as conn:
+        try:
+            events = game.record_answer(conn, ex, correct, body.answer, body.mode)
+        except game.NoHearts:
+            raise HTTPException(409, "Сердечки закончились")
+        return {
+            "correct": correct,
+            "details": details,
+            "expected": ex["expected_output"] if (ex["type"] == "output" and not correct) else None,
+            "events": events,
+            "state": game.get_state(conn),
+        }
+
+
+class DraftIn(BaseModel):
+    draft: str = Field(max_length=20_000)
+
+
+@app.put("/api/exercises/{ex_id}/draft")
+def save_draft(ex_id: int, body: DraftIn):
+    """Автосохранение недописанного ответа — чтобы после перезахода продолжить с того же места."""
+    with transaction() as conn:
+        ex = _get(conn, "exercises", ex_id)
+        conn.execute(
+            "INSERT INTO exercise_progress (exercise_slug, draft) VALUES (?, ?) "
+            "ON CONFLICT(exercise_slug) DO UPDATE SET draft = excluded.draft",
+            (ex["slug"], body.draft),
+        )
+        return {"ok": True}
+
+
+@app.get("/api/exercises/{ex_id}/solution")
+def solution(ex_id: int):
+    with transaction() as conn:
+        ex = _get(conn, "exercises", ex_id)
+        return {"solution": ex["solution"] or ex["expected_output"]}
+
+
+class CompleteIn(BaseModel):
+    mistakes: int = Field(0, ge=0)
+
+
+@app.post("/api/lessons/{lesson_id}/complete")
+def complete(lesson_id: int, body: CompleteIn):
+    with transaction() as conn:
+        lesson = _get(conn, "lessons", lesson_id)
+        try:
+            events = game.complete_lesson(conn, lesson, body.mistakes)
+        except game.LessonNotFinished:
+            raise HTTPException(400, "В уроке остались нерешённые задания")
+        return {"events": events, "state": game.get_state(conn)}
+
+
+@app.get("/api/review")
+def review():
+    """Работа над ошибками; если ошибок нет — тренировка на уже решённом."""
+    with transaction() as conn:
+        progress = _progress(conn)
+        rows = conn.execute(
+            "SELECT e.* FROM exercises e JOIN exercise_progress ep ON ep.exercise_slug = e.slug "
+            "WHERE ep.in_review = 1 ORDER BY ep.mistakes DESC LIMIT 10"
+        ).fetchall()
+        kind = "mistakes"
+        if not rows:
+            kind = "practice"
+            rows = conn.execute(
+                "SELECT e.* FROM exercises e JOIN exercise_progress ep ON ep.exercise_slug = e.slug "
+                "WHERE ep.solved = 1"
+            ).fetchall()
+            rows = random.sample(rows, min(5, len(rows)))
+        return {"kind": kind, "exercises": [_public_exercise(e, progress) for e in rows]}
+
+
+@app.get("/api/achievements")
+def achievements():
+    with transaction() as conn:
+        earned = {(r["kind"], r["slug"]): r["earned_at"] for r in conn.execute("SELECT * FROM trophies")}
+        trophies = []
+        for t in conn.execute("SELECT * FROM topics ORDER BY position, id"):
+            mods = [
+                {"title": m["title"], "icon": m["icon"], "earned_at": earned.get(("module", m["slug"]))}
+                for m in conn.execute(
+                    "SELECT * FROM modules WHERE topic_id = ? ORDER BY position, id", (t["id"],))
+            ]
+            trophies.append({"title": t["title"], "icon": t["icon"], "color": t["color"],
+                             "earned_at": earned.get(("topic", t["slug"])), "modules": mods})
+        return {"achievements": game.achievements_view(conn), "trophies": trophies}
+
+
+@app.get("/api/stats")
+def stats():
+    with transaction() as conn:
+        s = game.stats(conn)
+        start = game.today() - timedelta(days=7 * 20 - 1)
+        days = {r["day"]: dict(r) for r in conn.execute(
+            "SELECT * FROM daily_activity WHERE day >= ?", (start.isoformat(),))}
+        activity = []
+        for i in range(7 * 20):
+            d = (start + timedelta(days=i)).isoformat()
+            row = days.get(d, {})
+            activity.append({"day": d, "xp": row.get("xp", 0), "goal_met": bool(row.get("goal_met"))})
+        s["accuracy"] = round(100 * s["correct"] / s["attempts"]) if s["attempts"] else None
+        s["activity"] = activity
+        s["state"] = game.get_state(conn)
+        return s
+
+
+class SettingsIn(BaseModel):
+    daily_goal: int | None = Field(None, ge=5, le=500)
+    hearts_enabled: bool | None = None
+    theme: Literal["light", "dark"] | None = None
+
+
+@app.put("/api/settings")
+def settings(body: SettingsIn):
+    with transaction() as conn:
+        for key, value in body.model_dump(exclude_none=True).items():
+            conn.execute(f"UPDATE user_state SET {key} = ? WHERE id = 1", (value,))
+        if body.hearts_enabled is False:
+            conn.execute("UPDATE user_state SET hearts = ? WHERE id = 1", (game.MAX_HEARTS,))
+        return game.get_state(conn)
+
+
+class ResetIn(BaseModel):
+    confirm: Literal["RESET"]
+
+
+@app.post("/api/progress/reset")
+def reset_progress(_body: ResetIn):
+    with transaction() as conn:
+        for table in ("exercise_progress", "lesson_completions", "trophies", "achievements",
+                      "daily_activity", "counters", "user_state"):
+            conn.execute(f"DELETE FROM {table}")
+        conn.execute("INSERT INTO user_state (id) VALUES (1)")
+        return game.get_state(conn)
+
+
+# =================== Админка ===================
+
+@app.get("/api/admin/tree")
+def admin_tree():
+    with transaction() as conn:
+        tree = []
+        for t in conn.execute("SELECT * FROM topics ORDER BY position, id"):
+            mods = []
+            for m in conn.execute("SELECT * FROM modules WHERE topic_id = ? ORDER BY position, id", (t["id"],)):
+                lessons = []
+                for l in conn.execute("SELECT * FROM lessons WHERE module_id = ? ORDER BY position, id", (m["id"],)):
+                    exs = [dict(e) for e in conn.execute(
+                        "SELECT * FROM exercises WHERE lesson_id = ? ORDER BY position, id", (l["id"],))]
+                    lessons.append({**dict(l), "exercises": exs})
+                mods.append({**dict(m), "lessons": lessons})
+            tree.append({**dict(t), "modules": mods})
+        return tree
+
+
+class ValidateIn(BaseModel):
+    type: Literal["code", "output"]
+    code: str = ""
+    tests: str = ""
+    solution: str = ""
+
+
+@app.post("/api/admin/validate")
+def admin_validate(body: ValidateIn):
+    """code: прогнать эталонное решение через тесты. output: вычислить вывод кода."""
+    if body.type == "code":
+        return runner.run(body.solution, body.tests).to_dict()
+    return runner.run(body.code).to_dict()
+
+
+@app.post("/api/admin/import")
+def admin_import(pkg: content.Package):
+    with transaction() as conn:
+        return content.import_package(conn, pkg)
+
+
+@app.get("/api/admin/export")
+def admin_export():
+    with transaction() as conn:
+        return content.export_package(conn)
+
+
+# kind → (таблица, родительское поле, редактируемые поля)
+KINDS = {
+    "topics": ("topics", None, ["title", "description", "icon", "color", "group_name"]),
+    "modules": ("modules", "topic_id", ["title", "description", "icon"]),
+    "lessons": ("lessons", "module_id", ["title", "theory", "theory_full", "quiz"]),
+    "exercises": ("exercises", "lesson_id", ["type", "prompt", "code", "starter_code", "tests",
+                                             "expected_output", "solution", "hint", "xp"]),
+}
+
+
+def _kind(kind: str):
+    if kind not in KINDS:
+        raise HTTPException(404, "Неизвестный тип")
+    return KINDS[kind]
+
+
+def _clean_quiz(data: dict) -> None:
+    """Вопросы «Проверь себя» приходят из админки JSON-текстом — проверяем и храним строкой."""
+    if "quiz" not in data:
+        return
+    raw = data["quiz"]
+    try:
+        items = json.loads(raw or "[]") if isinstance(raw, str) else raw
+        data["quiz"] = json.dumps([content.QuizQuestion.model_validate(q).model_dump() for q in items],
+                                  ensure_ascii=False)
+    except Exception as e:
+        raise HTTPException(400, f"Вопросы «Проверь себя»: неверный формат — {e}")
+
+
+@app.post("/api/admin/{kind}")
+def admin_create(kind: str, body: dict):
+    table, parent, fields = _kind(kind)
+    data = {k: body[k] for k in fields if k in body}
+    _clean_quiz(data)
+    if not str(data.get("title", data.get("prompt", ""))).strip():
+        raise HTTPException(400, "Заполни название / условие")
+    if kind == "exercises" and data.get("type") not in ("code", "output"):
+        raise HTTPException(400, "type должен быть code или output")
+    with transaction() as conn:
+        where, args = "", ()
+        if parent:
+            if not body.get(parent):
+                raise HTTPException(400, f"Нужен {parent}")
+            data[parent] = int(body[parent])
+            where, args = f"WHERE {parent} = ?", (data[parent],)
+        data["position"] = conn.execute(
+            f"SELECT COALESCE(MAX(position), -1) + 1 FROM {table} {where}", args).fetchone()[0]
+        data["slug"] = content.new_slug(kind[:-1])
+        cols = ", ".join(data)
+        cur = conn.execute(f"INSERT INTO {table} ({cols}) VALUES ({', '.join('?' * len(data))})",
+                           tuple(data.values()))
+        return dict(_get(conn, table, cur.lastrowid))
+
+
+@app.put("/api/admin/{kind}/{item_id}")
+def admin_update(kind: str, item_id: int, body: dict):
+    table, _parent, fields = _kind(kind)
+    data = {k: body[k] for k in fields if k in body}
+    if not data:
+        raise HTTPException(400, "Нечего обновлять")
+    _clean_quiz(data)
+    with transaction() as conn:
+        _get(conn, table, item_id)
+        sets = ", ".join(f"{k} = ?" for k in data)
+        conn.execute(f"UPDATE {table} SET {sets} WHERE id = ?", (*data.values(), item_id))
+        return dict(_get(conn, table, item_id))
+
+
+@app.delete("/api/admin/{kind}/{item_id}")
+def admin_delete(kind: str, item_id: int):
+    table, _parent, _fields = _kind(kind)
+    with transaction() as conn:
+        _get(conn, table, item_id)
+        conn.execute(f"DELETE FROM {table} WHERE id = ?", (item_id,))
+        return {"ok": True}
+
+
+class MoveIn(BaseModel):
+    direction: Literal[-1, 1]
+
+
+@app.post("/api/admin/{kind}/{item_id}/move")
+def admin_move(kind: str, item_id: int, body: MoveIn):
+    table, parent, _fields = _kind(kind)
+    with transaction() as conn:
+        item = _get(conn, table, item_id)
+        where, args = ("", ()) if not parent else (f"WHERE {parent} = ?", (item[parent],))
+        siblings = [r["id"] for r in conn.execute(
+            f"SELECT id FROM {table} {where} ORDER BY position, id", args)]
+        i = siblings.index(item_id)
+        j = i + body.direction
+        if 0 <= j < len(siblings):
+            siblings[i], siblings[j] = siblings[j], siblings[i]
+            for pos, sid in enumerate(siblings):
+                conn.execute(f"UPDATE {table} SET position = ? WHERE id = ?", (pos, sid))
+        return {"ok": True}
+
+
+# =================== Фронтенд ===================
+
+app.mount("/static", StaticFiles(directory=STATIC), name="static")
+
+
+@app.get("/")
+def index():
+    return FileResponse(STATIC / "index.html", headers={"Cache-Control": "no-cache"})
