@@ -116,7 +116,8 @@ function drawForm(view, tree) {
   if (k === "exercises") fields = `
     <div class="row">${f("type", "Тип", `<select class="input" name="type">
         <option value="code" ${it.type === "code" ? "selected" : ""}>⌨️ Написать код (проверка тестами)</option>
-        <option value="output" ${it.type === "output" ? "selected" : ""}>👁 Что выведет код?</option></select>`)}
+        <option value="output" ${it.type === "output" ? "selected" : ""}>👁 Что выведет код?</option>
+        <option value="command" ${it.type === "command" ? "selected" : ""}>🖥 Терминал (команда)</option></select>`)}
       ${f("xp", "XP", `<input class="input" type="number" min="1" max="100" name="xp" value="${it.xp}" style="width:90px">`)}</div>
     ${f("prompt", "Условие (markdown)", area("prompt", "prose"))}
     <div data-for="code">
@@ -130,6 +131,7 @@ function drawForm(view, tree) {
       ${f("expected_output", "Ожидаемый вывод", area("expected_output"))}
       <div><button class="btn small blue" type="button" id="compute">⚙️ Вычислить вывод из кода</button></div>
     </div>
+    <div data-for="command"><p class="muted">Задания «Терминал» (варианты ответа, контекст, эталон) описываются в файлах контента <code>content/src</code> через <code>cmd(...)</code> и загружаются командой sync.</p></div>
     <div id="vres"></div>
     ${f("hint", "Подсказка", area("hint", "prose"), "необязательно")}`;
 

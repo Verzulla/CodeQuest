@@ -661,3 +661,51 @@ def test_sync_prunes_removed_lessons(tmp_path, monkeypatch):
         lessons = [r[0] for r in conn.execute("SELECT slug FROM lessons ORDER BY slug")]
         exercises = [r[0] for r in conn.execute("SELECT slug FROM exercises ORDER BY slug")]
     assert lessons == ["a", "c"] and exercises == ["a-e", "c-e"]
+
+
+# ---------- Задания «Терминал» ----------
+
+def test_command_matches():
+    variants = "git checkout -b feature\ngit switch -c feature\nre:git branch feature && git (checkout|switch) feature"
+    assert runner.command_matches("  git   checkout -b feature ", variants)
+    assert runner.command_matches("$ git switch -c feature", variants)
+    assert runner.command_matches("git branch feature && git switch feature", variants)
+    assert not runner.command_matches("git checkout feature", variants)
+    assert not runner.command_matches("", variants)
+
+
+def test_command_exercise_check(client):
+    pkg = {"topics": [{"slug": "cli-demo", "title": "Терминал", "modules": [{"slug": "cli-m1", "title": "М",
+           "lessons": [{"slug": "cli-l1", "title": "Урок", "exercises": [
+               {"slug": "cli-e1", "type": "command", "prompt": "Покажи текущую папку",
+                "expected_output": "pwd", "solution": "pwd", "code": "$ cd /tmp"}]}]}]}]}
+    assert client.post("/api/admin/import", json=pkg).status_code == 200
+    topic = next(t for t in client.get("/api/path").json() if t["title"] == "Терминал")
+    lesson = client.get(f"/api/lessons/{topic['modules'][0]['lessons'][0]['id']}").json()
+    ex = lesson["exercises"][0]
+    assert ex["type"] == "command" and ex["code"] == "$ cd /tmp"
+    wrong = client.post(f"/api/exercises/{ex['id']}/check", json={"answer": "ls"}).json()
+    assert not wrong["correct"] and wrong["expected"] == "pwd"
+    right = client.post(f"/api/exercises/{ex['id']}/check", json={"answer": "$ pwd"}).json()
+    assert right["correct"]
+
+
+def test_old_exercises_table_gets_command_type(tmp_path, monkeypatch):
+    import sqlite3
+    from app import db
+    path = tmp_path / "old.db"
+    old = sqlite3.connect(path)
+    old.executescript(db.SCHEMA.replace("('code', 'output', 'command')", "('code', 'output')"))
+    old.executescript("""
+        INSERT INTO topics (id, slug, title) VALUES (1, 't', 'Т');
+        INSERT INTO modules (id, topic_id, slug, title) VALUES (1, 1, 'm', 'М');
+        INSERT INTO lessons (id, module_id, slug, title) VALUES (1, 1, 'l', 'Л');
+        INSERT INTO exercises (lesson_id, slug, type, prompt) VALUES (1, 'old-e1', 'output', 'что выведет?');
+    """)
+    old.commit()
+    old.close()
+    monkeypatch.setenv("CODEQUEST_DB", str(path))
+    db.init_db()
+    with db.transaction() as conn:
+        assert conn.execute("SELECT slug FROM exercises").fetchone()["slug"] == "old-e1"
+        conn.execute("INSERT INTO exercises (lesson_id, slug, type, prompt) VALUES (1, 'new-e1', 'command', 'pwd?')")

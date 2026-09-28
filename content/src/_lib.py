@@ -26,6 +26,17 @@ def cod(slug, prompt, starter, tests, solution, hint="", xp=15):
             "tests": d(tests), "solution": d(solution), "hint": hint, "xp": xp}
 
 
+def cmd(slug, prompt, answers, context="", hint="", xp=10):
+    """Задание «Терминал»: ученик вводит команду или короткий ответ.
+
+    answers — допустимые варианты (первый — эталон, его покажем при ошибке);
+    вариант «re:…» — регулярное выражение. context — что показать над полем ввода
+    (например, вывод терминала), без запуска."""
+    answers = [answers] if isinstance(answers, str) else list(answers)
+    return {"slug": slug, "type": "command", "prompt": prompt, "code": d(context),
+            "expected_output": "\n".join(answers), "solution": answers[0], "hint": hint, "xp": xp}
+
+
 def lesson(slug, title, *items, full="", quiz=None):
     """lesson(slug, title, [краткая теория,] *задания, full=подробный урок, quiz=«Проверь себя»).
 

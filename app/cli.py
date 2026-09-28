@@ -6,7 +6,7 @@
     python -m app.cli sync                            # привести БД к content/: загрузить все пакеты
                                                       # в порядке content/ORDER и удалить темы,
                                                       # которых больше нет среди пакетов
-    python -m app.cli sandbox-check                   # скачать образ docker-песочницы и проверить изоляцию
+    python -m app.cli sandbox-check                   # собрать образ docker-песочницы и проверить изоляцию
     python -m app.cli users                           # список аккаунтов
     python -m app.cli make-admin   <ник>              # выдать права администратора
     python -m app.cli revoke-admin <ник>              # забрать права администратора
@@ -55,6 +55,11 @@ def validate(pkg: content.Package) -> list[str]:
                         starter = runner.run(e.starter_code, e.tests)
                         if starter.passed:
                             problems.append(f"{where}: заготовка уже проходит тесты")
+                    elif e.type == "command":
+                        if not e.expected_output.strip() or not e.solution.strip():
+                            problems.append(f"{where}: у command-задания нужны expected_output и solution")
+                        elif not runner.command_matches(e.solution, e.expected_output):
+                            problems.append(f"{where}: эталон {e.solution!r} не входит в допустимые варианты")
                     else:
                         res = runner.run(e.code)
                         if res.error:
@@ -126,16 +131,18 @@ def sandbox_check() -> int:
     os.environ["CODEQUEST_SANDBOX"] = "docker"
     image = runner.docker_image()
     print(f"Образ песочницы: {image}")
+    context = Path(__file__).resolve().parent.parent / "deploy" / "runner"
     try:
-        pulled = subprocess.run(["docker", "pull", image], capture_output=True, text=True)
+        built = subprocess.run(["docker", "build", "-q", "-t", image, str(context)], capture_output=True, text=True)
     except FileNotFoundError:
         print("❌ Команда docker не найдена — установи Docker")
         return 1
-    if pulled.returncode:
-        print(f"❌ Не удалось скачать образ: {pulled.stderr.strip()}")
+    if built.returncode:
+        print(f"❌ Не удалось собрать образ: {built.stderr.strip()}")
         return 1
     checks = [
         ("код выполняется", "print(2 + 2)", "4"),
+        ("pytest и pydantic на месте", "import pytest, xdist, pydantic\nprint('ok')", "ok"),
         ("нет сети", "import socket\ntry:\n    socket.create_connection(('1.1.1.1', 53), timeout=2)\n"
                      "    print('online')\nexcept OSError:\n    print('offline')", "offline"),
         ("пользователь nobody", "import os\nprint(os.getuid())", "65534"),

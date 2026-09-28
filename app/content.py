@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field, model_validator
 
 class ExerciseIn(BaseModel):
     slug: str
-    type: Literal["code", "output"]
+    type: Literal["code", "output", "command"]
     prompt: str
     code: str = ""
     starter_code: str = ""

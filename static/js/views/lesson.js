@@ -208,15 +208,22 @@ export function runSession(view, opts) {
     const item = items[i];
     const ex = item.ex;
     const isCode = ex.type === "code";
+    const isCmd = ex.type === "command";
+    const kindLabel = isCode ? "Напиши код" : isCmd ? "Терминал" : "Что выведет программа?";
     const viewSolved = item.solved && !item.redo;   // решённое задание: показываем решение, проверка выключена
     view.innerHTML = `${top()}
       <div class="lesson-body">
-        <div class="ex-kind ${item.solved || ex.solved ? "" : "new"}">Задание ${i + 1} из ${n} · ${isCode ? "Напиши код" : "Что выведет программа?"}</div>
+        <div class="ex-kind ${item.solved || ex.solved ? "" : "new"}">Задание ${i + 1} из ${n} · ${kindLabel}</div>
         ${viewSolved ? `<div class="solved-banner"><span>✅ Задание решено — это твоё решение</span>
           <button class="btn ghost small" id="redo">↺ Решить заново</button></div>` : ""}
         ${item.redo ? `<div class="solved-banner redo"><span>↺ Решаешь заново — ошибки здесь не отнимают сердечки, статус «решено» сохранится</span></div>` : ""}
         <div class="prompt md">${md(ex.prompt)}</div>
-        ${isCode ? `<div id="ed"></div>` : `<pre class="code-view">${highlight(ex.code)}</pre>
+        ${isCode ? `<div id="ed"></div>`
+          : isCmd ? `${ex.code ? `<pre class="code-view term">${esc(ex.code)}</pre>` : ""}
+            <div class="term-input"><span class="term-prompt">$</span>
+              <input class="answer code" id="answer" placeholder="Введи команду или ответ и нажми Enter"
+                spellcheck="false" autocomplete="off" autocapitalize="off"></div>`
+          : `<pre class="code-view">${highlight(ex.code)}</pre>
           <textarea class="answer code" id="answer" placeholder="Введи вывод программы — каждую строку с новой строки" spellcheck="false"></textarea>`}
         <div class="tools">
           ${isCode ? `<button class="btn blue small" id="run">▶ Запустить</button>` : ""}
@@ -259,14 +266,16 @@ export function runSession(view, opts) {
       answerEl.readOnly = viewSolved;
       if (!viewSolved) answerEl.focus();
       answerEl.oninput = () => onEdit(answerEl.value);
-      answerEl.onkeydown = (e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") $("#check", view)?.click(); };
+      answerEl.onkeydown = (e) => {
+        if (e.key === "Enter" && (isCmd || e.metaKey || e.ctrlKey)) { e.preventDefault(); $("#check", view)?.click(); }
+      };
     }
     $("#hint", view)?.addEventListener("click", () => {
       $("#hintbox", view).innerHTML = `<div class="hintbox">💡 ${md(ex.hint)}</div>`;
     });
     $("#sol", view).onclick = async () => {
       const { solution } = await api(`/exercises/${ex.id}/solution`);
-      $("#hintbox", view).innerHTML = `<div class="hintbox"><b>Эталонное решение:</b><pre class="code-view">${highlight(solution)}</pre>
+      $("#hintbox", view).innerHTML = `<div class="hintbox"><b>Эталонное решение:</b><pre class="code-view${isCmd ? " term" : ""}">${isCmd ? esc(solution) : highlight(solution)}</pre>
         ${item.solved ? "" : `<small class="muted">Разберись, как оно работает, и напиши своё — копипаст не прокачивает мозг 😉</small>`}</div>`;
     };
     $("#redo", view)?.addEventListener("click", () => { item.redo = true; showExercise(i); });
@@ -348,7 +357,7 @@ export function runSession(view, opts) {
         view.querySelector(".lesson-body").classList.add("shake");
         const detail = isCode
           ? (r.details.error ? "Программа упала — смотри консоль" : `Не прошло тестов: ${r.details.tests.filter((t) => !t.passed).length} из ${r.details.tests.length}`)
-          : `Правильный ответ:\n${r.expected}`;
+          : isCmd ? `Например: ${r.expected}` : `Правильный ответ:\n${r.expected}`;
         footer.className = "footer bad";
         const later = nextTodo(i);
         footer.innerHTML = `<div class="inner"><div class="verdict"><span class="ico">❌</span>

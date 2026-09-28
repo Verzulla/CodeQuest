@@ -30,6 +30,7 @@
 import json
 import logging
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -45,7 +46,7 @@ MAX_OUTPUT = 10_000              # сколько напечатанного п�
 MAX_RESULT_BYTES = 1_000_000     # больше от харнесса не читаем
 MEMORY_MB = 256
 DOCKER_GRACE_SEC = 5             # запас на старт контейнера
-DEFAULT_IMAGE = "python:3.12-slim"
+DEFAULT_IMAGE = "codequest-runner:1"   # собирается из deploy/runner/Dockerfile
 
 TIMEOUT_MSG = f"Код выполнялся дольше {TIMEOUT_SEC} секунд — возможно, бесконечный цикл?"
 MEMORY_MSG = f"Программа заняла больше {MEMORY_MB} МБ памяти — возможно, бесконечно растущий список?"
@@ -310,6 +311,28 @@ def _parse(mode: str, code: int | None, out: bytes, err: bytes, elapsed: float) 
         return RunResult(error=TIMEOUT_MSG, timed_out=True)
     lines = err.decode("utf-8", "replace").strip().splitlines()
     return RunResult(error=lines[-1] if lines else "Процесс завершился аварийно")
+
+
+def _norm_command(text: str) -> str:
+    """Команда без лишних пробелов и без приглашения «$ » в начале."""
+    text = " ".join(text.strip().split())
+    return text[2:] if text.startswith("$ ") else text
+
+
+def command_matches(answer: str, variants: str) -> bool:
+    """Задание «Терминал»: ответ совпадает с одним из вариантов (по одному на строку).
+    Вариант «re:…» — регулярное выражение, которому ответ должен соответствовать целиком."""
+    got = _norm_command(answer)
+    for v in variants.splitlines():
+        v = v.strip()
+        if not v:
+            continue
+        if v.startswith("re:"):
+            if re.fullmatch(v[3:], got):
+                return True
+        elif got == _norm_command(v):
+            return True
+    return False
 
 
 def normalize_output(text: str) -> str:

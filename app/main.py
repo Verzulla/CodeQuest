@@ -341,6 +341,8 @@ def check(ex_id: int, body: CheckIn, user: User):
         _limit_runs(user)
         res = runner.run(body.answer, ex["tests"])
         correct, details = res.passed, res.to_dict()
+    elif ex["type"] == "command":
+        correct = runner.command_matches(body.answer, ex["expected_output"])
     else:
         correct = runner.normalize_output(body.answer) == runner.normalize_output(ex["expected_output"])
     with transaction() as conn:
@@ -351,7 +353,8 @@ def check(ex_id: int, body: CheckIn, user: User):
         return {
             "correct": correct,
             "details": details,
-            "expected": ex["expected_output"] if (ex["type"] == "output" and not correct) else None,
+            "expected": None if correct else (ex["expected_output"] if ex["type"] == "output"
+                                              else ex["solution"] if ex["type"] == "command" else None),
             "events": events,
             "state": game.get_state(conn, user["id"]),
         }
@@ -566,8 +569,8 @@ def admin_create(kind: str, body: dict, _admin: Admin):
     _clean_quiz(data)
     if not str(data.get("title", data.get("prompt", ""))).strip():
         raise HTTPException(400, "Заполни название / условие")
-    if kind == "exercises" and data.get("type") not in ("code", "output"):
-        raise HTTPException(400, "type должен быть code или output")
+    if kind == "exercises" and data.get("type") not in ("code", "output", "command"):
+        raise HTTPException(400, "type должен быть code, output или command")
     with transaction() as conn:
         where, args = "", ()
         if parent:

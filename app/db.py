@@ -4,6 +4,7 @@
 Путь можно переопределить переменной окружения CODEQUEST_DB (используют тесты).
 """
 import os
+import re
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
@@ -43,11 +44,14 @@ CREATE TABLE IF NOT EXISTS lessons (
 
 -- type = 'code'   : пишешь код, он запускается и проверяется тестами (tests)
 -- type = 'output' : читаешь код (code) и вводишь, что он выведет (expected_output)
+-- type = 'command': «Терминал» — вводишь команду или короткий ответ; expected_output —
+--                   допустимые варианты по одному на строку (строка «re:…» — регулярное
+--                   выражение), code — необязательный контекст (вывод терминала), solution — эталон
 CREATE TABLE IF NOT EXISTS exercises (
     id              INTEGER PRIMARY KEY,
     lesson_id       INTEGER NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
     slug            TEXT NOT NULL UNIQUE,
-    type            TEXT NOT NULL CHECK (type IN ('code', 'output')),
+    type            TEXT NOT NULL CHECK (type IN ('code', 'output', 'command')),
     prompt          TEXT NOT NULL,
     code            TEXT NOT NULL DEFAULT '',
     starter_code    TEXT NOT NULL DEFAULT '',
@@ -242,3 +246,19 @@ def init_db() -> None:
             existing = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
             if column not in existing:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+        _migrate_exercise_types(conn)
+
+
+def _migrate_exercise_types(conn) -> None:
+    """Старые базы: в CHECK таблицы exercises нет типа 'command'. SQLite не умеет менять
+    CHECK, поэтому таблица пересоздаётся с тем же содержимым (прогресс хранится по слагам
+    в других таблицах и не затрагивается)."""
+    row = conn.execute("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'exercises'").fetchone()
+    if row is None or "'command'" in row["sql"]:
+        return
+    create = re.search(r"CREATE TABLE IF NOT EXISTS exercises \(.*?\n\);", SCHEMA, re.S).group(0)
+    cols = ", ".join(_columns(conn, "exercises"))
+    conn.execute("ALTER TABLE exercises RENAME TO exercises_old")
+    conn.execute(create)
+    conn.execute(f"INSERT INTO exercises ({cols}) SELECT {cols} FROM exercises_old")
+    conn.execute("DROP TABLE exercises_old")
