@@ -1,0 +1,1478 @@
+{
+  "topics": [
+    {
+      "slug": "py-decorators",
+      "title": "Декораторы",
+      "icon": "🎁",
+      "color": "#a560f8",
+      "description": "Функции как объекты, обёртки, синтаксис @, functools.wraps, логирование, кэш и lru_cache, retry, декораторы с параметрами, порядок, методы и классы, декораторы в тестах",
+      "group": "Python",
+      "modules": [
+        {
+          "slug": "dec-m1",
+          "title": "Функции-обёртки",
+          "icon": "🎁",
+          "description": "Функции как объекты, функции, возвращающие функции, первый декоратор, синтаксис @",
+          "lessons": [
+            {
+              "slug": "dec-funcobj",
+              "title": "Функция — это объект",
+              "theory": "```py\ngreet = hello          # без скобок — объект функции\ngreet()                # вызов\nhello.__name__         # 'hello'\n\ndef apply(func, x):    # функция как аргумент\n    return func(x)\napply(len, \"abc\")      # 3\n\nops = {\"+\": add, \"-\": sub}\nops[\"+\"](2, 3)         # 5\n```",
+              "exercises": [
+                {
+                  "slug": "dec-funcobj-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def hello():\n    return \"привет\"\n\ngreet = hello\nprint(greet())\nprint(greet is hello, hello.__name__, greet.__name__)\nprint(type(hello).__name__)\n",
+                  "expected_output": "привет\nTrue hello hello\nfunction",
+                  "hint": "Без скобок — сама функция, со скобками — её результат.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-funcobj-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Функция как аргумент.",
+                  "code": "def apply(func, value):\n    return func(value)\n\ndef double(x):\n    return x * 2\n\nprint(apply(double, 5))\nprint(apply(str.upper, \"abc\"))\nprint(apply(len, [1, 2, 3]))\n",
+                  "expected_output": "10\nABC\n3",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-funcobj-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Словарь функций.",
+                  "code": "def add(a, b):\n    return a + b\n\ndef sub(a, b):\n    return a - b\n\nops = {\"+\": add, \"-\": sub, \"*\": lambda a, b: a * b}\nfor sign in [\"+\", \"-\", \"*\"]:\n    print(sign, ops[sign](6, 3))\n",
+                  "expected_output": "+ 9\n- 3\n* 18",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-funcobj-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `apply_twice(func, x)` — применить функцию дважды: `func(func(x))`.\n\n```\napply_twice(lambda n: n + 3, 1)   # → 7\napply_twice(str.upper, \"a\")       # → \"A\"\n```",
+                  "starter_code": "def apply_twice(func, x):\n    pass\n",
+                  "tests": "def test_values():\n    assert apply_twice(lambda n: n + 3, 1) == 7 and apply_twice(lambda s: s + \"!\", \"hi\") == \"hi!!\" and apply_twice(str.upper, \"a\") == \"A\", \"Неверный результат\"\n",
+                  "solution": "def apply_twice(func, x):\n    return func(func(x))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-funcobj-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `calculate(a, op, b)` — калькулятор на словаре функций. Операции: `\"+\"`, `\"-\"`, `\"*\"`, `\"/\"`. Неизвестная операция — `ValueError(\"неизвестная операция\")`. Не используй `if`/`elif` для выбора операции.",
+                  "starter_code": "def calculate(a, op, b):\n    pass\n",
+                  "tests": "def test_values():\n    assert calculate(6, \"+\", 3) == 9 and calculate(6, \"-\", 3) == 3 and calculate(6, \"*\", 3) == 18 and calculate(6, \"/\", 3) == 2, \"Операции\"\n    try:\n        calculate(1, \"%\", 2)\n    except ValueError as e:\n        assert str(e) == \"неизвестная операция\", str(e)\n    else:\n        assert False, \"Нужен ValueError\"\n    assert \"elif\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй словарь, а не elif\"\n",
+                  "solution": "OPS = {\n    \"+\": lambda a, b: a + b,\n    \"-\": lambda a, b: a - b,\n    \"*\": lambda a, b: a * b,\n    \"/\": lambda a, b: a / b,\n}\n\ndef calculate(a, op, b):\n    if op not in OPS:\n        raise ValueError(\"неизвестная операция\")\n    return OPS[op](a, b)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-funcobj-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `pipeline(value, *funcs)` — пропустить значение через функции по очереди.\n\n```\npipeline(\"  Hi \", str.strip, str.lower)   # → \"hi\"\npipeline(5)                               # → 5\n```",
+                  "starter_code": "def pipeline(value, *funcs):\n    pass\n",
+                  "tests": "def test_values():\n    assert pipeline(\"  Hi \", str.strip, str.lower) == \"hi\" and pipeline(5) == 5 and pipeline(2, lambda x: x + 1, lambda x: x * 10) == 30, \"Неверный результат\"\n",
+                  "solution": "def pipeline(value, *funcs):\n    for func in funcs:\n        value = func(value)\n    return value\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-funcobj-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `run_checks(value, checks)` — `checks` — список функций-проверок, каждая возвращает `True`/`False`. Верни список **имён** (`__name__`) проверок, которые не прошли.\n\n```\ndef is_positive(x): return x > 0\ndef is_even(x): return x % 2 == 0\nrun_checks(-3, [is_positive, is_even])   # → [\"is_positive\", \"is_even\"]\n```",
+                  "starter_code": "def run_checks(value, checks):\n    pass\n",
+                  "tests": "def test_values():\n    def is_positive(x): return x > 0\n    def is_even(x): return x % 2 == 0\n    assert run_checks(-3, [is_positive, is_even]) == [\"is_positive\", \"is_even\"] and run_checks(4, [is_positive, is_even]) == [] and run_checks(3, [is_even]) == [\"is_even\"], \"Неверный результат\"\n",
+                  "solution": "def run_checks(value, checks):\n    return [check.__name__ for check in checks if not check(value)]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-funcobj-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `count_calls(func, args_list)` — вызвать `func` с каждым аргументом из списка и вернуть словарь «результат → сколько раз получен».\n\n```\ncount_calls(len, [\"a\", \"bb\", \"c\"])   # → {1: 2, 2: 1}\n```",
+                  "starter_code": "def count_calls(func, args_list):\n    pass\n",
+                  "tests": "def test_values():\n    assert count_calls(len, [\"a\", \"bb\", \"c\"]) == {1: 2, 2: 1} and count_calls(abs, [-1, 1, 2]) == {1: 2, 2: 1} and count_calls(len, []) == {}, \"Неверный результат\"\n",
+                  "solution": "def count_calls(func, args_list):\n    result = {}\n    for arg in args_list:\n        r = func(arg)\n        result[r] = result.get(r, 0) + 1\n    return result\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nДекоратор — это функция, которая принимает функцию и возвращает новую функцию. Чтобы это понять, сначала нужно привыкнуть к мысли: **функция в Python — такой же объект, как число или строка**. Её можно положить в переменную, передать в другую функцию, вернуть из функции, сохранить в список или словарь.\n\n## Имя функции — просто переменная\n\n```python\ndef hello():\n    return \"привет\"\n\ngreet = hello\nprint(greet())\nprint(greet is hello, hello.__name__, greet.__name__)\nprint(type(hello).__name__)\n```\n\n- `def hello():` создаёт объект-функцию и кладёт его в переменную `hello`.\n- `greet = hello` — **без скобок**: не вызываем функцию, а берём сам объект. Теперь на него ссылаются два имени.\n- `greet()` — со скобками: вызов.\n- `__name__` — имя, данное функции в `def`. У `greet` оно тоже `hello`: объект тот же.\n- `type(hello).__name__` — класс функций называется `function`.\n- Вывод: `привет`, `True hello hello`, `function`.\n\n## Функция как аргумент\n\n```python\ndef apply(func, value):\n    return func(value)\n\ndef double(x):\n    return x * 2\n\nprint(apply(double, 5))\nprint(apply(str.upper, \"abc\"))\nprint(apply(len, [1, 2, 3]))\n```\n\n- Параметр `func` получает функцию, а `func(value)` её вызывает.\n- Передавать можно любые функции: свои, встроенные (`len`), методы (`str.upper`), `lambda`.\n- Ты уже так делал: `sorted(..., key=len)`, `map(str, ...)`, `filter(...)`.\n- Вывод: `10`, `ABC`, `3`.\n\n## Функции в словаре\n\n```python\ndef add(a, b):\n    return a + b\n\ndef sub(a, b):\n    return a - b\n\nops = {\"+\": add, \"-\": sub, \"*\": lambda a, b: a * b}\nfor sign in [\"+\", \"-\", \"*\"]:\n    print(sign, ops[sign](6, 3))\n```\n\n- В словаре лежат функции. `ops[sign]` достаёт функцию, `(6, 3)` — вызывает её.\n- Это замена длинной цепочки `if/elif`: добавить операцию — добавить одну пару в словарь.\n- Вывод: `+ 9`, `- 3`, `* 18`.\n\n## Список функций-проверок\n\n```python\ndef is_positive(x):\n    return x > 0\n\ndef is_even(x):\n    return x % 2 == 0\n\nchecks = [is_positive, is_even]\nvalue = -3\nfailed = [c.__name__ for c in checks if not c(value)]\nprint(failed)\n```\n\n- Перебираем функции как обычные элементы списка и вызываем каждую.\n- `c.__name__` — удобно для отчёта, какая проверка не прошла.\n- Вывод: `['is_positive', 'is_even']`.\n\n## Последовательность преобразований\n\n```python\ndef pipeline(value, *funcs):\n    for func in funcs:\n        value = func(value)\n    return value\n\nprint(pipeline(\"  Hi \", str.strip, str.lower))\n```\n\n- `*funcs` собирает любое количество функций в кортеж.\n- Результат каждой функции становится входом следующей.\n- Вывод: `hi`.\n\n## Итог\n\n- Функция — объект: `f` — сама функция, `f()` — её вызов.\n- Функции можно передавать, хранить в списках и словарях.\n- `f.__name__` — имя функции.\n- Декораторы построены именно на этом.",
+              "quiz": [
+                {
+                  "q": "Чем отличаются `f` и `f()`?",
+                  "options": [
+                    "Ничем",
+                    "`f` — сама функция, `f()` — результат вызова",
+                    "`f()` — функция, `f` — результат",
+                    "`f` — ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Скобки означают вызов."
+                },
+                {
+                  "q": "Что выведет `print(len.__name__)`?",
+                  "options": [
+                    "len",
+                    "function",
+                    "builtin",
+                    "3"
+                  ],
+                  "answer": 0,
+                  "explain": "`__name__` — имя функции."
+                },
+                {
+                  "q": "Можно ли хранить функции в словаре?",
+                  "options": [
+                    "Нет",
+                    "Да, как любые объекты",
+                    "Только lambda",
+                    "Только встроенные"
+                  ],
+                  "answer": 1,
+                  "explain": "Функции — обычные объекты."
+                }
+              ]
+            },
+            {
+              "slug": "dec-factory",
+              "title": "Функция, которая возвращает функцию",
+              "theory": "```py\ndef make_adder(n):\n    def add(x):\n        return x + n      # помнит n (замыкание)\n    return add            # без скобок!\n\nadd5 = make_adder(5)\nadd5(10)                  # 15\n\ndef make_counter():\n    count = 0\n    def counter():\n        nonlocal count    # чтобы менять\n        count += 1\n        return count\n    return counter\n```",
+              "exercises": [
+                {
+                  "slug": "dec-factory-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def make_multiplier(k):\n    def multiply(x):\n        return x * k\n    return multiply\n\ndouble = make_multiplier(2)\ntriple = make_multiplier(3)\nprint(double(5), triple(5))\nprint(double.__name__)\n",
+                  "expected_output": "10 15\nmultiply",
+                  "hint": "Внутренняя функция запоминает k — это замыкание.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-factory-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Состояние в замыкании.",
+                  "code": "def make_counter():\n    count = 0\n    def counter():\n        nonlocal count\n        count += 1\n        return count\n    return counter\n\na = make_counter()\nb = make_counter()\nprint(a(), a(), a(), b())\n",
+                  "expected_output": "1 2 3 1",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-factory-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Функция получает и возвращает функцию.",
+                  "code": "def loud(func):\n    def inner(text):\n        return func(text).upper() + \"!\"\n    return inner\n\ndef greet(name):\n    return f\"привет, {name}\"\n\nloud_greet = loud(greet)\nprint(greet(\"аня\"))\nprint(loud_greet(\"аня\"))\n",
+                  "expected_output": "привет, аня\nПРИВЕТ, АНЯ!",
+                  "hint": "Это уже почти декоратор.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-factory-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_adder(n)` — вернуть функцию, которая прибавляет `n` к аргументу.\n\n```\nadd5 = make_adder(5)\nadd5(10)   # → 15\n```",
+                  "starter_code": "def make_adder(n):\n    pass\n",
+                  "tests": "def test_values():\n    add5 = make_adder(5)\n    assert add5(10) == 15 and make_adder(-1)(0) == -1 and callable(add5), \"Неверный результат\"\n",
+                  "solution": "def make_adder(n):\n    def add(x):\n        return x + n\n    return add\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-factory-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_validator(min_len, max_len)` — вернуть функцию-проверку строки: `True`, если длина в диапазоне включительно.\n\n```\ncheck = make_validator(3, 5)\ncheck(\"ab\"), check(\"abcd\")   # → (False, True)\n```",
+                  "starter_code": "def make_validator(min_len, max_len):\n    pass\n",
+                  "tests": "def test_values():\n    check = make_validator(3, 5)\n    assert [check(s) for s in [\"ab\", \"abc\", \"abcde\", \"abcdef\"]] == [False, True, True, False], \"Неверная проверка\"\n",
+                  "solution": "def make_validator(min_len, max_len):\n    def check(text):\n        return min_len <= len(text) <= max_len\n    return check\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-factory-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_accumulator()` — вернуть функцию `add(x)`, которая копит сумму всех переданных чисел и возвращает текущую сумму. У каждого аккумулятора своя сумма.",
+                  "starter_code": "def make_accumulator():\n    pass\n",
+                  "tests": "def test_values():\n    a, b = make_accumulator(), make_accumulator()\n    assert a(10) == 10 and a(5) == 15 and b(1) == 1 and a(0) == 15, \"Неверная сумма\"\n",
+                  "solution": "def make_accumulator():\n    total = 0\n    def add(x):\n        nonlocal total\n        total += x\n        return total\n    return add\n",
+                  "hint": "Для изменения внешней переменной нужен nonlocal.",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-factory-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `negate(func)` — вернуть новую функцию, которая возвращает `not func(...)`.\n\n```\ndef is_even(x): return x % 2 == 0\nis_odd = negate(is_even)\nis_odd(3)   # → True\n```",
+                  "starter_code": "def negate(func):\n    pass\n",
+                  "tests": "def test_values():\n    def is_even(x): return x % 2 == 0\n    is_odd = negate(is_even)\n    assert is_odd(3) is True and is_odd(4) is False and negate(str.isdigit)(\"12\") is False, \"Неверный результат\"\n",
+                  "solution": "def negate(func):\n    def inner(x):\n        return not func(x)\n    return inner\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-factory-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `compose(f, g)` — вернуть функцию `h(x) = f(g(x))`.\n\n```\ninc = lambda x: x + 1\ndbl = lambda x: x * 2\ncompose(inc, dbl)(5)   # → 11\ncompose(dbl, inc)(5)   # → 12\n```",
+                  "starter_code": "def compose(f, g):\n    pass\n",
+                  "tests": "def test_values():\n    inc = lambda x: x + 1\n    dbl = lambda x: x * 2\n    assert compose(inc, dbl)(5) == 11 and compose(dbl, inc)(5) == 12 and compose(str.upper, str.strip)(\" a \") == \"A\", \"Неверный результат\"\n",
+                  "solution": "def compose(f, g):\n    def h(x):\n        return f(g(x))\n    return h\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nФункция может не только принимать другую функцию, но и **создавать и возвращать** новую. Внутренняя функция при этом помнит переменные внешней — это **замыкание**. Декоратор — это ровно такая функция: принимает функцию и возвращает новую, которая помнит исходную.\n\n## Функция возвращает функцию\n\n```python\ndef make_multiplier(k):\n    def multiply(x):\n        return x * k\n    return multiply\n\ndouble = make_multiplier(2)\ntriple = make_multiplier(3)\nprint(double(5), triple(5))\nprint(double.__name__)\n```\n\n- Внутри `make_multiplier` объявлена функция `multiply`. `return multiply` — возвращаем её **без вызова**.\n- `double = make_multiplier(2)` — получаем функцию, у которой `k = 2`.\n- `multiply` использует `k` из внешней функции. Внешняя уже завершилась, но `k` не исчез: вложенная функция его «запомнила». Это и есть **замыкание** (closure).\n- У каждого вызова `make_multiplier` своё `k`: `double` помнит 2, `triple` — 3.\n- Вывод: `10 15`, `multiply`.\n\n## Замыкание с состоянием\n\n```python\ndef make_counter():\n    count = 0\n    def counter():\n        nonlocal count\n        count += 1\n        return count\n    return counter\n\na = make_counter()\nb = make_counter()\nprint(a(), a(), a(), b())\n```\n\n- `nonlocal count` — «`count` — это переменная внешней функции, я хочу её менять». Без `nonlocal` строка `count += 1` дала бы `UnboundLocalError`.\n- Читать внешнюю переменную можно без `nonlocal`, а вот присваивать — только с ним.\n- `a` и `b` — разные счётчики со своими `count`.\n- Вывод: `1 2 3 1`.\n\n## Функция принимает функцию и возвращает функцию\n\n```python\ndef loud(func):\n    def inner(text):\n        return func(text).upper() + \"!\"\n    return inner\n\ndef greet(name):\n    return f\"привет, {name}\"\n\nloud_greet = loud(greet)\nprint(greet(\"аня\"))\nprint(loud_greet(\"аня\"))\n```\n\n- `loud` получает функцию `func` и создаёт `inner`, которая вызывает `func` и изменяет результат.\n- `loud_greet` — **новая** функция; исходная `greet` не изменилась.\n- Это уже декоратор, только применённый вручную.\n- Вывод: `привет, аня`, `ПРИВЕТ, АНЯ!`.\n\n## Полезные примеры\n\n```python\ndef negate(func):\n    def inner(x):\n        return not func(x)\n    return inner\n\ndef compose(f, g):\n    def h(x):\n        return f(g(x))\n    return h\n\nis_odd = negate(lambda x: x % 2 == 0)\ninc_then_double = compose(lambda x: x * 2, lambda x: x + 1)\nprint(is_odd(3), inc_then_double(5))\n```\n\n- `negate` переворачивает результат любой функции-проверки.\n- `compose(f, g)` — сначала `g`, потом `f`: `(5 + 1) * 2`.\n- Вывод: `True 12`.\n\n## Итог\n\n- Вложенная функция может быть возвращена наружу — без скобок.\n- Она помнит переменные внешней функции (замыкание).\n- Изменять их — через `nonlocal`.\n- Функция, принимающая функцию и возвращающая новую, — это декоратор.",
+              "quiz": [
+                {
+                  "q": "Что такое замыкание?",
+                  "options": [
+                    "Закрытый класс",
+                    "Вложенная функция, помнящая переменные внешней",
+                    "Функция без return",
+                    "Ошибка области видимости"
+                  ],
+                  "answer": 1,
+                  "explain": "Значения внешней функции остаются доступны после её завершения."
+                },
+                {
+                  "q": "Зачем `nonlocal`?",
+                  "options": [
+                    "Чтобы читать внешнюю переменную",
+                    "Чтобы присваивать переменной внешней функции",
+                    "Чтобы создать глобальную",
+                    "Чтобы удалить переменную"
+                  ],
+                  "answer": 1,
+                  "explain": "Без него присваивание создаёт локальную переменную."
+                },
+                {
+                  "q": "Что вернёт `make_multiplier(2)`?",
+                  "options": [
+                    "Число 2",
+                    "Функцию",
+                    "None",
+                    "Ошибку"
+                  ],
+                  "answer": 1,
+                  "explain": "Возвращается вложенная функция multiply."
+                }
+              ]
+            },
+            {
+              "slug": "dec-first",
+              "title": "Первый декоратор",
+              "theory": "```py\ndef deco(func):\n    def wrapper():\n        print(\"до\")           # действие до\n        result = func()       # вызов исходной\n        print(\"после\")        # действие после\n        return result         # не забыть!\n    return wrapper            # без скобок\n\nwork = deco(work)             # подмена функции\nwork()                        # вызывает wrapper\n```",
+              "exercises": [
+                {
+                  "slug": "dec-first-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def announce(func):\n    def wrapper():\n        print(\"до вызова\")\n        func()\n        print(\"после вызова\")\n    return wrapper\n\ndef work():\n    print(\"работаю\")\n\nwork = announce(work)\nwork()\n",
+                  "expected_output": "до вызова\nработаю\nпосле вызова",
+                  "hint": "work теперь ссылается на wrapper, а старая work живёт внутри как func.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-first-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Декоратор теряет результат.",
+                  "code": "def announce(func):\n    def wrapper():\n        print(\"вызов\")\n        func()\n    return wrapper\n\ndef get_answer():\n    return 42\n\nget_answer = announce(get_answer)\nprint(get_answer())\n",
+                  "expected_output": "вызов\nNone",
+                  "hint": "wrapper не возвращает результат func — значит возвращает None.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-first-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Декоратор срабатывает при каждом вызове.",
+                  "code": "def twice(func):\n    def wrapper():\n        func()\n        func()\n    return wrapper\n\ndef ping():\n    print(\"ping\")\n\nping = twice(ping)\nping()\nprint(\"---\")\nping()\n",
+                  "expected_output": "ping\nping\n---\nping\nping",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-first-e4",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `shout(func)` для функций **без аргументов**, возвращающих строку: результат переводится в верхний регистр и к нему добавляется `\"!\"`.\n\n```\ndef hello(): return \"привет\"\nhello = shout(hello)\nhello()   # → \"ПРИВЕТ!\"\n```",
+                  "starter_code": "def shout(func):\n    pass\n",
+                  "tests": "def test_values():\n    def hello():\n        return \"привет\"\n    h = shout(hello)\n    assert h() == \"ПРИВЕТ!\" and hello() == \"привет\", \"Неверный результат\"\n",
+                  "solution": "def shout(func):\n    def wrapper():\n        return func().upper() + \"!\"\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-first-e5",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `log_call(func)` для функций без аргументов: перед вызовом печатает `вызов <имя функции>`, затем вызывает функцию и **возвращает её результат**.",
+                  "starter_code": "def log_call(func):\n    pass\n",
+                  "tests": "import io, contextlib\n\ndef test_values():\n    def answer():\n        return 42\n    f = log_call(answer)\n    buf = io.StringIO()\n    with contextlib.redirect_stdout(buf):\n        r = f()\n    assert r == 42, \"Результат нужно вернуть\"\n    assert buf.getvalue() == \"вызов answer\\n\", f\"Напечатано: {buf.getvalue()!r}\"\n",
+                  "solution": "def log_call(func):\n    def wrapper():\n        print(f\"вызов {func.__name__}\")\n        return func()\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-first-e6",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `safe(func)` для функций без аргументов: если функция выбросила любое исключение (`Exception`), вернуть `None` вместо падения.",
+                  "starter_code": "def safe(func):\n    pass\n",
+                  "tests": "def test_values():\n    def bad():\n        return 1 / 0\n    def good():\n        return \"ok\"\n    assert safe(bad)() is None and safe(good)() == \"ok\", \"Неверный результат\"\n",
+                  "solution": "def safe(func):\n    def wrapper():\n        try:\n            return func()\n        except Exception:\n            return None\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-first-e7",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `count_calls(func)` для функций без аргументов: обёртка считает вызовы в своём атрибуте `calls` (функции — объекты, им можно добавлять атрибуты).\n\n```\nf = count_calls(some_func)\nf(); f()\nf.calls   # → 2\n```",
+                  "starter_code": "def count_calls(func):\n    pass\n",
+                  "tests": "def test_values():\n    def ping():\n        return \"pong\"\n    f = count_calls(ping)\n    assert f.calls == 0, \"Начальное значение 0\"\n    assert f() == \"pong\" and f() == \"pong\" and f.calls == 2, \"Счётчик вызовов\"\n    assert count_calls(ping).calls == 0, \"У каждой обёртки свой счётчик\"\n",
+                  "solution": "def count_calls(func):\n    def wrapper():\n        wrapper.calls += 1\n        return func()\n    wrapper.calls = 0\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-first-e8",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `once(func)` для функций без аргументов: функция реально выполняется только при **первом** вызове, дальше обёртка возвращает сохранённый результат.",
+                  "starter_code": "def once(func):\n    pass\n",
+                  "tests": "def test_values():\n    log = []\n    def init():\n        log.append(1)\n        return \"готово\"\n    f = once(init)\n    assert f() == \"готово\" and f() == \"готово\" and log == [1], f\"Функция должна выполниться один раз, log={log}\"\n",
+                  "solution": "def once(func):\n    done = False\n    result = None\n    def wrapper():\n        nonlocal done, result\n        if not done:\n            result = func()\n            done = True\n        return result\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nИногда к функции нужно добавить поведение, не меняя её код: записать в лог каждый вызов, замерить время, поймать ошибку, проверить права. Если делать это в каждой функции вручную — будет много одинакового кода. **Декоратор** оборачивает функцию: добавляет действия до и после вызова, а сама функция остаётся нетронутой.\n\n## Первый декоратор\n\n```python\ndef announce(func):\n    def wrapper():\n        print(\"до вызова\")\n        func()\n        print(\"после вызова\")\n    return wrapper\n\ndef work():\n    print(\"работаю\")\n\nwork = announce(work)\nwork()\n```\n\nЧто делает каждая строка:\n\n- `def announce(func):` — декоратор принимает функцию, которую будем оборачивать.\n- `def wrapper():` — **обёртка**: новая функция, которая будет вызываться вместо исходной. Имя `wrapper` — традиция.\n- Внутри обёртки: действие до, вызов исходной `func()`, действие после.\n- `return wrapper` — возвращаем обёртку (без скобок).\n- `work = announce(work)` — **подменяем** функцию: имя `work` теперь указывает на `wrapper`. Исходная функция живёт внутри обёртки как `func` (замыкание).\n- `work()` — на самом деле вызывает `wrapper()`.\n- Вывод: `до вызова`, `работаю`, `после вызова`.\n\n## Не потеряй результат\n\n```python\ndef announce(func):\n    def wrapper():\n        print(\"вызов\")\n        func()\n    return wrapper\n\ndef get_answer():\n    return 42\n\nget_answer = announce(get_answer)\nprint(get_answer())\n```\n\n- `wrapper` вызывает `func()`, но **не возвращает** её результат. Функция без `return` возвращает `None`.\n- Вывод: `вызов`, `None` — результат потерян!\n\nПравильно:\n\n```python\ndef announce(func):\n    def wrapper():\n        print(\"вызов\")\n        return func()\n    return wrapper\n\ndef get_answer():\n    return 42\n\nget_answer = announce(get_answer)\nprint(get_answer())\n```\n\n- `return func()` — вызываем и возвращаем результат.\n- Если нужно что-то сделать после вызова — сохрани результат в переменную: `result = func()`, действия, `return result`.\n- Вывод: `вызов`, `42`.\n\n## Обёртка может менять результат\n\n```python\ndef shout(func):\n    def wrapper():\n        return func().upper() + \"!\"\n    return wrapper\n\ndef hello():\n    return \"привет\"\n\nprint(shout(hello)())\n```\n\n- `shout(hello)` — обёртка, `()` — сразу её вызов.\n- Вывод: `ПРИВЕТ!`.\n\n## Обёртка может ловить ошибки\n\n```python\ndef safe(func):\n    def wrapper():\n        try:\n            return func()\n        except Exception:\n            return None\n    return wrapper\n\ndef broken():\n    return 1 / 0\n\nprint(safe(broken)())\n```\n\n- Ошибка исходной функции не выходит наружу — обёртка возвращает `None`.\n- Вывод: `None`.\n\n## Обёртка может хранить состояние\n\n```python\ndef count_calls(func):\n    def wrapper():\n        wrapper.calls += 1\n        return func()\n    wrapper.calls = 0\n    return wrapper\n\ndef ping():\n    return \"pong\"\n\nping = count_calls(ping)\nping()\nping()\nprint(ping.calls)\n```\n\n- Функции — объекты, им можно добавлять атрибуты: `wrapper.calls = 0`.\n- Внутри обёртки обращаемся к ней по имени `wrapper` и увеличиваем счётчик.\n- Вывод: `2`.\n\n## Итог\n\n- Декоратор: `def deco(func): def wrapper(): ... return wrapper`.\n- Применение вручную: `f = deco(f)`.\n- В обёртке **обязательно** `return func()`, иначе результат потеряется.\n- Обёртка может делать что-то до/после, менять результат, ловить ошибки, хранить атрибуты.",
+              "quiz": [
+                {
+                  "q": "Что вернёт задекорированная функция, если в `wrapper` написано `func()` без `return`?",
+                  "options": [
+                    "Результат func",
+                    "None",
+                    "wrapper",
+                    "Ошибку"
+                  ],
+                  "answer": 1,
+                  "explain": "Функция без return возвращает None."
+                },
+                {
+                  "q": "Что делает строка `work = announce(work)`?",
+                  "options": [
+                    "Вызывает work",
+                    "Подменяет work обёрткой",
+                    "Удаляет work",
+                    "Копирует work"
+                  ],
+                  "answer": 1,
+                  "explain": "Имя work теперь указывает на wrapper."
+                },
+                {
+                  "q": "Где хранится исходная функция после декорирования?",
+                  "options": [
+                    "Нигде, удалена",
+                    "Внутри обёртки как func (замыкание)",
+                    "В глобальной переменной",
+                    "В модуле functools"
+                  ],
+                  "answer": 1,
+                  "explain": "Обёртка помнит func."
+                }
+              ]
+            },
+            {
+              "slug": "dec-syntax",
+              "title": "Синтаксис @ и любые аргументы",
+              "theory": "```py\ndef deco(func):\n    def wrapper(*args, **kwargs):    # любые аргументы\n        # проверить/изменить args\n        result = func(*args, **kwargs)\n        # изменить result\n        return result\n    return wrapper\n\n@deco                 # = f = deco(f)\ndef f(a, b=1): ...\n```",
+              "exercises": [
+                {
+                  "slug": "dec-syntax-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def exclaim(func):\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs) + \"!\"\n    return wrapper\n\n@exclaim\ndef greet(name, greeting=\"Привет\"):\n    return f\"{greeting}, {name}\"\n\nprint(greet(\"Аня\"))\nprint(greet(\"Боря\", greeting=\"Здравствуй\"))\n",
+                  "expected_output": "Привет, Аня!\nЗдравствуй, Боря!",
+                  "hint": "@exclaim над def — то же, что greet = exclaim(greet).",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-syntax-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Когда срабатывает декоратор.",
+                  "code": "def register(func):\n    print(\"декорирую\", func.__name__)\n    return func\n\n@register\ndef a():\n    print(\"a\")\n\n@register\ndef b():\n    print(\"b\")\n\nprint(\"старт\")\na()\n",
+                  "expected_output": "декорирую a\nдекорирую b\nстарт\na",
+                  "hint": "Сам декоратор выполняется один раз — при объявлении функции.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-syntax-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Обёртка видит аргументы.",
+                  "code": "def show_args(func):\n    def wrapper(*args, **kwargs):\n        print(\"args:\", args, \"kwargs:\", kwargs)\n        return func(*args, **kwargs)\n    return wrapper\n\n@show_args\ndef area(w, h=1):\n    return w * h\n\nprint(area(3, h=4))\nprint(area(5))\n",
+                  "expected_output": "args: (3,) kwargs: {'h': 4}\n12\nargs: (5,) kwargs: {}\n5",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-syntax-e4",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `double_result`, который удваивает результат функции с **любыми** аргументами. Примени его через `@` к функции `add(a, b)`.\n\n```\nadd(2, 3)       # → 10\nadd(a=1, b=1)   # → 4\n```",
+                  "starter_code": "def double_result(func):\n    pass\n\n\ndef add(a, b):\n    return a + b\n",
+                  "tests": "def test_values():\n    assert add(2, 3) == 10 and add(a=1, b=1) == 4, \"add должна быть задекорирована\"\n    @double_result\n    def s(*xs):\n        return sum(xs)\n    assert s(1, 2, 3) == 12, \"Работает с любыми аргументами\"\n",
+                  "solution": "def double_result(func):\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs) * 2\n    return wrapper\n\n\n@double_result\ndef add(a, b):\n    return a + b\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-syntax-e5",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `log_args`: печатает `имя(аргументы)` в виде `add(2, 3, b=5)` и возвращает результат функции.\n\n- позиционные аргументы — через `repr`;\n- именованные — `ключ=repr(значение)`;\n- всё через `\", \"`.",
+                  "starter_code": "def log_args(func):\n    pass\n",
+                  "tests": "import io, contextlib\n\ndef test_values():\n    @log_args\n    def add(a, b, c=0):\n        return a + b + c\n    @log_args\n    def hi(name):\n        return name\n    buf = io.StringIO()\n    with contextlib.redirect_stdout(buf):\n        r = add(2, 3, c=5)\n        hi(\"Аня\")\n    assert r == 10, \"Результат\"\n    assert buf.getvalue() == \"add(2, 3, c=5)\\nhi('Аня')\\n\", f\"Напечатано: {buf.getvalue()!r}\"\n",
+                  "solution": "def log_args(func):\n    def wrapper(*args, **kwargs):\n        parts = [repr(a) for a in args] + [f\"{k}={v!r}\" for k, v in kwargs.items()]\n        print(f\"{func.__name__}({', '.join(parts)})\")\n        return func(*args, **kwargs)\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-syntax-e6",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `positive_args` — перед вызовом проверяет, что все **позиционные** аргументы-числа больше нуля. Иначе — `ValueError(\"аргументы должны быть > 0\")`, функция не вызывается.",
+                  "starter_code": "def positive_args(func):\n    pass\n",
+                  "tests": "def test_values():\n    calls = []\n    @positive_args\n    def area(w, h):\n        calls.append(1)\n        return w * h\n    assert area(2, 3) == 6, \"Нормальный вызов\"\n    try:\n        area(2, -1)\n    except ValueError as e:\n        assert str(e) == \"аргументы должны быть > 0\" and calls == [1], \"Функция не должна вызываться\"\n        return\n    assert False, \"Нужен ValueError\"\n",
+                  "solution": "def positive_args(func):\n    def wrapper(*args, **kwargs):\n        for a in args:\n            if a <= 0:\n                raise ValueError(\"аргументы должны быть > 0\")\n        return func(*args, **kwargs)\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-syntax-e7",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `strip_strings` — перед вызовом у всех строковых аргументов (позиционных и именованных) убирает пробелы по краям. Нестроковые аргументы не меняются.",
+                  "starter_code": "def strip_strings(func):\n    pass\n",
+                  "tests": "def test_values():\n    @strip_strings\n    def join(a, b, sep=\"-\"):\n        return f\"{a}{sep}{b}\"\n    assert join(\"  x \", \" y\", sep=\" + \") == \"x+y\" and join(1, \" z \") == \"1-z\", \"Неверный результат\"\n",
+                  "solution": "def strip_strings(func):\n    def clean(v):\n        return v.strip() if isinstance(v, str) else v\n\n    def wrapper(*args, **kwargs):\n        args = [clean(a) for a in args]\n        kwargs = {k: clean(v) for k, v in kwargs.items()}\n        return func(*args, **kwargs)\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-syntax-e8",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `collect_errors` — обёртка ловит любое `Exception`, добавляет в свой атрибут-список `errors` строку `\"ИмяОшибки: текст\"` и возвращает `None`. Успешные вызовы возвращают результат как обычно.",
+                  "starter_code": "def collect_errors(func):\n    pass\n",
+                  "tests": "def test_values():\n    @collect_errors\n    def div(a, b):\n        return a / b\n    assert div(6, 3) == 2 and div(1, 0) is None and div(\"a\", 1) is None, \"Результаты\"\n    assert div.errors == [\"ZeroDivisionError: division by zero\", \"TypeError: unsupported operand type(s) for /: 'str' and 'int'\"], div.errors\n",
+                  "solution": "def collect_errors(func):\n    def wrapper(*args, **kwargs):\n        try:\n            return func(*args, **kwargs)\n        except Exception as e:\n            wrapper.errors.append(f\"{type(e).__name__}: {e}\")\n            return None\n    wrapper.errors = []\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПисать `work = announce(work)` после каждой функции неудобно, и легко забыть. Python даёт короткую запись — **`@`** над функцией. А чтобы один декоратор подходил к любым функциям, обёртка должна принимать любые аргументы.\n\n## Синтаксис @\n\n```python\ndef exclaim(func):\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs) + \"!\"\n    return wrapper\n\n@exclaim\ndef greet(name, greeting=\"Привет\"):\n    return f\"{greeting}, {name}\"\n\nprint(greet(\"Аня\"))\nprint(greet(\"Боря\", greeting=\"Здравствуй\"))\n```\n\n- `@exclaim` над `def greet` — **ровно то же**, что `greet = exclaim(greet)` сразу после объявления.\n- `def wrapper(*args, **kwargs):` — обёртка принимает **любые** аргументы: позиционные собираются в кортеж `args`, именованные — в словарь `kwargs`.\n- `func(*args, **kwargs)` — передаём их исходной функции в том же виде (распаковка).\n- Благодаря этому декоратор подходит к функции с любой сигнатурой.\n- Вывод: `Привет, Аня!`, `Здравствуй, Боря!`.\n\n## Когда выполняется декоратор\n\n```python\ndef register(func):\n    print(\"декорирую\", func.__name__)\n    return func\n\n@register\ndef a():\n    print(\"a\")\n\n@register\ndef b():\n    print(\"b\")\n\nprint(\"старт\")\na()\n```\n\n- Декоратор выполняется **один раз** — в момент объявления функции (при загрузке модуля), а не при каждом вызове.\n- При каждом вызове выполняется **обёртка** (если декоратор её вернул). Здесь `register` возвращает саму функцию, без обёртки.\n- Вывод: `декорирую a`, `декорирую b`, `старт`, `a`.\n\n## Что видит обёртка\n\n```python\ndef show_args(func):\n    def wrapper(*args, **kwargs):\n        print(\"args:\", args, \"kwargs:\", kwargs)\n        return func(*args, **kwargs)\n    return wrapper\n\n@show_args\ndef area(w, h=1):\n    return w * h\n\nprint(area(3, h=4))\nprint(area(5))\n```\n\n- `args` — кортеж позиционных аргументов, `kwargs` — словарь именованных.\n- Значения по умолчанию (`h=1`) в `kwargs` не попадают: их подставляет уже сама `area`.\n- Вывод: `args: (3,) kwargs: {'h': 4}`, `12`, `args: (5,) kwargs: {}`, `5`.\n\n## Проверка аргументов\n\n```python\ndef positive_args(func):\n    def wrapper(*args, **kwargs):\n        for a in args:\n            if a <= 0:\n                raise ValueError(\"аргументы должны быть > 0\")\n        return func(*args, **kwargs)\n    return wrapper\n\n@positive_args\ndef area(w, h):\n    return w * h\n\nprint(area(2, 3))\ntry:\n    area(2, -1)\nexcept ValueError as e:\n    print(e)\n```\n\n- Обёртка проверяет аргументы **до** вызова. Если что-то не так — функция не вызывается вовсе.\n- Вывод: `6`, `аргументы должны быть > 0`.\n\n## Изменение аргументов\n\n```python\ndef strip_strings(func):\n    def wrapper(*args, **kwargs):\n        args = [a.strip() if isinstance(a, str) else a for a in args]\n        return func(*args, **kwargs)\n    return wrapper\n\n@strip_strings\ndef join(a, b):\n    return a + \"|\" + b\n\nprint(join(\"  x \", \" y\"))\n```\n\n- Обёртка может «почистить» аргументы, прежде чем передать их функции. `*args` распаковывает и список.\n- Вывод: `x|y`.\n\n## Итог\n\n- `@deco` над `def f` = `f = deco(f)`.\n- Обёртка `wrapper(*args, **kwargs)` + вызов `func(*args, **kwargs)` — подходит к любым функциям.\n- Декоратор выполняется один раз при объявлении, обёртка — при каждом вызове.\n- Обёртка может проверять и менять аргументы до вызова.",
+              "quiz": [
+                {
+                  "q": "Чему эквивалентна запись `@deco` над `def f`?",
+                  "options": [
+                    "`f = deco()`",
+                    "`f = deco(f)`",
+                    "`deco = f(deco)`",
+                    "`f(deco)`"
+                  ],
+                  "answer": 1,
+                  "explain": "Декоратор получает функцию и заменяет её результатом."
+                },
+                {
+                  "q": "Когда выполняется сам декоратор (не обёртка)?",
+                  "options": [
+                    "При каждом вызове",
+                    "Один раз при объявлении функции",
+                    "Никогда",
+                    "При выходе из программы"
+                  ],
+                  "answer": 1,
+                  "explain": "Обёртка — при вызовах, декоратор — при объявлении."
+                },
+                {
+                  "q": "Зачем обёртке `*args, **kwargs`?",
+                  "options": [
+                    "Для скорости",
+                    "Чтобы подходить к функциям с любыми аргументами",
+                    "Так требует синтаксис @",
+                    "Чтобы запретить аргументы"
+                  ],
+                  "answer": 1,
+                  "explain": "Все аргументы передаются исходной функции как есть."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "dec-m2",
+          "title": "Практичные декораторы",
+          "icon": "🛠️",
+          "description": "functools.wraps, логирование и замер времени, кэширование, повтор при ошибке",
+          "lessons": [
+            {
+              "slug": "dec-wraps",
+              "title": "functools.wraps: сохраняем имя и описание",
+              "theory": "```py\nfrom functools import wraps\n\ndef deco(func):\n    @wraps(func)                  # сохранить имя и описание\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs)\n    return wrapper\n\nf.__name__                        # 'f', а не 'wrapper'\nf.__doc__                         # описание\nf.__wrapped__                     # исходная функция\ngetattr(f, \"__wrapped__\", f)\n```",
+              "exercises": [
+                {
+                  "slug": "dec-wraps-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Без wraps.",
+                  "code": "def deco(func):\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs)\n    return wrapper\n\n@deco\ndef login(user):\n    \"\"\"Войти в систему.\"\"\"\n    return user\n\nprint(login.__name__, login.__doc__)\n",
+                  "expected_output": "wrapper None",
+                  "hint": "login теперь — это wrapper, и имя у него wrapper.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-wraps-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? С wraps.",
+                  "code": "from functools import wraps\n\ndef deco(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs)\n    return wrapper\n\n@deco\ndef login(user):\n    \"\"\"Войти в систему.\"\"\"\n    return user\n\nprint(login.__name__, login.__doc__)\nprint(login.__wrapped__(\"аня\"))\n",
+                  "expected_output": "login Войти в систему.\nаня",
+                  "hint": "__wrapped__ — ссылка на исходную функцию без обёртки.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-wraps-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Почему имя важно.",
+                  "code": "from functools import wraps\n\ndef plain(func):\n    def wrapper():\n        return func()\n    return wrapper\n\ndef nice(func):\n    @wraps(func)\n    def wrapper():\n        return func()\n    return wrapper\n\n@plain\ndef test_login(): pass\n\n@plain\ndef test_logout(): pass\n\n@nice\ndef test_signup(): pass\n\nprint([f.__name__ for f in [test_login, test_logout, test_signup]])\n",
+                  "expected_output": "['wrapper', 'wrapper', 'test_signup']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-wraps-e4",
+                  "type": "code",
+                  "prompt": "Исправь декоратор `trace` из заготовки: после декорирования функция должна сохранять своё имя (`__name__`) и описание (`__doc__`). Используй `functools.wraps`.",
+                  "starter_code": "def trace(func):\n    def wrapper(*args, **kwargs):\n        print(\"вызов\", func.__name__)\n        return func(*args, **kwargs)\n    return wrapper\n",
+                  "tests": "def test_meta():\n    @trace\n    def add(a, b):\n        \"\"\"Сложить.\"\"\"\n        return a + b\n    assert add.__name__ == \"add\" and add.__doc__ == \"Сложить.\" and add(1, 2) == 3, \"Имя и описание должны сохраниться\"\n",
+                  "solution": "from functools import wraps\n\n\ndef trace(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        print(\"вызов\", func.__name__)\n        return func(*args, **kwargs)\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-wraps-e5",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `upper_result` (результат-строку перевести в верхний регистр) с `@wraps`. Затем функцию `undecorated(func)` — вернуть исходную функцию без обёртки (через `__wrapped__`), а если функция не задекорирована — её саму.",
+                  "starter_code": "def upper_result(func):\n    pass\n\n\ndef undecorated(func):\n    pass\n",
+                  "tests": "def test_values():\n    @upper_result\n    def hi(name):\n        return \"hi \" + name\n    assert hi(\"аня\") == \"HI АНЯ\" and hi.__name__ == \"hi\", \"upper_result\"\n    assert undecorated(hi)(\"аня\") == \"hi аня\", \"Исходная функция\"\n    assert undecorated(len) is len, \"Незадекорированная функция\"\n",
+                  "solution": "from functools import wraps\n\n\ndef upper_result(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs).upper()\n    return wrapper\n\n\ndef undecorated(func):\n    return getattr(func, \"__wrapped__\", func)\n",
+                  "hint": "getattr(obj, 'имя', по_умолчанию)",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-wraps-e6",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `describe` с `@wraps`: добавляет к описанию функции строку `\" [задекорировано]\"`. Если описания нет (`None`) — описание становится `\"[задекорировано]\"`.",
+                  "starter_code": "def describe(func):\n    pass\n",
+                  "tests": "def test_values():\n    @describe\n    def a():\n        \"\"\"Функция A.\"\"\"\n        return 1\n    @describe\n    def b():\n        return 2\n    assert a.__doc__ == \"Функция A. [задекорировано]\" and b.__doc__ == \"[задекорировано]\", f\"{a.__doc__!r}, {b.__doc__!r}\"\n    assert a() == 1 and b.__name__ == \"b\", \"Функция работает и сохраняет имя\"\n",
+                  "solution": "from functools import wraps\n\n\ndef describe(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs)\n    if wrapper.__doc__ is None:\n        wrapper.__doc__ = \"[задекорировано]\"\n    else:\n        wrapper.__doc__ += \" [задекорировано]\"\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-wraps-e7",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `mark_slow` — **без обёртки**: он просто ставит функции атрибут `slow = True` и возвращает **ту же** функцию. И функцию `slow_tests(funcs)` — имена функций, у которых `slow` равно `True` (у непомеченных атрибута нет вообще).",
+                  "starter_code": "def mark_slow(func):\n    pass\n\n\ndef slow_tests(funcs):\n    pass\n",
+                  "tests": "def test_values():\n    def test_a(): pass\n    def test_b(): pass\n    original = test_b\n    test_b = mark_slow(test_b)\n    assert test_b is original, \"Возвращается та же функция\"\n    assert slow_tests([test_a, test_b]) == [\"test_b\"] and slow_tests([]) == [], \"slow_tests\"\n",
+                  "solution": "def mark_slow(func):\n    func.slow = True\n    return func\n\n\ndef slow_tests(funcs):\n    return [f.__name__ for f in funcs if getattr(f, \"slow\", False)]\n",
+                  "hint": "Так устроены метки @pytest.mark.*",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-wraps-e8",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `deprecated` с `@wraps`: при **каждом** вызове добавляет в глобальный список `WARNINGS` строку `\"<имя> устарела\"` и возвращает результат функции.",
+                  "starter_code": "WARNINGS = []\n\n\ndef deprecated(func):\n    pass\n",
+                  "tests": "def test_values():\n    WARNINGS.clear()\n    @deprecated\n    def old_api(x):\n        return x * 2\n    assert old_api(2) == 4 and old_api(3) == 6 and old_api.__name__ == \"old_api\", \"Результат и имя\"\n    assert WARNINGS == [\"old_api устарела\", \"old_api устарела\"], WARNINGS\n",
+                  "solution": "from functools import wraps\n\nWARNINGS = []\n\n\ndef deprecated(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        WARNINGS.append(f\"{func.__name__} устарела\")\n        return func(*args, **kwargs)\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПосле декорирования имя функции указывает на обёртку. Из-за этого функция «забывает» своё имя и описание: в логах, отчётах тестов и подсказках редактора вместо `login` видно `wrapper`. `functools.wraps` решает эту проблему одной строкой — пиши её в **каждом** декораторе.\n\n## Проблема\n\n```python\ndef deco(func):\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs)\n    return wrapper\n\n@deco\ndef login(user):\n    \"\"\"Войти в систему.\"\"\"\n    return user\n\nprint(login.__name__, login.__doc__)\n```\n\n- Строка в тройных кавычках сразу после `def` — **docstring**, описание функции. Оно хранится в `__doc__`.\n- `login` теперь — это `wrapper`, у которого своё имя и нет описания.\n- Вывод: `wrapper None`.\n\n## Решение: @wraps(func)\n\n```python\nfrom functools import wraps\n\ndef deco(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs)\n    return wrapper\n\n@deco\ndef login(user):\n    \"\"\"Войти в систему.\"\"\"\n    return user\n\nprint(login.__name__, login.__doc__)\nprint(login.__wrapped__(\"аня\"))\n```\n\n- `from functools import wraps` — импорт из стандартного модуля `functools` (инструменты для функций).\n- `@wraps(func)` над обёрткой копирует в неё имя, описание, модуль и другие данные исходной функции.\n- Заодно добавляется `wrapper.__wrapped__` — ссылка на исходную функцию. Через неё можно вызвать функцию **без** обёртки (полезно в тестах).\n- `wraps` сам является декоратором с параметром — такие мы разберём позже.\n- Вывод: `login Войти в систему.`, `аня`.\n\n## Почему это важно в тестах\n\n```python\nfrom functools import wraps\n\ndef plain(func):\n    def wrapper():\n        return func()\n    return wrapper\n\ndef nice(func):\n    @wraps(func)\n    def wrapper():\n        return func()\n    return wrapper\n\n@plain\ndef test_login(): pass\n\n@nice\ndef test_signup(): pass\n\nprint(test_login.__name__, test_signup.__name__)\n```\n\n- Тестовые фреймворки находят тесты и пишут отчёты по `__name__`. Без `wraps` все задекорированные тесты назывались бы `wrapper`.\n- Вывод: `wrapper test_signup`.\n\n## Безопасно добраться до исходной функции\n\n```python\nfrom functools import wraps\n\ndef upper_result(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs).upper()\n    return wrapper\n\n@upper_result\ndef hi(name):\n    return \"hi \" + name\n\noriginal = getattr(hi, \"__wrapped__\", hi)\nprint(hi(\"аня\"), original(\"аня\"))\n```\n\n- `getattr(obj, \"имя\", по_умолчанию)` — прочитать атрибут, а если его нет — вернуть значение по умолчанию. Так код работает и для незадекорированных функций.\n- Вывод: `HI АНЯ hi аня`.\n\n## Декоратор без обёртки\n\nНе каждому декоратору нужна обёртка. Если надо только пометить функцию, достаточно добавить атрибут и вернуть **ту же** функцию:\n\n```python\ndef mark_slow(func):\n    func.slow = True\n    return func\n\n@mark_slow\ndef test_big_report(): pass\n\ndef test_small(): pass\n\nprint([f.__name__ for f in [test_big_report, test_small] if getattr(f, \"slow\", False)])\n```\n\n- Здесь `wraps` не нужен: функция не подменяется.\n- Так устроены метки `@pytest.mark.slow`.\n- Вывод: `['test_big_report']`.\n\n## Итог\n\n- Без `wraps` функция получает имя `wrapper` и теряет описание.\n- `@wraps(func)` над обёрткой — всегда.\n- `f.__wrapped__` — исходная функция.\n- Декоратор-метка может не создавать обёртку, а вернуть ту же функцию.",
+              "quiz": [
+                {
+                  "q": "Какое имя у задекорированной функции без `@wraps`?",
+                  "options": [
+                    "Исходное",
+                    "wrapper (имя обёртки)",
+                    "deco",
+                    "None"
+                  ],
+                  "answer": 1,
+                  "explain": "Имя указывает на обёртку."
+                },
+                {
+                  "q": "Что делает `@wraps(func)`?",
+                  "options": [
+                    "Ускоряет функцию",
+                    "Копирует в обёртку имя, описание и добавляет __wrapped__",
+                    "Кэширует результат",
+                    "Ловит ошибки"
+                  ],
+                  "answer": 1,
+                  "explain": "Метаданные исходной функции переносятся на обёртку."
+                },
+                {
+                  "q": "Как получить исходную функцию из задекорированной с wraps?",
+                  "options": [
+                    "`f.original`",
+                    "`f.__wrapped__`",
+                    "`f.__func__`",
+                    "Никак"
+                  ],
+                  "answer": 1,
+                  "explain": "wraps добавляет этот атрибут."
+                }
+              ]
+            },
+            {
+              "slug": "dec-logging",
+              "title": "Логирование и замер времени",
+              "theory": "```py\nimport time\nfrom functools import wraps\n\ndef timed(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        start = time.perf_counter()\n        try:\n            return func(*args, **kwargs)\n        except Exception as e:\n            print(f\"{func.__name__}: {type(e).__name__}\")\n            raise                          # пробросить!\n        finally:\n            wrapper.last = time.perf_counter() - start\n    return wrapper\n```",
+              "exercises": [
+                {
+                  "slug": "dec-logging-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "from functools import wraps\n\ndef log(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        print(f\"→ {func.__name__}{args}\")\n        result = func(*args, **kwargs)\n        print(f\"← {func.__name__} = {result}\")\n        return result\n    return wrapper\n\n@log\ndef add(a, b):\n    return a + b\n\ntotal = add(2, 3)\nprint(\"итог:\", total)\n",
+                  "expected_output": "→ add(2, 3)\n← add = 5\nитог: 5",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-logging-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Лог ошибок.",
+                  "code": "from functools import wraps\n\ndef log_errors(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        try:\n            return func(*args, **kwargs)\n        except Exception as e:\n            print(f\"{func.__name__} упала: {type(e).__name__}\")\n            raise\n    return wrapper\n\n@log_errors\ndef parse(text):\n    return int(text)\n\nprint(parse(\"5\"))\ntry:\n    parse(\"x\")\nexcept ValueError:\n    print(\"ошибку поймали снаружи\")\n",
+                  "expected_output": "5\nparse упала: ValueError\nошибку поймали снаружи",
+                  "hint": "raise без аргументов пробрасывает пойманное исключение дальше.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-logging-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Замер времени с поддельными часами.",
+                  "code": "from functools import wraps\n\nticks = iter([10.0, 10.25, 20.0, 21.5])\n\ndef fake_clock():\n    return next(ticks)\n\ndef timed(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        start = fake_clock()\n        result = func(*args, **kwargs)\n        print(f\"{func.__name__}: {fake_clock() - start:.2f} с\")\n        return result\n    return wrapper\n\n@timed\ndef fast():\n    return 1\n\n@timed\ndef slow():\n    return 2\n\nprint(fast() + slow())\n",
+                  "expected_output": "fast: 0.25 с\nslow: 1.50 с\n3",
+                  "hint": "Настоящие часы давали бы разное время при каждом запуске — поэтому здесь подделка.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-logging-e4",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `logged`: каждый вызов добавляет в атрибут-список обёртки `log` кортеж `(args, kwargs, результат)`. Используй `@wraps`.\n\n```\n@logged\ndef add(a, b=0): return a + b\nadd(1, b=2)\nadd.log   # → [((1,), {\"b\": 2}, 3)]\n```",
+                  "starter_code": "def logged(func):\n    pass\n",
+                  "tests": "def test_values():\n    @logged\n    def add(a, b=0):\n        return a + b\n    add(1, b=2)\n    add(5)\n    assert add.log == [((1,), {\"b\": 2}, 3), ((5,), {}, 5)] and add.__name__ == \"add\", add.log\n",
+                  "solution": "from functools import wraps\n\n\ndef logged(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        result = func(*args, **kwargs)\n        wrapper.log.append((args, kwargs, result))\n        return result\n    wrapper.log = []\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-logging-e5",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `timed`, который измеряет время выполнения функции через `time.perf_counter()` и сохраняет **последнее** измерение (в секундах) в атрибут обёртки `last_time`. Результат функции возвращается как обычно.",
+                  "starter_code": "import time\n\n\ndef timed(func):\n    pass\n",
+                  "tests": "import time as _t\n\ndef test_values():\n    @timed\n    def nap():\n        _t.sleep(0.05)\n        return \"ok\"\n    assert nap() == \"ok\" and nap.__name__ == \"nap\", \"Результат и имя\"\n    assert 0.04 < nap.last_time < 1, f\"last_time = {nap.last_time}\"\n",
+                  "solution": "import time\nfrom functools import wraps\n\n\ndef timed(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        start = time.perf_counter()\n        result = func(*args, **kwargs)\n        wrapper.last_time = time.perf_counter() - start\n        return result\n    wrapper.last_time = None\n    return wrapper\n",
+                  "hint": "perf_counter() — точные часы для замеров; разность двух показаний — прошедшее время.",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-logging-e6",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `report`: печатает `PASS <имя>`, если функция отработала без исключений, и `FAIL <имя>: <текст ошибки>`, если выбросила `AssertionError`. Ошибку **не пробрасывать**; вернуть `True`/`False`.",
+                  "starter_code": "def report(func):\n    pass\n",
+                  "tests": "import io, contextlib\n\ndef test_values():\n    @report\n    def test_ok():\n        assert 1 == 1\n    @report\n    def test_bad():\n        assert 2 + 2 == 5, \"математика сломалась\"\n    buf = io.StringIO()\n    with contextlib.redirect_stdout(buf):\n        r = (test_ok(), test_bad())\n    assert r == (True, False), f\"Возвращено {r}\"\n    assert buf.getvalue() == \"PASS test_ok\\nFAIL test_bad: математика сломалась\\n\", f\"Напечатано: {buf.getvalue()!r}\"\n",
+                  "solution": "from functools import wraps\n\n\ndef report(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        try:\n            func(*args, **kwargs)\n        except AssertionError as e:\n            print(f\"FAIL {func.__name__}: {e}\")\n            return False\n        print(f\"PASS {func.__name__}\")\n        return True\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-logging-e7",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `log_errors`: если функция выбросила исключение, добавить в глобальный список `ERRORS` строку `\"<имя>: <ТипОшибки>\"` и **пробросить** исключение дальше (`raise`).",
+                  "starter_code": "ERRORS = []\n\n\ndef log_errors(func):\n    pass\n",
+                  "tests": "def test_values():\n    ERRORS.clear()\n    @log_errors\n    def parse(t):\n        return int(t)\n    assert parse(\"5\") == 5 and ERRORS == [], \"Успех без записей\"\n    try:\n        parse(\"x\")\n    except ValueError:\n        pass\n    else:\n        assert False, \"Исключение должно пробрасываться\"\n    assert ERRORS == [\"parse: ValueError\"], ERRORS\n",
+                  "solution": "from functools import wraps\n\nERRORS = []\n\n\ndef log_errors(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        try:\n            return func(*args, **kwargs)\n        except Exception as e:\n            ERRORS.append(f\"{func.__name__}: {type(e).__name__}\")\n            raise\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-logging-e8",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `call_stats`: обёртка хранит в атрибуте `stats` словарь `{\"calls\": N, \"errors\": M}` — сколько раз функцию вызывали и сколько раз она упала (любое `Exception`). Исключения пробрасываются.",
+                  "starter_code": "def call_stats(func):\n    pass\n",
+                  "tests": "def test_values():\n    @call_stats\n    def inv(x):\n        return 1 / x\n    inv(1)\n    inv(2)\n    try:\n        inv(0)\n    except ZeroDivisionError:\n        pass\n    assert inv.stats == {\"calls\": 3, \"errors\": 1} and inv.__name__ == \"inv\", inv.stats\n",
+                  "solution": "from functools import wraps\n\n\ndef call_stats(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        wrapper.stats[\"calls\"] += 1\n        try:\n            return func(*args, **kwargs)\n        except Exception:\n            wrapper.stats[\"errors\"] += 1\n            raise\n    wrapper.stats = {\"calls\": 0, \"errors\": 0}\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСамые частые декораторы в реальных проектах — служебные: записать в лог вызов и результат, записать упавший вызов, замерить время. Они не меняют логику функции, но очень помогают при отладке и разборе падений тестов.\n\n## Лог вызовов\n\n```python\nfrom functools import wraps\n\ndef log(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        print(f\"→ {func.__name__}{args}\")\n        result = func(*args, **kwargs)\n        print(f\"← {func.__name__} = {result}\")\n        return result\n    return wrapper\n\n@log\ndef add(a, b):\n    return a + b\n\ntotal = add(2, 3)\nprint(\"итог:\", total)\n```\n\n- До вызова печатаем имя и аргументы: `{args}` — это кортеж, он уже выглядит как скобки вызова.\n- Результат сохраняем в `result`, печатаем и **возвращаем**.\n- Вывод: `→ add(2, 3)`, `← add = 5`, `итог: 5`.\n\n## Лог ошибок с пробросом\n\n```python\nfrom functools import wraps\n\ndef log_errors(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        try:\n            return func(*args, **kwargs)\n        except Exception as e:\n            print(f\"{func.__name__} упала: {type(e).__name__}\")\n            raise\n    return wrapper\n\n@log_errors\ndef parse(text):\n    return int(text)\n\nprint(parse(\"5\"))\ntry:\n    parse(\"x\")\nexcept ValueError:\n    print(\"ошибку поймали снаружи\")\n```\n\n- `raise` без аргументов внутри `except` — пробросить **ту же** ошибку дальше. Обёртка только записала факт и не спрятала ошибку.\n- Прятать ошибки в логирующем декораторе нельзя: вызывающий код должен узнать о проблеме.\n- Вывод: `5`, `parse упала: ValueError`, `ошибку поймали снаружи`.\n\n## Замер времени\n\n```python\nimport time\nfrom functools import wraps\n\ndef timed(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        start = time.perf_counter()\n        result = func(*args, **kwargs)\n        wrapper.last_time = time.perf_counter() - start\n        return result\n    return wrapper\n\n@timed\ndef nap():\n    time.sleep(0.01)\n    return \"ok\"\n\nprint(nap(), nap.last_time > 0.005)\n```\n\n- `time.perf_counter()` — точные часы для замеров (в секундах, с долями). Абсолютное значение ничего не значит — важна **разность** двух показаний.\n- `time.sleep(0.01)` — пауза на 0.01 секунды.\n- Время каждый раз немного разное, поэтому печатаем не само число, а проверку.\n- Вывод: `ok True`.\n- Для замеров не используй `time.time()`: это системное время, его могут подвести назад.\n\n## Статистика вызовов\n\n```python\nfrom functools import wraps\n\ndef call_stats(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        wrapper.stats[\"calls\"] += 1\n        try:\n            return func(*args, **kwargs)\n        except Exception:\n            wrapper.stats[\"errors\"] += 1\n            raise\n    wrapper.stats = {\"calls\": 0, \"errors\": 0}\n    return wrapper\n\n@call_stats\ndef inv(x):\n    return 1 / x\n\ninv(1)\ntry:\n    inv(0)\nexcept ZeroDivisionError:\n    pass\nprint(inv.stats)\n```\n\n- Атрибут-словарь создаётся один раз при декорировании и живёт, пока жива функция.\n- Вывод: `{'calls': 2, 'errors': 1}`.\n\n## Модуль logging\n\nВ настоящих проектах вместо `print` используют модуль `logging`: `logging.info(...)`, `logging.error(...)`. Он умеет писать в файл, добавлять время и уровень важности. Устройство декоратора от этого не меняется — меняется только строка с `print`.\n\n## Итог\n\n- Логирующий декоратор: записать → вызвать → записать → **вернуть результат**.\n- Ошибку записывай и пробрасывай через `raise`.\n- Время: `time.perf_counter()` до и после, разность — длительность.\n- Статистику храни в атрибутах обёртки.",
+              "quiz": [
+                {
+                  "q": "Что делает `raise` без аргументов внутри `except`?",
+                  "options": [
+                    "Ничего",
+                    "Пробрасывает пойманную ошибку дальше",
+                    "Создаёт новую ошибку",
+                    "SyntaxError"
+                  ],
+                  "answer": 1,
+                  "explain": "Ошибка продолжает лететь наружу."
+                },
+                {
+                  "q": "Какую функцию использовать для замера времени выполнения?",
+                  "options": [
+                    "`time.time()`",
+                    "`time.perf_counter()`",
+                    "`time.sleep()`",
+                    "`datetime.now()`"
+                  ],
+                  "answer": 1,
+                  "explain": "Это точные монотонные часы для замеров."
+                },
+                {
+                  "q": "Почему логирующий декоратор не должен глотать ошибки?",
+                  "options": [
+                    "Так быстрее",
+                    "Вызывающий код должен узнать о проблеме",
+                    "Иначе SyntaxError",
+                    "Лог станет пустым"
+                  ],
+                  "answer": 1,
+                  "explain": "Скрытая ошибка превращается в загадочный None."
+                }
+              ]
+            },
+            {
+              "slug": "dec-cache",
+              "title": "Кэширование: memoize и lru_cache",
+              "theory": "```py\nfrom functools import lru_cache, cache\n\n@lru_cache(maxsize=128)   # последние 128 разных вызовов\ndef load(name): ...\n\n@cache                    # без ограничения (= maxsize=None)\ndef fib(n): ...\n\nfib.cache_info()          # hits, misses, maxsize, currsize\nfib.cache_clear()\n\n# свой: cache = {}; if args not in cache: cache[args] = func(*args)\n```",
+              "exercises": [
+                {
+                  "slug": "dec-cache-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "from functools import wraps\n\ndef memoize(func):\n    cache = {}\n    @wraps(func)\n    def wrapper(n):\n        if n not in cache:\n            print(\"считаю\", n)\n            cache[n] = func(n)\n        return cache[n]\n    return wrapper\n\n@memoize\ndef square(n):\n    return n * n\n\nprint(square(4), square(4), square(5))\n",
+                  "expected_output": "считаю 4\nсчитаю 5\n16 16 25",
+                  "hint": "Второй вызов с тем же аргументом берёт ответ из словаря.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-cache-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? lru_cache.",
+                  "code": "from functools import lru_cache\n\ncalls = 0\n\n@lru_cache(maxsize=None)\ndef fib(n):\n    global calls\n    calls += 1\n    return n if n < 2 else fib(n - 1) + fib(n - 2)\n\nprint(fib(30), calls)\ninfo = fib.cache_info()\nprint(info.hits, info.misses)\n",
+                  "expected_output": "832040 31\n28 31",
+                  "hint": "Без кэша fib(30) вызвался бы больше миллиона раз.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-cache-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Ограничение размера и сброс.",
+                  "code": "from functools import lru_cache\n\n@lru_cache(maxsize=2)\ndef load(name):\n    print(\"загрузка\", name)\n    return name.upper()\n\nload(\"a\")\nload(\"b\")\nload(\"a\")\nload(\"c\")\nload(\"b\")\nload.cache_clear()\nload(\"a\")\n",
+                  "expected_output": "загрузка a\nзагрузка b\nзагрузка c\nзагрузка b\nзагрузка a",
+                  "hint": "При переполнении выкидывается то, что дольше всех не использовали.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-cache-e4",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `memoize` для функций **с одним** хешируемым аргументом: результаты хранятся в словаре, повторный вызов с тем же аргументом не вызывает функцию.",
+                  "starter_code": "def memoize(func):\n    pass\n",
+                  "tests": "def test_values():\n    calls = []\n    @memoize\n    def slow_square(n):\n        calls.append(n)\n        return n * n\n    assert [slow_square(x) for x in [2, 3, 2, 2, 3]] == [4, 9, 4, 4, 9] and calls == [2, 3], f\"calls = {calls}\"\n",
+                  "solution": "from functools import wraps\n\n\ndef memoize(func):\n    cache = {}\n\n    @wraps(func)\n    def wrapper(arg):\n        if arg not in cache:\n            cache[arg] = func(arg)\n        return cache[arg]\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-cache-e5",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `memoize` для функций с **любым количеством позиционных** аргументов (ключ кэша — кортеж `args`). Обёртка хранит словарь в атрибуте `cache`.",
+                  "starter_code": "def memoize(func):\n    pass\n",
+                  "tests": "def test_values():\n    calls = []\n    @memoize\n    def add(a, b):\n        calls.append((a, b))\n        return a + b\n    assert add(1, 2) == 3 and add(1, 2) == 3 and add(2, 1) == 3 and calls == [(1, 2), (2, 1)], calls\n    assert add.cache == {(1, 2): 3, (2, 1): 3}, add.cache\n",
+                  "solution": "from functools import wraps\n\n\ndef memoize(func):\n    @wraps(func)\n    def wrapper(*args):\n        if args not in wrapper.cache:\n            wrapper.cache[args] = func(*args)\n        return wrapper.cache[args]\n    wrapper.cache = {}\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-cache-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `count_paths(rows, cols)` — количество путей из левого верхнего угла сетки в правый нижний, если можно ходить только вправо и вниз. Формула рекурсии: `count_paths(r, c) = count_paths(r-1, c) + count_paths(r, c-1)`, а для `r == 1` или `c == 1` путь один. Используй `@lru_cache`, иначе большие сетки будут считаться вечно.\n\n```\ncount_paths(2, 2)   # → 2\ncount_paths(3, 3)   # → 6\n```",
+                  "starter_code": "def count_paths(rows, cols):\n    pass\n",
+                  "tests": "def test_values():\n    assert count_paths(2, 2) == 2 and count_paths(3, 3) == 6 and count_paths(1, 5) == 1, \"Малые сетки\"\n    assert count_paths(18, 18) == 2333606220, \"Большая сетка\"\n    assert \"lru_cache\" in open(\"solution.py\", encoding=\"utf-8\").read() or \"cache\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй кэш\"\n",
+                  "solution": "from functools import lru_cache\n\n\n@lru_cache(maxsize=None)\ndef count_paths(rows, cols):\n    if rows == 1 or cols == 1:\n        return 1\n    return count_paths(rows - 1, cols) + count_paths(rows, cols - 1)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-cache-e7",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `memoize_with_hits`: как обычный memoize по `args`, но обёртка ведёт атрибуты `hits` (ответ взят из кэша) и `misses` (функцию пришлось вызвать), а метод-атрибут `clear()` очищает кэш и обнуляет счётчики.",
+                  "starter_code": "def memoize_with_hits(func):\n    pass\n",
+                  "tests": "def test_values():\n    @memoize_with_hits\n    def sq(n):\n        return n * n\n    sq(2); sq(2); sq(3); sq(2)\n    assert (sq.hits, sq.misses) == (2, 2), f\"hits={sq.hits}, misses={sq.misses}\"\n    sq.clear()\n    sq(2)\n    assert (sq.hits, sq.misses) == (0, 1), \"После clear\"\n",
+                  "solution": "from functools import wraps\n\n\ndef memoize_with_hits(func):\n    cache = {}\n\n    @wraps(func)\n    def wrapper(*args):\n        if args in cache:\n            wrapper.hits += 1\n        else:\n            wrapper.misses += 1\n            cache[args] = func(*args)\n        return cache[args]\n\n    def clear():\n        cache.clear()\n        wrapper.hits = 0\n        wrapper.misses = 0\n\n    wrapper.clear = clear\n    clear()\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-cache-e8",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `cache_last`: помнит **только последний** вызов. Если аргументы (`args`) совпадают с предыдущими — вернуть сохранённый результат, иначе вызвать функцию и запомнить новые аргументы и результат.",
+                  "starter_code": "def cache_last(func):\n    pass\n",
+                  "tests": "def test_values():\n    calls = []\n    @cache_last\n    def f(x):\n        calls.append(x)\n        return x * 10\n    assert [f(1), f(1), f(2), f(1), f(1)] == [10, 10, 20, 10, 10] and calls == [1, 2, 1], calls\n",
+                  "solution": "from functools import wraps\n\n\ndef cache_last(func):\n    last_args = None\n    last_result = None\n    has_value = False\n\n    @wraps(func)\n    def wrapper(*args):\n        nonlocal last_args, last_result, has_value\n        if not has_value or args != last_args:\n            last_result = func(*args)\n            last_args = args\n            has_value = True\n        return last_result\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЕсли функция долго считает (или ходит в сеть) и для одних и тех же аргументов всегда даёт один и тот же ответ, результат можно **запомнить**. Повторный вызов вернёт готовый ответ мгновенно. Это называется **кэширование** или **мемоизация**.\n\n## Свой memoize\n\n```python\nfrom functools import wraps\n\ndef memoize(func):\n    cache = {}\n    @wraps(func)\n    def wrapper(n):\n        if n not in cache:\n            print(\"считаю\", n)\n            cache[n] = func(n)\n        return cache[n]\n    return wrapper\n\n@memoize\ndef square(n):\n    return n * n\n\nprint(square(4), square(4), square(5))\n```\n\n- `cache = {}` создаётся **один раз** — при декорировании. Обёртка помнит его через замыкание.\n- Ключ словаря — аргумент, значение — результат.\n- Второй `square(4)` берёт ответ из словаря и функцию не вызывает.\n- Вывод: `считаю 4`, `считаю 5`, `16 16 25` (сначала вычисляются все аргументы `print`, потом печатается строка).\n\n## Несколько аргументов\n\n```python\nfrom functools import wraps\n\ndef memoize(func):\n    @wraps(func)\n    def wrapper(*args):\n        if args not in wrapper.cache:\n            wrapper.cache[args] = func(*args)\n        return wrapper.cache[args]\n    wrapper.cache = {}\n    return wrapper\n\n@memoize\ndef add(a, b):\n    return a + b\n\nadd(1, 2)\nadd(1, 2)\nadd(2, 1)\nprint(add.cache)\n```\n\n- Ключ — кортеж `args`: кортежи хешируемы и подходят как ключи словаря.\n- Аргументы должны быть хешируемыми: список в качестве аргумента даст `TypeError: unhashable type`.\n- Вывод: `{(1, 2): 3, (2, 1): 3}`.\n\n## Готовое решение: lru_cache\n\n```python\nfrom functools import lru_cache\n\ncalls = 0\n\n@lru_cache(maxsize=None)\ndef fib(n):\n    global calls\n    calls += 1\n    return n if n < 2 else fib(n - 1) + fib(n - 2)\n\nprint(fib(30), calls)\ninfo = fib.cache_info()\nprint(info.hits, info.misses)\n```\n\n- `@lru_cache(maxsize=None)` — встроенный кэш, неограниченный по размеру. С Python 3.9 то же самое — `@functools.cache`.\n- Рекурсивные вызовы `fib` тоже идут через кэш, поэтому каждое `n` считается один раз: 31 вызов вместо 2,7 миллиона.\n- `cache_info()` — статистика: `hits` (ответ из кэша), `misses` (пришлось считать).\n- Вывод: `832040 31`, `28 31`.\n\n## Ограниченный кэш\n\n```python\nfrom functools import lru_cache\n\n@lru_cache(maxsize=2)\ndef load(name):\n    print(\"загрузка\", name)\n    return name.upper()\n\nload(\"a\")\nload(\"b\")\nload(\"a\")\nload(\"c\")\nload(\"b\")\nload.cache_clear()\nload(\"a\")\n```\n\n- **LRU** — Least Recently Used: при переполнении выкидывается элемент, который **дольше всех не использовали**.\n- По шагам: `a`, `b` загружены; `a` — из кэша (теперь `b` самый старый); `c` вытесняет `b`; `b` грузится снова (вытесняя `a`).\n- `cache_clear()` — очистить кэш полностью.\n- Вывод: `загрузка a`, `загрузка b`, `загрузка c`, `загрузка b`, `загрузка a`.\n\n## Когда кэшировать нельзя\n\n- Функция зависит от времени, случайности, внешних данных (`datetime.now()`, запрос к API, который меняется).\n- Функция что-то делает помимо возврата значения (пишет в файл, отправляет письмо) — при повторе ничего не произойдёт.\n- Результат изменяемый (список): все вызовы получат **один и тот же** объект.\n\n## Итог\n\n- Memoize: словарь `аргументы → результат` в замыкании или атрибуте.\n- Ключ — `args` (кортеж), аргументы должны быть хешируемыми.\n- `@lru_cache(maxsize=N)` / `@cache` — готовый кэш; `cache_info()`, `cache_clear()`.\n- Кэшируй только «чистые» функции.",
+              "quiz": [
+                {
+                  "q": "Какие функции можно кэшировать?",
+                  "options": [
+                    "Любые",
+                    "Те, что для одних аргументов всегда дают один результат и ничего не меняют вокруг",
+                    "Только рекурсивные",
+                    "Только без аргументов"
+                  ],
+                  "answer": 1,
+                  "explain": "Иначе кэш вернёт устаревший ответ или пропустит действие."
+                },
+                {
+                  "q": "Что выкидывает `lru_cache` при переполнении?",
+                  "options": [
+                    "Самый новый",
+                    "Дольше всех не использованный",
+                    "Случайный",
+                    "Самый большой"
+                  ],
+                  "answer": 1,
+                  "explain": "Least Recently Used."
+                },
+                {
+                  "q": "Почему список нельзя передать в функцию с `lru_cache`?",
+                  "options": [
+                    "Слишком большой",
+                    "Список нехешируемый — не может быть ключом",
+                    "lru_cache принимает только числа",
+                    "Можно"
+                  ],
+                  "answer": 1,
+                  "explain": "Аргументы — ключи словаря."
+                }
+              ]
+            },
+            {
+              "slug": "dec-retry",
+              "title": "Повтор при ошибке",
+              "theory": "```py\nfrom functools import wraps\nimport time\n\ndef retry(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        for attempt in range(3):\n            try:\n                return func(*args, **kwargs)   # успех — выход\n            except (ConnectionError, TimeoutError):\n                if attempt == 2:\n                    raise                      # последняя ошибка\n                time.sleep(2 ** attempt)       # 1, 2 с\n    return wrapper\n```",
+              "exercises": [
+                {
+                  "slug": "dec-retry-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "from functools import wraps\n\ndef retry3(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        for attempt in range(1, 4):\n            try:\n                return func(*args, **kwargs)\n            except ConnectionError:\n                print(\"попытка\", attempt, \"не удалась\")\n        raise ConnectionError(\"сервер недоступен\")\n    return wrapper\n\nanswers = iter([ConnectionError, ConnectionError, \"200 OK\"])\n\n@retry3\ndef request():\n    a = next(answers)\n    if a is ConnectionError:\n        raise ConnectionError\n    return a\n\nprint(request())\n",
+                  "expected_output": "попытка 1 не удалась\nпопытка 2 не удалась\n200 OK",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-retry-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Все попытки неудачны.",
+                  "code": "from functools import wraps\n\ndef retry3(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        last = None\n        for attempt in range(3):\n            try:\n                return func(*args, **kwargs)\n            except Exception as e:\n                last = e\n        raise last\n    return wrapper\n\ncalls = 0\n\n@retry3\ndef broken():\n    global calls\n    calls += 1\n    raise TimeoutError(f\"таймаут #{calls}\")\n\ntry:\n    broken()\nexcept TimeoutError as e:\n    print(e, calls)\n",
+                  "expected_output": "таймаут #3 3",
+                  "hint": "Пробрасываем последнюю ошибку.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-retry-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Какие ошибки повторять.",
+                  "code": "from functools import wraps\n\ndef retry_network(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        for _ in range(3):\n            try:\n                return func(*args, **kwargs)\n            except ConnectionError:\n                print(\"сеть, повтор\")\n        return None\n    return wrapper\n\n@retry_network\ndef bad_request():\n    raise ValueError(\"неверные данные\")\n\ntry:\n    bad_request()\nexcept ValueError as e:\n    print(\"сразу:\", e)\n",
+                  "expected_output": "сразу: неверные данные",
+                  "hint": "Повторять имеет смысл только временные сбои.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-retry-e4",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `retry3`: вызвать функцию до 3 раз, пока она выбрасывает `ConnectionError`. Если успешно — вернуть результат; если все 3 попытки неудачны — пробросить последнюю ошибку.",
+                  "starter_code": "def retry3(func):\n    pass\n",
+                  "tests": "def test_values():\n    state = {\"n\": 0}\n    @retry3\n    def flaky():\n        state[\"n\"] += 1\n        if state[\"n\"] < 3:\n            raise ConnectionError(\"сбой\")\n        return \"ok\"\n    assert flaky() == \"ok\" and state[\"n\"] == 3, \"Третья попытка успешна\"\n    state[\"n\"] = -10\n    try:\n        flaky()\n    except ConnectionError:\n        assert state[\"n\"] == -7, f\"Ровно 3 попытки, n={state['n']}\"\n        return\n    assert False, \"Нужно пробросить ConnectionError\"\n",
+                  "solution": "from functools import wraps\n\n\ndef retry3(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        for attempt in range(3):\n            try:\n                return func(*args, **kwargs)\n            except ConnectionError:\n                if attempt == 2:\n                    raise\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-retry-e5",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `retry3_log` — как `retry3` (до 3 попыток при `ConnectionError`), но номера неудачных попыток записываются в атрибут-список обёртки `failed_attempts` (1, 2, 3). Список общий для всех вызовов.",
+                  "starter_code": "def retry3_log(func):\n    pass\n",
+                  "tests": "def test_values():\n    answers = iter([ConnectionError, \"a\", ConnectionError, ConnectionError, \"b\"])\n    @retry3_log\n    def req():\n        x = next(answers)\n        if x is ConnectionError:\n            raise ConnectionError\n        return x\n    assert req() == \"a\" and req() == \"b\", \"Результаты\"\n    assert req.failed_attempts == [1, 1, 2], req.failed_attempts\n",
+                  "solution": "from functools import wraps\n\n\ndef retry3_log(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        for attempt in range(1, 4):\n            try:\n                return func(*args, **kwargs)\n            except ConnectionError:\n                wrapper.failed_attempts.append(attempt)\n                if attempt == 3:\n                    raise\n    wrapper.failed_attempts = []\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-retry-e6",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `fallback_none`: если функция выбросила `KeyError` или `IndexError`, вернуть `None`. Другие ошибки пробрасываются.",
+                  "starter_code": "def fallback_none(func):\n    pass\n",
+                  "tests": "def test_values():\n    @fallback_none\n    def get(data, key):\n        return data[key]\n    assert get({\"a\": 1}, \"a\") == 1 and get({}, \"x\") is None and get([1], 5) is None, \"Перехват\"\n    try:\n        get(None, 1)\n    except TypeError:\n        return\n    assert False, \"TypeError должен пробрасываться\"\n",
+                  "solution": "from functools import wraps\n\n\ndef fallback_none(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        try:\n            return func(*args, **kwargs)\n        except (KeyError, IndexError):\n            return None\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-retry-e7",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `until_true`: вызывает функцию до 5 раз, пока она не вернёт истинное значение (так ждут, пока элемент появится на странице). Вернуть первое истинное значение; если за 5 попыток его нет — `TimeoutError(\"не дождались\")`.",
+                  "starter_code": "def until_true(func):\n    pass\n",
+                  "tests": "def test_values():\n    answers = iter([None, \"\", 0, \"элемент\", \"лишнее\"])\n    @until_true\n    def find():\n        return next(answers)\n    assert find() == \"элемент\", \"Первое истинное значение\"\n    calls = []\n    @until_true\n    def never():\n        calls.append(1)\n        return False\n    try:\n        never()\n    except TimeoutError as e:\n        assert str(e) == \"не дождались\" and len(calls) == 5, f\"Попыток: {len(calls)}\"\n        return\n    assert False, \"Нужен TimeoutError\"\n",
+                  "solution": "from functools import wraps\n\n\ndef until_true(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        for _ in range(5):\n            result = func(*args, **kwargs)\n            if result:\n                return result\n        raise TimeoutError(\"не дождались\")\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-retry-e8",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `retry_with_delays`: до 4 попыток при `ConnectionError`; перед 2-й, 3-й и 4-й попытками «ждать» 1, 2 и 4 секунды — но вместо настоящего `time.sleep` вызывай функцию `sleep(seconds)` из заготовки (в тестах её подменят). Все попытки неудачны — пробросить последнюю ошибку.",
+                  "starter_code": "import time\n\n\ndef sleep(seconds):\n    time.sleep(seconds)\n\n\ndef retry_with_delays(func):\n    pass\n",
+                  "tests": "def test_values():\n    waits = []\n    retry_with_delays.__globals__[\"sleep\"] = waits.append\n    state = {\"n\": 0}\n    @retry_with_delays\n    def req():\n        state[\"n\"] += 1\n        if state[\"n\"] < 3:\n            raise ConnectionError\n        return \"ok\"\n    assert req() == \"ok\" and waits == [1, 2], f\"waits = {waits}\"\n    waits.clear()\n    @retry_with_delays\n    def dead():\n        raise ConnectionError(\"нет сети\")\n    try:\n        dead()\n    except ConnectionError:\n        assert waits == [1, 2, 4], f\"waits = {waits}\"\n        return\n    assert False, \"Нужно пробросить ConnectionError\"\n",
+                  "solution": "import time\nfrom functools import wraps\n\n\ndef sleep(seconds):\n    time.sleep(seconds)\n\n\ndef retry_with_delays(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        delays = [1, 2, 4]\n        for attempt in range(4):\n            try:\n                return func(*args, **kwargs)\n            except ConnectionError:\n                if attempt == 3:\n                    raise\n                sleep(delays[attempt])\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСеть иногда сбоит: сервер не ответил, соединение оборвалось, страница ещё не загрузилась. Такие ошибки **временные** — через секунду тот же запрос пройдёт. Декоратор повтора (retry) пробует вызвать функцию ещё раз. В автотестах так борются с нестабильными («флакающими») проверками.\n\n## Простой retry\n\n```python\nfrom functools import wraps\n\ndef retry3(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        for attempt in range(1, 4):\n            try:\n                return func(*args, **kwargs)\n            except ConnectionError:\n                print(\"попытка\", attempt, \"не удалась\")\n        raise ConnectionError(\"сервер недоступен\")\n    return wrapper\n\nanswers = iter([ConnectionError, \"200 OK\"])\n\n@retry3\ndef request():\n    a = next(answers)\n    if a is ConnectionError:\n        raise ConnectionError\n    return a\n\nprint(request())\n```\n\n- Цикл на 3 попытки. `return` внутри `try` сразу завершает обёртку при успехе.\n- При `ConnectionError` печатаем и идём на следующую попытку.\n- Если все попытки неудачны, цикл заканчивается, и выбрасываем ошибку.\n- `iter([...])` и `next(...)` — выдают элементы списка по одному: так имитируем сервер, который сначала падает, потом отвечает.\n- Вывод: `попытка 1 не удалась`, `200 OK`.\n\n## Пробросить последнюю ошибку\n\n```python\nfrom functools import wraps\n\ndef retry3(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        for attempt in range(3):\n            try:\n                return func(*args, **kwargs)\n            except ConnectionError:\n                if attempt == 2:\n                    raise\n    return wrapper\n\ncalls = 0\n\n@retry3\ndef dead():\n    global calls\n    calls += 1\n    raise ConnectionError(f\"нет сети #{calls}\")\n\ntry:\n    dead()\nexcept ConnectionError as e:\n    print(e)\n```\n\n- На последней попытке (`attempt == 2`) делаем `raise` — пробрасываем **настоящую** ошибку с её текстом. Так при разборе падения видна реальная причина.\n- Вывод: `нет сети #3`.\n\n## Повторять только временные ошибки\n\n```python\nfrom functools import wraps\n\ndef retry_network(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        for _ in range(3):\n            try:\n                return func(*args, **kwargs)\n            except ConnectionError:\n                print(\"сеть, повтор\")\n        return None\n    return wrapper\n\n@retry_network\ndef bad_request():\n    raise ValueError(\"неверные данные\")\n\ntry:\n    bad_request()\nexcept ValueError as e:\n    print(\"сразу:\", e)\n```\n\n- `except ConnectionError` ловит только сетевые ошибки. `ValueError` пролетает сквозь обёртку с первой попытки.\n- Повторять ошибку в данных бессмысленно — результат будет тот же. Никогда не пиши `except Exception` в retry.\n- Вывод: `сразу: неверные данные`.\n\n## Паузы между попытками\n\nПовторять мгновенно часто бесполезно: серверу нужно время. Обычно ждут всё дольше — 1, 2, 4 секунды (**экспоненциальная задержка**):\n\n```python\nfrom functools import wraps\n\nwaits = []\n\ndef sleep(seconds):\n    waits.append(seconds)\n\ndef retry_with_delays(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        delays = [1, 2, 4]\n        for attempt in range(4):\n            try:\n                return func(*args, **kwargs)\n            except ConnectionError:\n                if attempt == 3:\n                    raise\n                sleep(delays[attempt])\n    return wrapper\n\nstate = {\"n\": 0}\n\n@retry_with_delays\ndef req():\n    state[\"n\"] += 1\n    if state[\"n\"] < 3:\n        raise ConnectionError\n    return \"ok\"\n\nprint(req(), waits)\n```\n\n- В настоящем коде `sleep` — это `time.sleep`. Здесь он подменён функцией, которая только записывает паузу: так пример (и тест) не ждёт реальные секунды.\n- Вывод: `ok [1, 2]`.\n\n## Ожидание условия\n\n```python\nfrom functools import wraps\n\ndef until_true(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        for _ in range(5):\n            result = func(*args, **kwargs)\n            if result:\n                return result\n        raise TimeoutError(\"не дождались\")\n    return wrapper\n\nanswers = iter([None, \"\", \"кнопка\"])\n\n@until_true\ndef find_button():\n    return next(answers)\n\nprint(find_button())\n```\n\n- Похожий приём — повторять не при ошибке, а пока результат ложный. Так работают «явные ожидания» в Selenium и Playwright.\n- Вывод: `кнопка`.\n\n## Итог\n\n- Retry: цикл попыток, `return` при успехе, `raise` на последней.\n- Ловить **только** временные ошибки (`ConnectionError`, `TimeoutError`).\n- Паузы между попытками, лучше растущие.\n- Retry прячет нестабильность — не лечит её. Если тест флакает, ищи причину.",
+              "quiz": [
+                {
+                  "q": "Какие ошибки имеет смысл повторять?",
+                  "options": [
+                    "Любые",
+                    "Временные: сетевые, таймауты",
+                    "ValueError",
+                    "SyntaxError"
+                  ],
+                  "answer": 1,
+                  "explain": "Ошибка в данных при повторе будет той же."
+                },
+                {
+                  "q": "Что сделать, если все попытки неудачны?",
+                  "options": [
+                    "Вернуть None молча",
+                    "Пробросить последнюю ошибку",
+                    "Повторять бесконечно",
+                    "Вернуть True"
+                  ],
+                  "answer": 1,
+                  "explain": "Вызывающий должен узнать о проблеме и её причине."
+                },
+                {
+                  "q": "Что такое экспоненциальная задержка?",
+                  "options": [
+                    "Пауза одинаковая",
+                    "Паузы растут: 1, 2, 4…",
+                    "Без пауз",
+                    "Случайные паузы"
+                  ],
+                  "answer": 1,
+                  "explain": "Серверу даётся всё больше времени восстановиться."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "dec-m3",
+          "title": "Продвинутые декораторы",
+          "icon": "🧙",
+          "description": "Декораторы с параметрами, несколько декораторов, методы и классы, декораторы в тестах",
+          "lessons": [
+            {
+              "slug": "dec-params",
+              "title": "Декораторы с параметрами",
+              "theory": "```py\nfrom functools import wraps\n\ndef retry(times=3):                  # параметры\n    def decorator(func):             # функция\n        @wraps(func)\n        def wrapper(*args, **kwargs):  # вызов\n            for i in range(times):\n                ...\n            return func(*args, **kwargs)\n        return wrapper\n    return decorator\n\n@retry(times=5)       # = f = retry(times=5)(f)\ndef f(): ...\n```",
+              "exercises": [
+                {
+                  "slug": "dec-params-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "from functools import wraps\n\ndef repeat(times):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            return [func(*args, **kwargs) for _ in range(times)]\n        return wrapper\n    return decorator\n\n@repeat(3)\ndef hello(name):\n    return f\"hi {name}\"\n\nprint(hello(\"аня\"))\nprint(hello.__name__)\n",
+                  "expected_output": "['hi аня', 'hi аня', 'hi аня']\nhello",
+                  "hint": "repeat(3) возвращает декоратор, и уже он применяется к hello.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-params-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Префикс в логе.",
+                  "code": "from functools import wraps\n\ndef tag(label):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            return f\"[{label}] {func(*args, **kwargs)}\"\n        return wrapper\n    return decorator\n\n@tag(\"API\")\ndef get_user():\n    return \"Аня\"\n\n@tag(\"DB\")\ndef save():\n    return \"сохранено\"\n\nprint(get_user())\nprint(save())\n",
+                  "expected_output": "[API] Аня\n[DB] сохранено",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-params-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Без синтаксиса @.",
+                  "code": "from functools import wraps\n\ndef multiply(k):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(x):\n            return func(x) * k\n        return wrapper\n    return decorator\n\ndef inc(x):\n    return x + 1\n\ndecorator = multiply(10)\nf = decorator(inc)\ng = multiply(2)(inc)\nprint(f(1), g(1), inc(1))\n",
+                  "expected_output": "20 4 2",
+                  "hint": "@multiply(10) — то же, что inc = multiply(10)(inc).",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-params-e4",
+                  "type": "code",
+                  "prompt": "Напиши декоратор с параметром `repeat(times)`: функция вызывается `times` раз, возвращается **последний** результат.",
+                  "starter_code": "def repeat(times):\n    pass\n",
+                  "tests": "def test_values():\n    calls = []\n    @repeat(3)\n    def f(x):\n        calls.append(x)\n        return len(calls)\n    assert f(\"a\") == 3 and calls == [\"a\", \"a\", \"a\"] and f.__name__ == \"f\", \"Три вызова\"\n",
+                  "solution": "from functools import wraps\n\n\ndef repeat(times):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            result = None\n            for _ in range(times):\n                result = func(*args, **kwargs)\n            return result\n        return wrapper\n    return decorator\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-params-e5",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `retry(times, exceptions)`: повторять вызов до `times` раз, если функция выбрасывает исключение из кортежа `exceptions`. Остальные ошибки — сразу пробрасывать. Если попытки кончились — пробросить последнюю ошибку.\n\n```\n@retry(times=3, exceptions=(ConnectionError, TimeoutError))\ndef request(): ...\n```",
+                  "starter_code": "def retry(times, exceptions):\n    pass\n",
+                  "tests": "def test_values():\n    state = {\"n\": 0}\n    @retry(times=4, exceptions=(ConnectionError, TimeoutError))\n    def flaky():\n        state[\"n\"] += 1\n        if state[\"n\"] == 1:\n            raise ConnectionError\n        if state[\"n\"] == 2:\n            raise TimeoutError\n        return \"ok\"\n    assert flaky() == \"ok\" and state[\"n\"] == 3, \"Повторы\"\n    state[\"n\"] = 0\n    @retry(times=2, exceptions=(ConnectionError,))\n    def dead():\n        state[\"n\"] += 1\n        raise ConnectionError\n    try:\n        dead()\n    except ConnectionError:\n        assert state[\"n\"] == 2, \"Ровно times попыток\"\n    state[\"n\"] = 0\n    @retry(times=5, exceptions=(ConnectionError,))\n    def wrong():\n        state[\"n\"] += 1\n        raise ValueError\n    try:\n        wrong()\n    except ValueError:\n        assert state[\"n\"] == 1, \"Чужие ошибки не повторяются\"\n        return\n    assert False, \"ValueError должен пробрасываться\"\n",
+                  "solution": "from functools import wraps\n\n\ndef retry(times, exceptions):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            for attempt in range(times):\n                try:\n                    return func(*args, **kwargs)\n                except exceptions:\n                    if attempt == times - 1:\n                        raise\n        return wrapper\n    return decorator\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-params-e6",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `validate_range(low, high)`: все **позиционные** аргументы должны быть в диапазоне `low…high` включительно, иначе — `ValueError(f\"{значение} вне [{low}, {high}]\")`.",
+                  "starter_code": "def validate_range(low, high):\n    pass\n",
+                  "tests": "def test_values():\n    @validate_range(1, 10)\n    def add(a, b):\n        return a + b\n    assert add(1, 10) == 11, \"Граничные значения\"\n    try:\n        add(5, 11)\n    except ValueError as e:\n        assert str(e) == \"11 вне [1, 10]\", str(e)\n        return\n    assert False, \"Нужен ValueError\"\n",
+                  "solution": "from functools import wraps\n\n\ndef validate_range(low, high):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            for a in args:\n                if not low <= a <= high:\n                    raise ValueError(f\"{a} вне [{low}, {high}]\")\n            return func(*args, **kwargs)\n        return wrapper\n    return decorator\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-params-e7",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `expect_type(t)`: если результат функции — не экземпляр типа `t`, выбросить `TypeError(f\"ожидали {t.__name__}, получили {тип результата}\")`.\n\n```\n@expect_type(int)\ndef f(): return \"5\"\nf()   # TypeError: ожидали int, получили str\n```",
+                  "starter_code": "def expect_type(t):\n    pass\n",
+                  "tests": "def test_values():\n    @expect_type(int)\n    def good():\n        return 5\n    @expect_type(dict)\n    def bad():\n        return [1]\n    assert good() == 5, \"Верный тип\"\n    try:\n        bad()\n    except TypeError as e:\n        assert str(e) == \"ожидали dict, получили list\", str(e)\n        return\n    assert False, \"Нужен TypeError\"\n",
+                  "solution": "from functools import wraps\n\n\ndef expect_type(t):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            result = func(*args, **kwargs)\n            if not isinstance(result, t):\n                raise TypeError(f\"ожидали {t.__name__}, получили {type(result).__name__}\")\n            return result\n        return wrapper\n    return decorator\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-params-e8",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `limit_calls(n)`: функцию можно вызвать не больше `n` раз; следующий вызов — `RuntimeError(f\"{имя}: лимит {n} вызовов\")`. У каждой задекорированной функции свой счётчик.",
+                  "starter_code": "def limit_calls(n):\n    pass\n",
+                  "tests": "def test_values():\n    @limit_calls(2)\n    def ping():\n        return \"pong\"\n    @limit_calls(1)\n    def other():\n        return 1\n    assert ping() == \"pong\" and ping() == \"pong\" and other() == 1, \"Разрешённые вызовы\"\n    try:\n        ping()\n    except RuntimeError as e:\n        assert str(e) == \"ping: лимит 2 вызовов\", str(e)\n        return\n    assert False, \"Нужен RuntimeError\"\n",
+                  "solution": "from functools import wraps\n\n\ndef limit_calls(n):\n    def decorator(func):\n        count = 0\n\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            nonlocal count\n            if count >= n:\n                raise RuntimeError(f\"{func.__name__}: лимит {n} вызовов\")\n            count += 1\n            return func(*args, **kwargs)\n        return wrapper\n    return decorator\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`retry3` всегда делает 3 попытки. А если в одном месте нужно 5, а в другом — 2? Хочется писать `@retry(times=5)`. Для этого нужен **декоратор с параметрами** — функция, которая по параметрам **создаёт** декоратор. Ты уже видел такие: `@wraps(func)`, `@lru_cache(maxsize=2)`.\n\n## Три уровня вложенности\n\n```python\nfrom functools import wraps\n\ndef repeat(times):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            return [func(*args, **kwargs) for _ in range(times)]\n        return wrapper\n    return decorator\n\n@repeat(3)\ndef hello(name):\n    return f\"hi {name}\"\n\nprint(hello(\"аня\"))\nprint(hello.__name__)\n```\n\nЧто делает каждый уровень:\n\n- `repeat(times)` — **фабрика декораторов**: принимает параметры и возвращает декоратор.\n- `decorator(func)` — обычный декоратор, как раньше: принимает функцию, возвращает обёртку.\n- `wrapper(*args, **kwargs)` — обёртка, выполняется при каждом вызове. Она видит и `func`, и `times` (замыкание на два уровня).\n- `@repeat(3)` — сначала вызывается `repeat(3)`, получается декоратор, и уже он применяется к `hello`.\n- Вывод: `['hi аня', 'hi аня', 'hi аня']`, `hello`.\n\n## Как это выглядит без @\n\n```python\nfrom functools import wraps\n\ndef multiply(k):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(x):\n            return func(x) * k\n        return wrapper\n    return decorator\n\ndef inc(x):\n    return x + 1\n\ndecorator = multiply(10)\nf = decorator(inc)\ng = multiply(2)(inc)\nprint(f(1), g(1), inc(1))\n```\n\n- `@multiply(10)` над `inc` = `inc = multiply(10)(inc)`: две пары скобок — два вызова.\n- Вывод: `20 4 2`.\n\n## Частая ошибка: забыть скобки\n\n- `@repeat` (без скобок) передаст функцию в параметр `times`. Декоратор вернёт `decorator`, и при вызове функции получится путаница или `TypeError`.\n- `@retry3` без параметров и `@retry(3)` с параметрами — разные декораторы с разной вложенностью.\n\n## Настраиваемый retry\n\n```python\nfrom functools import wraps\n\ndef retry(times, exceptions):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            for attempt in range(times):\n                try:\n                    return func(*args, **kwargs)\n                except exceptions:\n                    if attempt == times - 1:\n                        raise\n        return wrapper\n    return decorator\n\nstate = {\"n\": 0}\n\n@retry(times=4, exceptions=(ConnectionError, TimeoutError))\ndef flaky():\n    state[\"n\"] += 1\n    if state[\"n\"] < 3:\n        raise TimeoutError\n    return \"ok\"\n\nprint(flaky(), state[\"n\"])\n```\n\n- `except exceptions:` — в `except` можно передать переменную с кортежем типов ошибок.\n- Вывод: `ok 3`.\n\n## Состояние на каждую функцию\n\n```python\nfrom functools import wraps\n\ndef limit_calls(n):\n    def decorator(func):\n        count = 0\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            nonlocal count\n            if count >= n:\n                raise RuntimeError(f\"{func.__name__}: лимит {n} вызовов\")\n            count += 1\n            return func(*args, **kwargs)\n        return wrapper\n    return decorator\n\n@limit_calls(1)\ndef init():\n    return \"ok\"\n\nprint(init())\ntry:\n    init()\nexcept RuntimeError as e:\n    print(e)\n```\n\n- `count = 0` стоит внутри `decorator`, а `decorator` выполняется один раз для каждой задекорированной функции — значит, у каждой функции свой счётчик. Глобальная переменная была бы общей для всех.\n- Вывод: `ok`, `init: лимит 1 вызовов`.\n\n## Итог\n\n- Декоратор с параметрами: `фабрика(параметры) → decorator(func) → wrapper(*args)`.\n- `@deco(x)` = `f = deco(x)(f)`.\n- Параметры доступны в обёртке через замыкание.\n- Состояние для каждой функции — в `decorator`.",
+              "quiz": [
+                {
+                  "q": "Сколько уровней вложенных функций у декоратора с параметрами?",
+                  "options": [
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "answer": 2,
+                  "explain": "Фабрика → декоратор → обёртка."
+                },
+                {
+                  "q": "Чему равно `@repeat(3)` над `def f`?",
+                  "options": [
+                    "`f = repeat(f, 3)`",
+                    "`f = repeat(3)(f)`",
+                    "`f = repeat(3)`",
+                    "`f = f(repeat(3))`"
+                  ],
+                  "answer": 1,
+                  "explain": "Сначала repeat(3) даёт декоратор, потом он применяется к f."
+                },
+                {
+                  "q": "Где хранить счётчик, чтобы он был свой для каждой задекорированной функции?",
+                  "options": [
+                    "В глобальной переменной",
+                    "Внутри decorator (среднего уровня)",
+                    "Внутри wrapper как локальную",
+                    "В параметре times"
+                  ],
+                  "answer": 1,
+                  "explain": "decorator выполняется один раз на каждую функцию."
+                }
+              ]
+            },
+            {
+              "slug": "dec-stack",
+              "title": "Несколько декораторов",
+              "theory": "```py\n@a          # применяется вторым, выполняется первым\n@b          # применяется первым\ndef f(): ...\n# f = a(b(f))\n\n# вызов:  a-до → b-до → f → b-после → a-после\n\n@require_auth     # проверки — снаружи\n@log_calls\n@lru_cache        # кэш — у функции\ndef handler(): ...\n```",
+              "exercises": [
+                {
+                  "slug": "dec-stack-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Порядок применения.",
+                  "code": "def bold(func):\n    def wrapper():\n        return \"<b>\" + func() + \"</b>\"\n    return wrapper\n\ndef italic(func):\n    def wrapper():\n        return \"<i>\" + func() + \"</i>\"\n    return wrapper\n\n@bold\n@italic\ndef text():\n    return \"привет\"\n\nprint(text())\n",
+                  "expected_output": "<b><i>привет</i></b>",
+                  "hint": "Ближний к функции декоратор применяется первым: text = bold(italic(text)).",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-stack-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Порядок выполнения.",
+                  "code": "def trace(name):\n    def decorator(func):\n        def wrapper():\n            print(\"вход\", name)\n            result = func()\n            print(\"выход\", name)\n            return result\n        return wrapper\n    return decorator\n\n@trace(\"A\")\n@trace(\"B\")\ndef work():\n    print(\"работа\")\n    return 1\n\nprint(work())\n",
+                  "expected_output": "вход A\nвход B\nработа\nвыход B\nвыход A\n1",
+                  "hint": "Как матрёшка: внешняя обёртка входит первой и выходит последней.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-stack-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Порядок важен.",
+                  "code": "def add_one(func):\n    def wrapper():\n        return func() + 1\n    return wrapper\n\ndef double(func):\n    def wrapper():\n        return func() * 2\n    return wrapper\n\n@add_one\n@double\ndef five():\n    return 5\n\n@double\n@add_one\ndef five2():\n    return 5\n\nprint(five(), five2())\n",
+                  "expected_output": "11 12",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-stack-e4",
+                  "type": "code",
+                  "prompt": "Есть декораторы `strip` (убирает пробелы по краям у результата) и `upper` (переводит результат в верхний регистр). Примени **оба** к функции `get_name()` через `@` так, чтобы она возвращала `\"АНЯ\"`.",
+                  "starter_code": "def strip(func):\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs).strip()\n    return wrapper\n\n\ndef upper(func):\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs).upper()\n    return wrapper\n\n\ndef get_name():\n    return \"  аня  \"\n",
+                  "tests": "def test_values():\n    assert get_name() == \"АНЯ\", f\"Получено {get_name()!r}\"\n    assert get_name.__name__ == \"wrapper\", \"Функция должна быть задекорирована\"\n",
+                  "solution": "def strip(func):\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs).strip()\n    return wrapper\n\n\ndef upper(func):\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs).upper()\n    return wrapper\n\n\n@strip\n@upper\ndef get_name():\n    return \"  аня  \"\n",
+                  "hint": "Здесь порядок не важен — но оба декоратора нужны.",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-stack-e5",
+                  "type": "code",
+                  "prompt": "Есть декораторы `add_prefix` (добавляет `\"> \"` в начало результата) и `limit10` (обрезает результат до 10 символов). Функция `message()` должна возвращать `\"> Длинное со\"`: сначала обрезать до 10, **потом** добавить префикс. Расставь декораторы в правильном порядке.",
+                  "starter_code": "def add_prefix(func):\n    def wrapper():\n        return \"> \" + func()\n    return wrapper\n\n\ndef limit10(func):\n    def wrapper():\n        return func()[:10]\n    return wrapper\n\n\ndef message():\n    return \"Длинное сообщение об ошибке\"\n",
+                  "tests": "def test_values():\n    assert message() == \"> Длинное со\", f\"Получено {message()!r}\"\n",
+                  "solution": "def add_prefix(func):\n    def wrapper():\n        return \"> \" + func()\n    return wrapper\n\n\ndef limit10(func):\n    def wrapper():\n        return func()[:10]\n    return wrapper\n\n\n@add_prefix\n@limit10\ndef message():\n    return \"Длинное сообщение об ошибке\"\n",
+                  "hint": "Ближний к def декоратор работает с результатом функции первым.",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-stack-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `apply_decorators(func, *decorators)` — применить декораторы так же, как если бы они были записаны через `@` **в указанном порядке сверху вниз**.\n\n```\napply_decorators(f, bold, italic)   # то же, что bold(italic(f))\n```",
+                  "starter_code": "def apply_decorators(func, *decorators):\n    pass\n",
+                  "tests": "def test_values():\n    def bold(f):\n        return lambda: \"<b>\" + f() + \"</b>\"\n    def italic(f):\n        return lambda: \"<i>\" + f() + \"</i>\"\n    text = lambda: \"x\"\n    assert apply_decorators(text, bold, italic)() == \"<b><i>x</i></b>\" and apply_decorators(text)() == \"x\", \"Неверный порядок\"\n",
+                  "solution": "def apply_decorators(func, *decorators):\n    for deco in reversed(decorators):\n        func = deco(func)\n    return func\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-stack-e7",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `record(name)`: при вызове функции добавляет `name` в глобальный список `ORDER` **до** вызова функции и `\"/\" + name` — **после**. Затем задекорируй `work()` так, чтобы после вызова `ORDER` был `[\"auth\", \"log\", \"work\", \"/log\", \"/auth\"]` (функция `work` сама добавляет `\"work\"`).",
+                  "starter_code": "ORDER = []\n\n\ndef record(name):\n    pass\n\n\ndef work():\n    ORDER.append(\"work\")\n",
+                  "tests": "def test_values():\n    ORDER.clear()\n    work()\n    assert ORDER == [\"auth\", \"log\", \"work\", \"/log\", \"/auth\"], ORDER\n",
+                  "solution": "from functools import wraps\n\nORDER = []\n\n\ndef record(name):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            ORDER.append(name)\n            result = func(*args, **kwargs)\n            ORDER.append(\"/\" + name)\n            return result\n        return wrapper\n    return decorator\n\n\n@record(\"auth\")\n@record(\"log\")\ndef work():\n    ORDER.append(\"work\")\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-stack-e8",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `require_auth` (если первый аргумент `user` — `None`, выбросить `PermissionError(\"нужен вход\")`) и декоратор `log_calls` (добавляет имя функции в глобальный `CALLS` при каждом вызове). Задекорируй `delete_item(user, item_id)` так, чтобы вызов без пользователя **не попадал** в `CALLS`, а успешный — попадал. Оба декоратора — с `@wraps`.",
+                  "starter_code": "CALLS = []\n\n\ndef require_auth(func):\n    pass\n\n\ndef log_calls(func):\n    pass\n\n\ndef delete_item(user, item_id):\n    return f\"{user} удалил {item_id}\"\n",
+                  "tests": "def test_values():\n    CALLS.clear()\n    assert delete_item(\"аня\", 5) == \"аня удалил 5\" and CALLS == [\"delete_item\"], \"Успешный вызов логируется\"\n    try:\n        delete_item(None, 5)\n    except PermissionError as e:\n        assert str(e) == \"нужен вход\" and CALLS == [\"delete_item\"], f\"Неавторизованный вызов не логируется: {CALLS}\"\n        return\n    assert False, \"Нужен PermissionError\"\n",
+                  "solution": "from functools import wraps\n\nCALLS = []\n\n\ndef require_auth(func):\n    @wraps(func)\n    def wrapper(user, *args, **kwargs):\n        if user is None:\n            raise PermissionError(\"нужен вход\")\n        return func(user, *args, **kwargs)\n    return wrapper\n\n\ndef log_calls(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        CALLS.append(func.__name__)\n        return func(*args, **kwargs)\n    return wrapper\n\n\n@require_auth\n@log_calls\ndef delete_item(user, item_id):\n    return f\"{user} удалил {item_id}\"\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nК одной функции часто применяют несколько декораторов: проверка авторизации, логирование, повтор, кэш. Важно понимать, в каком порядке они применяются и выполняются, — от этого зависит результат.\n\n## Порядок применения\n\n```python\ndef bold(func):\n    def wrapper():\n        return \"<b>\" + func() + \"</b>\"\n    return wrapper\n\ndef italic(func):\n    def wrapper():\n        return \"<i>\" + func() + \"</i>\"\n    return wrapper\n\n@bold\n@italic\ndef text():\n    return \"привет\"\n\nprint(text())\n```\n\n- Декораторы применяются **снизу вверх**: ближайший к `def` — первым.\n- Запись равна `text = bold(italic(text))`.\n- `italic` оборачивает исходную функцию, `bold` — результат `italic`.\n- Вывод: `<b><i>привет</i></b>`.\n\n## Порядок выполнения: матрёшка\n\n```python\ndef trace(name):\n    def decorator(func):\n        def wrapper():\n            print(\"вход\", name)\n            result = func()\n            print(\"выход\", name)\n            return result\n        return wrapper\n    return decorator\n\n@trace(\"A\")\n@trace(\"B\")\ndef work():\n    print(\"работа\")\n    return 1\n\nprint(work())\n```\n\n- При вызове выполнение идёт **сверху вниз** внутрь: сначала внешняя обёртка A, она вызывает B, B вызывает функцию.\n- Возврат — в обратном порядке: B выходит первой, A — последней.\n- Вывод: `вход A`, `вход B`, `работа`, `выход B`, `выход A`, `1`.\n\n## Порядок меняет результат\n\n```python\ndef add_one(func):\n    def wrapper():\n        return func() + 1\n    return wrapper\n\ndef double(func):\n    def wrapper():\n        return func() * 2\n    return wrapper\n\n@add_one\n@double\ndef five():\n    return 5\n\n@double\n@add_one\ndef five2():\n    return 5\n\nprint(five(), five2())\n```\n\n- `five`: сначала `double` (5 × 2 = 10), потом `add_one` (11).\n- `five2`: сначала `add_one` (6), потом `double` (12).\n- Вывод: `11 12`.\n\n## Практический порядок\n\n```python\nfrom functools import wraps\n\nCALLS = []\n\ndef require_auth(func):\n    @wraps(func)\n    def wrapper(user, *args):\n        if user is None:\n            raise PermissionError(\"нужен вход\")\n        return func(user, *args)\n    return wrapper\n\ndef log_calls(func):\n    @wraps(func)\n    def wrapper(*args):\n        CALLS.append(func.__name__)\n        return func(*args)\n    return wrapper\n\n@require_auth\n@log_calls\ndef delete_item(user, item_id):\n    return f\"{user} удалил {item_id}\"\n\nprint(delete_item(\"аня\", 5))\ntry:\n    delete_item(None, 5)\nexcept PermissionError as e:\n    print(e, CALLS)\n```\n\n- `require_auth` — внешний: проверка срабатывает **первой**. Неавторизованный вызов отсекается, до лога дело не доходит.\n- Поменяй порядок — и в лог попадут и отклонённые вызовы. Иногда это нужно (аудит попыток), иногда нет.\n- Вывод: `аня удалил 5`, `нужен вход ['delete_item']`.\n\n## Правила расстановки\n\n- Проверки доступа и валидация — **снаружи** (выше), чтобы отсекать плохие вызовы раньше.\n- `@lru_cache` — обычно ближе к функции (ниже), чтобы кэшировать чистый результат.\n- `@retry` — снаружи того, что может временно падать.\n- `@property`, `@classmethod`, `@staticmethod` — всегда **самые верхние** над методом.\n\n## Итог\n\n- Применение: снизу вверх (`@a @b def f` = `a(b(f))`).\n- Выполнение: сверху вниз внутрь, выход — обратно.\n- От порядка зависит результат и то, какие действия выполнятся.",
+              "quiz": [
+                {
+                  "q": "Чему равна запись `@a` `@b` `def f`?",
+                  "options": [
+                    "`f = b(a(f))`",
+                    "`f = a(b(f))`",
+                    "`f = a(f); f = b(f)` без вложенности",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Ближний к def применяется первым."
+                },
+                {
+                  "q": "Чья часть «до вызова» выполнится первой при `@a @b def f`?",
+                  "options": [
+                    "a",
+                    "b",
+                    "f",
+                    "Одновременно"
+                  ],
+                  "answer": 0,
+                  "explain": "Внешняя обёртка вызывается первой."
+                },
+                {
+                  "q": "Где лучше ставить декоратор проверки прав?",
+                  "options": [
+                    "Ближе всех к def",
+                    "Снаружи (выше других)",
+                    "Не важно",
+                    "Только отдельно от других"
+                  ],
+                  "answer": 1,
+                  "explain": "Плохой вызов отсекается раньше остальной логики."
+                }
+              ]
+            },
+            {
+              "slug": "dec-methods",
+              "title": "Декораторы для методов и классы-декораторы",
+              "theory": "```py\ndef log_method(func):           # для методов\n    @wraps(func)\n    def wrapper(self, *args, **kwargs):\n        self.history.append(func.__name__)\n        return func(self, *args, **kwargs)\n    return wrapper\n\nclass CountCalls:               # класс-декоратор\n    def __init__(self, func): self.func, self.calls = func, 0\n    def __call__(self, *a, **kw):\n        self.calls += 1\n        return self.func(*a, **kw)\n\ndef add_repr(cls):              # декоратор класса\n    cls.__repr__ = lambda self: f\"{cls.__name__}{vars(self)}\"\n    return cls\n```",
+              "exercises": [
+                {
+                  "slug": "dec-methods-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Декоратор на методе.",
+                  "code": "from functools import wraps\n\ndef log(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        print(\"вызов\", func.__name__, \"аргументов:\", len(args))\n        return func(*args, **kwargs)\n    return wrapper\n\nclass Cart:\n    def __init__(self):\n        self.items = []\n\n    @log\n    def add(self, item):\n        self.items.append(item)\n\nc = Cart()\nc.add(\"чай\")\nprint(c.items)\n",
+                  "expected_output": "вызов add аргументов: 2\n['чай']",
+                  "hint": "self попадает в args первым.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-methods-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Класс как декоратор.",
+                  "code": "class CountCalls:\n    def __init__(self, func):\n        self.func = func\n        self.calls = 0\n\n    def __call__(self, *args, **kwargs):\n        self.calls += 1\n        return self.func(*args, **kwargs)\n\n@CountCalls\ndef hello(name):\n    return f\"hi {name}\"\n\nprint(hello(\"аня\"), hello(\"боря\"))\nprint(hello.calls, type(hello).__name__)\n",
+                  "expected_output": "hi аня hi боря\n2 CountCalls",
+                  "hint": "@CountCalls — то же, что hello = CountCalls(hello). Вызов объекта — __call__.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-methods-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Декоратор класса.",
+                  "code": "def add_repr(cls):\n    def __repr__(self):\n        fields = \", \".join(f\"{k}={v!r}\" for k, v in vars(self).items())\n        return f\"{cls.__name__}({fields})\"\n    cls.__repr__ = __repr__\n    return cls\n\n@add_repr\nclass User:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\nprint(User(\"Аня\", 30))\n",
+                  "expected_output": "User(name='Аня', age=30)",
+                  "hint": "Декоратор может принимать и возвращать класс — так работает @dataclass.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-methods-e4",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `check_positive` для методов: второй аргумент (первый после `self`) должен быть больше нуля, иначе `ValueError(\"сумма должна быть > 0\")`. Примени его к методам `deposit` и `withdraw` класса `Account`.",
+                  "starter_code": "def check_positive(func):\n    pass\n\n\nclass Account:\n    def __init__(self):\n        self.balance = 0\n\n    def deposit(self, amount):\n        self.balance += amount\n\n    def withdraw(self, amount):\n        self.balance -= amount\n",
+                  "tests": "def test_values():\n    a = Account()\n    a.deposit(100)\n    a.withdraw(30)\n    assert a.balance == 70, \"Операции\"\n    for call in [lambda: a.deposit(-5), lambda: a.withdraw(0)]:\n        try:\n            call()\n        except ValueError as e:\n            assert str(e) == \"сумма должна быть > 0\", str(e)\n        else:\n            assert False, \"Нужен ValueError\"\n    assert a.balance == 70, \"Баланс не меняется\"\n",
+                  "solution": "from functools import wraps\n\n\ndef check_positive(func):\n    @wraps(func)\n    def wrapper(self, amount, *args, **kwargs):\n        if amount <= 0:\n            raise ValueError(\"сумма должна быть > 0\")\n        return func(self, amount, *args, **kwargs)\n    return wrapper\n\n\nclass Account:\n    def __init__(self):\n        self.balance = 0\n\n    @check_positive\n    def deposit(self, amount):\n        self.balance += amount\n\n    @check_positive\n    def withdraw(self, amount):\n        self.balance -= amount\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-methods-e5",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `log_method` для методов: добавляет в список `self.history` (он есть у объекта) имя вызванного метода. Примени его к `open` и `close` класса `Door`.",
+                  "starter_code": "def log_method(func):\n    pass\n\n\nclass Door:\n    def __init__(self):\n        self.history = []\n        self.is_open = False\n\n    def open(self):\n        self.is_open = True\n\n    def close(self):\n        self.is_open = False\n",
+                  "tests": "def test_values():\n    d = Door()\n    d.open()\n    d.close()\n    d.open()\n    assert d.history == [\"open\", \"close\", \"open\"] and d.is_open, d.history\n    assert Door().history == [], \"У каждой двери своя история\"\n",
+                  "solution": "from functools import wraps\n\n\ndef log_method(func):\n    @wraps(func)\n    def wrapper(self, *args, **kwargs):\n        self.history.append(func.__name__)\n        return func(self, *args, **kwargs)\n    return wrapper\n\n\nclass Door:\n    def __init__(self):\n        self.history = []\n        self.is_open = False\n\n    @log_method\n    def open(self):\n        self.is_open = True\n\n    @log_method\n    def close(self):\n        self.is_open = False\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-methods-e6",
+                  "type": "code",
+                  "prompt": "Напиши **класс**-декоратор `Memoize`: `__init__(self, func)` сохраняет функцию и создаёт словарь `cache`, `__call__(self, *args)` возвращает результат из кэша или вызывает функцию.",
+                  "starter_code": "class Memoize:\n    pass\n",
+                  "tests": "def test_values():\n    calls = []\n    @Memoize\n    def sq(n):\n        calls.append(n)\n        return n * n\n    assert [sq(3), sq(3), sq(4)] == [9, 9, 16] and calls == [3, 4] and sq.cache == {(3,): 9, (4,): 16}, f\"calls={calls}\"\n    assert isinstance(sq, Memoize), \"sq — объект Memoize\"\n",
+                  "solution": "class Memoize:\n    def __init__(self, func):\n        self.func = func\n        self.cache = {}\n\n    def __call__(self, *args):\n        if args not in self.cache:\n            self.cache[args] = self.func(*args)\n        return self.cache[args]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-methods-e7",
+                  "type": "code",
+                  "prompt": "Напиши декоратор класса `singleton`: сколько бы раз ни вызывали класс, возвращается **один и тот же** объект (созданный при первом вызове). Декоратор возвращает функцию-обёртку.",
+                  "starter_code": "def singleton(cls):\n    pass\n",
+                  "tests": "def test_values():\n    @singleton\n    class Config:\n        def __init__(self):\n            self.debug = False\n    a = Config()\n    a.debug = True\n    b = Config()\n    assert a is b and b.debug, \"Должен быть один объект\"\n    @singleton\n    class Other:\n        pass\n    assert Other() is not a, \"У каждого класса свой объект\"\n",
+                  "solution": "def singleton(cls):\n    instance = None\n\n    def get_instance(*args, **kwargs):\n        nonlocal instance\n        if instance is None:\n            instance = cls(*args, **kwargs)\n        return instance\n    return get_instance\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-methods-e8",
+                  "type": "code",
+                  "prompt": "Напиши декоратор класса `auto_str`: добавляет классу метод `__str__`, возвращающий атрибуты объекта в виде `\"name=Аня; age=30\"` (порядок — как в `vars`). Декоратор возвращает **тот же** класс.",
+                  "starter_code": "def auto_str(cls):\n    pass\n",
+                  "tests": "def test_values():\n    @auto_str\n    class User:\n        def __init__(self, name, age):\n            self.name = name\n            self.age = age\n    assert str(User(\"Аня\", 30)) == \"name=Аня; age=30\" and User.__name__ == \"User\" and isinstance(User(\"x\", 1), User), str(User(\"Аня\", 30))\n",
+                  "solution": "def auto_str(cls):\n    def __str__(self):\n        return \"; \".join(f\"{k}={v}\" for k, v in vars(self).items())\n    cls.__str__ = __str__\n    return cls\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nДекораторы работают не только с обычными функциями. Их применяют к **методам** классов (например, логировать действия Page Object), сами декораторы можно писать **классами**, а ещё можно декорировать **классы целиком** — так устроены `@dataclass` и `@total_ordering`.\n\n## Декоратор на методе\n\n```python\nfrom functools import wraps\n\ndef log(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        print(\"вызов\", func.__name__, \"аргументов:\", len(args))\n        return func(*args, **kwargs)\n    return wrapper\n\nclass Cart:\n    def __init__(self):\n        self.items = []\n\n    @log\n    def add(self, item):\n        self.items.append(item)\n\nc = Cart()\nc.add(\"чай\")\nprint(c.items)\n```\n\n- Метод — это функция, у которой первый аргумент `self`. Поэтому обычный декоратор с `*args` работает и для методов.\n- `self` попадает в `args` первым: `args == (c, \"чай\")`.\n- Вывод: `вызов add аргументов: 2`, `['чай']`.\n\n## Обёртка, которая пользуется self\n\n```python\nfrom functools import wraps\n\ndef log_method(func):\n    @wraps(func)\n    def wrapper(self, *args, **kwargs):\n        self.history.append(func.__name__)\n        return func(self, *args, **kwargs)\n    return wrapper\n\nclass Door:\n    def __init__(self):\n        self.history = []\n\n    @log_method\n    def open(self):\n        pass\n\n    @log_method\n    def close(self):\n        pass\n\nd = Door()\nd.open()\nd.close()\nprint(d.history)\n```\n\n- Если явно выделить `self` в сигнатуре обёртки, можно работать с атрибутами объекта.\n- Вывод: `['open', 'close']`.\n\n## Класс как декоратор\n\n```python\nclass CountCalls:\n    def __init__(self, func):\n        self.func = func\n        self.calls = 0\n\n    def __call__(self, *args, **kwargs):\n        self.calls += 1\n        return self.func(*args, **kwargs)\n\n@CountCalls\ndef hello(name):\n    return f\"hi {name}\"\n\nprint(hello(\"аня\"), hello(\"боря\"))\nprint(hello.calls, type(hello).__name__)\n```\n\n- `@CountCalls` = `hello = CountCalls(hello)`: создаётся **объект**, а исходная функция сохраняется в `self.func`.\n- Вызов `hello(...)` — это вызов объекта, то есть метод `__call__`.\n- Состояние хранится в атрибутах объекта — удобнее, чем атрибуты функции или `nonlocal`.\n- Минус: такой декоратор не подходит для методов без дополнительных хитростей — `self` метода не передаётся.\n- Вывод: `hi аня hi боря`, `2 CountCalls`.\n\n## Декоратор класса\n\n```python\ndef add_repr(cls):\n    def __repr__(self):\n        fields = \", \".join(f\"{k}={v!r}\" for k, v in vars(self).items())\n        return f\"{cls.__name__}({fields})\"\n    cls.__repr__ = __repr__\n    return cls\n\n@add_repr\nclass User:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\nprint(User(\"Аня\", 30))\n```\n\n- Декоратор получает **класс**, добавляет ему метод и возвращает тот же класс.\n- `cls.__repr__ = __repr__` — методы можно добавлять классу и после объявления.\n- Именно так работает `@dataclass`: он читает поля класса и дописывает `__init__`, `__repr__`, `__eq__`.\n- Вывод: `User(name='Аня', age=30)`.\n\n## Встроенные декораторы методов\n\nТы уже знаешь их из темы «Классы»:\n\n- `@property` — метод читается как атрибут;\n- `@classmethod` — первым получает класс (`cls`);\n- `@staticmethod` — не получает ни `self`, ни `cls`;\n- `@abstractmethod` — метод обязан быть реализован в потомке.\n\nВсе они — обычные декораторы: получают функцию и возвращают специальный объект.\n\n## Итог\n\n- Обычный декоратор с `*args` подходит и для методов: `self` — первый в `args`.\n- Класс-декоратор: `__init__(self, func)` + `__call__`.\n- Декоратор класса получает и возвращает класс, может добавлять методы.\n- `@property`, `@classmethod`, `@dataclass` — тоже декораторы.",
+              "quiz": [
+                {
+                  "q": "Каким элементом `args` окажется `self` при декорировании метода?",
+                  "options": [
+                    "Последним",
+                    "Первым",
+                    "Не попадёт",
+                    "В kwargs"
+                  ],
+                  "answer": 1,
+                  "explain": "Метод вызывается как функция с self первым аргументом."
+                },
+                {
+                  "q": "Какой метод вызывается при вызове объекта-декоратора `hello(\"аня\")`?",
+                  "options": [
+                    "`__init__`",
+                    "`__call__`",
+                    "`__new__`",
+                    "`__wrapped__`"
+                  ],
+                  "answer": 1,
+                  "explain": "Вызов объекта — это `__call__`."
+                },
+                {
+                  "q": "Что получает декоратор класса?",
+                  "options": [
+                    "Объект класса",
+                    "Сам класс",
+                    "Метод __init__",
+                    "Строку с именем"
+                  ],
+                  "answer": 1,
+                  "explain": "И обычно возвращает тот же класс."
+                }
+              ]
+            },
+            {
+              "slug": "dec-practice",
+              "title": "Практика: декораторы в тестах",
+              "theory": "```py\nREGISTRY = []\ndef test(func):                     # регистрация\n    REGISTRY.append(func)\n    return func\n\ndef mark(*tags):                    # метки\n    def deco(func):\n        func.tags = set(tags)\n        return func\n    return deco\n\n# pytest:\n# @pytest.fixture\n# @pytest.mark.smoke\n# @pytest.mark.skipif(cond, reason=\"...\")\n# @pytest.mark.parametrize(\"a, b\", [(1, 2), (3, 4)])\n```",
+              "exercises": [
+                {
+                  "slug": "dec-practice-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Реестр тестов.",
+                  "code": "TESTS = []\n\ndef test(func):\n    TESTS.append(func)\n    return func\n\n@test\ndef check_login():\n    assert True\n\n@test\ndef check_cart():\n    assert 1 + 1 == 3\n\ndef helper():\n    pass\n\nfor t in TESTS:\n    try:\n        t()\n        print(\"PASS\", t.__name__)\n    except AssertionError:\n        print(\"FAIL\", t.__name__)\n",
+                  "expected_output": "PASS check_login\nFAIL check_cart",
+                  "hint": "Так фреймворки собирают тесты: декоратор регистрирует функцию.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-practice-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Метки как в pytest.mark.",
+                  "code": "def mark(*tags):\n    def decorator(func):\n        func.tags = set(tags)\n        return func\n    return decorator\n\n@mark(\"smoke\", \"api\")\ndef test_status(): pass\n\n@mark(\"regression\")\ndef test_history(): pass\n\n@mark(\"smoke\")\ndef test_login(): pass\n\ntests = [test_status, test_history, test_login]\nprint([t.__name__ for t in tests if \"smoke\" in t.tags])\n",
+                  "expected_output": "['test_status', 'test_login']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-practice-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Параметризация.",
+                  "code": "def parametrize(cases):\n    def decorator(func):\n        def run_all():\n            return [func(*case) for case in cases]\n        return run_all\n    return decorator\n\n@parametrize([(2, 3, 5), (0, 0, 0), (-1, 1, 1)])\ndef check_add(a, b, expected):\n    return \"ok\" if a + b == expected else f\"FAIL {a}+{b}\"\n\nprint(check_add())\n",
+                  "expected_output": "['ok', 'ok', 'FAIL -1+1']",
+                  "hint": "Похоже на @pytest.mark.parametrize — один тест, много наборов данных.",
+                  "xp": 10
+                },
+                {
+                  "slug": "dec-practice-e4",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `skip_if(condition, reason)`: если `condition` истинно, функция **не вызывается**, а обёртка возвращает строку `f\"SKIP: {reason}\"`. Иначе функция работает как обычно.",
+                  "starter_code": "def skip_if(condition, reason):\n    pass\n",
+                  "tests": "def test_values():\n    calls = []\n    @skip_if(True, \"нет Windows\")\n    def t1():\n        calls.append(1)\n        return \"ran\"\n    @skip_if(False, \"не важно\")\n    def t2():\n        return \"ran\"\n    assert t1() == \"SKIP: нет Windows\" and calls == [] and t2() == \"ran\" and t1.__name__ == \"t1\", \"Неверный результат\"\n",
+                  "solution": "from functools import wraps\n\n\ndef skip_if(condition, reason):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            if condition:\n                return f\"SKIP: {reason}\"\n            return func(*args, **kwargs)\n        return wrapper\n    return decorator\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-practice-e5",
+                  "type": "code",
+                  "prompt": "Напиши декоратор-регистратор `route(path)` для мини-веб-фреймворка: сохраняет функцию в глобальный словарь `ROUTES[path]` и возвращает **ту же** функцию. И функцию `handle(path)` — вызвать обработчик пути; если пути нет — вернуть `\"404\"`.",
+                  "starter_code": "ROUTES = {}\n\n\ndef route(path):\n    pass\n\n\ndef handle(path):\n    pass\n",
+                  "tests": "def test_values():\n    ROUTES.clear()\n    @route(\"/\")\n    def index():\n        return \"главная\"\n    @route(\"/about\")\n    def about():\n        return \"о нас\"\n    assert handle(\"/\") == \"главная\" and handle(\"/about\") == \"о нас\" and handle(\"/x\") == \"404\", \"handle\"\n    assert ROUTES[\"/\"] is index and index() == \"главная\", \"Та же функция в реестре\"\n",
+                  "solution": "ROUTES = {}\n\n\ndef route(path):\n    def decorator(func):\n        ROUTES[path] = func\n        return func\n    return decorator\n\n\ndef handle(path):\n    if path not in ROUTES:\n        return \"404\"\n    return ROUTES[path]()\n",
+                  "hint": "Так устроены @app.get('/path') во FastAPI и Flask.",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-practice-e6",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `parametrize(cases)`: превращает функцию `check(*args)` в функцию без аргументов, которая прогоняет `check` на каждом кортеже из `cases` и возвращает **количество упавших** случаев (упал — выбросил `AssertionError`).",
+                  "starter_code": "def parametrize(cases):\n    pass\n",
+                  "tests": "def test_values():\n    @parametrize([(1, 1, 2), (2, 2, 5), (0, 5, 5), (3, 3, 7)])\n    def check_add(a, b, expected):\n        assert a + b == expected\n    assert check_add() == 2, f\"Получено {check_add()}\"\n",
+                  "solution": "from functools import wraps\n\n\ndef parametrize(cases):\n    def decorator(func):\n        @wraps(func)\n        def run_all():\n            failed = 0\n            for case in cases:\n                try:\n                    func(*case)\n                except AssertionError:\n                    failed += 1\n            return failed\n        return run_all\n    return decorator\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-practice-e7",
+                  "type": "code",
+                  "prompt": "Напиши декоратор `fixture` — упрощённая фикстура: функция-фикстура вызывается **один раз** при первом обращении, дальше возвращается тот же объект. И декоратор `use(fix)` для тестов: передаёт результат фикстуры тесту первым аргументом.\n\n```\n@fixture\ndef db(): return {\"users\": []}\n\n@use(db)\ndef test_add(database):\n    database[\"users\"].append(\"аня\")\n```",
+                  "starter_code": "def fixture(func):\n    pass\n\n\ndef use(fix):\n    pass\n",
+                  "tests": "def test_values():\n    created = []\n    @fixture\n    def db():\n        created.append(1)\n        return {\"users\": []}\n    @use(db)\n    def test_add(database, name):\n        database[\"users\"].append(name)\n        return len(database[\"users\"])\n    assert test_add(\"аня\") == 1 and test_add(\"боря\") == 2 and created == [1] and db() is db(), \"Фикстура создаётся один раз\"\n",
+                  "solution": "from functools import wraps\n\n\ndef fixture(func):\n    cache = []\n\n    @wraps(func)\n    def wrapper():\n        if not cache:\n            cache.append(func())\n        return cache[0]\n    return wrapper\n\n\ndef use(fix):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            return func(fix(), *args, **kwargs)\n        return wrapper\n    return decorator\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "dec-practice-e8",
+                  "type": "code",
+                  "prompt": "Напиши мини-раннер: декоратор `test(*tags)` регистрирует функцию в глобальном списке `REGISTRY` как пару `(функция, множество_тегов)` и возвращает функцию без изменений. Функция `run(tag=None)` запускает зарегистрированные тесты (все или только с тегом) и возвращает словарь `{\"passed\": [...имена], \"failed\": [...имена]}`; упал — выбросил `AssertionError`.",
+                  "starter_code": "REGISTRY = []\n\n\ndef test(*tags):\n    pass\n\n\ndef run(tag=None):\n    pass\n",
+                  "tests": "def test_values():\n    REGISTRY.clear()\n    @test(\"smoke\")\n    def a():\n        assert True\n    @test(\"smoke\", \"api\")\n    def b():\n        assert False\n    @test(\"api\")\n    def c():\n        assert 1\n    assert run() == {\"passed\": [\"a\", \"c\"], \"failed\": [\"b\"]}, run()\n    assert run(\"smoke\") == {\"passed\": [\"a\"], \"failed\": [\"b\"]} and run(\"ui\") == {\"passed\": [], \"failed\": []}, run(\"smoke\")\n",
+                  "solution": "REGISTRY = []\n\n\ndef test(*tags):\n    def decorator(func):\n        REGISTRY.append((func, set(tags)))\n        return func\n    return decorator\n\n\ndef run(tag=None):\n    result = {\"passed\": [], \"failed\": []}\n    for func, tags in REGISTRY:\n        if tag is not None and tag not in tags:\n            continue\n        try:\n            func()\n        except AssertionError:\n            result[\"failed\"].append(func.__name__)\n        else:\n            result[\"passed\"].append(func.__name__)\n    return result\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВ автотестах декораторы на каждом шагу: `@pytest.fixture`, `@pytest.mark.smoke`, `@pytest.mark.parametrize`, `@pytest.mark.skipif`, `@allure.step`. Во фреймворках для API — `@app.get(\"/users\")`. Разберём, как устроены такие декораторы, написав их упрощённые версии.\n\n## Регистрация: собрать функции в список\n\n```python\nTESTS = []\n\ndef test(func):\n    TESTS.append(func)\n    return func\n\n@test\ndef check_login():\n    assert True\n\n@test\ndef check_cart():\n    assert 1 + 1 == 3\n\ndef helper():\n    pass\n\nfor t in TESTS:\n    try:\n        t()\n        print(\"PASS\", t.__name__)\n    except AssertionError:\n        print(\"FAIL\", t.__name__)\n```\n\n- Декоратор не оборачивает функцию, а **регистрирует**: добавляет в список и возвращает её же.\n- `helper` без декоратора в список не попал — раннер его не запустит.\n- Вывод: `PASS check_login`, `FAIL check_cart`.\n- Так же работают маршруты веб-фреймворков: `@app.get(\"/users\")` кладёт функцию в словарь «путь → обработчик».\n\n## Метки\n\n```python\ndef mark(*tags):\n    def decorator(func):\n        func.tags = set(tags)\n        return func\n    return decorator\n\n@mark(\"smoke\", \"api\")\ndef test_status(): pass\n\n@mark(\"regression\")\ndef test_history(): pass\n\ntests = [test_status, test_history]\nprint([t.__name__ for t in tests if \"smoke\" in t.tags])\n```\n\n- Метка — атрибут функции. Раннер читает его и решает, запускать ли тест.\n- Это упрощённый `@pytest.mark.smoke`: `pytest -m smoke` запускает только помеченные.\n- Вывод: `['test_status']`.\n\n## Пропуск по условию\n\n```python\nfrom functools import wraps\n\ndef skip_if(condition, reason):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            if condition:\n                return f\"SKIP: {reason}\"\n            return func(*args, **kwargs)\n        return wrapper\n    return decorator\n\nimport sys\n\n@skip_if(sys.platform == \"no-such-os\", \"не та ОС\")\ndef test_paths():\n    return \"ran\"\n\n@skip_if(True, \"баг #123\")\ndef test_known_bug():\n    return \"ran\"\n\nprint(test_paths(), test_known_bug())\n```\n\n- `condition` вычисляется **один раз** при декорировании.\n- Аналог: `@pytest.mark.skipif(sys.platform == \"win32\", reason=\"...\")`.\n- Вывод: `ran SKIP: баг #123`.\n\n## Параметризация\n\n```python\ndef parametrize(cases):\n    def decorator(func):\n        def run_all():\n            return [func(*case) for case in cases]\n        return run_all\n    return decorator\n\n@parametrize([(2, 3, 5), (0, 0, 0), (-1, 1, 1)])\ndef check_add(a, b, expected):\n    return \"ok\" if a + b == expected else f\"FAIL {a}+{b}\"\n\nprint(check_add())\n```\n\n- Один тест — много наборов данных. `func(*case)` распаковывает кортеж в аргументы.\n- В pytest: `@pytest.mark.parametrize(\"a, b, expected\", [(2, 3, 5), ...])`, и каждый набор становится отдельным тестом в отчёте.\n- Вывод: `['ok', 'ok', 'FAIL -1+1']`.\n\n## Фикстура\n\n```python\nfrom functools import wraps\n\ndef fixture(func):\n    cache = []\n    @wraps(func)\n    def wrapper():\n        if not cache:\n            cache.append(func())\n        return cache[0]\n    return wrapper\n\n@fixture\ndef db():\n    print(\"подключение к БД\")\n    return {\"users\": []}\n\ndb()[\"users\"].append(\"аня\")\nprint(db())\n```\n\n- Фикстура готовит данные для тестов. Здесь она создаётся один раз и переиспользуется, как `@pytest.fixture(scope=\"session\")`.\n- `cache` — список: пустой — значит, ещё не создавали.\n- Вывод: `подключение к БД`, `{'users': ['аня']}`.\n\n## Итог\n\n- Регистрирующий декоратор кладёт функцию в список/словарь и возвращает её.\n- Метки — атрибуты функции (`func.tags`).\n- `skip_if`, `parametrize`, `fixture` — декораторы с параметрами или состоянием.\n- Pytest устроен на тех же приёмах, только богаче.",
+              "quiz": [
+                {
+                  "q": "Что делает регистрирующий декоратор?",
+                  "options": [
+                    "Оборачивает функцию",
+                    "Сохраняет функцию в реестр и возвращает её",
+                    "Удаляет функцию",
+                    "Вызывает функцию сразу"
+                  ],
+                  "answer": 1,
+                  "explain": "Функция остаётся прежней, но попадает в список."
+                },
+                {
+                  "q": "Как устроена метка `@mark(\"smoke\")` в нашей реализации?",
+                  "options": [
+                    "Обёртка",
+                    "Атрибут функции `tags`",
+                    "Глобальная переменная",
+                    "Имя функции"
+                  ],
+                  "answer": 1,
+                  "explain": "Раннер читает атрибут и фильтрует тесты."
+                },
+                {
+                  "q": "Что делает `@pytest.mark.parametrize`?",
+                  "options": [
+                    "Пропускает тест",
+                    "Запускает тест с разными наборами данных",
+                    "Кэширует тест",
+                    "Повторяет упавший тест"
+                  ],
+                  "answer": 1,
+                  "explain": "Каждый набор — отдельный тест в отчёте."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
