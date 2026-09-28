@@ -1,5 +1,5 @@
 // Прохождение урока / повторения: теория → задания по одному → финальный экран.
-import { api, esc, md, highlight, sound, modal, confetti, toast, $ } from "../util.js";
+import { api, esc, md, highlight, sound, modal, confetti, burst, toast, $ } from "../util.js";
 import { createEditor } from "../editor.js";
 import { bindRunnable } from "../runnable.js";
 import { store, setState, announce } from "../store.js";
@@ -325,7 +325,8 @@ export function runSession(view, opts) {
       if (r.details) showConsole(r.details, true);
 
       if (r.correct) {
-        sound("good");
+        sound("win");
+        burst(btn);
         if (!item.solved) {
           s.solvedNow++;
           if (!item.failed) s.firstTry++;
@@ -427,7 +428,12 @@ export function runSession(view, opts) {
     bindBack();
     view.querySelectorAll("[data-opt]").forEach((b) => b.onclick = () => {
       quizAnswers[k] = Number(b.dataset.opt);
-      sound(quizAnswers[k] === q.answer ? "good" : "bad");
+      if (quizAnswers[k] === q.answer) {
+        sound("win");
+        burst(b);
+      } else {
+        sound("bad");
+      }
       showQuiz(k);
       $("#qnext", view).focus();
     });
