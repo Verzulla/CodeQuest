@@ -1,0 +1,1478 @@
+{
+  "topics": [
+    {
+      "slug": "py-exceptions",
+      "title": "Исключения",
+      "icon": "🧯",
+      "color": "#ff4b4b",
+      "description": "Типы ошибок, try/except/else/finally, иерархия, raise, свои исключения, цепочки, assert, EAFP, исключения в тестах",
+      "group": "Python",
+      "modules": [
+        {
+          "slug": "exc-m1",
+          "title": "Ошибки и их перехват",
+          "icon": "🧯",
+          "description": "Типы ошибок, try/except, else и finally, иерархия исключений",
+          "lessons": [
+            {
+              "slug": "exc-m1-l1",
+              "title": "Что такое исключение",
+              "theory": "```py\ntry:\n    n = int(text)\nexcept ValueError as e:\n    print(\"ошибка:\", e)      # текст ошибки\ntype(e).__name__             # имя типа\n# ValueError, TypeError, KeyError, IndexError,\n# ZeroDivisionError, NameError, AttributeError\n```",
+              "exercises": [
+                {
+                  "slug": "exc-m1-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Какие ошибки возникают.",
+                  "code": "checks = [\n    lambda: int(\"abc\"),\n    lambda: 1 / 0,\n    lambda: [1, 2][5],\n    lambda: {\"a\": 1}[\"b\"],\n    lambda: \"5\" + 5,\n]\nfor check in checks:\n    try:\n        check()\n    except Exception as e:\n        print(type(e).__name__)\n",
+                  "expected_output": "ValueError\nZeroDivisionError\nIndexError\nKeyError\nTypeError",
+                  "hint": "type(e).__name__ — имя класса ошибки.",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m1-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Ошибка останавливает выполнение.",
+                  "code": "def risky():\n    print(\"до ошибки\")\n    x = 1 / 0\n    print(\"после ошибки\")\n\ntry:\n    risky()\nexcept ZeroDivisionError:\n    print(\"поймали\")\nprint(\"программа продолжается\")\n",
+                  "expected_output": "до ошибки\nпоймали\nпрограмма продолжается",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m1-l1-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Текст ошибки.",
+                  "code": "for text in [\"12\", \"x\"]:\n    try:\n        print(int(text))\n    except ValueError as e:\n        print(\"ошибка:\", e)\n",
+                  "expected_output": "12\nошибка: invalid literal for int() with base 10: 'x'",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m1-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `error_name(func)` — вызвать функцию без аргументов и вернуть **имя типа** исключения, которое она выбросила, или `\"нет ошибки\"`.\n\n```\nerror_name(lambda: 1 / 0)      # → \"ZeroDivisionError\"\nerror_name(lambda: 42)         # → \"нет ошибки\"\n```",
+                  "starter_code": "def error_name(func):\n    pass\n",
+                  "tests": "def test_values():\n    got = [error_name(lambda: 1 / 0), error_name(lambda: 42), error_name(lambda: [][0]), error_name(lambda: int(\"x\"))]\n    assert got == [\"ZeroDivisionError\", \"нет ошибки\", \"IndexError\", \"ValueError\"], f\"Получено {got}\"\n",
+                  "solution": "def error_name(func):\n    try:\n        func()\n    except Exception as e:\n        return type(e).__name__\n    return \"нет ошибки\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m1-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `safe_int(text)` — `int(text)` или `None`, если строка не является числом.",
+                  "starter_code": "def safe_int(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert [safe_int(\"42\"), safe_int(\" -7 \"), safe_int(\"x\"), safe_int(\"\")] == [42, -7, None, None], \"Неверный результат\"\n",
+                  "solution": "def safe_int(text):\n    try:\n        return int(text)\n    except ValueError:\n        return None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m1-l1-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `safe_div(a, b)` — `a / b`, а при делении на ноль — `None`.",
+                  "starter_code": "def safe_div(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    assert [safe_div(6, 3), safe_div(1, 0)] == [2.0, None], \"Неверный результат\"\n",
+                  "solution": "def safe_div(a, b):\n    try:\n        return a / b\n    except ZeroDivisionError:\n        return None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m1-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `get_item(items, index)` — элемент списка по индексу или `None`, если индекса нет. Лови `IndexError`.",
+                  "starter_code": "def get_item(items, index):\n    pass\n",
+                  "tests": "def test_values():\n    assert [get_item([1, 2], 1), get_item([1, 2], 5), get_item([], 0), get_item([1, 2], -1)] == [2, None, None, 2], \"Неверный результат\"\n",
+                  "solution": "def get_item(items, index):\n    try:\n        return items[index]\n    except IndexError:\n        return None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m1-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `error_message(func)` — вызвать функцию; при ошибке вернуть строку `\"<Тип>: <текст>\"`, иначе `\"ok\"`.\n\n```\nerror_message(lambda: int(\"x\"))\n# → \"ValueError: invalid literal for int() with base 10: 'x'\"\n```",
+                  "starter_code": "def error_message(func):\n    pass\n",
+                  "tests": "def test_values():\n    assert error_message(lambda: int(\"x\")) == \"ValueError: invalid literal for int() with base 10: 'x'\", \"Неверное сообщение\"\n    assert error_message(lambda: 1) == \"ok\" and error_message(lambda: {}[\"k\"]) == \"KeyError: 'k'\", \"Неверный результат\"\n",
+                  "solution": "def error_message(func):\n    try:\n        func()\n    except Exception as e:\n        return f\"{type(e).__name__}: {e}\"\n    return \"ok\"\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПрограммы постоянно сталкиваются с проблемами: пользователь ввёл буквы вместо числа, сервер вернул пустой ответ, в словаре нет нужного ключа. В Python такая ситуация называется **исключением** (exception). Если его не обработать, программа останавливается с сообщением об ошибке. Умение перехватывать исключения делает код надёжным, а тестировщику помогает понимать, **что именно** пошло не так.\n\n## Частые исключения\n\n```python\nchecks = [\n    lambda: int(\"abc\"),\n    lambda: 1 / 0,\n    lambda: [1, 2][5],\n    lambda: {\"a\": 1}[\"b\"],\n    lambda: \"5\" + 5,\n]\nfor check in checks:\n    try:\n        check()\n    except Exception as e:\n        print(type(e).__name__)\n```\n\n- `ValueError` — значение подходящего типа, но неверное: `int(\"abc\")`.\n- `ZeroDivisionError` — деление на ноль.\n- `IndexError` — индекса нет в списке.\n- `KeyError` — ключа нет в словаре.\n- `TypeError` — операция с неподходящим типом: строка + число.\n- Ещё встречаются `NameError` (имя не определено), `AttributeError` (у объекта нет атрибута/метода).\n- `type(e).__name__` — имя класса исключения. Вывод: пять имён по порядку.\n\n## Исключение останавливает выполнение\n\n```python\ndef risky():\n    print(\"до ошибки\")\n    x = 1 / 0\n    print(\"после ошибки\")\n\ntry:\n    risky()\nexcept ZeroDivisionError:\n    print(\"поймали\")\nprint(\"программа продолжается\")\n```\n\n- Как только возникло исключение, выполнение функции **прерывается**: «после ошибки» не печатается.\n- Исключение «летит» наружу по цепочке вызовов, пока его не перехватят. Здесь его поймал `except` снаружи функции.\n- Если бы перехвата не было, программа завершилась бы и напечатала **трассировку** (traceback): список вызовов, строку с ошибкой и её тип с текстом.\n- Вывод: `до ошибки`, `поймали`, `программа продолжается`.\n\n## Текст ошибки\n\n```python\nfor text in [\"12\", \"x\"]:\n    try:\n        print(int(text))\n    except ValueError as e:\n        print(\"ошибка:\", e)\n```\n\n- `except ... as e` — сохранить объект исключения в переменную `e`. `print(e)` или `str(e)` — его текст.\n- Вывод: `12`, `ошибка: invalid literal for int() with base 10: 'x'`.\n\n## Безопасные версии операций\n\n```python\ndef safe_int(text):\n    try:\n        return int(text)\n    except ValueError:\n        return None\n\nprint(safe_int(\"42\"), safe_int(\"x\"))\n```\n\n- Частый приём: попробовать, а при ошибке вернуть запасное значение. Вывод: `42 None`.\n\n## Итог\n\n- Исключение — сигнал о проблеме; без перехвата программа останавливается с трассировкой.\n- Частые: `ValueError`, `TypeError`, `KeyError`, `IndexError`, `ZeroDivisionError`, `NameError`, `AttributeError`.\n- `try: ... except Тип as e:` — перехват; `str(e)` — текст, `type(e).__name__` — тип.\n- После исключения остаток кода в `try` не выполняется.",
+              "quiz": [
+                {
+                  "q": "Какое исключение даст `[1, 2][10]`?",
+                  "options": [
+                    "KeyError",
+                    "IndexError",
+                    "ValueError",
+                    "TypeError"
+                  ],
+                  "answer": 1,
+                  "explain": "Индекса нет в списке."
+                },
+                {
+                  "q": "Какое исключение даст `int(\"abc\")`?",
+                  "options": [
+                    "TypeError",
+                    "ValueError",
+                    "NameError",
+                    "KeyError"
+                  ],
+                  "answer": 1,
+                  "explain": "Тип подходит (строка), значение — нет."
+                },
+                {
+                  "q": "Что происходит с остатком кода в `try` после исключения?",
+                  "options": [
+                    "Выполняется",
+                    "Пропускается",
+                    "Выполняется после except",
+                    "Зависит от типа"
+                  ],
+                  "answer": 1,
+                  "explain": "Управление сразу переходит в except."
+                }
+              ]
+            },
+            {
+              "slug": "exc-m1-l2",
+              "title": "try/except подробно",
+              "theory": "```py\ntry:\n    return 100 / int(text)\nexcept ValueError:\n    return \"не число\"\nexcept ZeroDivisionError:\n    return \"деление на ноль\"\nexcept (KeyError, IndexError) as e: ...   # несколько типов\nexcept Exception: ...                     # широко — осознанно\nexcept: ...                               # НЕ надо (ловит и Ctrl+C)\n```",
+              "exercises": [
+                {
+                  "slug": "exc-m1-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Несколько except.",
+                  "code": "def parse(text):\n    try:\n        return 100 / int(text)\n    except ValueError:\n        return \"не число\"\n    except ZeroDivisionError:\n        return \"деление на ноль\"\n\nprint(parse(\"4\"), parse(\"x\"), parse(\"0\"))\n",
+                  "expected_output": "25.0 не число деление на ноль",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m1-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Кортеж исключений.",
+                  "code": "def lookup(data, key):\n    try:\n        return data[key]\n    except (KeyError, IndexError, TypeError) as e:\n        return f\"не найдено ({type(e).__name__})\"\n\nprint(lookup({\"a\": 1}, \"b\"), lookup([1], 3), lookup(None, 0))\n",
+                  "expected_output": "не найдено (KeyError) не найдено (IndexError) не найдено (TypeError)",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m1-l2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Неперехваченное летит дальше.",
+                  "code": "def inner():\n    try:\n        return [][0]\n    except KeyError:\n        return \"KeyError\"\n\ntry:\n    inner()\nexcept IndexError:\n    print(\"IndexError поймали снаружи\")\n",
+                  "expected_output": "IndexError поймали снаружи",
+                  "hint": "except ловит только указанные типы; остальные идут выше по вызовам.",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m1-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_percent(text)` — строку превратить в число и вернуть `100 / число`. Ошибки:\n\n- не число → `\"не число\"`;\n- ноль → `\"деление на ноль\"`.",
+                  "starter_code": "def parse_percent(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert [parse_percent(\"4\"), parse_percent(\"x\"), parse_percent(\"0\")] == [25.0, \"не число\", \"деление на ноль\"], \"Неверный результат\"\n",
+                  "solution": "def parse_percent(text):\n    try:\n        return 100 / int(text)\n    except ValueError:\n        return \"не число\"\n    except ZeroDivisionError:\n        return \"деление на ноль\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m1-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `safe_get(data, key)` — `data[key]` для словаря или списка; при `KeyError`, `IndexError` или `TypeError` — `None`. Перехватывай их одним `except` с кортежем.",
+                  "starter_code": "def safe_get(data, key):\n    pass\n",
+                  "tests": "def test_values():\n    assert [safe_get({\"a\": 1}, \"a\"), safe_get({\"a\": 1}, \"b\"), safe_get([1], 3), safe_get(None, 0), safe_get([1], \"x\")] == [1, None, None, None, None], \"Неверный результат\"\n\ndef test_tuple():\n    assert \"except (\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй except с кортежем\"\n",
+                  "solution": "def safe_get(data, key):\n    try:\n        return data[key]\n    except (KeyError, IndexError, TypeError):\n        return None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m1-l2-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `to_float(value)` — привести значение к `float`; при `ValueError` (строка не число) или `TypeError` (например, `None`) — вернуть `0.0`.",
+                  "starter_code": "def to_float(value):\n    pass\n",
+                  "tests": "def test_values():\n    assert [to_float(\"2.5\"), to_float(3), to_float(\"x\"), to_float(None)] == [2.5, 3.0, 0.0, 0.0], \"Неверный результат\"\n",
+                  "solution": "def to_float(value):\n    try:\n        return float(value)\n    except (ValueError, TypeError):\n        return 0.0\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m1-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `read_config(config, key)` — вернуть `int(config[key])`. Если ключа нет — `\"нет ключа <key>\"`; если значение не число — `\"плохое значение <key>\"`.",
+                  "starter_code": "def read_config(config, key):\n    pass\n",
+                  "tests": "def test_values():\n    cfg = {\"port\": \"8080\", \"host\": \"x\"}\n    assert [read_config(cfg, \"port\"), read_config(cfg, \"timeout\"), read_config(cfg, \"host\")] == [8080, \"нет ключа timeout\", \"плохое значение host\"], \"Неверный результат\"\n",
+                  "solution": "def read_config(config, key):\n    try:\n        return int(config[key])\n    except KeyError:\n        return f\"нет ключа {key}\"\n    except ValueError:\n        return f\"плохое значение {key}\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m1-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `first_error(funcs)` — вызывать функции списка по очереди; вернуть **имя типа** первой возникшей ошибки или `None`, если ошибок не было.",
+                  "starter_code": "def first_error(funcs):\n    pass\n",
+                  "tests": "def test_values():\n    assert first_error([lambda: 1, lambda: [][1], lambda: 1 / 0]) == \"IndexError\" and first_error([lambda: 1]) is None, \"Неверный результат\"\n",
+                  "solution": "def first_error(funcs):\n    for f in funcs:\n        try:\n            f()\n        except Exception as e:\n            return type(e).__name__\n    return None\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОдна операция может упасть по разным причинам, и реагировать на них нужно по-разному: «не число» — попросить ввести заново, «деление на ноль» — вернуть особое значение. У `try` может быть несколько `except`, и один `except` может ловить несколько типов.\n\n## Несколько except\n\n```python\ndef parse(text):\n    try:\n        return 100 / int(text)\n    except ValueError:\n        return \"не число\"\n    except ZeroDivisionError:\n        return \"деление на ноль\"\n\nprint(parse(\"4\"), parse(\"x\"), parse(\"0\"))\n```\n\n- Python проверяет `except` **по порядку** и выполняет первый подходящий.\n- Вывод: `25.0 не число деление на ноль`.\n\n## Кортеж типов\n\n```python\ndef lookup(data, key):\n    try:\n        return data[key]\n    except (KeyError, IndexError, TypeError) as e:\n        return f\"не найдено ({type(e).__name__})\"\n\nprint(lookup({\"a\": 1}, \"b\"), lookup([1], 3), lookup(None, 0))\n```\n\n- `except (A, B, C)` — одна реакция на несколько типов. Скобки обязательны.\n- `None[0]` — `TypeError`: объект не поддерживает индексацию.\n- Вывод: `не найдено (KeyError) не найдено (IndexError) не найдено (TypeError)`.\n\n## Неперехваченное летит дальше\n\n```python\ndef inner():\n    try:\n        return [][0]\n    except KeyError:\n        return \"KeyError\"\n\ntry:\n    inner()\nexcept IndexError:\n    print(\"IndexError поймали снаружи\")\n```\n\n- `except KeyError` не ловит `IndexError` — исключение выходит из функции и ловится выше.\n- Вывод: `IndexError поймали снаружи`.\n\n## Лови конкретные типы\n\n```python\ndef read_config(config, key):\n    try:\n        return int(config[key])\n    except KeyError:\n        return f\"нет ключа {key}\"\n    except ValueError:\n        return f\"плохое значение {key}\"\n\ncfg = {\"port\": \"8080\", \"host\": \"x\"}\nprint(read_config(cfg, \"port\"), read_config(cfg, \"timeout\"), read_config(cfg, \"host\"))\n```\n\n- Каждая причина — своё понятное сообщение. Вывод: `8080 нет ключа timeout плохое значение host`.\n\nПочему не ловить всё подряд:\n- `except Exception:` прячет и **баги** — опечатку в имени (`NameError`), неверный тип. Программа «работает», но неправильно.\n- Голый `except:` без типа ловит даже `KeyboardInterrupt` (Ctrl+C) — программу нельзя остановить. Так писать не надо.\n- Ловить широко допустимо на «границе» программы: записать ошибку в лог, показать пользователю сообщение, продолжить обработку следующего элемента.\n\n## Итог\n\n- Несколько `except` — проверяются по порядку, срабатывает первый подходящий.\n- `except (A, B) as e` — несколько типов сразу.\n- Неподходящее исключение летит дальше по вызовам.\n- Лови конкретные типы; `except Exception` — только осознанно; голый `except:` — нет.",
+              "quiz": [
+                {
+                  "q": "Какой except сработает при ошибке, если подходят несколько?",
+                  "options": [
+                    "Последний",
+                    "Первый подходящий по порядку",
+                    "Все",
+                    "Самый точный"
+                  ],
+                  "answer": 1,
+                  "explain": "Порядок важен."
+                },
+                {
+                  "q": "Как поймать KeyError и IndexError одним блоком?",
+                  "options": [
+                    "`except KeyError, IndexError:`",
+                    "`except (KeyError, IndexError):`",
+                    "`except KeyError or IndexError:`",
+                    "Нельзя"
+                  ],
+                  "answer": 1,
+                  "explain": "Кортеж в скобках."
+                },
+                {
+                  "q": "Почему опасен голый `except:`?",
+                  "options": [
+                    "Он медленный",
+                    "Ловит всё, включая Ctrl+C и баги",
+                    "Не работает",
+                    "Требует as"
+                  ],
+                  "answer": 1,
+                  "explain": "Прячет проблемы."
+                }
+              ]
+            },
+            {
+              "slug": "exc-m1-l3",
+              "title": "else и finally",
+              "theory": "```py\ntry:\n    n = int(text)        # только то, что может упасть\nexcept ValueError:\n    ...                  # при ошибке\nelse:\n    ...                  # если ошибки НЕ было\nfinally:\n    ...                  # ВСЕГДА (даже при return)\n```",
+              "exercises": [
+                {
+                  "slug": "exc-m1-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Порядок блоков.",
+                  "code": "def run(text):\n    try:\n        n = int(text)\n    except ValueError:\n        print(\"except\")\n    else:\n        print(\"else\", n)\n    finally:\n        print(\"finally\")\n\nrun(\"5\")\nrun(\"x\")\n",
+                  "expected_output": "else 5\nfinally\nexcept\nfinally",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m1-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? finally и return.",
+                  "code": "def f():\n    try:\n        return \"из try\"\n    finally:\n        print(\"finally выполнился\")\n\nprint(f())\n",
+                  "expected_output": "finally выполнился\nиз try",
+                  "hint": "finally выполняется даже при return.",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m1-l3-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? finally при неперехваченной ошибке.",
+                  "code": "def g():\n    try:\n        raise KeyError(\"x\")\n    finally:\n        print(\"уборка\")\n\ntry:\n    g()\nexcept KeyError:\n    print(\"ошибка дошла наружу\")\n",
+                  "expected_output": "уборка\nошибка дошла наружу",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m1-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_and_double(text)` с `try/except/else`: в `try` — только превращение в число; в `except ValueError` — вернуть `None`; в `else` — вернуть удвоенное число.",
+                  "starter_code": "def parse_and_double(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert [parse_and_double(\"4\"), parse_and_double(\"x\")] == [8, None], \"Неверный результат\"\n\ndef test_else():\n    assert \"else:\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй блок else\"\n",
+                  "solution": "def parse_and_double(text):\n    try:\n        n = int(text)\n    except ValueError:\n        return None\n    else:\n        return n * 2\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m1-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `with_log(func, log)` — вызвать `func()` и вернуть результат (или `None` при любой ошибке). В любом случае в список `log` добавить `\"done\"` (используй `finally`).",
+                  "starter_code": "def with_log(func, log):\n    pass\n",
+                  "tests": "def test_values():\n    log = []\n    assert with_log(lambda: 5, log) == 5 and with_log(lambda: 1 / 0, log) is None and log == [\"done\", \"done\"], f\"log = {log}\"\n\ndef test_finally():\n    assert \"finally:\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй finally\"\n",
+                  "solution": "def with_log(func, log):\n    try:\n        return func()\n    except Exception:\n        return None\n    finally:\n        log.append(\"done\")\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m1-l3-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `use_resource(resource, action)` — `resource` это словарь `{\"open\": False}`. Функция «открывает» ресурс (`resource[\"open\"] = True`), вызывает `action()`, а потом **обязательно** «закрывает» (`False`) — даже если `action` упала. Ошибку не перехватывать.",
+                  "starter_code": "def use_resource(resource, action):\n    pass\n",
+                  "tests": "def test_ok():\n    r = {\"open\": False}\n    assert use_resource(r, lambda: 42) == 42 and r[\"open\"] is False, \"Ресурс должен закрыться\"\n\ndef test_error():\n    r = {\"open\": False}\n    try:\n        use_resource(r, lambda: 1 / 0)\n    except ZeroDivisionError:\n        assert r[\"open\"] is False, \"Ресурс должен закрыться даже при ошибке\"\n        return\n    assert False, \"Ошибка должна пройти наружу\"\n",
+                  "solution": "def use_resource(resource, action):\n    resource[\"open\"] = True\n    try:\n        return action()\n    finally:\n        resource[\"open\"] = False\n",
+                  "hint": "try/finally без except: уборка выполнится, а ошибка полетит дальше.",
+                  "xp": 20
+                },
+                {
+                  "slug": "exc-m1-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `steps(text)` — вернуть список этапов, через которые прошла обработка: всегда `\"try\"`, затем `\"except\"` (если `int(text)` упал) или `\"else\"`, и всегда `\"finally\"`.\n\n```\nsteps(\"5\")   # → [\"try\", \"else\", \"finally\"]\nsteps(\"x\")   # → [\"try\", \"except\", \"finally\"]\n```",
+                  "starter_code": "def steps(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert steps(\"5\") == [\"try\", \"else\", \"finally\"] and steps(\"x\") == [\"try\", \"except\", \"finally\"], \"Неверный порядок\"\n",
+                  "solution": "def steps(text):\n    log = []\n    try:\n        log.append(\"try\")\n        int(text)\n    except ValueError:\n        log.append(\"except\")\n    else:\n        log.append(\"else\")\n    finally:\n        log.append(\"finally\")\n    return log\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m1-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `average_or_none(nums)` — среднее; для пустого списка деление на ноль даёт `ZeroDivisionError` — тогда `None`. Используй `try/except/else`: в `else` — округление до 2 знаков.",
+                  "starter_code": "def average_or_none(nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert [average_or_none([1, 2, 2]), average_or_none([])] == [1.67, None], \"Неверный результат\"\n",
+                  "solution": "def average_or_none(nums):\n    try:\n        avg = sum(nums) / len(nums)\n    except ZeroDivisionError:\n        return None\n    else:\n        return round(avg, 2)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКроме `try` и `except` есть ещё два блока. `else` — код, который выполняется, **если ошибки не было**. `finally` — код, который выполняется **всегда**: уборка, закрытие ресурсов, запись в лог. В автотестах `finally` гарантирует, что браузер закроется, а тестовые данные удалятся, даже если тест упал.\n\n## Порядок блоков\n\n```python\ndef run(text):\n    try:\n        n = int(text)\n    except ValueError:\n        print(\"except\")\n    else:\n        print(\"else\", n)\n    finally:\n        print(\"finally\")\n\nrun(\"5\")\nrun(\"x\")\n```\n\n- Успех: `try` → `else` → `finally`. Ошибка: `try` → `except` → `finally`.\n- Вывод: `else 5`, `finally`, `except`, `finally`.\n\n## Зачем else\n\nВ `try` стоит держать **только** код, который может упасть с ожидаемой ошибкой. Всё, что должно выполниться после успеха, — в `else`. Иначе `except` случайно поймает ошибку из «хорошего» кода.\n\n```python\ndef parse_and_double(text):\n    try:\n        n = int(text)\n    except ValueError:\n        return None\n    else:\n        return n * 2\n\nprint(parse_and_double(\"4\"), parse_and_double(\"x\"))\n```\n\nВывод: `8 None`.\n\n## finally выполняется всегда\n\n```python\ndef f():\n    try:\n        return \"из try\"\n    finally:\n        print(\"finally выполнился\")\n\nprint(f())\n```\n\n- Даже `return` не отменяет `finally`: сначала выполняется `finally`, потом функция возвращает значение.\n- Вывод: `finally выполнился`, `из try`.\n\n```python\ndef g():\n    try:\n        raise KeyError(\"x\")\n    finally:\n        print(\"уборка\")\n\ntry:\n    g()\nexcept KeyError:\n    print(\"ошибка дошла наружу\")\n```\n\n- `try/finally` без `except`: уборка выполнится, а исключение полетит дальше.\n- `raise KeyError(\"x\")` — выбросить исключение самому (урок «raise»).\n- Вывод: `уборка`, `ошибка дошла наружу`.\n\n## Ресурс, который нужно закрыть\n\n```python\nresource = {\"open\": False}\n\ndef use(action):\n    resource[\"open\"] = True\n    try:\n        return action()\n    finally:\n        resource[\"open\"] = False\n\ntry:\n    use(lambda: 1 / 0)\nexcept ZeroDivisionError:\n    print(\"упало, но ресурс закрыт:\", resource[\"open\"] is False)\n```\n\n- Так работают файлы, соединения, браузеры в тестах. Удобная запись того же — `with` (тема «Контекстные менеджеры»).\n- Вывод: `упало, но ресурс закрыт: True`.\n\n## Итог\n\n- `else` — если ошибки не было; держи в `try` минимум кода.\n- `finally` — всегда: при успехе, ошибке, `return`.\n- `try/finally` без `except` — уборка без перехвата.\n- Порядок: `try` → `except`… → `else` → `finally`.",
+              "quiz": [
+                {
+                  "q": "Когда выполняется `else` у try?",
+                  "options": [
+                    "Всегда",
+                    "Если в try не было исключения",
+                    "При исключении",
+                    "Никогда"
+                  ],
+                  "answer": 1,
+                  "explain": "Успешная ветка."
+                },
+                {
+                  "q": "Выполнится ли `finally`, если в `try` стоит `return`?",
+                  "options": [
+                    "Нет",
+                    "Да — перед возвратом",
+                    "Только при ошибке",
+                    "Ошибка синтаксиса"
+                  ],
+                  "answer": 1,
+                  "explain": "finally выполняется всегда."
+                },
+                {
+                  "q": "Можно ли написать `try/finally` без `except`?",
+                  "options": [
+                    "Нет",
+                    "Да — исключение пройдёт дальше после уборки",
+                    "Только с else",
+                    "Только в функции"
+                  ],
+                  "answer": 1,
+                  "explain": "Уборка без перехвата."
+                }
+              ]
+            },
+            {
+              "slug": "exc-m1-l4",
+              "title": "Иерархия исключений",
+              "theory": "```py\n# BaseException\n#   Exception\n#     LookupError: KeyError, IndexError\n#     ArithmeticError: ZeroDivisionError\n#     ValueError, TypeError, ...\n#   KeyboardInterrupt, SystemExit   (не Exception!)\nexcept LookupError: ...      # ловит KeyError и IndexError\n# порядок except: частное -> общее\nissubclass(KeyError, LookupError); isinstance(e, LookupError)\n```",
+              "exercises": [
+                {
+                  "slug": "exc-m1-l4-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "print(issubclass(KeyError, LookupError), issubclass(IndexError, LookupError))\nprint(issubclass(ZeroDivisionError, ArithmeticError), issubclass(ValueError, Exception))\nprint(issubclass(KeyboardInterrupt, Exception))\n",
+                  "expected_output": "True True\nTrue True\nFalse",
+                  "hint": "KeyboardInterrupt наследует BaseException, а не Exception.",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m1-l4-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Базовый класс ловит потомков.",
+                  "code": "for bad in [lambda: {}[\"x\"], lambda: [][1]]:\n    try:\n        bad()\n    except LookupError as e:\n        print(\"LookupError поймал\", type(e).__name__)\n",
+                  "expected_output": "LookupError поймал KeyError\nLookupError поймал IndexError",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m1-l4-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Порядок except.",
+                  "code": "try:\n    {}[\"x\"]\nexcept LookupError:\n    print(\"сработал LookupError\")\nexcept KeyError:\n    print(\"сработал KeyError\")\n",
+                  "expected_output": "сработал LookupError",
+                  "hint": "Срабатывает первый подходящий except — более общий перехватил раньше.",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m1-l4-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `lookup(data, key)` — `data[key]`; для отсутствующего ключа словаря **и** индекса списка вернуть `None`, перехватив **один** общий базовый класс `LookupError`.",
+                  "starter_code": "def lookup(data, key):\n    pass\n",
+                  "tests": "def test_values():\n    assert [lookup({\"a\": 1}, \"a\"), lookup({\"a\": 1}, \"b\"), lookup([1], 5)] == [1, None, None], \"Неверный результат\"\n\ndef test_lookup_error():\n    assert \"LookupError\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Перехватывай LookupError\"\n",
+                  "solution": "def lookup(data, key):\n    try:\n        return data[key]\n    except LookupError:\n        return None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m1-l4-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `classify(func)` — вызвать функцию и вернуть:\n\n- `\"lookup\"` — для ошибок поиска (`LookupError` и потомки);\n- `\"math\"` — для арифметических (`ArithmeticError`);\n- `\"other\"` — для прочих `Exception`;\n- `\"ok\"` — если ошибки не было.\n\nПорядок `except` — от частного к общему.",
+                  "starter_code": "def classify(func):\n    pass\n",
+                  "tests": "def test_values():\n    got = [classify(lambda: {}[\"x\"]), classify(lambda: 1 / 0), classify(lambda: int(\"x\")), classify(lambda: 1)]\n    assert got == [\"lookup\", \"math\", \"other\", \"ok\"], f\"Получено {got}\"\n",
+                  "solution": "def classify(func):\n    try:\n        func()\n    except LookupError:\n        return \"lookup\"\n    except ArithmeticError:\n        return \"math\"\n    except Exception:\n        return \"other\"\n    return \"ok\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m1-l4-e6",
+                  "type": "code",
+                  "prompt": "Исправь порядок `except` в заготовке: сейчас общий `Exception` стоит первым, и частный обработчик `KeyError` никогда не срабатывает.",
+                  "starter_code": "def find(d, key):\n    try:\n        return d[key]\n    except Exception:\n        return \"ошибка\"\n    except KeyError:\n        return \"нет ключа\"\n",
+                  "tests": "def test_values():\n    assert find({\"a\": 1}, \"b\") == \"нет ключа\" and find(None, \"x\") == \"ошибка\" and find({\"a\": 1}, \"a\") == 1, \"Неверный результат\"\n",
+                  "solution": "def find(d, key):\n    try:\n        return d[key]\n    except KeyError:\n        return \"нет ключа\"\n    except Exception:\n        return \"ошибка\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m1-l4-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `ancestors(exc_type)` — список имён классов-предков исключения от него самого до `BaseException` включительно. Используй атрибут `__mro__` класса (порядок поиска методов) и остановись на `BaseException`.\n\n```\nancestors(KeyError)   # → [\"KeyError\", \"LookupError\", \"Exception\", \"BaseException\"]\n```",
+                  "starter_code": "def ancestors(exc_type):\n    pass\n",
+                  "tests": "def test_values():\n    assert ancestors(KeyError) == [\"KeyError\", \"LookupError\", \"Exception\", \"BaseException\"], f\"Получено {ancestors(KeyError)}\"\n    assert ancestors(ZeroDivisionError) == [\"ZeroDivisionError\", \"ArithmeticError\", \"Exception\", \"BaseException\"], \"Неверная цепочка\"\n",
+                  "solution": "def ancestors(exc_type):\n    result = []\n    for cls in exc_type.__mro__:\n        result.append(cls.__name__)\n        if cls is BaseException:\n            break\n    return result\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "exc-m1-l4-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_lookup_problem(exc)` — является ли **объект-исключение** ошибкой поиска (экземпляром `LookupError`). Используй `isinstance`.\n\n```\nis_lookup_problem(KeyError(\"x\"))     # → True\nis_lookup_problem(ValueError(\"x\"))   # → False\n```",
+                  "starter_code": "def is_lookup_problem(exc):\n    pass\n",
+                  "tests": "def test_values():\n    assert [is_lookup_problem(KeyError(\"x\")), is_lookup_problem(IndexError()), is_lookup_problem(ValueError(\"x\"))] == [True, True, False], \"Неверный результат\"\n",
+                  "solution": "def is_lookup_problem(exc):\n    return isinstance(exc, LookupError)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nИсключения в Python образуют **иерархию** классов: `KeyError` и `IndexError` — разновидности `LookupError`, а все обычные ошибки — разновидности `Exception`. `except` ловит указанный класс **и всех его потомков**. Понимание иерархии объясняет, почему порядок `except` важен и почему `except Exception` ловит почти всё.\n\n## Родственные связи\n\n```python\nprint(issubclass(KeyError, LookupError), issubclass(IndexError, LookupError))\nprint(issubclass(ZeroDivisionError, ArithmeticError), issubclass(ValueError, Exception))\nprint(issubclass(KeyboardInterrupt, Exception))\n```\n\n- `issubclass(A, B)` — является ли класс `A` разновидностью `B`.\n- Часть иерархии:\n  - `BaseException` — корень всего;\n  - `Exception` — все «обычные» ошибки;\n  - `LookupError` → `KeyError`, `IndexError`;\n  - `ArithmeticError` → `ZeroDivisionError`, `OverflowError`;\n  - `KeyboardInterrupt`, `SystemExit` — наследники `BaseException`, **не** `Exception`: поэтому `except Exception` не мешает остановить программу по Ctrl+C.\n- Вывод: `True True`, `True True`, `False`.\n\n## Базовый класс ловит потомков\n\n```python\nfor bad in [lambda: {}[\"x\"], lambda: [][1]]:\n    try:\n        bad()\n    except LookupError as e:\n        print(\"LookupError поймал\", type(e).__name__)\n```\n\n- Один `except LookupError` перехватывает и `KeyError`, и `IndexError`. Вывод: `LookupError поймал KeyError`, `LookupError поймал IndexError`.\n\n## Порядок except: от частного к общему\n\n```python\ntry:\n    {}[\"x\"]\nexcept LookupError:\n    print(\"сработал LookupError\")\nexcept KeyError:\n    print(\"сработал KeyError\")\n```\n\n- Первым стоит более общий `LookupError` — он перехватывает `KeyError`, и второй блок **никогда** не сработает.\n- Правило: частные типы — выше, общие — ниже. Вывод: `сработал LookupError`.\n\n```python\ndef classify(func):\n    try:\n        func()\n    except LookupError:\n        return \"lookup\"\n    except ArithmeticError:\n        return \"math\"\n    except Exception:\n        return \"other\"\n    return \"ok\"\n\nprint(classify(lambda: {}[\"x\"]), classify(lambda: 1 / 0), classify(lambda: int(\"x\")), classify(lambda: 1))\n```\n\nВывод: `lookup math other ok`.\n\n## Цепочка предков\n\n```python\nprint([cls.__name__ for cls in KeyError.__mro__])\nprint(isinstance(KeyError(\"x\"), LookupError))\n```\n\n- `__mro__` — кортеж классов от самого класса до `object` (порядок поиска методов, тема «Классы»).\n- `isinstance(объект, Класс)` — проверка для **объекта** исключения (например, пойманного в `except Exception as e`).\n- Вывод: `['KeyError', 'LookupError', 'Exception', 'BaseException', 'object']`, `True`.\n\n## Итог\n\n- Исключения — иерархия классов; `except X` ловит `X` и всех потомков.\n- `Exception` — база обычных ошибок; `KeyboardInterrupt` в неё не входит.\n- `LookupError` ⊃ `KeyError`, `IndexError`; `ArithmeticError` ⊃ `ZeroDivisionError`.\n- `except` — от частного к общему.\n- `issubclass` — для классов, `isinstance` — для объектов.",
+              "quiz": [
+                {
+                  "q": "Поймает ли `except LookupError` ошибку `KeyError`?",
+                  "options": [
+                    "Нет",
+                    "Да — KeyError его потомок",
+                    "Только с as",
+                    "Только в Python 2"
+                  ],
+                  "answer": 1,
+                  "explain": "except ловит потомков."
+                },
+                {
+                  "q": "Почему `except Exception` не мешает остановить программу по Ctrl+C?",
+                  "options": [
+                    "Ctrl+C не исключение",
+                    "KeyboardInterrupt наследует BaseException, а не Exception",
+                    "Python это блокирует",
+                    "Мешает"
+                  ],
+                  "answer": 1,
+                  "explain": "Он вне ветки Exception."
+                },
+                {
+                  "q": "Как расставлять except?",
+                  "options": [
+                    "От общего к частному",
+                    "От частного к общему",
+                    "По алфавиту",
+                    "Не важно"
+                  ],
+                  "answer": 1,
+                  "explain": "Иначе частный блок не сработает."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "exc-m2",
+          "title": "Выбрасывание исключений",
+          "icon": "🚨",
+          "description": "raise, свои исключения, повторный выброс и цепочки, assert",
+          "lessons": [
+            {
+              "slug": "exc-m2-l1",
+              "title": "raise: сообщить об ошибке",
+              "theory": "```py\nif age < 0:\n    raise ValueError(f\"возраст < 0: {age}\")   # функция прерывается\nraise TypeError(\"нужно целое число\")   # неверный тип\nraise KeyError(key)                    # нет ключа\nraise RuntimeError(f\"HTTP {status}\")   # прочее\ne.args; str(e)\n```",
+              "exercises": [
+                {
+                  "slug": "exc-m2-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def set_age(age):\n    if age < 0:\n        raise ValueError(f\"возраст не может быть отрицательным: {age}\")\n    return age\n\nprint(set_age(30))\ntry:\n    set_age(-5)\nexcept ValueError as e:\n    print(\"ошибка:\", e)\n",
+                  "expected_output": "30\nошибка: возраст не может быть отрицательным: -5",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m2-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Выбор типа ошибки.",
+                  "code": "def check(value):\n    if not isinstance(value, int):\n        raise TypeError(\"нужно целое число\")\n    if value <= 0:\n        raise ValueError(\"нужно положительное\")\n    return \"ok\"\n\nfor v in [5, \"5\", -1]:\n    try:\n        print(check(v))\n    except (TypeError, ValueError) as e:\n        print(type(e).__name__, \"-\", e)\n",
+                  "expected_output": "ok\nTypeError - нужно целое число\nValueError - нужно положительное",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m2-l1-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? raise прерывает функцию.",
+                  "code": "def f():\n    print(\"начало\")\n    raise RuntimeError(\"стоп\")\n    print(\"не выполнится\")\n\ntry:\n    f()\nexcept RuntimeError as e:\n    print(e.args)\n",
+                  "expected_output": "начало\n('стоп',)",
+                  "hint": "e.args — кортеж аргументов, переданных в исключение.",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m2-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `withdraw(balance, amount)` — вернуть новый баланс. Если `amount <= 0` — `ValueError(\"сумма должна быть положительной\")`; если `amount > balance` — `ValueError(\"недостаточно средств\")`.",
+                  "starter_code": "def withdraw(balance, amount):\n    pass\n",
+                  "tests": "def expect_error(func, text):\n    try:\n        func()\n    except ValueError as e:\n        assert str(e) == text, f\"Текст ошибки: {e}\"\n        return\n    assert False, \"Нужен ValueError\"\n\ndef test_ok():\n    assert withdraw(100, 30) == 70, \"Неверный баланс\"\n\ndef test_errors():\n    expect_error(lambda: withdraw(100, 0), \"сумма должна быть положительной\")\n    expect_error(lambda: withdraw(100, 500), \"недостаточно средств\")\n",
+                  "solution": "def withdraw(balance, amount):\n    if amount <= 0:\n        raise ValueError(\"сумма должна быть положительной\")\n    if amount > balance:\n        raise ValueError(\"недостаточно средств\")\n    return balance - amount\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m2-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_port(text)` — номер порта из строки. Не число — `ValueError(\"порт должен быть числом\")`; вне диапазона 1–65535 — `ValueError(\"порт вне диапазона\")`.",
+                  "starter_code": "def parse_port(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert parse_port(\"8080\") == 8080, \"Неверный порт\"\n    for bad, msg in [(\"x\", \"порт должен быть числом\"), (\"0\", \"порт вне диапазона\"), (\"70000\", \"порт вне диапазона\")]:\n        try:\n            parse_port(bad)\n        except ValueError as e:\n            assert str(e) == msg, f\"Для {bad!r} текст: {e}\"\n            continue\n        assert False, f\"Для {bad!r} нужен ValueError\"\n",
+                  "solution": "def parse_port(text):\n    if not text.isdigit():\n        raise ValueError(\"порт должен быть числом\")\n    port = int(text)\n    if not 1 <= port <= 65535:\n        raise ValueError(\"порт вне диапазона\")\n    return port\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m2-l1-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `require(data, *keys)` — проверить, что в словаре есть все ключи; иначе `KeyError` с именем **первого** отсутствующего. Если всё есть — вернуть `True`.",
+                  "starter_code": "def require(data, *keys):\n    pass\n",
+                  "tests": "def test_values():\n    assert require({\"a\": 1, \"b\": 2}, \"a\", \"b\") is True, \"Все ключи есть\"\n    try:\n        require({\"a\": 1}, \"a\", \"x\", \"y\")\n    except KeyError as e:\n        assert e.args[0] == \"x\", f\"Первый отсутствующий — x, получено {e.args}\"\n        return\n    assert False, \"Нужен KeyError\"\n",
+                  "solution": "def require(data, *keys):\n    for key in keys:\n        if key not in data:\n            raise KeyError(key)\n    return True\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m2-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_user(name, age)` — словарь пользователя. Проверки: `name` — непустая строка, иначе `TypeError(\"name: нужна непустая строка\")`; `age` — `int` от 0 до 150, иначе `ValueError(\"age: от 0 до 150\")`.",
+                  "starter_code": "def make_user(name, age):\n    pass\n",
+                  "tests": "def test_ok():\n    assert make_user(\"Аня\", 25) == {\"name\": \"Аня\", \"age\": 25}, \"Неверный пользователь\"\n\ndef test_errors():\n    for args, exc in [((\"\", 1), TypeError), ((5, 1), TypeError), ((\"a\", -1), ValueError), ((\"a\", 200), ValueError), ((\"a\", \"5\"), ValueError)]:\n        try:\n            make_user(*args)\n        except exc:\n            continue\n        assert False, f\"Для {args} нужен {exc.__name__}\"\n",
+                  "solution": "def make_user(name, age):\n    if not isinstance(name, str) or not name:\n        raise TypeError(\"name: нужна непустая строка\")\n    if not isinstance(age, int) or not 0 <= age <= 150:\n        raise ValueError(\"age: от 0 до 150\")\n    return {\"name\": name, \"age\": age}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m2-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `check_status(response)` — `response` словарь с полем `\"status\"`. Для кода `>= 400` выбросить `RuntimeError(\"HTTP <код>\")`, иначе вернуть `response` без изменений. Так работает `raise_for_status` в HTTP-библиотеках.",
+                  "starter_code": "def check_status(response):\n    pass\n",
+                  "tests": "def test_values():\n    r = {\"status\": 200, \"body\": \"ok\"}\n    assert check_status(r) is r, \"Успешный ответ возвращается как есть\"\n    try:\n        check_status({\"status\": 404})\n    except RuntimeError as e:\n        assert str(e) == \"HTTP 404\", f\"Текст: {e}\"\n        return\n    assert False, \"Нужен RuntimeError\"\n",
+                  "solution": "def check_status(response):\n    if response[\"status\"] >= 400:\n        raise RuntimeError(f\"HTTP {response['status']}\")\n    return response\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nИсключения выбрасывает не только Python — их выбрасывают и твои функции, когда получают неправильные данные. `raise` — это способ сказать «так нельзя, дальше не продолжаю» и объяснить почему. Лучше громко упасть с понятным сообщением, чем молча вернуть неправильный результат.\n\n## raise\n\n```python\ndef set_age(age):\n    if age < 0:\n        raise ValueError(f\"возраст не может быть отрицательным: {age}\")\n    return age\n\nprint(set_age(30))\ntry:\n    set_age(-5)\nexcept ValueError as e:\n    print(\"ошибка:\", e)\n```\n\n- `raise КлассОшибки(\"сообщение\")` — создать исключение и выбросить его.\n- Функция прерывается на `raise`, как на `return`, но вместо значения наружу летит исключение.\n- Вывод: `30`, `ошибка: возраст не может быть отрицательным: -5`.\n\n## Какой тип выбрать\n\n```python\ndef check(value):\n    if not isinstance(value, int):\n        raise TypeError(\"нужно целое число\")\n    if value <= 0:\n        raise ValueError(\"нужно положительное\")\n    return \"ok\"\n\nfor v in [5, \"5\", -1]:\n    try:\n        print(check(v))\n    except (TypeError, ValueError) as e:\n        print(type(e).__name__, \"-\", e)\n```\n\n- `TypeError` — неверный **тип** аргумента.\n- `ValueError` — тип правильный, **значение** неверное.\n- `KeyError` — нет нужного ключа; `RuntimeError` — общая ошибка выполнения, когда другие не подходят.\n- Вывод: `ok`, `TypeError - нужно целое число`, `ValueError - нужно положительное`.\n\n## args исключения\n\n```python\ndef f():\n    print(\"начало\")\n    raise RuntimeError(\"стоп\")\n    print(\"не выполнится\")\n\ntry:\n    f()\nexcept RuntimeError as e:\n    print(e.args)\n```\n\n- `e.args` — кортеж аргументов, переданных при создании. `str(e)` — обычно первый аргумент.\n- Вывод: `начало`, `('стоп',)`.\n\n## Валидация и «raise_for_status»\n\n```python\ndef check_status(response):\n    if response[\"status\"] >= 400:\n        raise RuntimeError(f\"HTTP {response['status']}\")\n    return response\n\ntry:\n    check_status({\"status\": 404})\nexcept RuntimeError as e:\n    print(e)\n```\n\n- Так работают HTTP-клиенты (`response.raise_for_status()`): код ошибки превращается в исключение, и тест не может его «не заметить».\n- Вывод: `HTTP 404`.\n\n## Хорошее сообщение\n\n- Что не так и какое значение пришло: `\"порт вне диапазона: 70000\"`, а не `\"ошибка\"`.\n- Проверяй в начале функции («охранные» проверки), как с ранним `return`.\n\n## Итог\n\n- `raise ValueError(\"текст\")` — выбросить исключение; функция прерывается.\n- `TypeError` — неверный тип; `ValueError` — неверное значение; `KeyError` — нет ключа; `RuntimeError` — прочее.\n- `e.args` — аргументы исключения, `str(e)` — текст.\n- Сообщение должно объяснять, что не так, со значением.",
+              "quiz": [
+                {
+                  "q": "Какой тип исключения подходит, если передали строку вместо числа?",
+                  "options": [
+                    "ValueError",
+                    "TypeError",
+                    "KeyError",
+                    "IndexError"
+                  ],
+                  "answer": 1,
+                  "explain": "Неверный тип."
+                },
+                {
+                  "q": "Что происходит после `raise` в функции?",
+                  "options": [
+                    "Следующая строка",
+                    "Функция прерывается, исключение летит наружу",
+                    "Функция возвращает None",
+                    "Программа всегда завершается"
+                  ],
+                  "answer": 1,
+                  "explain": "Как return, но с ошибкой."
+                },
+                {
+                  "q": "Что вернёт `ValueError(\"a\", 1).args`?",
+                  "options": [
+                    "`\"a\"`",
+                    "`(\"a\", 1)`",
+                    "`[\"a\", 1]`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Кортеж аргументов."
+                }
+              ]
+            },
+            {
+              "slug": "exc-m2-l2",
+              "title": "Свои исключения",
+              "theory": "```py\nclass AppError(Exception): pass\nclass NotFound(AppError): pass       # иерархия\nraise NotFound(\"нет пользователя\")\nexcept AppError as e: ...            # ловит всех потомков\n\nclass HttpError(Exception):\n    def __init__(self, status, msg):\n        super().__init__(f\"{status}: {msg}\")\n        self.status = status         # доп. поле\n```",
+              "exercises": [
+                {
+                  "slug": "exc-m2-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "class ValidationError(Exception):\n    pass\n\ntry:\n    raise ValidationError(\"email без @\")\nexcept ValidationError as e:\n    print(type(e).__name__, \"-\", e)\nprint(issubclass(ValidationError, Exception))\n",
+                  "expected_output": "ValidationError - email без @\nTrue",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m2-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Иерархия своих ошибок.",
+                  "code": "class AppError(Exception):\n    pass\n\nclass NotFound(AppError):\n    pass\n\nclass Forbidden(AppError):\n    pass\n\nfor err in [NotFound(\"нет пользователя\"), Forbidden(\"нет доступа\")]:\n    try:\n        raise err\n    except AppError as e:\n        print(type(e).__name__, e)\n",
+                  "expected_output": "NotFound нет пользователя\nForbidden нет доступа",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m2-l2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Ошибка с данными.",
+                  "code": "class HttpError(Exception):\n    def __init__(self, status, message):\n        super().__init__(f\"{status}: {message}\")\n        self.status = status\n\ntry:\n    raise HttpError(503, \"сервис недоступен\")\nexcept HttpError as e:\n    print(e.status, str(e))\n",
+                  "expected_output": "503 503: сервис недоступен",
+                  "hint": "Своё исключение может хранить дополнительные поля.",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m2-l2-e4",
+                  "type": "code",
+                  "prompt": "Объяви своё исключение `ValidationError` (наследник `Exception`) и функцию `validate_email(email)`: если в адресе нет `@` — выбросить `ValidationError(\"нет @\")`, иначе вернуть адрес.",
+                  "starter_code": "def validate_email(email):\n    pass\n",
+                  "tests": "def test_values():\n    assert validate_email(\"a@x.ru\") == \"a@x.ru\", \"Корректный адрес возвращается\"\n    assert issubclass(ValidationError, Exception), \"ValidationError — наследник Exception\"\n    try:\n        validate_email(\"bad\")\n    except ValidationError as e:\n        assert str(e) == \"нет @\", f\"Текст: {e}\"\n        return\n    assert False, \"Нужен ValidationError\"\n",
+                  "solution": "class ValidationError(Exception):\n    pass\n\ndef validate_email(email):\n    if \"@\" not in email:\n        raise ValidationError(\"нет @\")\n    return email\n",
+                  "hint": "class ValidationError(Exception): pass — этого достаточно.",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m2-l2-e5",
+                  "type": "code",
+                  "prompt": "Создай иерархию: `ApiError(Exception)`, от неё `NotFoundError` и `AuthError`. Напиши функцию `raise_for(status)`: `404` → `NotFoundError(\"не найдено\")`, `401`/`403` → `AuthError(\"нет доступа\")`, другие `>= 400` → `ApiError(\"ошибка <код>\")`; иначе вернуть `\"ok\"`.",
+                  "starter_code": "def raise_for(status):\n    pass\n",
+                  "tests": "def test_hierarchy():\n    assert issubclass(NotFoundError, ApiError) and issubclass(AuthError, ApiError) and issubclass(ApiError, Exception), \"Неверная иерархия\"\n\ndef test_values():\n    assert raise_for(200) == \"ok\", \"200 — ok\"\n    for status, exc, msg in [(404, NotFoundError, \"не найдено\"), (403, AuthError, \"нет доступа\"), (500, ApiError, \"ошибка 500\")]:\n        try:\n            raise_for(status)\n        except exc as e:\n            assert str(e) == msg and type(e) is exc, f\"{status}: {type(e).__name__} {e}\"\n            continue\n        assert False, f\"{status}: нужен {exc.__name__}\"\n",
+                  "solution": "class ApiError(Exception):\n    pass\n\nclass NotFoundError(ApiError):\n    pass\n\nclass AuthError(ApiError):\n    pass\n\ndef raise_for(status):\n    if status == 404:\n        raise NotFoundError(\"не найдено\")\n    if status in (401, 403):\n        raise AuthError(\"нет доступа\")\n    if status >= 400:\n        raise ApiError(f\"ошибка {status}\")\n    return \"ok\"\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "exc-m2-l2-e6",
+                  "type": "code",
+                  "prompt": "Используя иерархию из предыдущего задания (объяви её заново), напиши функцию `safe_call(status)` — вызвать `raise_for(status)` и вернуть `\"ok\"`, а при любой `ApiError` — строку `\"<ИмяКласса>: <текст>\"`.",
+                  "starter_code": "def safe_call(status):\n    pass\n",
+                  "tests": "def test_values():\n    assert [safe_call(200), safe_call(404), safe_call(401), safe_call(502)] == [\"ok\", \"NotFoundError: не найдено\", \"AuthError: нет доступа\", \"ApiError: ошибка 502\"], \"Неверный результат\"\n",
+                  "solution": "class ApiError(Exception):\n    pass\n\nclass NotFoundError(ApiError):\n    pass\n\nclass AuthError(ApiError):\n    pass\n\ndef raise_for(status):\n    if status == 404:\n        raise NotFoundError(\"не найдено\")\n    if status in (401, 403):\n        raise AuthError(\"нет доступа\")\n    if status >= 400:\n        raise ApiError(f\"ошибка {status}\")\n    return \"ok\"\n\ndef safe_call(status):\n    try:\n        return raise_for(status)\n    except ApiError as e:\n        return f\"{type(e).__name__}: {e}\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m2-l2-e7",
+                  "type": "code",
+                  "prompt": "Объяви исключение `HttpError` с полем `status`: конструктор принимает `status` и `message`, передаёт в `super().__init__` строку `\"<status>: <message>\"` и сохраняет `self.status`. Напиши функцию `get_status(func)` — вызвать `func()`; при `HttpError` вернуть его `status`, иначе `200`.",
+                  "starter_code": "def get_status(func):\n    pass\n",
+                  "tests": "def test_values():\n    def fail():\n        raise HttpError(503, \"down\")\n    e = HttpError(404, \"нет\")\n    assert str(e) == \"404: нет\" and e.status == 404, \"Неверное исключение\"\n    assert get_status(fail) == 503 and get_status(lambda: None) == 200, \"Неверный статус\"\n",
+                  "solution": "class HttpError(Exception):\n    def __init__(self, status, message):\n        super().__init__(f\"{status}: {message}\")\n        self.status = status\n\ndef get_status(func):\n    try:\n        func()\n    except HttpError as e:\n        return e.status\n    return 200\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "exc-m2-l2-e8",
+                  "type": "code",
+                  "prompt": "Объяви `ValidationError(Exception)` с полем `errors` — списком сообщений (конструктор принимает список, текст исключения — сообщения через `\"; \"`). Напиши `validate(user)`: собрать все ошибки (`name` пустое → `\"name пустое\"`, `age < 0` → `\"age отрицательный\"`) и выбросить **одно** исключение со всеми; если ошибок нет — вернуть `True`.",
+                  "starter_code": "def validate(user):\n    pass\n",
+                  "tests": "def test_values():\n    assert validate({\"name\": \"a\", \"age\": 1}) is True, \"Корректный пользователь\"\n    try:\n        validate({\"name\": \"\", \"age\": -1})\n    except ValidationError as e:\n        assert e.errors == [\"name пустое\", \"age отрицательный\"] and str(e) == \"name пустое; age отрицательный\", f\"{e.errors} / {e}\"\n        return\n    assert False, \"Нужен ValidationError\"\n",
+                  "solution": "class ValidationError(Exception):\n    def __init__(self, errors):\n        super().__init__(\"; \".join(errors))\n        self.errors = errors\n\ndef validate(user):\n    errors = []\n    if not user[\"name\"]:\n        errors.append(\"name пустое\")\n    if user[\"age\"] < 0:\n        errors.append(\"age отрицательный\")\n    if errors:\n        raise ValidationError(errors)\n    return True\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВстроенных исключений не хватает, чтобы выразить смысл ошибок **твоей** программы: «пользователь не найден», «нет доступа», «валидация не прошла». Свои исключения делают код понятнее и позволяют ловить именно ошибки приложения, не смешивая их с системными.\n\n## Своё исключение\n\n```python\nclass ValidationError(Exception):\n    pass\n\ntry:\n    raise ValidationError(\"email без @\")\nexcept ValidationError as e:\n    print(type(e).__name__, \"-\", e)\nprint(issubclass(ValidationError, Exception))\n```\n\n- `class Имя(Exception): pass` — новый класс исключения, **наследник** `Exception` (подробно классы — в теме «Классы»; сейчас достаточно этого шаблона).\n- `pass` — тело пустое: всё поведение (сообщение, `args`) достаётся от `Exception`.\n- Имена принято заканчивать на `Error`.\n- Вывод: `ValidationError - email без @`, `True`.\n\n## Иерархия своих ошибок\n\n```python\nclass AppError(Exception):\n    pass\n\nclass NotFound(AppError):\n    pass\n\nclass Forbidden(AppError):\n    pass\n\nfor err in [NotFound(\"нет пользователя\"), Forbidden(\"нет доступа\")]:\n    try:\n        raise err\n    except AppError as e:\n        print(type(e).__name__, e)\n```\n\n- Общий базовый класс приложения (`AppError`) и частные потомки.\n- `except AppError` ловит все ошибки приложения, а конкретные можно ловить по отдельности.\n- Вывод: `NotFound нет пользователя`, `Forbidden нет доступа`.\n\n## Исключение с данными\n\n```python\nclass HttpError(Exception):\n    def __init__(self, status, message):\n        super().__init__(f\"{status}: {message}\")\n        self.status = status\n\ntry:\n    raise HttpError(503, \"сервис недоступен\")\nexcept HttpError as e:\n    print(e.status, str(e))\n```\n\n- `__init__` — метод, который выполняется при создании объекта (тема «Классы»).\n- `super().__init__(...)` — передать текст сообщения базовому `Exception`.\n- `self.status = status` — сохранить дополнительное поле, чтобы обработчик мог принять решение по коду, а не разбирать текст.\n- Вывод: `503 503: сервис недоступен`.\n\n## Собрать все ошибки в одно исключение\n\n```python\nclass ValidationError(Exception):\n    def __init__(self, errors):\n        super().__init__(\"; \".join(errors))\n        self.errors = errors\n\ntry:\n    raise ValidationError([\"name пустое\", \"age отрицательный\"])\nexcept ValidationError as e:\n    print(e.errors, \"|\", e)\n```\n\n- Удобно для форм и API: пользователь сразу видит все проблемы.\n- Вывод: `['name пустое', 'age отрицательный'] | name пустое; age отрицательный`.\n\n## Итог\n\n- `class MyError(Exception): pass` — своё исключение.\n- Общий базовый класс приложения + частные наследники.\n- `except База` ловит всех потомков.\n- Дополнительные поля — через `__init__` с `super().__init__(текст)`.",
+              "quiz": [
+                {
+                  "q": "От какого класса наследуют свои исключения?",
+                  "options": [
+                    "object",
+                    "`Exception`",
+                    "BaseException всегда",
+                    "ValueError всегда"
+                  ],
+                  "answer": 1,
+                  "explain": "Exception — база обычных ошибок."
+                },
+                {
+                  "q": "Поймает ли `except AppError` исключение `NotFound(AppError)`?",
+                  "options": [
+                    "Нет",
+                    "Да",
+                    "Только с as",
+                    "Только в тестах"
+                  ],
+                  "answer": 1,
+                  "explain": "Потомок ловится базовым классом."
+                },
+                {
+                  "q": "Зачем своё поле `status` в исключении?",
+                  "options": [
+                    "Для красоты",
+                    "Чтобы обработчик мог решать по коду, не разбирая текст",
+                    "Так требует Python",
+                    "Не нужно"
+                  ],
+                  "answer": 1,
+                  "explain": "Данные удобнее текста."
+                }
+              ]
+            },
+            {
+              "slug": "exc-m2-l3",
+              "title": "Повторный выброс и цепочки",
+              "theory": "```py\nexcept ZeroDivisionError:\n    log.append(\"...\")\n    raise                                # то же исключение дальше\nexcept KeyError as e:\n    raise ConfigError(\"плохой конфиг\") from e   # e -> __cause__\nraise RuntimeError(\"сбой\") from None     # скрыть причину\ne.__cause__; e.__context__\n```",
+              "exercises": [
+                {
+                  "slug": "exc-m2-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? raise без аргументов.",
+                  "code": "log = []\n\ndef process():\n    try:\n        1 / 0\n    except ZeroDivisionError:\n        log.append(\"записали в лог\")\n        raise\n\ntry:\n    process()\nexcept ZeroDivisionError:\n    print(\"снаружи тоже поймали\", log)\n",
+                  "expected_output": "снаружи тоже поймали ['записали в лог']",
+                  "hint": "raise без аргументов внутри except выбрасывает то же исключение дальше.",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m2-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? raise ... from.",
+                  "code": "class ConfigError(Exception):\n    pass\n\ndef load(cfg):\n    try:\n        return int(cfg[\"port\"])\n    except (KeyError, ValueError) as e:\n        raise ConfigError(\"плохой конфиг\") from e\n\ntry:\n    load({\"port\": \"x\"})\nexcept ConfigError as e:\n    print(e, \"| причина:\", type(e.__cause__).__name__)\n",
+                  "expected_output": "плохой конфиг | причина: ValueError",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m2-l3-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Неявная цепочка.",
+                  "code": "try:\n    try:\n        {}[\"x\"]\n    except KeyError:\n        raise ValueError(\"не нашли\")\nexcept ValueError as e:\n    print(e, \"|\", type(e.__context__).__name__, e.__cause__)\n",
+                  "expected_output": "не нашли | KeyError None",
+                  "hint": "Без from Python сам запоминает исходную ошибку в __context__.",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m2-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `logged_div(a, b, log)` — вернуть `a / b`; при `ZeroDivisionError` добавить в список `log` строку `\"деление на ноль\"` и **выбросить ту же ошибку дальше** (`raise`).",
+                  "starter_code": "def logged_div(a, b, log):\n    pass\n",
+                  "tests": "def test_values():\n    log = []\n    assert logged_div(6, 3, log) == 2.0 and log == [], \"Успешное деление\"\n    try:\n        logged_div(1, 0, log)\n    except ZeroDivisionError:\n        assert log == [\"деление на ноль\"], f\"log = {log}\"\n        return\n    assert False, \"Ошибка должна пройти дальше\"\n",
+                  "solution": "def logged_div(a, b, log):\n    try:\n        return a / b\n    except ZeroDivisionError:\n        log.append(\"деление на ноль\")\n        raise\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m2-l3-e5",
+                  "type": "code",
+                  "prompt": "Объяви `ConfigError(Exception)` и функцию `load_port(cfg)` — `int(cfg[\"port\"])`. При `KeyError` или `ValueError` выбросить `ConfigError(\"плохой порт\")` **с указанием причины** (`from e`).",
+                  "starter_code": "def load_port(cfg):\n    pass\n",
+                  "tests": "def test_values():\n    assert load_port({\"port\": \"80\"}) == 80, \"Корректный порт\"\n    for cfg, cause in [({}, KeyError), ({\"port\": \"x\"}, ValueError)]:\n        try:\n            load_port(cfg)\n        except ConfigError as e:\n            assert str(e) == \"плохой порт\" and isinstance(e.__cause__, cause), f\"Причина: {e.__cause__!r}\"\n            continue\n        assert False, \"Нужен ConfigError\"\n",
+                  "solution": "class ConfigError(Exception):\n    pass\n\ndef load_port(cfg):\n    try:\n        return int(cfg[\"port\"])\n    except (KeyError, ValueError) as e:\n        raise ConfigError(\"плохой порт\") from e\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m2-l3-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `root_cause(exc)` — пройти по цепочке `__cause__` (а если его нет — `__context__`) до самой первой ошибки и вернуть имя её типа.",
+                  "starter_code": "def root_cause(exc):\n    pass\n",
+                  "tests": "def test_values():\n    try:\n        try:\n            try:\n                {}[\"x\"]\n            except KeyError as e:\n                raise ValueError(\"v\") from e\n        except ValueError:\n            raise RuntimeError(\"r\")\n    except RuntimeError as e:\n        assert root_cause(e) == \"KeyError\", f\"Получено {root_cause(e)}\"\n    assert root_cause(TypeError(\"t\")) == \"TypeError\", \"Без цепочки — сама ошибка\"\n",
+                  "solution": "def root_cause(exc):\n    while True:\n        nxt = exc.__cause__ or exc.__context__\n        if nxt is None:\n            return type(exc).__name__\n        exc = nxt\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "exc-m2-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `convert_all(values)` — список `int` из строк. Если какая-то строка не число, выбросить `ValueError(f\"элемент {i}: {значение!r}\")` (номер с 0) с причиной — исходной ошибкой.",
+                  "starter_code": "def convert_all(values):\n    pass\n",
+                  "tests": "def test_values():\n    assert convert_all([\"1\", \"2\"]) == [1, 2], \"Корректный список\"\n    try:\n        convert_all([\"1\", \"x\", \"3\"])\n    except ValueError as e:\n        assert str(e) == \"элемент 1: 'x'\" and isinstance(e.__cause__, ValueError), f\"{e} / {e.__cause__!r}\"\n        return\n    assert False, \"Нужен ValueError\"\n",
+                  "solution": "def convert_all(values):\n    result = []\n    for i, v in enumerate(values):\n        try:\n            result.append(int(v))\n        except ValueError as e:\n            raise ValueError(f\"элемент {i}: {v!r}\") from e\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m2-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `quiet(func, default)` — вызвать `func()`; при ошибке вернуть `default`, **скрыв** причину: если нужно выбросить новое исключение — используй `from None`. Здесь проще: функция просто возвращает `default`. Дополнительно напиши функцию `wrap(func)` — при любой ошибке выбросить `RuntimeError(\"сбой\")` **без** цепочки (`from None`, чтобы `__cause__` был `None` и `__suppress_context__` был `True`).",
+                  "starter_code": "def quiet(func, default):\n    pass\n\ndef wrap(func):\n    pass\n",
+                  "tests": "def test_quiet():\n    assert quiet(lambda: 1 / 0, 0) == 0 and quiet(lambda: 5, 0) == 5, \"Неверный результат\"\n\ndef test_wrap():\n    try:\n        wrap(lambda: {}[\"x\"])\n    except RuntimeError as e:\n        assert str(e) == \"сбой\" and e.__cause__ is None and e.__suppress_context__, \"Используй raise ... from None\"\n        return\n    assert False, \"Нужен RuntimeError\"\n",
+                  "solution": "def quiet(func, default):\n    try:\n        return func()\n    except Exception:\n        return default\n\ndef wrap(func):\n    try:\n        return func()\n    except Exception:\n        raise RuntimeError(\"сбой\") from None\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nИногда ошибку нужно **заметить, но не проглотить**: записать в лог и передать дальше. А иногда — превратить низкоуровневую ошибку (`KeyError` в конфиге) в понятную ошибку приложения (`ConfigError`), не потеряв исходную причину. Для этого есть повторный выброс и цепочки исключений.\n\n## raise без аргументов\n\n```python\nlog = []\n\ndef process():\n    try:\n        1 / 0\n    except ZeroDivisionError:\n        log.append(\"записали в лог\")\n        raise\n\ntry:\n    process()\nexcept ZeroDivisionError:\n    print(\"снаружи тоже поймали\", log)\n```\n\n- `raise` без аргументов внутри `except` выбрасывает **то же самое** исключение дальше, с исходной трассировкой.\n- Вывод: `снаружи тоже поймали ['записали в лог']`.\n\n## raise ... from — явная причина\n\n```python\nclass ConfigError(Exception):\n    pass\n\ndef load(cfg):\n    try:\n        return int(cfg[\"port\"])\n    except (KeyError, ValueError) as e:\n        raise ConfigError(\"плохой конфиг\") from e\n\ntry:\n    load({\"port\": \"x\"})\nexcept ConfigError as e:\n    print(e, \"| причина:\", type(e.__cause__).__name__)\n```\n\n- `raise Новая(...) from e` — новая ошибка «с причиной». Причина сохраняется в `__cause__`.\n- В трассировке Python покажет обе: исходную и новую («The above exception was the direct cause…»).\n- Вывод: `плохой конфиг | причина: ValueError`.\n\n## Неявная цепочка\n\n```python\ntry:\n    try:\n        {}[\"x\"]\n    except KeyError:\n        raise ValueError(\"не нашли\")\nexcept ValueError as e:\n    print(e, \"|\", type(e.__context__).__name__, e.__cause__)\n```\n\n- Если выбросить новое исключение внутри `except` без `from`, Python сам запомнит исходное в `__context__` («During handling of the above exception, another exception occurred»).\n- `__cause__` при этом `None`. Вывод: `не нашли | KeyError None`.\n\n## from None — скрыть причину\n\n```python\ndef wrap(func):\n    try:\n        return func()\n    except Exception:\n        raise RuntimeError(\"сбой\") from None\n\ntry:\n    wrap(lambda: {}[\"x\"])\nexcept RuntimeError as e:\n    print(e, e.__cause__, e.__suppress_context__)\n```\n\n- `from None` — не показывать исходную ошибку (когда она лишь запутает пользователя).\n- Вывод: `сбой None True`.\n\n## Найти первопричину\n\n```python\ndef root_cause(exc):\n    while True:\n        nxt = exc.__cause__ or exc.__context__\n        if nxt is None:\n            return type(exc).__name__\n        exc = nxt\n\ntry:\n    try:\n        {}[\"x\"]\n    except KeyError as e:\n        raise ValueError(\"v\") from e\nexcept ValueError as e:\n    print(root_cause(e))\n```\n\nВывод: `KeyError`.\n\n## Итог\n\n- `raise` в `except` — выбросить ту же ошибку дальше (залогировать и не проглотить).\n- `raise Новая(...) from e` — новая ошибка с причиной в `__cause__`.\n- Без `from` исходная ошибка попадает в `__context__`.\n- `from None` — скрыть причину.",
+              "quiz": [
+                {
+                  "q": "Что делает `raise` без аргументов внутри except?",
+                  "options": [
+                    "Ошибка синтаксиса",
+                    "Выбрасывает то же исключение дальше",
+                    "Создаёт RuntimeError",
+                    "Ничего"
+                  ],
+                  "answer": 1,
+                  "explain": "Повторный выброс."
+                },
+                {
+                  "q": "Где хранится причина при `raise B() from a`?",
+                  "options": [
+                    "`B.args`",
+                    "`B.__cause__`",
+                    "`B.__context__`",
+                    "Нигде"
+                  ],
+                  "answer": 1,
+                  "explain": "Явная причина — __cause__."
+                },
+                {
+                  "q": "Что делает `raise X from None`?",
+                  "options": [
+                    "Ничего не выбрасывает",
+                    "Скрывает исходную ошибку в трассировке",
+                    "Выбрасывает None",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "__suppress_context__ = True."
+                }
+              ]
+            },
+            {
+              "slug": "exc-m2-l4",
+              "title": "assert и AssertionError",
+              "theory": "```py\nassert len(nums) > 0, \"список пуст\"   # AssertionError, если ложно\nassert (x > 0, \"msg\")                 # ВСЕГДА проходит — кортеж!\nexcept AssertionError as e: ...\nif q <= 0:\n    raise ValueError(\"...\")           # внешние данные — raise, не assert\n# python -O отключает assert\n```",
+              "exercises": [
+                {
+                  "slug": "exc-m2-l4-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def average(nums):\n    assert len(nums) > 0, \"список пуст\"\n    return sum(nums) / len(nums)\n\nprint(average([2, 4]))\ntry:\n    average([])\nexcept AssertionError as e:\n    print(\"AssertionError:\", e)\n",
+                  "expected_output": "3.0\nAssertionError: список пуст",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m2-l4-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Ловушка со скобками.",
+                  "code": "try:\n    assert (1 == 2, \"никогда не сработает\")\n    print(\"assert прошёл!\")\nexcept AssertionError:\n    print(\"упал\")\n",
+                  "expected_output": "assert прошёл!",
+                  "hint": "Скобки создали непустой кортеж — он всегда истинен.",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m2-l4-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "print(issubclass(AssertionError, Exception))\nresults = []\nfor x in [1, -1]:\n    try:\n        assert x > 0, f\"{x} не положительное\"\n        results.append(\"ok\")\n    except AssertionError as e:\n        results.append(str(e))\nprint(results)\n",
+                  "expected_output": "True\n['ok', '-1 не положительное']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m2-l4-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `check_equal(actual, expected)` — проверка для тестов: если значения различаются, `assert` с сообщением `\"ожидали <expected!r>, получили <actual!r>\"`; иначе вернуть `True`.",
+                  "starter_code": "def check_equal(actual, expected):\n    pass\n",
+                  "tests": "def test_values():\n    assert check_equal(1, 1) is True, \"Равные — True\"\n    try:\n        check_equal(\"5\", 5)\n    except AssertionError as e:\n        assert str(e) == \"ожидали 5, получили '5'\", f\"Текст: {e}\"\n        return\n    assert False, \"Нужен AssertionError\"\n",
+                  "solution": "def check_equal(actual, expected):\n    assert actual == expected, f\"ожидали {expected!r}, получили {actual!r}\"\n    return True\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m2-l4-e5",
+                  "type": "code",
+                  "prompt": "Исправь «вечно проходящий» `assert` из заготовки — скобки превратили его в проверку кортежа.",
+                  "starter_code": "def check_positive(x):\n    assert (x > 0, \"нужно положительное\")\n    return x\n",
+                  "tests": "def test_values():\n    assert check_positive(5) == 5, \"Положительное проходит\"\n    try:\n        check_positive(-1)\n    except AssertionError as e:\n        assert str(e) == \"нужно положительное\", f\"Текст: {e}\"\n        return\n    assert False, \"Для -1 нужен AssertionError\"\n",
+                  "solution": "def check_positive(x):\n    assert x > 0, \"нужно положительное\"\n    return x\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m2-l4-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `run_checks(checks)` — `checks` это словарь «название → функция без аргументов, которая делает assert». Вернуть словарь «название → `\"ok\"` или текст ошибки AssertionError».",
+                  "starter_code": "def run_checks(checks):\n    pass\n",
+                  "tests": "def test_values():\n    def good():\n        assert 1 == 1\n    def bad():\n        assert 1 == 2, \"1 != 2\"\n    assert run_checks({\"good\": good, \"bad\": bad}) == {\"good\": \"ok\", \"bad\": \"1 != 2\"}, \"Неверный результат\"\n",
+                  "solution": "def run_checks(checks):\n    result = {}\n    for name, check in checks.items():\n        try:\n            check()\n            result[name] = \"ok\"\n        except AssertionError as e:\n            result[name] = str(e)\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m2-l4-e7",
+                  "type": "code",
+                  "prompt": "Для проверки **пользовательских данных** `assert` не подходит (его можно отключить флагом `python -O`). Перепиши функцию из заготовки на `raise ValueError` с тем же текстом.",
+                  "starter_code": "def set_quantity(q):\n    assert q > 0, \"количество должно быть положительным\"\n    return q\n",
+                  "tests": "def test_values():\n    assert set_quantity(3) == 3, \"Корректное количество\"\n    try:\n        set_quantity(0)\n    except ValueError as e:\n        assert str(e) == \"количество должно быть положительным\", f\"Текст: {e}\"\n        return\n    assert False, \"Нужен ValueError\"\n\ndef test_no_assert():\n    assert \"assert \" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Замени assert на raise ValueError\"\n",
+                  "solution": "def set_quantity(q):\n    if q <= 0:\n        raise ValueError(\"количество должно быть положительным\")\n    return q\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m2-l4-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `assert_raises(exc_type, func)` — проверить, что `func()` выбрасывает исключение указанного типа (как `pytest.raises`). Если выбросила — вернуть объект исключения; если не выбросила — `AssertionError(\"ожидали <ИмяТипа>\")`. Исключения других типов пропускать наружу.",
+                  "starter_code": "def assert_raises(exc_type, func):\n    pass\n",
+                  "tests": "def test_raises():\n    e = assert_raises(ZeroDivisionError, lambda: 1 / 0)\n    assert isinstance(e, ZeroDivisionError), \"Должен вернуться объект исключения\"\n\ndef test_not_raises():\n    try:\n        assert_raises(ValueError, lambda: 1)\n    except AssertionError as e:\n        assert str(e) == \"ожидали ValueError\", f\"Текст: {e}\"\n        return\n    assert False, \"Нужен AssertionError\"\n\ndef test_other():\n    try:\n        assert_raises(ValueError, lambda: [][0])\n    except IndexError:\n        return\n    assert False, \"Чужое исключение должно пройти наружу\"\n",
+                  "solution": "def assert_raises(exc_type, func):\n    try:\n        func()\n    except exc_type as e:\n        return e\n    raise AssertionError(f\"ожидали {exc_type.__name__}\")\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`assert` — проверка «это обязано быть правдой». Если нет — `AssertionError`. На `assert` построены автотесты (pytest), и им же программисты проверяют свои допущения в коде. Но у `assert` есть особенности: его можно отключить и легко написать с ошибкой.\n\n## assert\n\n```python\ndef average(nums):\n    assert len(nums) > 0, \"список пуст\"\n    return sum(nums) / len(nums)\n\nprint(average([2, 4]))\ntry:\n    average([])\nexcept AssertionError as e:\n    print(\"AssertionError:\", e)\n```\n\n- `assert условие, \"сообщение\"` — если условие ложно, выбрасывается `AssertionError` с сообщением.\n- Эквивалент: `if not условие: raise AssertionError(\"сообщение\")`.\n- Вывод: `3.0`, `AssertionError: список пуст`.\n\n## Ловушка со скобками\n\n```python\ntry:\n    assert (1 == 2, \"никогда не сработает\")\n    print(\"assert прошёл!\")\nexcept AssertionError:\n    print(\"упал\")\n```\n\n- Скобки превратили условие и сообщение в **кортеж** из двух элементов — непустой кортеж всегда истинен, проверка никогда не падает. Python даже предупреждает об этом (SyntaxWarning).\n- `assert` — не функция: скобки вокруг «аргументов» не ставят.\n- Вывод: `assert прошёл!`.\n\n## AssertionError — обычное исключение\n\n```python\nprint(issubclass(AssertionError, Exception))\nresults = []\nfor x in [1, -1]:\n    try:\n        assert x > 0, f\"{x} не положительное\"\n        results.append(\"ok\")\n    except AssertionError as e:\n        results.append(str(e))\nprint(results)\n```\n\n- Его можно перехватить — так тестовые фреймворки собирают упавшие проверки, не останавливая весь прогон.\n- Вывод: `True`, `['ok', '-1 не положительное']`.\n\n## assert или raise\n\n- `assert` — для проверок **допущений программиста** и в **тестах**: «сюда никогда не должен прийти пустой список».\n- `raise ValueError(...)` — для проверки **внешних данных**: ввод пользователя, ответ API, аргументы публичной функции.\n- Причина: при запуске `python -O` (оптимизация) все `assert` **отключаются**, и проверка данных исчезла бы.\n\n```python\ndef set_quantity(q):\n    if q <= 0:\n        raise ValueError(\"количество должно быть положительным\")\n    return q\n\nprint(set_quantity(3))\n```\n\nВывод: `3`.\n\n## Проверка «должно упасть»\n\n```python\ndef assert_raises(exc_type, func):\n    try:\n        func()\n    except exc_type as e:\n        return e\n    raise AssertionError(f\"ожидали {exc_type.__name__}\")\n\nprint(type(assert_raises(ZeroDivisionError, lambda: 1 / 0)).__name__)\n```\n\n- Так устроен `pytest.raises`: тест проходит, только если исключение **было**. Вывод: `ZeroDivisionError`.\n\n## Итог\n\n- `assert условие, \"сообщение\"` → `AssertionError`, если условие ложно.\n- Без скобок! `assert (x, \"msg\")` всегда проходит.\n- `assert` — для тестов и допущений; для внешних данных — `raise ValueError`.\n- `python -O` отключает все `assert`.",
+              "quiz": [
+                {
+                  "q": "Почему `assert (1 == 2, \"msg\")` не падает?",
+                  "options": [
+                    "Из-за сообщения",
+                    "Проверяется непустой кортеж — он истинен",
+                    "assert отключён",
+                    "Падает"
+                  ],
+                  "answer": 1,
+                  "explain": "assert — не функция."
+                },
+                {
+                  "q": "Что происходит с assert при запуске `python -O`?",
+                  "options": [
+                    "Ничего",
+                    "Все assert отключаются",
+                    "Они становятся raise",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Поэтому не проверяй ими данные."
+                },
+                {
+                  "q": "Чем проверять ввод пользователя?",
+                  "options": [
+                    "assert",
+                    "`raise ValueError(...)`",
+                    "print",
+                    "Никак"
+                  ],
+                  "answer": 1,
+                  "explain": "assert можно отключить."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "exc-m3",
+          "title": "Исключения на практике",
+          "icon": "🛡️",
+          "description": "EAFP и LBYL, ошибки в циклах, исключения в тестах, надёжная обработка",
+          "lessons": [
+            {
+              "slug": "exc-m3-l1",
+              "title": "EAFP и LBYL: проверить или попробовать",
+              "theory": "```py\n# LBYL\nif key in d:\n    value = d[key]\n# EAFP (принято в Python)\ntry:\n    value = int(d[key])\nexcept (KeyError, ValueError):\n    value = default\nd.get(key, default)      # готовый безопасный вариант\n```",
+              "exercises": [
+                {
+                  "slug": "exc-m3-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Два стиля.",
+                  "code": "data = {\"a\": 1}\n# LBYL: сначала проверить\nif \"b\" in data:\n    print(data[\"b\"])\nelse:\n    print(\"нет b (LBYL)\")\n# EAFP: попробовать\ntry:\n    print(data[\"b\"])\nexcept KeyError:\n    print(\"нет b (EAFP)\")\n",
+                  "expected_output": "нет b (LBYL)\nнет b (EAFP)",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m3-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Проверка не всё покрывает.",
+                  "code": "for text in [\"12\", \"-3\", \"4.5\", \" 7\"]:\n    print(repr(text), text.isdigit(), end=\" | \")\n    try:\n        print(int(text))\n    except ValueError:\n        print(\"ValueError\")\n",
+                  "expected_output": "'12' True | 12\n'-3' False | -3\n'4.5' False | ValueError\n' 7' False | 7",
+                  "hint": "isdigit не пропускает минус и пробелы, а int их понимает.",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m3-l1-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "config = {\"timeout\": \"30\"}\nprint(config.get(\"retries\", 3))\ntry:\n    print(int(config[\"timeout\"]) * 2)\nexcept (KeyError, ValueError):\n    print(\"по умолчанию\")\n",
+                  "expected_output": "3\n60",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m3-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `get_int(data, key, default)` в стиле EAFP: `int(data[key])`, а при `KeyError`, `ValueError` или `TypeError` — `default`.",
+                  "starter_code": "def get_int(data, key, default):\n    pass\n",
+                  "tests": "def test_values():\n    d = {\"a\": \"5\", \"b\": \"x\", \"c\": None}\n    assert [get_int(d, \"a\", 0), get_int(d, \"b\", 0), get_int(d, \"c\", 0), get_int(d, \"z\", -1)] == [5, 0, 0, -1], \"Неверный результат\"\n",
+                  "solution": "def get_int(data, key, default):\n    try:\n        return int(data[key])\n    except (KeyError, ValueError, TypeError):\n        return default\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m3-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_number(text)` — можно ли превратить строку в `float` (включая `\"-3\"`, `\"4.5\"`, `\" 7 \"`, `\"1e3\"`). Проверки через `isdigit` тут не хватит — используй `try`.",
+                  "starter_code": "def is_number(text):\n    pass\n",
+                  "tests": "def test_values():\n    got = [is_number(x) for x in [\"12\", \"-3\", \"4.5\", \" 7 \", \"1e3\", \"abc\", \"\"]]\n    assert got == [True, True, True, True, True, False, False], f\"Получено {got}\"\n",
+                  "solution": "def is_number(text):\n    try:\n        float(text)\n        return True\n    except ValueError:\n        return False\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m3-l1-e6",
+                  "type": "code",
+                  "prompt": "Перепиши функцию из заготовки в стиле EAFP (без проверки `in`), сохранив поведение.",
+                  "starter_code": "def price_of(prices, item):\n    if item in prices:\n        return prices[item]\n    return 0\n",
+                  "tests": "def test_values():\n    assert price_of({\"чай\": 300}, \"чай\") == 300 and price_of({}, \"x\") == 0, \"Неверный результат\"\n\ndef test_eafp():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"try:\" in src and \" in prices\" not in src, \"Используй try/except KeyError\"\n",
+                  "solution": "def price_of(prices, item):\n    try:\n        return prices[item]\n    except KeyError:\n        return 0\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m3-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `nested_get(data, *keys, default=None)` — пройти по вложенным словарям по ключам; если на любом шаге ключа нет или значение не словарь — `default`. Используй EAFP.\n\n```\nnested_get({\"a\": {\"b\": 1}}, \"a\", \"b\")         # → 1\nnested_get({\"a\": 1}, \"a\", \"b\", default=0)     # → 0\n```",
+                  "starter_code": "def nested_get(data, *keys, default=None):\n    pass\n",
+                  "tests": "def test_values():\n    d = {\"a\": {\"b\": 1}, \"x\": 5}\n    assert [nested_get(d, \"a\", \"b\"), nested_get(d, \"x\", \"y\", default=0), nested_get(d, \"q\"), nested_get(d)] == [1, 0, None, d], \"Неверный результат\"\n",
+                  "solution": "def nested_get(data, *keys, default=None):\n    try:\n        for key in keys:\n            data = data[key]\n        return data\n    except (KeyError, TypeError):\n        return default\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m3-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `first_int(items)` — первое значение из списка, которое удаётся превратить в `int`, или `None`.",
+                  "starter_code": "def first_int(items):\n    pass\n",
+                  "tests": "def test_values():\n    assert [first_int([\"x\", None, \" 42\", \"7\"]), first_int([\"a\"]), first_int([])] == [42, None, None], \"Неверный результат\"\n",
+                  "solution": "def first_int(items):\n    for item in items:\n        try:\n            return int(item)\n        except (ValueError, TypeError):\n            continue\n    return None\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЕсть два стиля борьбы с ошибками. **LBYL** («Look Before You Leap» — посмотри, прежде чем прыгать): сначала проверить, потом делать. **EAFP** («Easier to Ask Forgiveness than Permission» — проще попросить прощения): сразу делать и перехватить ошибку. В Python принят EAFP — он короче и часто надёжнее. Но у обоих стилей есть своё место.\n\n## Два стиля\n\n```python\ndata = {\"a\": 1}\nif \"b\" in data:\n    print(data[\"b\"])\nelse:\n    print(\"нет b (LBYL)\")\ntry:\n    print(data[\"b\"])\nexcept KeyError:\n    print(\"нет b (EAFP)\")\n```\n\n- LBYL проверяет условие заранее; EAFP пробует и ловит конкретное исключение.\n- Вывод: `нет b (LBYL)`, `нет b (EAFP)`.\n\n## Проверка не всё предусматривает\n\n```python\nfor text in [\"12\", \"-3\", \"4.5\", \" 7\"]:\n    print(repr(text), text.isdigit(), end=\" | \")\n    try:\n        print(int(text))\n    except ValueError:\n        print(\"ValueError\")\n```\n\n- `isdigit()` отвергает `\"-3\"` и `\" 7\"`, хотя `int` их понимает. Предварительная проверка часто оказывается строже или мягче самой операции.\n- EAFP спрашивает саму операцию — ей виднее, получится ли.\n- Вывод: четыре строки: `'12' True | 12`, `'-3' False | -3`, `'4.5' False | ValueError`, `' 7' False | 7`.\n\n## EAFP для вложенных данных\n\n```python\ndef nested_get(data, *keys, default=None):\n    try:\n        for key in keys:\n            data = data[key]\n        return data\n    except (KeyError, TypeError):\n        return default\n\nd = {\"a\": {\"b\": 1}, \"x\": 5}\nprint(nested_get(d, \"a\", \"b\"), nested_get(d, \"x\", \"y\", default=0))\n```\n\n- Вместо проверок на каждом уровне — один `try`. `5[\"y\"]` даёт `TypeError` — тоже ловим.\n- Вывод: `1 0`.\n\n## Когда LBYL лучше\n\n```python\nconfig = {\"timeout\": \"30\"}\nprint(config.get(\"retries\", 3))\n```\n\n- Для словаря есть `get` — готовый LBYL без лишнего кода.\n- LBYL разумен, когда ошибка — **частая** ситуация (дешевле проверить), когда операция имеет побочные эффекты (нельзя «попробовать» списание денег) или когда проверка простая и понятная.\n- Вывод: `3`.\n\n## Итог\n\n- LBYL: `if проверка: действие`. EAFP: `try: действие except Тип:`.\n- В Python принят EAFP: операция сама лучше знает, получится ли.\n- Лови конкретные исключения, а не все подряд.\n- LBYL — для частых ситуаций, операций с побочными эффектами и готовых методов (`get`).",
+              "quiz": [
+                {
+                  "q": "Что такое EAFP?",
+                  "options": [
+                    "Проверить, потом делать",
+                    "Сделать и перехватить ошибку",
+                    "Никогда не ловить ошибки",
+                    "Всегда assert"
+                  ],
+                  "answer": 1,
+                  "explain": "Easier to Ask Forgiveness than Permission."
+                },
+                {
+                  "q": "Вернёт ли `\"-3\".isdigit()` True?",
+                  "options": [
+                    "Да",
+                    "Нет",
+                    "Ошибка",
+                    "None"
+                  ],
+                  "answer": 1,
+                  "explain": "Минус — не цифра, хотя int(\"-3\") работает."
+                },
+                {
+                  "q": "Когда уместен LBYL?",
+                  "options": [
+                    "Никогда",
+                    "Когда операция с побочными эффектами или ошибка частая",
+                    "Всегда",
+                    "Только в тестах"
+                  ],
+                  "answer": 1,
+                  "explain": "Нельзя «попробовать» списание денег."
+                }
+              ]
+            },
+            {
+              "slug": "exc-m3-l2",
+              "title": "Ошибки в циклах: пропустить, собрать, повторить",
+              "theory": "```py\nfor raw in rows:\n    try:\n        total += int(raw)\n    except ValueError:\n        bad.append(raw)          # собрать и продолжить\n        continue\nfor attempt in range(n):         # повтор\n    try:\n        return func()\n    except ConnectionError:\n        if attempt == n - 1:\n            raise\n```",
+              "exercises": [
+                {
+                  "slug": "exc-m3-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Пропуск плохих данных.",
+                  "code": "total = 0\nerrors = 0\nfor raw in [\"10\", \"x\", \"5\", \"\", \"7\"]:\n    try:\n        total += int(raw)\n    except ValueError:\n        errors += 1\n        continue\nprint(total, errors)\n",
+                  "expected_output": "22 2",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m3-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Сбор ошибок.",
+                  "code": "rows = [\"1,2\", \"3\", \"a,4\"]\ngood, bad = [], []\nfor i, row in enumerate(rows):\n    try:\n        a, b = row.split(\",\")\n        good.append(int(a) + int(b))\n    except ValueError as e:\n        bad.append(i)\nprint(good, bad)\n",
+                  "expected_output": "[3] [1, 2]",
+                  "hint": "Распаковка неверного числа частей — тоже ValueError.",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m3-l2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Повторы.",
+                  "code": "answers = iter([ConnectionError(\"нет\"), ConnectionError(\"нет\"), \"ok\"])\n\ndef request():\n    value = next(answers)\n    if isinstance(value, Exception):\n        raise value\n    return value\n\nfor attempt in range(1, 5):\n    try:\n        print(attempt, request())\n        break\n    except ConnectionError as e:\n        print(attempt, \"ошибка:\", e)\n",
+                  "expected_output": "1 ошибка: нет\n2 ошибка: нет\n3 ok",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m3-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sum_valid(items)` — сумма значений, которые удаётся превратить в `int`; остальные пропустить. Вернуть пару `(сумма, количество_ошибок)`.",
+                  "starter_code": "def sum_valid(items):\n    pass\n",
+                  "tests": "def test_values():\n    assert [sum_valid([\"10\", \"x\", \"5\", None]), sum_valid([])] == [(15, 2), (0, 0)], \"Неверный результат\"\n",
+                  "solution": "def sum_valid(items):\n    total, errors = 0, 0\n    for item in items:\n        try:\n            total += int(item)\n        except (ValueError, TypeError):\n            errors += 1\n    return total, errors\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m3-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_rows(rows)` — строки `\"имя,возраст\"` превратить в словари `{\"name\": ..., \"age\": int}`. Плохие строки не прерывают обработку: вернуть пару `(корректные_записи, номера_плохих_строк)` (нумерация с 1).",
+                  "starter_code": "def parse_rows(rows):\n    pass\n",
+                  "tests": "def test_values():\n    good, bad = parse_rows([\"Аня,25\", \"Боря\", \"Вика,x\", \"Гоша,40\"])\n    assert good == [{\"name\": \"Аня\", \"age\": 25}, {\"name\": \"Гоша\", \"age\": 40}] and bad == [2, 3], f\"{good} / {bad}\"\n",
+                  "solution": "def parse_rows(rows):\n    good, bad = [], []\n    for i, row in enumerate(rows, start=1):\n        try:\n            name, age = row.split(\",\")\n            good.append({\"name\": name, \"age\": int(age)})\n        except ValueError:\n            bad.append(i)\n    return good, bad\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "exc-m3-l2-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `retry(func, attempts)` — вызывать `func()`, пока не пройдёт без `ConnectionError`, но не больше `attempts` раз. Вернуть результат; если все попытки упали — выбросить **последнюю** ошибку дальше.",
+                  "starter_code": "def retry(func, attempts):\n    pass\n",
+                  "tests": "def make(fails):\n    calls = []\n    def func():\n        calls.append(1)\n        if len(calls) <= fails:\n            raise ConnectionError(f\"сбой {len(calls)}\")\n        return \"ok\"\n    return func, calls\n\ndef test_success():\n    func, calls = make(2)\n    assert retry(func, 5) == \"ok\" and len(calls) == 3, \"Успех с третьей попытки\"\n\ndef test_fail():\n    func, calls = make(10)\n    try:\n        retry(func, 3)\n    except ConnectionError as e:\n        assert str(e) == \"сбой 3\" and len(calls) == 3, f\"{e} / {len(calls)}\"\n        return\n    assert False, \"Нужна последняя ConnectionError\"\n",
+                  "solution": "def retry(func, attempts):\n    for attempt in range(attempts):\n        try:\n            return func()\n        except ConnectionError:\n            if attempt == attempts - 1:\n                raise\n",
+                  "hint": "На последней попытке — raise без аргументов.",
+                  "xp": 25
+                },
+                {
+                  "slug": "exc-m3-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `run_all(tests)` — `tests` это словарь «название → функция». Выполнить все, даже если некоторые падают. Вернуть словарь «название → `\"pass\"` / `\"fail\"` (AssertionError) / `\"error\"` (любое другое исключение)».",
+                  "starter_code": "def run_all(tests):\n    pass\n",
+                  "tests": "def test_values():\n    def ok():\n        assert True\n    def bad():\n        assert False\n    def broken():\n        return 1 / 0\n    assert run_all({\"ok\": ok, \"bad\": bad, \"broken\": broken}) == {\"ok\": \"pass\", \"bad\": \"fail\", \"broken\": \"error\"}, \"Неверный результат\"\n",
+                  "solution": "def run_all(tests):\n    results = {}\n    for name, test in tests.items():\n        try:\n            test()\n            results[name] = \"pass\"\n        except AssertionError:\n            results[name] = \"fail\"\n        except Exception:\n            results[name] = \"error\"\n    return results\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "exc-m3-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `stop_on_critical(events)` — обработать события по очереди: строки `\"ok\"` считать, `\"warn\"` — пропускать, а на `\"critical\"` — **остановиться**, выбросив `RuntimeError(\"critical на шаге <номер с 1>\")`. Если критических нет — вернуть количество `\"ok\"`.",
+                  "starter_code": "def stop_on_critical(events):\n    pass\n",
+                  "tests": "def test_values():\n    assert stop_on_critical([\"ok\", \"warn\", \"ok\"]) == 2, \"Критических нет\"\n    try:\n        stop_on_critical([\"ok\", \"critical\", \"ok\"])\n    except RuntimeError as e:\n        assert str(e) == \"critical на шаге 2\", f\"Текст: {e}\"\n        return\n    assert False, \"Нужен RuntimeError\"\n",
+                  "solution": "def stop_on_critical(events):\n    count = 0\n    for i, event in enumerate(events, start=1):\n        if event == \"critical\":\n            raise RuntimeError(f\"critical на шаге {i}\")\n        if event == \"ok\":\n            count += 1\n    return count\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПри обработке больших данных одна плохая запись не должна останавливать всю работу. Нужно уметь: **пропустить** плохой элемент, **собрать** ошибки в отчёт, **повторить** операцию при временном сбое и **остановиться** при критической проблеме.\n\n## Пропустить и посчитать\n\n```python\ntotal = 0\nerrors = 0\nfor raw in [\"10\", \"x\", \"5\", \"\", \"7\"]:\n    try:\n        total += int(raw)\n    except ValueError:\n        errors += 1\n        continue\nprint(total, errors)\n```\n\n- `try` внутри цикла: ошибка одного элемента не прерывает цикл. `continue` — к следующему.\n- Вывод: `22 2`.\n\n## Собрать ошибки\n\n```python\nrows = [\"1,2\", \"3\", \"a,4\"]\ngood, bad = [], []\nfor i, row in enumerate(rows):\n    try:\n        a, b = row.split(\",\")\n        good.append(int(a) + int(b))\n    except ValueError:\n        bad.append(i)\nprint(good, bad)\n```\n\n- Распаковка неверного числа частей (`a, b = [\"3\"]`) — тоже `ValueError`.\n- Номера плохих строк — готовый отчёт для пользователя или лога.\n- Вывод: `[3] [1, 2]`.\n\n## Повторить при временном сбое\n\n```python\nanswers = iter([ConnectionError(\"нет\"), ConnectionError(\"нет\"), \"ok\"])\n\ndef request():\n    value = next(answers)\n    if isinstance(value, Exception):\n        raise value\n    return value\n\nfor attempt in range(1, 5):\n    try:\n        print(attempt, request())\n        break\n    except ConnectionError as e:\n        print(attempt, \"ошибка:\", e)\n```\n\n- `iter(...)` и `next(...)` выдают заготовленные ответы по одному (тема «sorted, filter и map»).\n- Временные ошибки (сеть, 503) повторяют с лимитом попыток; `break` — выход при успехе.\n- Вывод: `1 ошибка: нет`, `2 ошибка: нет`, `3 ok`.\n\nЕсли все попытки неудачны, обычно выбрасывают последнюю ошибку дальше:\n\n```python\ndef retry(func, attempts):\n    for attempt in range(attempts):\n        try:\n            return func()\n        except ConnectionError:\n            if attempt == attempts - 1:\n                raise\n\ntry:\n    retry(lambda: 1 / 0, 3)\nexcept ZeroDivisionError:\n    print(\"не ConnectionError — вылетело сразу\")\n```\n\n- Ловим только то, что имеет смысл повторять. Вывод: `не ConnectionError — вылетело сразу`.\n\n## Разные реакции на разные ошибки\n\n```python\ndef run_all(tests):\n    results = {}\n    for name, test in tests.items():\n        try:\n            test()\n            results[name] = \"pass\"\n        except AssertionError:\n            results[name] = \"fail\"\n        except Exception:\n            results[name] = \"error\"\n    return results\n\ndef bad():\n    assert False\n\nprint(run_all({\"ok\": lambda: None, \"bad\": bad, \"broken\": lambda: 1 / 0}))\n```\n\n- Так тестовые фреймворки различают **упавший** тест (проверка не прошла) и **сломанный** (ошибка в самом тесте или коде).\n- Вывод: `{'ok': 'pass', 'bad': 'fail', 'broken': 'error'}`.\n\n## Итог\n\n- `try` внутри цикла — ошибка одного элемента не останавливает остальные.\n- Собирай плохие элементы в список для отчёта.\n- Временные сбои — повтор с лимитом; в конце — `raise` последней ошибки.\n- Критическая ошибка — остановиться (`raise`) с понятным сообщением.\n- `AssertionError` — «fail», прочие исключения — «error».",
+              "quiz": [
+                {
+                  "q": "Где ставить try, чтобы одна ошибка не остановила обработку списка?",
+                  "options": [
+                    "Вокруг всего цикла",
+                    "Внутри цикла, вокруг обработки элемента",
+                    "Не нужен",
+                    "После цикла"
+                  ],
+                  "answer": 1,
+                  "explain": "Тогда цикл продолжится."
+                },
+                {
+                  "q": "Какие ошибки стоит повторять?",
+                  "options": [
+                    "Любые",
+                    "Временные: сеть, 503",
+                    "SyntaxError",
+                    "AssertionError"
+                  ],
+                  "answer": 1,
+                  "explain": "Логические ошибки от повтора не исчезнут."
+                },
+                {
+                  "q": "Чем «fail» отличается от «error» в отчёте тестов?",
+                  "options": [
+                    "Ничем",
+                    "fail — не прошла проверка, error — упал сам код/тест",
+                    "error — мягче",
+                    "fail — ошибка синтаксиса"
+                  ],
+                  "answer": 1,
+                  "explain": "AssertionError против других исключений."
+                }
+              ]
+            },
+            {
+              "slug": "exc-m3-l3",
+              "title": "Исключения и тесты",
+              "theory": "```py\ntry:\n    parse_port(\"x\")\nexcept ValueError as e:\n    assert \"не число\" in str(e)       # тип + текст\nelse:\n    assert False, \"нет ValueError\"\n# pytest: with pytest.raises(ValueError, match=\"не число\"): ...\nexcept Exception: ...                 # в тестах — прячет баги!\n```",
+              "exercises": [
+                {
+                  "slug": "exc-m3-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Проверяем, что ошибка есть.",
+                  "code": "def check_raises(exc_type, func):\n    try:\n        func()\n    except exc_type:\n        return \"ok: ошибка есть\"\n    return \"плохо: ошибки нет\"\n\nprint(check_raises(ValueError, lambda: int(\"x\")))\nprint(check_raises(ValueError, lambda: int(\"5\")))\n",
+                  "expected_output": "ok: ошибка есть\nплохо: ошибки нет",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m3-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Проверяем текст ошибки.",
+                  "code": "def withdraw(balance, amount):\n    if amount > balance:\n        raise ValueError(f\"недостаточно средств: {balance} < {amount}\")\n    return balance - amount\n\ntry:\n    withdraw(100, 500)\nexcept ValueError as e:\n    print(\"недостаточно\" in str(e), e.args[0])\n",
+                  "expected_output": "True недостаточно средств: 100 < 500",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m3-l3-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Тест, который ловит слишком много.",
+                  "code": "def buggy():\n    return [][0]\n\ndef test_bad():\n    try:\n        buggy()\n    except Exception:\n        return \"тест прошёл?!\"\n\ndef test_good():\n    try:\n        buggy()\n    except ValueError:\n        return \"ожидаемая ошибка\"\n    except Exception as e:\n        return f\"неожиданная {type(e).__name__}\"\n\nprint(test_bad(), \"|\", test_good())\n",
+                  "expected_output": "тест прошёл?! | неожиданная IndexError",
+                  "hint": "Слишком широкий except прячет настоящий баг.",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m3-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши тест-функцию `test_parse_port()` для готовой `parse_port` из заготовки: проверь, что `\"8080\"` → `8080`, а для `\"x\"` и `\"99999\"` выбрасывается `ValueError` (используй `try/except` и `assert False`, если ошибки не было). Тест ничего не возвращает и молчит, если всё хорошо.",
+                  "starter_code": "def parse_port(text):\n    if not text.isdigit():\n        raise ValueError(\"не число\")\n    port = int(text)\n    if not 1 <= port <= 65535:\n        raise ValueError(\"вне диапазона\")\n    return port\n\ndef test_parse_port():\n    pass\n",
+                  "tests": "def test_runs():\n    test_parse_port()\n\ndef test_catches_bug():\n    g = test_parse_port.__globals__\n    original = g[\"parse_port\"]\n    g[\"parse_port\"] = lambda text: int(text)\n    try:\n        test_parse_port()\n    except (AssertionError, ValueError):\n        return\n    finally:\n        g[\"parse_port\"] = original\n    assert False, \"Тест должен падать на сломанной parse_port (без проверки диапазона)\"\n",
+                  "solution": "def parse_port(text):\n    if not text.isdigit():\n        raise ValueError(\"не число\")\n    port = int(text)\n    if not 1 <= port <= 65535:\n        raise ValueError(\"вне диапазона\")\n    return port\n\ndef test_parse_port():\n    assert parse_port(\"8080\") == 8080\n    for bad in [\"x\", \"99999\"]:\n        try:\n            parse_port(bad)\n        except ValueError:\n            continue\n        assert False, f\"для {bad!r} нет ValueError\"\n",
+                  "hint": "",
+                  "xp": 25
+                },
+                {
+                  "slug": "exc-m3-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `raises_with(exc_type, text, func)` — `True`, если `func()` выбросила исключение нужного типа и в его тексте есть подстрока `text`; `False` — если ошибки не было, тип другой или текст не совпал.",
+                  "starter_code": "def raises_with(exc_type, text, func):\n    pass\n",
+                  "tests": "def test_values():\n    got = [\n        raises_with(ValueError, \"base 10\", lambda: int(\"x\")),\n        raises_with(ValueError, \"другое\", lambda: int(\"x\")),\n        raises_with(KeyError, \"x\", lambda: int(\"x\")),\n        raises_with(ValueError, \"x\", lambda: 1),\n    ]\n    assert got == [True, False, False, False], f\"Получено {got}\"\n",
+                  "solution": "def raises_with(exc_type, text, func):\n    try:\n        func()\n    except exc_type as e:\n        return text in str(e)\n    except Exception:\n        return False\n    return False\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m3-l3-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `error_report(func, cases)` — вызвать `func` с каждым аргументом из списка `cases` и вернуть список строк: `\"<аргумент!r>: ok <результат!r>\"` или `\"<аргумент!r>: <ИмяОшибки>\"`.\n\n```\nerror_report(int, [\"5\", \"x\"])   # → [\"'5': ok 5\", \"'x': ValueError\"]\n```",
+                  "starter_code": "def error_report(func, cases):\n    pass\n",
+                  "tests": "def test_values():\n    assert error_report(int, [\"5\", \"x\", None]) == [\"'5': ok 5\", \"'x': ValueError\", \"None: TypeError\"], \"Неверный отчёт\"\n",
+                  "solution": "def error_report(func, cases):\n    lines = []\n    for case in cases:\n        try:\n            result = func(case)\n            lines.append(f\"{case!r}: ok {result!r}\")\n        except Exception as e:\n            lines.append(f\"{case!r}: {type(e).__name__}\")\n    return lines\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m3-l3-e7",
+                  "type": "code",
+                  "prompt": "Тест в заготовке «зелёный» даже для сломанной функции: он ловит **любое** исключение. Исправь `test_divide`, чтобы он ожидал именно `ZeroDivisionError` и падал (`AssertionError`), если функция выбрасывает что-то другое или ничего.",
+                  "starter_code": "def divide(a, b):\n    return a / b\n\ndef test_divide():\n    try:\n        divide(1, 0)\n    except Exception:\n        pass\n",
+                  "tests": "def test_ok():\n    test_divide()\n\ndef test_strict():\n    g = test_divide.__globals__\n    original = g[\"divide\"]\n    g[\"divide\"] = lambda a, b: [][0]\n    try:\n        test_divide()\n    except (AssertionError, IndexError):\n        return\n    finally:\n        g[\"divide\"] = original\n    assert False, \"Тест должен падать, если выброшено не ZeroDivisionError\"\n",
+                  "solution": "def divide(a, b):\n    return a / b\n\ndef test_divide():\n    try:\n        divide(1, 0)\n    except ZeroDivisionError:\n        return\n    assert False, \"ожидали ZeroDivisionError\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m3-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `expect(exc_type, func, *args)` — вызвать `func(*args)`. Если выброшено исключение типа `exc_type` — вернуть его **текст**; если ничего не выброшено — `AssertionError(\"не было исключения\")`; если выброшено другое — `AssertionError(\"ожидали <Тип>, получили <Тип>\")`.",
+                  "starter_code": "def expect(exc_type, func, *args):\n    pass\n",
+                  "tests": "def test_values():\n    assert expect(ValueError, int, \"x\") == \"invalid literal for int() with base 10: 'x'\", \"Текст ошибки\"\n    for args, msg in [((ValueError, int, \"5\"), \"не было исключения\"), ((KeyError, int, \"x\"), \"ожидали KeyError, получили ValueError\")]:\n        try:\n            expect(*args)\n        except AssertionError as e:\n            assert str(e) == msg, f\"Текст: {e}\"\n            continue\n        assert False, \"Нужен AssertionError\"\n",
+                  "solution": "def expect(exc_type, func, *args):\n    try:\n        func(*args)\n    except exc_type as e:\n        return str(e)\n    except Exception as e:\n        raise AssertionError(f\"ожидали {exc_type.__name__}, получили {type(e).__name__}\")\n    raise AssertionError(\"не было исключения\")\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nХороший тест проверяет не только «правильный вход → правильный результат», но и «неправильный вход → правильная ошибка». Функция, которая должна отвергнуть отрицательную сумму, но молча её принимает, — это баг. Разберём, как проверять исключения в тестах и не наделать типичных ошибок.\n\n## Проверка «ошибка должна быть»\n\n```python\ndef check_raises(exc_type, func):\n    try:\n        func()\n    except exc_type:\n        return \"ok: ошибка есть\"\n    return \"плохо: ошибки нет\"\n\nprint(check_raises(ValueError, lambda: int(\"x\")))\nprint(check_raises(ValueError, lambda: int(\"5\")))\n```\n\n- Если исключение было — проверка пройдена; если нет — провал.\n- В pytest то же делают так: `with pytest.raises(ValueError): int(\"x\")`.\n- Вывод: `ok: ошибка есть`, `плохо: ошибки нет`.\n\n## Проверка текста ошибки\n\n```python\ndef withdraw(balance, amount):\n    if amount > balance:\n        raise ValueError(f\"недостаточно средств: {balance} < {amount}\")\n    return balance - amount\n\ntry:\n    withdraw(100, 500)\nexcept ValueError as e:\n    print(\"недостаточно\" in str(e), e.args[0])\n```\n\n- Тип ошибки — это хорошо, но ещё лучше проверить **сообщение**: иначе тест пропустит ошибку «не по той причине».\n- Вывод: `True недостаточно средств: 100 < 500`.\n\n## Тест не должен ловить слишком много\n\n```python\ndef buggy():\n    return [][0]\n\ndef test_bad():\n    try:\n        buggy()\n    except Exception:\n        return \"тест прошёл?!\"\n\ndef test_good():\n    try:\n        buggy()\n    except ValueError:\n        return \"ожидаемая ошибка\"\n    except Exception as e:\n        return f\"неожиданная {type(e).__name__}\"\n\nprint(test_bad(), \"|\", test_good())\n```\n\n- `except Exception` в тесте «проглатывает» **любую** ошибку — даже баг `IndexError`, и тест зеленеет.\n- Правильный тест ловит **ожидаемый** тип, а остальное — провал.\n- Вывод: `тест прошёл?! | неожиданная IndexError`.\n\n## Тест целиком\n\n```python\ndef parse_port(text):\n    if not text.isdigit():\n        raise ValueError(\"не число\")\n    port = int(text)\n    if not 1 <= port <= 65535:\n        raise ValueError(\"вне диапазона\")\n    return port\n\ndef test_parse_port():\n    assert parse_port(\"8080\") == 8080\n    for bad in [\"x\", \"99999\"]:\n        try:\n            parse_port(bad)\n        except ValueError:\n            continue\n        assert False, f\"для {bad!r} нет ValueError\"\n\ntest_parse_port()\nprint(\"тест прошёл\")\n```\n\n- Позитивная проверка — `assert` результата. Негативные — «должна быть ошибка, иначе `assert False`».\n- `continue` в `except` — перейти к следующему случаю; если исключения не было, выполняется `assert False` с понятным сообщением.\n- Вывод: `тест прошёл`.\n\n## Итог\n\n- Проверяй и успешные сценарии, и ошибочные.\n- «Должно упасть»: `try` → `except Ожидаемый` → иначе `assert False` (в pytest — `pytest.raises`).\n- Проверяй и тип, и текст ошибки.\n- Не лови в тестах `Exception` — это прячет баги.",
+              "quiz": [
+                {
+                  "q": "Почему `except Exception` в тесте опасен?",
+                  "options": [
+                    "Медленно",
+                    "Тест пройдёт при любой ошибке, включая баги",
+                    "Не работает",
+                    "Не опасен"
+                  ],
+                  "answer": 1,
+                  "explain": "Ловить нужно ожидаемый тип."
+                },
+                {
+                  "q": "Что проверить кроме типа исключения?",
+                  "options": [
+                    "Ничего",
+                    "Текст/сообщение ошибки",
+                    "Время",
+                    "Имя файла"
+                  ],
+                  "answer": 1,
+                  "explain": "Ошибка может быть «не по той причине»."
+                },
+                {
+                  "q": "Как в pytest проверить, что код выбрасывает ValueError?",
+                  "options": [
+                    "`assert ValueError`",
+                    "`with pytest.raises(ValueError):`",
+                    "`try: pass`",
+                    "`pytest.error()`"
+                  ],
+                  "answer": 1,
+                  "explain": "Контекстный менеджер pytest.raises."
+                }
+              ]
+            },
+            {
+              "slug": "exc-m3-l4",
+              "title": "Практика: надёжная обработка данных",
+              "theory": "```py\nexcept (json.JSONDecodeError, KeyError, ValueError, TypeError): ...\nerrors[type(e).__name__] += 1          # сводка ошибок\nreturn (\"error\", step_no, type(e).__name__)\nraise ValueError(f\"плохое значение {key}: {v!r}\") from e\n```",
+              "exercises": [
+                {
+                  "slug": "exc-m3-l4-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\nbodies = ['{\"id\": 1}', \"<html>\", \"\", '{\"id\": \"2\"}']\nfor body in bodies:\n    try:\n        data = json.loads(body)\n        print(\"id =\", int(data[\"id\"]))\n    except json.JSONDecodeError:\n        print(\"не JSON\")\n",
+                  "expected_output": "id = 1\nне JSON\nне JSON\nid = 2",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m3-l4-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def load_user(raw):\n    try:\n        name, age = raw.split(\":\")\n        age = int(age)\n    except ValueError:\n        return None\n    if age < 0:\n        raise ValueError(\"возраст < 0\")\n    return name, age\n\nfor raw in [\"Аня:25\", \"плохо\", \"Боря:-1\"]:\n    try:\n        print(load_user(raw))\n    except ValueError as e:\n        print(\"ошибка данных:\", e)\n",
+                  "expected_output": "('Аня', 25)\nNone\nошибка данных: возраст < 0",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m3-l4-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Сводка ошибок.",
+                  "code": "from collections import Counter\nerrors = Counter()\nfor value in [\"1\", \"x\", None, \"2\", [], \"y\"]:\n    try:\n        int(value)\n    except Exception as e:\n        errors[type(e).__name__] += 1\nprint(dict(errors))\n",
+                  "expected_output": "{'ValueError': 2, 'TypeError': 2}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "exc-m3-l4-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_body(text)` — разобрать JSON-тело ответа и вернуть поле `\"id\"` как `int`. Любая проблема (не JSON, нет поля, не число, корень не объект) — вернуть `None`.",
+                  "starter_code": "import json\n\ndef parse_body(text):\n    pass\n",
+                  "tests": "def test_values():\n    got = [parse_body('{\"id\": 1}'), parse_body('{\"id\": \"2\"}'), parse_body(\"<html>\"), parse_body('{\"x\": 1}'), parse_body('{\"id\": \"a\"}'), parse_body(\"[1]\")]\n    assert got == [1, 2, None, None, None, None], f\"Получено {got}\"\n",
+                  "solution": "import json\n\ndef parse_body(text):\n    try:\n        return int(json.loads(text)[\"id\"])\n    except (json.JSONDecodeError, KeyError, ValueError, TypeError):\n        return None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m3-l4-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `error_stats(values)` — попытаться превратить каждое значение в `int`; вернуть словарь «имя типа ошибки → количество».",
+                  "starter_code": "def error_stats(values):\n    pass\n",
+                  "tests": "def test_values():\n    assert error_stats([\"1\", \"x\", None, \"2\", [], \"y\"]) == {\"ValueError\": 2, \"TypeError\": 2} and error_stats([\"1\"]) == {}, \"Неверная сводка\"\n",
+                  "solution": "def error_stats(values):\n    stats = {}\n    for v in values:\n        try:\n            int(v)\n        except Exception as e:\n            name = type(e).__name__\n            stats[name] = stats.get(name, 0) + 1\n    return stats\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m3-l4-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `import_users(rows)` — строки `\"имя;email;возраст\"`. Для каждой строки: корректная → словарь `{\"name\", \"email\", \"age\"}`; некорректная (не 3 части, возраст не число, в email нет `@`) → запись в список ошибок `\"строка <N>: <описание>\"` (N с 1). Вернуть `(users, errors)`. Описания: `\"неверный формат\"`, `\"возраст не число\"`, `\"нет @ в email\"`.",
+                  "starter_code": "def import_users(rows):\n    pass\n",
+                  "tests": "def test_values():\n    users, errors = import_users([\"Аня;a@x.ru;25\", \"плохо\", \"Боря;b@x.ru;x\", \"Вика;vika;30\"])\n    assert users == [{\"name\": \"Аня\", \"email\": \"a@x.ru\", \"age\": 25}], f\"users = {users}\"\n    assert errors == [\"строка 2: неверный формат\", \"строка 3: возраст не число\", \"строка 4: нет @ в email\"], f\"errors = {errors}\"\n",
+                  "solution": "def import_users(rows):\n    users, errors = [], []\n    for i, row in enumerate(rows, start=1):\n        parts = row.split(\";\")\n        if len(parts) != 3:\n            errors.append(f\"строка {i}: неверный формат\")\n            continue\n        name, email, age = parts\n        try:\n            age = int(age)\n        except ValueError:\n            errors.append(f\"строка {i}: возраст не число\")\n            continue\n        if \"@\" not in email:\n            errors.append(f\"строка {i}: нет @ в email\")\n            continue\n        users.append({\"name\": name, \"email\": email, \"age\": age})\n    return users, errors\n",
+                  "hint": "",
+                  "xp": 25
+                },
+                {
+                  "slug": "exc-m3-l4-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `safe_pipeline(value, steps)` — применить к значению функции из списка `steps` по очереди. Если какой-то шаг упал, вернуть `(\"error\", <номер шага с 1>, <имя ошибки>)`; если всё прошло — `(\"ok\", результат)`.",
+                  "starter_code": "def safe_pipeline(value, steps):\n    pass\n",
+                  "tests": "def test_values():\n    assert safe_pipeline(\" 5 \", [str.strip, int, lambda x: x * 2]) == (\"ok\", 10), \"Успешный конвейер\"\n    assert safe_pipeline(\"x\", [str.strip, int, lambda x: x * 2]) == (\"error\", 2, \"ValueError\"), \"Ошибка на шаге 2\"\n",
+                  "solution": "def safe_pipeline(value, steps):\n    for i, step in enumerate(steps, start=1):\n        try:\n            value = step(value)\n        except Exception as e:\n            return (\"error\", i, type(e).__name__)\n    return (\"ok\", value)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "exc-m3-l4-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `load_settings(raw)` — словарь строк-настроек превратить в типизированный: `timeout` → `int` (по умолчанию 30), `debug` → `bool` из `\"true\"`/`\"false\"` (по умолчанию `False`). Неверное значение — выбросить `ValueError(f\"плохое значение {ключ}: {значение!r}\")` с причиной (`from`), если она есть.",
+                  "starter_code": "def load_settings(raw):\n    pass\n",
+                  "tests": "def test_ok():\n    assert load_settings({}) == {\"timeout\": 30, \"debug\": False}, \"Умолчания\"\n    assert load_settings({\"timeout\": \"5\", \"debug\": \"true\"}) == {\"timeout\": 5, \"debug\": True}, \"Значения\"\n\ndef test_errors():\n    for raw, msg in [({\"timeout\": \"x\"}, \"плохое значение timeout: 'x'\"), ({\"debug\": \"yes\"}, \"плохое значение debug: 'yes'\")]:\n        try:\n            load_settings(raw)\n        except ValueError as e:\n            assert str(e) == msg, f\"Текст: {e}\"\n            continue\n        assert False, \"Нужен ValueError\"\n",
+                  "solution": "def load_settings(raw):\n    try:\n        timeout = int(raw.get(\"timeout\", \"30\"))\n    except ValueError as e:\n        raise ValueError(f\"плохое значение timeout: {raw['timeout']!r}\") from e\n    debug_raw = raw.get(\"debug\", \"false\")\n    if debug_raw not in (\"true\", \"false\"):\n        raise ValueError(f\"плохое значение debug: {debug_raw!r}\")\n    return {\"timeout\": timeout, \"debug\": debug_raw == \"true\"}\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСоберём всё вместе: разбор ответов API, импорт данных с отчётом об ошибках, сводка ошибок, конвейер с указанием упавшего шага, загрузка настроек с понятными сообщениями. Это ежедневные задачи автотестов и вспомогательных скриптов.\n\n## Разбор тела ответа\n\n```python\nimport json\nbodies = ['{\"id\": 1}', \"<html>\", \"\", '{\"id\": \"2\"}']\nfor body in bodies:\n    try:\n        data = json.loads(body)\n        print(\"id =\", int(data[\"id\"]))\n    except json.JSONDecodeError:\n        print(\"не JSON\")\n```\n\n- `json.JSONDecodeError` — некорректный JSON (тема «JSON»). Ещё возможны `KeyError` (нет поля), `ValueError` (id не число), `TypeError` (корень не объект) — их тоже стоит перечислить, если ответ может быть любым.\n- Вывод: `id = 1`, `не JSON`, `не JSON`, `id = 2`.\n\n## Разные ошибки — разная реакция\n\n```python\ndef load_user(raw):\n    try:\n        name, age = raw.split(\":\")\n        age = int(age)\n    except ValueError:\n        return None\n    if age < 0:\n        raise ValueError(\"возраст < 0\")\n    return name, age\n\nfor raw in [\"Аня:25\", \"плохо\", \"Боря:-1\"]:\n    try:\n        print(load_user(raw))\n    except ValueError as e:\n        print(\"ошибка данных:\", e)\n```\n\n- Нечитаемую строку функция сама превращает в `None`, а бессмысленное значение — в явную ошибку для вызывающего кода.\n- Вывод: `('Аня', 25)`, `None`, `ошибка данных: возраст < 0`.\n\n## Сводка ошибок\n\n```python\nfrom collections import Counter\nerrors = Counter()\nfor value in [\"1\", \"x\", None, \"2\", [], \"y\"]:\n    try:\n        int(value)\n    except Exception as e:\n        errors[type(e).__name__] += 1\nprint(dict(errors))\n```\n\n- Здесь широкий `except Exception` уместен: мы не прячем ошибки, а **считаем** их для отчёта.\n- Вывод: `{'ValueError': 2, 'TypeError': 2}`.\n\n## Конвейер с указанием шага\n\n```python\ndef safe_pipeline(value, steps):\n    for i, step in enumerate(steps, start=1):\n        try:\n            value = step(value)\n        except Exception as e:\n            return (\"error\", i, type(e).__name__)\n    return (\"ok\", value)\n\nprint(safe_pipeline(\" 5 \", [str.strip, int, lambda x: x * 2]))\nprint(safe_pipeline(\"x\", [str.strip, int, lambda x: x * 2]))\n```\n\n- Сообщение «упал шаг 2, ValueError» ускоряет поиск проблемы.\n- Вывод: `('ok', 10)`, `('error', 2, 'ValueError')`.\n\n## Настройки с понятными ошибками\n\n```python\ndef load_settings(raw):\n    try:\n        timeout = int(raw.get(\"timeout\", \"30\"))\n    except ValueError as e:\n        raise ValueError(f\"плохое значение timeout: {raw['timeout']!r}\") from e\n    return {\"timeout\": timeout}\n\ntry:\n    load_settings({\"timeout\": \"x\"})\nexcept ValueError as e:\n    print(e, \"|\", type(e.__cause__).__name__)\n```\n\n- Исходная ошибка `int()` непонятна пользователю («invalid literal…»), поэтому её заменяют понятной, сохранив причину через `from`.\n- Вывод: `плохое значение timeout: 'x' | ValueError`.\n\n## Итог\n\n- Перечисляй в `except` все ожидаемые проблемы конкретными типами.\n- Нечитаемые данные — пропустить/отметить; бессмысленные — явная ошибка.\n- Широкий `except Exception` допустим для подсчёта и отчёта, а не для «проглатывания».\n- Указывай, **где** упало (шаг, строка), и заменяй технические сообщения понятными (`raise ... from e`).",
+              "quiz": [
+                {
+                  "q": "Когда уместен `except Exception`?",
+                  "options": [
+                    "Всегда",
+                    "Для подсчёта/логирования ошибок, не для проглатывания",
+                    "Никогда",
+                    "Только в тестах"
+                  ],
+                  "answer": 1,
+                  "explain": "Осознанный широкий перехват."
+                },
+                {
+                  "q": "Зачем заменять ошибку `int()` своим сообщением через `from e`?",
+                  "options": [
+                    "Быстрее",
+                    "Понятное сообщение и сохранённая причина",
+                    "Так требует Python",
+                    "Чтобы скрыть ошибку"
+                  ],
+                  "answer": 1,
+                  "explain": "Пользователю понятнее, отладке — полнее."
+                },
+                {
+                  "q": "Что полезно указать в сообщении об ошибке конвейера?",
+                  "options": [
+                    "Ничего",
+                    "Номер шага и тип ошибки",
+                    "Время суток",
+                    "Имя пользователя ОС"
+                  ],
+                  "answer": 1,
+                  "explain": "Где и что упало."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
