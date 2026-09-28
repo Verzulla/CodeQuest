@@ -144,70 +144,61 @@ export function sound(kind) {
   } catch { /* звук необязателен */ }
 }
 
-// Победный звук за верный ответ — короткая «фанфара медных»: та-да-да-ДАМ (соль-до-ми-соль)
-// и финальный аккорд. Тембр трубы: пилообразная волна через фильтр, который «раскрывается»
-// в начале ноты; по три слегка расстроенных голоса на ноту и вибрато дают объём,
-// а искусственное эхо зала (свёртка) — пространство.
+// Победный звук за верный ответ — короткая мягкая фанфара низких медных (валторна/туба):
+// «па-ДАМ» (соль → аккорд до мажор), около полусекунды. Мягкий тембр: смесь пилы и
+// треугольника через низкий фильтр без резонанса; два слегка расстроенных голоса
+// и короткое эхо дают объём, но не затягивают звук.
 let hall = null;
 function hallReverb() {
   if (hall) return hall;
-  const len = audio.sampleRate * 1.6;
+  const len = audio.sampleRate * 0.7;
   const ir = audio.createBuffer(2, len, audio.sampleRate);
   for (let ch = 0; ch < 2; ch++) {
     const d = ir.getChannelData(ch);
-    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 3;
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 4;
   }
   const conv = audio.createConvolver();
   conv.buffer = ir;
   const wet = audio.createGain();
-  wet.gain.value = 0.35;
+  wet.gain.value = 0.18;
   conv.connect(wet).connect(audio.destination);
   hall = conv;
   return hall;
 }
 
-function brass(freq, t, dur, vol) {
+function horn(freq, t, dur, vol) {
   const out = audio.createGain();
   out.gain.setValueAtTime(0.0001, t);
-  out.gain.exponentialRampToValueAtTime(vol, t + 0.03);
-  out.gain.setValueAtTime(vol, t + dur * 0.7);
+  out.gain.exponentialRampToValueAtTime(vol, t + 0.04);          // мягкая атака
+  out.gain.setValueAtTime(vol, t + dur * 0.6);
   out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   const filter = audio.createBiquadFilter();
   filter.type = "lowpass";
-  filter.Q.value = 2;
-  filter.frequency.setValueAtTime(freq * 1.5, t);
-  filter.frequency.exponentialRampToValueAtTime(freq * 6, t + 0.06);   // «вдох» трубы
-  filter.frequency.exponentialRampToValueAtTime(freq * 3.5, t + dur);
+  filter.Q.value = 0.5;
+  filter.frequency.setValueAtTime(freq * 1.2, t);
+  filter.frequency.exponentialRampToValueAtTime(Math.min(freq * 3, 1400), t + 0.05);
+  filter.frequency.exponentialRampToValueAtTime(freq * 1.5, t + dur);
   filter.connect(out);
   out.connect(audio.destination);
   out.connect(hallReverb());
-  const vibrato = audio.createOscillator(), depth = audio.createGain();
-  vibrato.frequency.value = 5.5;
-  depth.gain.value = freq * 0.006;
-  vibrato.connect(depth);
-  for (const detune of [-7, 0, 7]) {
-    const o = audio.createOscillator();
-    o.type = "sawtooth";
+  for (const [type, detune, level] of [["sawtooth", -5, 0.5], ["triangle", 5, 1]]) {
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = type;
     o.frequency.value = freq;
     o.detune.value = detune;
-    depth.connect(o.frequency);
-    o.connect(filter);
+    g.gain.value = level;
+    o.connect(g).connect(filter);
     o.start(t); o.stop(t + dur + 0.05);
   }
-  vibrato.start(t); vibrato.stop(t + dur + 0.05);
 }
 
 function winSound() {
   const t = audio.currentTime + 0.02;
-  const G4 = 392, C5 = 523.25, E5 = 659.25, G5 = 783.99, C4 = 261.63;
-  brass(G4, t, 0.12, 0.07);
-  brass(C5, t + 0.11, 0.12, 0.07);
-  brass(E5, t + 0.22, 0.12, 0.07);
-  // финальный аккорд до мажор: мелодия сверху, опора снизу
-  brass(G5, t + 0.33, 0.7, 0.08);
-  brass(E5, t + 0.33, 0.7, 0.045);
-  brass(C5, t + 0.33, 0.7, 0.045);
-  brass(C4, t + 0.33, 0.7, 0.05);
+  const C3 = 130.81, G3 = 196, C4 = 261.63, E4 = 329.63;
+  horn(G3, t, 0.12, 0.16);                 // «па»
+  horn(C4, t + 0.11, 0.38, 0.14);          // «ДАМ» — аккорд до мажор
+  horn(E4, t + 0.11, 0.38, 0.08);
+  horn(C3, t + 0.11, 0.38, 0.14);
 }
 
 // ---------- Тосты и модалки ----------
