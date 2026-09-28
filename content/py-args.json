@@ -1,0 +1,1478 @@
+{
+  "topics": [
+    {
+      "slug": "py-args",
+      "title": "*args и **kwargs",
+      "icon": "✳️",
+      "color": "#7c5cff",
+      "description": "Любое число аргументов, звёздочки при вызове, полная сигнатура функции, обёртки и фабрики данных",
+      "group": "Python",
+      "modules": [
+        {
+          "slug": "arg-m1",
+          "title": "*args",
+          "icon": "✳️",
+          "description": "Любое число позиционных аргументов и звёздочка при вызове",
+          "lessons": [
+            {
+              "slug": "arg-m1-l1",
+              "title": "*args: любое число аргументов",
+              "theory": "```py\ndef total(*nums):       # nums — КОРТЕЖ всех позиционных аргументов\n    return sum(nums)\ntotal(1, 2, 3)          # 6\ntotal()                 # nums == () -> 0\nif not nums: ...        # ничего не передали\ntotal([1, 2])           # ОДИН аргумент-список!\n```",
+              "exercises": [
+                {
+                  "slug": "arg-m1-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def show(*args):\n    print(args, type(args).__name__, len(args))\n\nshow(1, 2, 3)\nshow(\"a\")\nshow()\n",
+                  "expected_output": "(1, 2, 3) tuple 3\n('a',) tuple 1\n() tuple 0",
+                  "hint": "Все позиционные аргументы собираются в кортеж.",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m1-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def total(*nums):\n    s = 0\n    for n in nums:\n        s += n\n    return s\n\nprint(total(1, 2, 3), total(), total(10))\n",
+                  "expected_output": "6 0 10",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m1-l1-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def first_or_none(*items):\n    return items[0] if items else None\n\nprint(first_or_none(5, 6), first_or_none())\n",
+                  "expected_output": "5 None",
+                  "hint": "Пустой кортеж ложен.",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m1-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `my_sum(*nums)` — сумма любого количества чисел. Без аргументов — `0`.\n\n```\nmy_sum(1, 2, 3)   # → 6\nmy_sum()          # → 0\n```",
+                  "starter_code": "def my_sum(*nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert [my_sum(1, 2, 3), my_sum(), my_sum(5), my_sum(1.5, 1.5)] == [6, 0, 5, 3.0], \"Неверная сумма\"\n",
+                  "solution": "def my_sum(*nums):\n    total = 0\n    for n in nums:\n        total += n\n    return total\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `count_args(*args)` — сколько аргументов ей передали.\n\n```\ncount_args(1, \"a\", None)   # → 3\ncount_args()               # → 0\n```",
+                  "starter_code": "def count_args(*args):\n    pass\n",
+                  "tests": "def test_values():\n    assert [count_args(1, \"a\", None), count_args(), count_args([1, 2])] == [3, 0, 1], \"Неверное количество\"\n",
+                  "solution": "def count_args(*args):\n    return len(args)\n",
+                  "hint": "Список [1, 2] — это ОДИН аргумент.",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l1-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `average(*nums)` — среднее арифметическое. Без аргументов — `None`.\n\n```\naverage(2, 4, 9)   # → 5.0\naverage()          # → None\n```",
+                  "starter_code": "def average(*nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert [average(2, 4, 9), average(), average(7)] == [5.0, None, 7.0], \"Неверное среднее\"\n",
+                  "solution": "def average(*nums):\n    if not nums:\n        return None\n    return sum(nums) / len(nums)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `longest(*words)` — самое длинное из переданных слов (при равенстве — первое). Без аргументов — `\"\"`.\n\n```\nlongest(\"api\", \"docker\", \"pytest\")   # → \"docker\"\nlongest()                            # → \"\"\n```",
+                  "starter_code": "def longest(*words):\n    pass\n",
+                  "tests": "def test_values():\n    assert [longest(\"api\", \"docker\", \"pytest\"), longest(), longest(\"a\")] == [\"docker\", \"\", \"a\"], \"Неверный результат\"\n",
+                  "solution": "def longest(*words):\n    best = \"\"\n    for w in words:\n        if len(w) > len(best):\n            best = w\n    return best\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `join_words(*words)` — склеить слова через пробел, **пропуская пустые** строки.\n\n```\njoin_words(\"Привет\", \"\", \"мир\")   # → \"Привет мир\"\njoin_words()                      # → \"\"\n```",
+                  "starter_code": "def join_words(*words):\n    pass\n",
+                  "tests": "def test_values():\n    assert [join_words(\"Привет\", \"\", \"мир\"), join_words(), join_words(\"a\")] == [\"Привет мир\", \"\", \"a\"], \"Неверная строка\"\n",
+                  "solution": "def join_words(*words):\n    return \" \".join(w for w in words if w)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВстроенные `print`, `max`, `min` принимают **сколько угодно** аргументов: `max(3, 9, 2)`, `print(\"a\", \"b\", \"c\")`. Свою функцию с таким поведением делают с помощью параметра со звёздочкой — `*args`. Это нужно для функций вроде «сумма любых чисел», «записать в лог любые сообщения», «склеить любые части пути».\n\n## Параметр со звёздочкой\n\n```python\ndef show(*args):\n    print(args, type(args).__name__, len(args))\n\nshow(1, 2, 3)\nshow(\"a\")\nshow()\n```\n\n- `*args` — «собери **все** позиционные аргументы в один кортеж и назови его `args`».\n- Внутри функции `args` — обычный **кортеж** (тема «Кортежи»): можно перебирать, брать индекс, узнавать длину.\n- Вызов без аргументов даёт пустой кортеж `()` — ошибки нет.\n- Вывод: `(1, 2, 3) tuple 3`, `('a',) tuple 1`, `() tuple 0`.\n\nИмя `args` — только соглашение (от «arguments»). Главное — звёздочка: `def total(*nums)` работает так же.\n\n## Работа с args\n\n```python\ndef total(*nums):\n    s = 0\n    for n in nums:\n        s += n\n    return s\n\nprint(total(1, 2, 3), total(), total(10))\n```\n\n- Перебираем кортеж как любую коллекцию. Для пустого — цикл не выполнится, результат 0.\n- Вывод: `6 0 10`.\n\n```python\ndef first_or_none(*items):\n    return items[0] if items else None\n\ndef average(*nums):\n    if not nums:\n        return None\n    return sum(nums) / len(nums)\n\nprint(first_or_none(5, 6), first_or_none(), average(2, 4, 9), average())\n```\n\n- Пустой кортеж ложен — удобно проверять «передали ли хоть что-то».\n- Встроенные `sum`, `len`, `max` работают с кортежем напрямую.\n- Вывод: `5 None 5.0 None`.\n\n## Список — это один аргумент\n\n```python\ndef count_args(*args):\n    return len(args)\n\nprint(count_args(1, \"a\", None), count_args([1, 2, 3]))\n```\n\n- `count_args([1, 2, 3])` — передан **один** аргумент-список. Чтобы разложить список на отдельные аргументы, нужна звёздочка при вызове (урок «Звёздочка при вызове»).\n- Вывод: `3 1`.\n\n## Строка из аргументов\n\n```python\ndef join_words(*words):\n    return \" \".join(w for w in words if w)\n\nprint(join_words(\"Привет\", \"\", \"мир\"))\n```\n\n- Генератор с условием отбрасывает пустые строки. Вывод: `Привет мир`.\n\n## Итог\n\n- `def f(*args)` — все позиционные аргументы собираются в **кортеж** `args`.\n- Без аргументов `args == ()`.\n- Внутри — обычный кортеж: цикл, `len`, индексы, `sum`/`max`.\n- Имя может быть любым, главное — `*`.\n- Список, переданный без звёздочки, — один аргумент.",
+              "quiz": [
+                {
+                  "q": "Какой тип у `args` внутри `def f(*args)`?",
+                  "options": [
+                    "list",
+                    "tuple",
+                    "dict",
+                    "set"
+                  ],
+                  "answer": 1,
+                  "explain": "Позиционные аргументы собираются в кортеж."
+                },
+                {
+                  "q": "Что будет в `args` при вызове `f()` для `def f(*args)`?",
+                  "options": [
+                    "None",
+                    "`()`",
+                    "Ошибка",
+                    "`[]`"
+                  ],
+                  "answer": 1,
+                  "explain": "Пустой кортеж."
+                },
+                {
+                  "q": "Сколько аргументов получит `f([1, 2, 3])` для `def f(*args)`?",
+                  "options": [
+                    "3",
+                    "1",
+                    "0",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Список — один аргумент."
+                }
+              ]
+            },
+            {
+              "slug": "arg-m1-l2",
+              "title": "*args вместе с обычными параметрами",
+              "theory": "```py\ndef greet(greeting, *names): ...     # первый -> greeting, остальные -> names\ndef f(a, b=10, *rest): ...           # f(1, 2, 3) -> a=1, b=2, rest=(3,)\ndef join(*parts, sep=\"-\"): ...       # sep ТОЛЬКО по имени\njoin(\"a\", \"+\")                       # \"+\" попал в parts!\njoin(\"a\", \"b\", sep=\"+\")\n```",
+              "exercises": [
+                {
+                  "slug": "arg-m1-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def greet(greeting, *names):\n    for name in names:\n        print(greeting, name)\n\ngreet(\"Привет\", \"Аня\", \"Боря\")\ngreet(\"Пока\")\nprint(\"конец\")\n",
+                  "expected_output": "Привет Аня\nПривет Боря\nконец",
+                  "hint": "Первый аргумент уходит в greeting, остальные — в names.",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m1-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Параметр после *args.",
+                  "code": "def join(*parts, sep=\"-\"):\n    return sep.join(parts)\n\nprint(join(\"a\", \"b\", \"c\"))\nprint(join(\"a\", \"b\", sep=\"+\"))\nprint(join(\"a\", \"+\"))\n",
+                  "expected_output": "a-b-c\na+b\na-+",
+                  "hint": "После *args параметр можно передать только по имени.",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m1-l2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def f(a, b=10, *rest):\n    print(a, b, rest)\n\nf(1)\nf(1, 2)\nf(1, 2, 3, 4)\n",
+                  "expected_output": "1 10 ()\n1 2 ()\n1 2 (3, 4)",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m1-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `tag(name, *classes)` — CSS-селектор: имя тега и классы через точку.\n\n```\ntag(\"div\", \"card\", \"active\")   # → \"div.card.active\"\ntag(\"p\")                       # → \"p\"\n```",
+                  "starter_code": "def tag(name, *classes):\n    pass\n",
+                  "tests": "def test_values():\n    assert [tag(\"div\", \"card\", \"active\"), tag(\"p\")] == [\"div.card.active\", \"p\"], \"Неверный селектор\"\n",
+                  "solution": "def tag(name, *classes):\n    return name + \"\".join(\".\" + c for c in classes)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `log(level, *messages)` — строка `\"[LEVEL] сообщения через пробел\"`.\n\n```\nlog(\"INFO\", \"сервер\", \"запущен\")   # → \"[INFO] сервер запущен\"\nlog(\"WARN\")                        # → \"[WARN] \"\n```",
+                  "starter_code": "def log(level, *messages):\n    pass\n",
+                  "tests": "def test_values():\n    assert [log(\"INFO\", \"сервер\", \"запущен\"), log(\"WARN\")] == [\"[INFO] сервер запущен\", \"[WARN] \"], \"Неверная строка\"\n",
+                  "solution": "def log(level, *messages):\n    return f\"[{level}] \" + \" \".join(messages)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l2-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `join_with(*parts, sep=\", \")` — склеить любые значения (превращая их в строки) через разделитель `sep`, который передаётся **только по имени**.\n\n```\njoin_with(1, \"a\", 2.5)          # → \"1, a, 2.5\"\njoin_with(\"x\", \"y\", sep=\"|\")    # → \"x|y\"\n```",
+                  "starter_code": "def join_with(*parts, sep=\", \"):\n    pass\n",
+                  "tests": "def test_values():\n    assert [join_with(1, \"a\", 2.5), join_with(\"x\", \"y\", sep=\"|\"), join_with()] == [\"1, a, 2.5\", \"x|y\", \"\"], \"Неверная строка\"\n",
+                  "solution": "def join_with(*parts, sep=\", \"):\n    return sep.join(str(p) for p in parts)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `scale(factor, *nums)` — список чисел, умноженных на `factor`.\n\n```\nscale(10, 1, 2, 3)   # → [10, 20, 30]\nscale(2)             # → []\n```",
+                  "starter_code": "def scale(factor, *nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert [scale(10, 1, 2, 3), scale(2)] == [[10, 20, 30], []], \"Неверный результат\"\n",
+                  "solution": "def scale(factor, *nums):\n    return [n * factor for n in nums]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `between(low, high, *values)` — список значений из `values`, попадающих в отрезок `[low, high]`.\n\n```\nbetween(1, 5, 0, 3, 5, 9)   # → [3, 5]\n```",
+                  "starter_code": "def between(low, high, *values):\n    pass\n",
+                  "tests": "def test_values():\n    assert [between(1, 5, 0, 3, 5, 9), between(0, 1)] == [[3, 5], []], \"Неверный результат\"\n",
+                  "solution": "def between(low, high, *values):\n    return [v for v in values if low <= v <= high]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЧасто у функции есть обязательные параметры **и** «хвост» произвольной длины: уровень лога и сообщения, имя тега и классы, коэффициент и числа. `*args` можно сочетать с обычными параметрами — важно понимать, кто какой аргумент получит.\n\n## Обычные параметры перед *args\n\n```python\ndef greet(greeting, *names):\n    for name in names:\n        print(greeting, name)\n\ngreet(\"Привет\", \"Аня\", \"Боря\")\ngreet(\"Пока\")\nprint(\"конец\")\n```\n\n- Аргументы раздаются по порядку: первый — в `greeting`, **все остальные** — в кортеж `names`.\n- `greet(\"Пока\")` — `names` пуст, цикл ничего не печатает.\n- Вывод: `Привет Аня`, `Привет Боря`, `конец`.\n\n## Значения по умолчанию перед *args\n\n```python\ndef f(a, b=10, *rest):\n    print(a, b, rest)\n\nf(1)\nf(1, 2)\nf(1, 2, 3, 4)\n```\n\n- Позиционные аргументы заполняют параметры слева направо, остаток уходит в `rest`.\n- Вывод: `1 10 ()`, `1 2 ()`, `1 2 (3, 4)`.\n- Подвох: чтобы передать что-то в `rest`, придётся явно указать и `b` — значение по умолчанию «съедается» вторым аргументом.\n\n## Параметры ПОСЛЕ *args — только по имени\n\n```python\ndef join(*parts, sep=\"-\"):\n    return sep.join(parts)\n\nprint(join(\"a\", \"b\", \"c\"))\nprint(join(\"a\", \"b\", sep=\"+\"))\nprint(join(\"a\", \"+\"))\n```\n\n- `*parts` забирает **все** позиционные аргументы, поэтому параметр после него можно передать **только по имени** — это **keyword-only** параметр (тема «Функции», урок об ошибках вызова).\n- `join(\"a\", \"+\")` — `\"+\"` ушёл в `parts`, а не в `sep`!\n- Вывод: `a-b-c`, `a+b`, `a-+`.\n\nТак устроен и `print`: `print(*objects, sep=\" \", end=\"\\n\")` — `sep` и `end` передаются только по имени.\n\n```python\ndef join_with(*parts, sep=\", \"):\n    return sep.join(str(p) for p in parts)\n\nprint(join_with(1, \"a\", 2.5), join_with(\"x\", \"y\", sep=\"|\"))\n```\n\n- `str(p)` — чтобы склеивать любые значения, не только строки. Вывод: `1, a, 2.5 x|y`.\n\n## Примеры\n\n```python\ndef tag(name, *classes):\n    return name + \"\".join(\".\" + c for c in classes)\n\ndef scale(factor, *nums):\n    return [n * factor for n in nums]\n\nprint(tag(\"div\", \"card\", \"active\"), tag(\"p\"), scale(10, 1, 2, 3))\n```\n\nВывод: `div.card.active p [10, 20, 30]`.\n\n## Итог\n\n- Обычные параметры перед `*args` заполняются первыми, остаток — в `args`.\n- Значение по умолчанию перед `*args` занимается вторым позиционным аргументом.\n- Параметры после `*args` — только по имени (keyword-only).\n- Так устроен `print(*objects, sep=..., end=...)`.",
+              "quiz": [
+                {
+                  "q": "Что получит `names` при `greet(\"Hi\", \"A\", \"B\")` для `def greet(greeting, *names)`?",
+                  "options": [
+                    "`(\"Hi\", \"A\", \"B\")`",
+                    "`(\"A\", \"B\")`",
+                    "`[\"A\", \"B\"]`",
+                    "`\"A\"`"
+                  ],
+                  "answer": 1,
+                  "explain": "Первый — в greeting, остальные — в names."
+                },
+                {
+                  "q": "Как передать `sep` в `def join(*parts, sep=\"-\")`?",
+                  "options": [
+                    "Последним позиционным",
+                    "Только по имени: sep=\"+\"",
+                    "Первым аргументом",
+                    "Никак"
+                  ],
+                  "answer": 1,
+                  "explain": "После *args — keyword-only."
+                },
+                {
+                  "q": "Что выведет `f(1, 2, 3)` для `def f(a, b=10, *rest): print(a, b, rest)`?",
+                  "options": [
+                    "`1 10 (2, 3)`",
+                    "`1 2 (3,)`",
+                    "`1 2 3`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "b занимается вторым аргументом."
+                }
+              ]
+            },
+            {
+              "slug": "arg-m1-l3",
+              "title": "Звёздочка при вызове: f(*коллекция)",
+              "theory": "```py\nadd3(*[1, 2, 3])           # = add3(1, 2, 3)\nadd3(10, *[20, 30])\nprint(*[1, 2, 3])          # 1 2 3\nprint(*row, sep=\" | \")\nmax(*a, *b)\n[pow(*p) for p in pairs]\n# def f(*args) — собрать;  f(*items) — разложить\n```",
+              "exercises": [
+                {
+                  "slug": "arg-m1-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def add3(a, b, c):\n    return a + b + c\n\nnums = [1, 2, 3]\nprint(add3(*nums))\nprint(add3(10, *[20, 30]))\n",
+                  "expected_output": "6\n60",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m1-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? print и звёздочка.",
+                  "code": "print(*[1, 2, 3])\nprint(*\"abc\", sep=\"-\")\nprint(*range(3), sep=\", \")\n",
+                  "expected_output": "1 2 3\na-b-c\n0, 1, 2",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m1-l3-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Со звёздочкой и без.",
+                  "code": "def show(*args):\n    return len(args)\n\ndata = [1, 2, 3]\nprint(show(data), show(*data), show(*data, *data))\n",
+                  "expected_output": "1 3 6",
+                  "hint": "Без звёздочки список — один аргумент.",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m1-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `call_with_list(func, items)` — вызвать `func`, передав элементы списка `items` отдельными аргументами.\n\n```\ncall_with_list(max, [3, 9, 2])   # → 9\ncall_with_list(pow, [2, 5])      # → 32\n```",
+                  "starter_code": "def call_with_list(func, items):\n    pass\n",
+                  "tests": "def test_values():\n    assert [call_with_list(max, [3, 9, 2]), call_with_list(pow, [2, 5])] == [9, 32], \"Неверный вызов\"\n",
+                  "solution": "def call_with_list(func, items):\n    return func(*items)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l3-e5",
+                  "type": "code",
+                  "prompt": "Есть список `row = [\"id\", \"name\", \"status\"]`. Выведи его элементы **одной строкой** через `\" | \"` с помощью `print(*row, sep=...)`.\n\nОжидаемый вывод:\n```\nid | name | status\n```",
+                  "starter_code": "row = [\"id\", \"name\", \"status\"]\n",
+                  "tests": "def test_output():\n    assert OUTPUT.strip() == \"id | name | status\", f\"Напечатано {OUTPUT!r}\"\n\ndef test_star():\n    assert \"*row\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй print(*row, sep=...)\"\n",
+                  "solution": "row = [\"id\", \"name\", \"status\"]\nprint(*row, sep=\" | \")\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l3-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `max_of_lists(a, b)` — наибольшее число из двух непустых списков вместе. Используй `max(*a, *b)`.\n\n```\nmax_of_lists([1, 5], [3, 9, 2])   # → 9\n```",
+                  "starter_code": "def max_of_lists(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    assert [max_of_lists([1, 5], [3, 9, 2]), max_of_lists([-1], [-5])] == [9, -1], \"Неверный максимум\"\n",
+                  "solution": "def max_of_lists(a, b):\n    return max(*a, *b)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `merge_all(*lists)` — склеить любое количество списков в один новый список.\n\n```\nmerge_all([1], [2, 3], [])   # → [1, 2, 3]\nmerge_all()                  # → []\n```",
+                  "starter_code": "def merge_all(*lists):\n    pass\n",
+                  "tests": "def test_values():\n    assert [merge_all([1], [2, 3], []), merge_all()] == [[1, 2, 3], []], \"Неверный результат\"\n",
+                  "solution": "def merge_all(*lists):\n    result = []\n    for lst in lists:\n        result.extend(lst)\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `apply_pairs(func, pairs)` — применить функцию двух аргументов к каждой паре из списка и вернуть список результатов.\n\n```\napply_pairs(pow, [(2, 3), (3, 2)])   # → [8, 9]\n```",
+                  "starter_code": "def apply_pairs(func, pairs):\n    pass\n",
+                  "tests": "def test_values():\n    assert [apply_pairs(pow, [(2, 3), (3, 2)]), apply_pairs(max, [])] == [[8, 9], []], \"Неверный результат\"\n",
+                  "solution": "def apply_pairs(func, pairs):\n    return [func(*p) for p in pairs]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЗвёздочка работает и в обратную сторону: при **вызове** `f(*коллекция)` раскладывает элементы коллекции на отдельные аргументы. Это нужно, когда данные уже лежат в списке или кортеже, а функция ждёт их по отдельности: `max(*scores)`, `print(*row, sep=\" | \")`, `pow(*pair)`.\n\n## Звёздочка при вызове\n\n```python\ndef add3(a, b, c):\n    return a + b + c\n\nnums = [1, 2, 3]\nprint(add3(*nums))\nprint(add3(10, *[20, 30]))\n```\n\n- `add3(*nums)` — то же, что `add3(1, 2, 3)`.\n- Можно смешивать с обычными аргументами: `add3(10, *[20, 30])` = `add3(10, 20, 30)`.\n- Количество элементов должно подходить функции, иначе `TypeError`.\n- Вывод: `6`, `60`.\n\nРаботает с любой коллекцией: список, кортеж, строка, `range`, множество.\n\n## print и звёздочка\n\n```python\nprint(*[1, 2, 3])\nprint(*\"abc\", sep=\"-\")\nprint(*range(3), sep=\", \")\n```\n\n- `print(*коллекция)` печатает элементы через пробел — без скобок и кавычек списка.\n- С `sep` — через нужный разделитель.\n- Вывод: `1 2 3`, `a-b-c`, `0, 1, 2`.\n\n## Со звёздочкой и без\n\n```python\ndef show(*args):\n    return len(args)\n\ndata = [1, 2, 3]\nprint(show(data), show(*data), show(*data, *data))\n```\n\n- Без звёздочки — один аргумент (список). Со звёздочкой — три. Две звёздочки подряд — шесть.\n- Вывод: `1 3 6`.\n\n## Практические приёмы\n\n```python\na, b = [1, 5], [3, 9, 2]\nprint(max(*a, *b))\npairs = [(2, 3), (3, 2)]\nprint([pow(*p) for p in pairs])\nlists = [[1], [2, 3], []]\nprint([*lists[0], *lists[1], *lists[2]])\n```\n\n- `max(*a, *b)` — максимум из двух списков сразу.\n- `pow(*p)` — пара раскладывается в основание и степень.\n- `[*a, *b]` — звёздочка внутри литерала склеивает коллекции (тема «Кортежи»).\n- Вывод: `9`, `[8, 9]`, `[1, 2, 3]`.\n\n## Звёздочка в def и в вызове — разные вещи\n\n- В **определении** `def f(*args)` — **собрать** аргументы в кортеж.\n- В **вызове** `f(*items)` — **разложить** коллекцию на аргументы.\n\nИх часто используют вместе — например, в функции-обёртке, которая передаёт всё полученное дальше (урок «Функции-обёртки»).\n\n## Итог\n\n- `f(*коллекция)` раскладывает элементы на отдельные позиционные аргументы.\n- Можно смешивать: `f(1, *a, *b)`.\n- `print(*items, sep=...)` — печать элементов без скобок.\n- В `def` звёздочка собирает, в вызове — раскладывает.",
+              "quiz": [
+                {
+                  "q": "Что выведет `print(*[\"a\", \"b\"])`?",
+                  "options": [
+                    "`['a', 'b']`",
+                    "`a b`",
+                    "`ab`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Элементы передаются как отдельные аргументы."
+                },
+                {
+                  "q": "Что вернёт `len_args(*[1, 2], 3)` для `def len_args(*a): return len(a)`?",
+                  "options": [
+                    "2",
+                    "3",
+                    "1",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "1, 2 и 3 — три аргумента."
+                },
+                {
+                  "q": "Чем `f(*x)` отличается от `def f(*x)`?",
+                  "options": [
+                    "Ничем",
+                    "В вызове раскладывает, в def собирает",
+                    "В вызове собирает",
+                    "Это ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Одна звёздочка — два направления."
+                }
+              ]
+            },
+            {
+              "slug": "arg-m1-l4",
+              "title": "Приёмы с *args",
+              "theory": "```py\ndef my_max(first, *rest): ...        # минимум один аргумент\nall(isinstance(v, int) for v in args)   # пустой -> True\nif not args: ...\nif len(args) == 1: ...\n\"/\" + \"/\".join(p.strip(\"/\") for p in parts if p.strip(\"/\"))\n```",
+              "exercises": [
+                {
+                  "slug": "arg-m1-l4-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Хотя бы один аргумент.",
+                  "code": "def my_max(first, *rest):\n    best = first\n    for x in rest:\n        if x > best:\n            best = x\n    return best\n\nprint(my_max(3, 9, 2), my_max(5))\ntry:\n    my_max()\nexcept TypeError:\n    print(\"нужен хотя бы один аргумент\")\n",
+                  "expected_output": "9 5\nнужен хотя бы один аргумент",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m1-l4-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def check_types(*values):\n    return all(isinstance(v, (int, float)) for v in values)\n\nprint(check_types(1, 2.5), check_types(1, \"2\"), check_types())\n",
+                  "expected_output": "True False True",
+                  "hint": "all() для пустого набора — True.",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m1-l4-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def describe(*args):\n    if not args:\n        return \"пусто\"\n    if len(args) == 1:\n        return f\"один: {args[0]}\"\n    return f\"{len(args)} шт., первый {args[0]}\"\n\nprint(describe(), describe(7), describe(1, 2, 3))\n",
+                  "expected_output": "пусто один: 7 3 шт., первый 1",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m1-l4-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `my_min(first, *rest)` — наименьшее из переданных чисел, без `min`. Хотя бы один аргумент обязателен (это гарантирует сигнатура).\n\n```\nmy_min(4, -2, 7)   # → -2\nmy_min(5)          # → 5\n```",
+                  "starter_code": "def my_min(first, *rest):\n    pass\n",
+                  "tests": "def test_values():\n    assert [my_min(4, -2, 7), my_min(5)] == [-2, 5], \"Неверный минимум\"\n\ndef test_no_min():\n    assert \"min(\" not in open(\"solution.py\", encoding=\"utf-8\").read().replace(\"my_min(\", \"\"), \"Без встроенной min\"\n",
+                  "solution": "def my_min(first, *rest):\n    best = first\n    for x in rest:\n        if x < best:\n            best = x\n    return best\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l4-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `all_positive(*nums)` — все ли числа больше нуля. Без аргументов — `True`.\n\n```\nall_positive(1, 5, 2)   # → True\nall_positive(1, 0)      # → False\n```",
+                  "starter_code": "def all_positive(*nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert [all_positive(1, 5, 2), all_positive(1, 0), all_positive()] == [True, False, True], \"Неверный результат\"\n",
+                  "solution": "def all_positive(*nums):\n    return all(n > 0 for n in nums)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l4-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `unique(*items)` — список переданных значений без повторов, в порядке первого появления.\n\n```\nunique(3, 1, 3, 2, 1)   # → [3, 1, 2]\n```",
+                  "starter_code": "def unique(*items):\n    pass\n",
+                  "tests": "def test_values():\n    assert [unique(3, 1, 3, 2, 1), unique()] == [[3, 1, 2], []], \"Неверный результат\"\n",
+                  "solution": "def unique(*items):\n    result = []\n    for x in items:\n        if x not in result:\n            result.append(x)\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m1-l4-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `format_path(*parts)` — собрать URL-путь из частей: у каждой части убрать слэши по краям, пустые части пропустить, соединить через `/` и добавить `/` в начале.\n\n```\nformat_path(\"api\", \"/v1/\", \"users\")   # → \"/api/v1/users\"\nformat_path()                         # → \"/\"\n```",
+                  "starter_code": "def format_path(*parts):\n    pass\n",
+                  "tests": "def test_values():\n    assert [format_path(\"api\", \"/v1/\", \"users\"), format_path(), format_path(\"/\", \"x\")] == [\"/api/v1/users\", \"/\", \"/x\"], \"Неверный путь\"\n",
+                  "solution": "def format_path(*parts):\n    cleaned = [p.strip(\"/\") for p in parts]\n    return \"/\" + \"/\".join(p for p in cleaned if p)\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "arg-m1-l4-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `stats(*nums)` — словарь `{\"min\": ..., \"max\": ..., \"avg\": ...}` (среднее округлить до 2 знаков). Без аргументов — пустой словарь.\n\n```\nstats(2, 4, 9)   # → {\"min\": 2, \"max\": 9, \"avg\": 5.0}\nstats()          # → {}\n```",
+                  "starter_code": "def stats(*nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert stats(2, 4, 9) == {\"min\": 2, \"max\": 9, \"avg\": 5.0} and stats() == {} and stats(1, 2) == {\"min\": 1, \"max\": 2, \"avg\": 1.5}, \"Неверный результат\"\n",
+                  "solution": "def stats(*nums):\n    if not nums:\n        return {}\n    return {\"min\": min(nums), \"max\": max(nums), \"avg\": round(sum(nums) / len(nums), 2)}\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nС `*args` появляются новые вопросы: как требовать **хотя бы один** аргумент, как проверить типы всех аргументов, как по-разному обрабатывать ноль, один и много аргументов. Разберём типичные приёмы.\n\n## Хотя бы один аргумент\n\n```python\ndef my_max(first, *rest):\n    best = first\n    for x in rest:\n        if x > best:\n            best = x\n    return best\n\nprint(my_max(3, 9, 2), my_max(5))\ntry:\n    my_max()\nexcept TypeError:\n    print(\"нужен хотя бы один аргумент\")\n```\n\n- Обязательный параметр `first` перед `*rest` гарантирует минимум один аргумент — без него Python сам выбросит `TypeError` (так же устроен встроенный `max`).\n- Удобно ещё и то, что `first` — готовое начальное значение для поиска максимума (тема «Цикл for», урок про лучший элемент).\n- Вывод: `9 5`, `нужен хотя бы один аргумент`.\n\n## Проверка всех аргументов\n\n```python\ndef check_types(*values):\n    return all(isinstance(v, (int, float)) for v in values)\n\nprint(check_types(1, 2.5), check_types(1, \"2\"), check_types())\n```\n\n- `all(...)` — истинно, если условие верно для **всех**; для пустого набора — `True`.\n- Вывод: `True False True`.\n\n```python\ndef all_positive(*nums):\n    return all(n > 0 for n in nums)\n\nprint(all_positive(1, 5, 2), all_positive(1, 0))\n```\n\nВывод: `True False`.\n\n## Разное поведение для разного числа аргументов\n\n```python\ndef describe(*args):\n    if not args:\n        return \"пусто\"\n    if len(args) == 1:\n        return f\"один: {args[0]}\"\n    return f\"{len(args)} шт., первый {args[0]}\"\n\nprint(describe(), describe(7), describe(1, 2, 3))\n```\n\nВывод: `пусто один: 7 3 шт., первый 1`.\n\n## Обработка каждого аргумента\n\n```python\ndef format_path(*parts):\n    cleaned = [p.strip(\"/\") for p in parts]\n    return \"/\" + \"/\".join(p for p in cleaned if p)\n\nprint(format_path(\"api\", \"/v1/\", \"users\"), format_path())\n```\n\n- Каждую часть нормализуем (`strip(\"/\")` убирает слэши по краям), пустые отбрасываем, склеиваем.\n- Вывод: `/api/v1/users /`.\n\n## Сводка по аргументам\n\n```python\ndef stats(*nums):\n    if not nums:\n        return {}\n    return {\"min\": min(nums), \"max\": max(nums), \"avg\": round(sum(nums) / len(nums), 2)}\n\nprint(stats(2, 4, 9), stats())\n```\n\nВывод: `{'min': 2, 'max': 9, 'avg': 5.0} {}`.\n\n## Когда НЕ нужен *args\n\nЕсли функция по смыслу обрабатывает **коллекцию** (список заказов, строки лога), лучше принимать её одним параметром: `def total(prices)`. `*args` хорош, когда аргументы естественно перечислять при вызове: `my_max(3, 9, 2)`, `log(\"INFO\", \"старт\", \"ок\")`.\n\n## Итог\n\n- Минимум один аргумент — обязательный параметр перед `*rest`.\n- Проверка всех — `all(... for v in args)`; для пустого `True`.\n- Разное поведение — проверки `not args`, `len(args)`.\n- Коллекция по смыслу — лучше один параметр-список.",
+              "quiz": [
+                {
+                  "q": "Как гарантировать хотя бы один аргумент у функции с *args?",
+                  "options": [
+                    "Проверить len(args) и вернуть None",
+                    "Обязательный параметр перед *args",
+                    "Нельзя",
+                    "Написать *args+"
+                  ],
+                  "answer": 1,
+                  "explain": "Иначе Python сам выбросит TypeError."
+                },
+                {
+                  "q": "Что вернёт `all(x > 0 for x in ())`?",
+                  "options": [
+                    "`False`",
+                    "`True`",
+                    "`None`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Для пустого набора all — True."
+                },
+                {
+                  "q": "Когда лучше принимать список одним параметром, а не *args?",
+                  "options": [
+                    "Никогда",
+                    "Когда функция по смыслу обрабатывает коллекцию",
+                    "Всегда",
+                    "Только для строк"
+                  ],
+                  "answer": 1,
+                  "explain": "Например, total(prices)."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "arg-m2",
+          "title": "**kwargs",
+          "icon": "🔑",
+          "description": "Любые именованные аргументы, распаковка словаря и практика",
+          "lessons": [
+            {
+              "slug": "arg-m2-l1",
+              "title": "**kwargs: именованные аргументы в словарь",
+              "theory": "```py\ndef show(**kwargs):        # kwargs — СЛОВАРЬ именованных аргументов\n    return kwargs\nshow(a=1, b=\"x\")           # {'a': 1, 'b': 'x'}\nshow()                     # {}\nshow(1)                    # TypeError — позиционные сюда не попадают\nfor key, value in kwargs.items(): ...\n```",
+              "exercises": [
+                {
+                  "slug": "arg-m2-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def show(**kwargs):\n    print(kwargs, type(kwargs).__name__)\n\nshow(a=1, b=\"x\")\nshow()\n",
+                  "expected_output": "{'a': 1, 'b': 'x'} dict\n{} dict",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m2-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def describe(**info):\n    for key, value in info.items():\n        print(f\"{key} = {value}\")\n\ndescribe(name=\"Аня\", age=25)\n",
+                  "expected_output": "name = Аня\nage = 25",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m2-l1-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def count(**kw):\n    return len(kw)\n\nprint(count(), count(x=1), count(a=1, b=2, c=3))\n",
+                  "expected_output": "0 1 3",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m2-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_dict(**kwargs)` — вернуть словарь из переданных именованных аргументов.\n\n```\nmake_dict(host=\"localhost\", port=8080)   # → {\"host\": \"localhost\", \"port\": 8080}\nmake_dict()                              # → {}\n```",
+                  "starter_code": "def make_dict(**kwargs):\n    pass\n",
+                  "tests": "def test_values():\n    assert make_dict(host=\"localhost\", port=8080) == {\"host\": \"localhost\", \"port\": 8080} and make_dict() == {}, \"Неверный словарь\"\n",
+                  "solution": "def make_dict(**kwargs):\n    return kwargs\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `keys_sorted(**kwargs)` — отсортированный список имён переданных аргументов.\n\n```\nkeys_sorted(b=1, a=2, c=3)   # → [\"a\", \"b\", \"c\"]\n```",
+                  "starter_code": "def keys_sorted(**kwargs):\n    pass\n",
+                  "tests": "def test_values():\n    assert [keys_sorted(b=1, a=2, c=3), keys_sorted()] == [[\"a\", \"b\", \"c\"], []], \"Неверный результат\"\n",
+                  "solution": "def keys_sorted(**kwargs):\n    return sorted(kwargs)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l1-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `format_kwargs(**kwargs)` — строка вида `\"a=1, b=2\"` в порядке передачи аргументов.\n\n```\nformat_kwargs(timeout=5, retries=3)   # → \"timeout=5, retries=3\"\nformat_kwargs()                       # → \"\"\n```",
+                  "starter_code": "def format_kwargs(**kwargs):\n    pass\n",
+                  "tests": "def test_values():\n    assert [format_kwargs(timeout=5, retries=3), format_kwargs()] == [\"timeout=5, retries=3\", \"\"], \"Неверная строка\"\n",
+                  "solution": "def format_kwargs(**kwargs):\n    return \", \".join(f\"{k}={v}\" for k, v in kwargs.items())\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `only_numbers(**kwargs)` — словарь только с теми аргументами, значения которых — числа `int` или `float` (но не `bool`).\n\n```\nonly_numbers(a=1, b=\"x\", c=2.5, d=True)   # → {\"a\": 1, \"c\": 2.5}\n```",
+                  "starter_code": "def only_numbers(**kwargs):\n    pass\n",
+                  "tests": "def test_values():\n    assert only_numbers(a=1, b=\"x\", c=2.5, d=True) == {\"a\": 1, \"c\": 2.5} and only_numbers() == {}, \"Неверный результат\"\n",
+                  "solution": "def only_numbers(**kwargs):\n    return {k: v for k, v in kwargs.items() if isinstance(v, (int, float)) and not isinstance(v, bool)}\n",
+                  "hint": "bool — подтип int, его нужно исключить отдельно.",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `to_query(**params)` — строка параметров URL: пары `ключ=значение` через `&`.\n\n```\nto_query(page=2, sort=\"name\")   # → \"page=2&sort=name\"\nto_query()                      # → \"\"\n```",
+                  "starter_code": "def to_query(**params):\n    pass\n",
+                  "tests": "def test_values():\n    assert [to_query(page=2, sort=\"name\"), to_query()] == [\"page=2&sort=name\", \"\"], \"Неверная строка\"\n",
+                  "solution": "def to_query(**params):\n    return \"&\".join(f\"{k}={v}\" for k, v in params.items())\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`*args` собирает позиционные аргументы. Для **именованных** аргументов есть `**kwargs` — они собираются в **словарь** «имя → значение». Так делают функции с произвольными настройками: `request(url, timeout=5, verify=False)`, фабрики тестовых данных `make_user(name=\"admin\", role=\"qa\")`, построители запросов.\n\n## Две звёздочки\n\n```python\ndef show(**kwargs):\n    print(kwargs, type(kwargs).__name__)\n\nshow(a=1, b=\"x\")\nshow()\n```\n\n- `**kwargs` — «собери все именованные аргументы в словарь `kwargs`». Ключи — имена аргументов (строки), значения — переданные значения.\n- Без именованных аргументов — пустой словарь.\n- Вывод: `{'a': 1, 'b': 'x'} dict`, `{} dict`.\n- Имя `kwargs` (от «keyword arguments») — соглашение; главное — две звёздочки.\n\n## Работа с kwargs — как со словарём\n\n```python\ndef describe(**info):\n    for key, value in info.items():\n        print(f\"{key} = {value}\")\n\ndescribe(name=\"Аня\", age=25)\n```\n\n- Порядок пар — порядок, в котором аргументы переданы при вызове.\n- Вывод: `name = Аня`, `age = 25`.\n\n```python\ndef count(**kw):\n    return len(kw)\n\ndef to_query(**params):\n    return \"&\".join(f\"{k}={v}\" for k, v in params.items())\n\nprint(count(), count(a=1, b=2), to_query(page=2, sort=\"name\"))\n```\n\nВывод: `0 2 page=2&sort=name`.\n\n## Позиционные в **kwargs не попадают\n\n```python\ndef show(**kwargs):\n    return kwargs\n\ntry:\n    show(1)\nexcept TypeError as e:\n    print(e)\n```\n\n- `**kwargs` собирает **только** именованные аргументы. Позиционный — ошибка.\n- Вывод: `show() takes 0 positional arguments but 1 was given`.\n\n## Имена аргументов — ключи-строки\n\n```python\ndef f(**kw):\n    return sorted(kw), all(isinstance(k, str) for k in kw)\n\nprint(f(b=1, a=2))\n```\n\n- Ключи всегда строки — это имена аргументов, записанные при вызове. Вывод: `(['a', 'b'], True)`.\n\n## Фильтрация значений\n\n```python\ndef only_numbers(**kwargs):\n    return {k: v for k, v in kwargs.items() if isinstance(v, (int, float)) and not isinstance(v, bool)}\n\nprint(only_numbers(a=1, b=\"x\", c=2.5, d=True))\n```\n\n- Словарное включение — обычная обработка словаря. `bool` отсекаем отдельно: это подтип `int`.\n- Вывод: `{'a': 1, 'c': 2.5}`.\n\n## Итог\n\n- `def f(**kwargs)` — все именованные аргументы собираются в **словарь**.\n- Без именованных — `{}`; позиционные в `kwargs` не попадают.\n- Ключи — строки-имена аргументов, порядок — порядок передачи.\n- Внутри — обычный словарь: `items()`, `get`, включения.",
+              "quiz": [
+                {
+                  "q": "Какой тип у `kwargs` в `def f(**kwargs)`?",
+                  "options": [
+                    "tuple",
+                    "list",
+                    "dict",
+                    "set"
+                  ],
+                  "answer": 2,
+                  "explain": "Именованные аргументы — в словарь."
+                },
+                {
+                  "q": "Что вернёт `f(x=1, y=2)` для `def f(**kw): return list(kw)`?",
+                  "options": [
+                    "`[1, 2]`",
+                    "`['x', 'y']`",
+                    "`[(\"x\", 1), (\"y\", 2)]`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Перебор словаря даёт ключи."
+                },
+                {
+                  "q": "Что будет при `f(5)` для `def f(**kw)`?",
+                  "options": [
+                    "kw = {5: 5}",
+                    "`TypeError`",
+                    "kw = {}",
+                    "kw = (5,)"
+                  ],
+                  "answer": 1,
+                  "explain": "Позиционный аргумент принять некуда."
+                }
+              ]
+            },
+            {
+              "slug": "arg-m2-l2",
+              "title": "**kwargs с обычными параметрами",
+              "theory": "```py\ndef connect(host, port=80, **options): ...\nconnect(\"db\", 5432, timeout=5)   # options = {'timeout': 5}\ntimeout = kw.get(\"timeout\", 30)  # прочитать с умолчанием\ndebug = kw.pop(\"debug\", False)   # извлечь (ключ удалится)\n{**DEFAULTS, **settings}         # умолчания + переданное\nstrict(1, c=3)                   # без **kwargs — TypeError (опечатки видны)\n```",
+              "exercises": [
+                {
+                  "slug": "arg-m2-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def connect(host, port=80, **options):\n    print(host, port, options)\n\nconnect(\"db\")\nconnect(\"db\", 5432, timeout=5, ssl=True)\nconnect(host=\"x\", retries=3)\n",
+                  "expected_output": "db 80 {}\ndb 5432 {'timeout': 5, 'ssl': True}\nx 80 {'retries': 3}",
+                  "hint": "В **options попадают только те именованные аргументы, для которых нет своего параметра.",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m2-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? get и pop у kwargs.",
+                  "code": "def f(**kw):\n    timeout = kw.get(\"timeout\", 30)\n    debug = kw.pop(\"debug\", False)\n    return timeout, debug, kw\n\nprint(f(), f(timeout=5, debug=True, x=1))\n",
+                  "expected_output": "(30, False, {}) (5, True, {'timeout': 5, 'x': 1})",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m2-l2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def strict(a, b):\n    return a + b\n\ndef loose(a, b, **extra):\n    return a + b\n\ntry:\n    strict(1, 2, c=3)\nexcept TypeError:\n    print(\"TypeError\")\nprint(loose(1, 2, c=3))\n",
+                  "expected_output": "TypeError\n3",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m2-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `create_user(name, **fields)` — словарь пользователя: `\"name\"` и все дополнительные поля. Если поле `\"role\"` не передано — `\"user\"`.\n\n```\ncreate_user(\"Аня\", age=25)          # → {\"name\": \"Аня\", \"role\": \"user\", \"age\": 25}\ncreate_user(\"root\", role=\"admin\")   # → {\"name\": \"root\", \"role\": \"admin\"}\n```",
+                  "starter_code": "def create_user(name, **fields):\n    pass\n",
+                  "tests": "def test_values():\n    assert create_user(\"Аня\", age=25) == {\"name\": \"Аня\", \"role\": \"user\", \"age\": 25}, \"Роль по умолчанию — user\"\n    assert create_user(\"root\", role=\"admin\") == {\"name\": \"root\", \"role\": \"admin\"}, \"Переданная роль\"\n",
+                  "solution": "def create_user(name, **fields):\n    user = {\"name\": name, \"role\": \"user\"}\n    user.update(fields)\n    return user\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `request(method, url, **options)` — описание запроса словарём:\n\n- `\"method\"` — метод в верхнем регистре;\n- `\"url\"` — адрес;\n- `\"timeout\"` — из опций, по умолчанию `10`;\n- `\"headers\"` — из опций, по умолчанию пустой словарь.\n\n```\nrequest(\"get\", \"/users\", timeout=3)\n# → {\"method\": \"GET\", \"url\": \"/users\", \"timeout\": 3, \"headers\": {}}\n```",
+                  "starter_code": "def request(method, url, **options):\n    pass\n",
+                  "tests": "def test_values():\n    assert request(\"get\", \"/users\", timeout=3) == {\"method\": \"GET\", \"url\": \"/users\", \"timeout\": 3, \"headers\": {}}, \"Неверный запрос\"\n    assert request(\"post\", \"/x\", headers={\"A\": \"1\"}) == {\"method\": \"POST\", \"url\": \"/x\", \"timeout\": 10, \"headers\": {\"A\": \"1\"}}, \"Неверные умолчания\"\n",
+                  "solution": "def request(method, url, **options):\n    return {\n        \"method\": method.upper(),\n        \"url\": url,\n        \"timeout\": options.get(\"timeout\", 10),\n        \"headers\": options.get(\"headers\", {}),\n    }\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l2-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `configure(**settings)` — настройки по умолчанию `DEFAULTS` из заготовки, поверх которых записаны переданные. `DEFAULTS` не менять.\n\n```\nconfigure(timeout=5)   # → {\"timeout\": 5, \"retries\": 3}\n```",
+                  "starter_code": "DEFAULTS = {\"timeout\": 30, \"retries\": 3}\n\ndef configure(**settings):\n    pass\n",
+                  "tests": "def test_values():\n    assert configure(timeout=5) == {\"timeout\": 5, \"retries\": 3} and configure() == {\"timeout\": 30, \"retries\": 3}, \"Неверные настройки\"\n    assert DEFAULTS == {\"timeout\": 30, \"retries\": 3}, \"DEFAULTS изменился\"\n",
+                  "solution": "DEFAULTS = {\"timeout\": 30, \"retries\": 3}\n\ndef configure(**settings):\n    return {**DEFAULTS, **settings}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `greet(name, **opts)` — приветствие с настройками: `greeting` (по умолчанию `\"Привет\"`) и `end` (по умолчанию `\"!\"`).\n\n```\ngreet(\"Аня\")                             # → \"Привет, Аня!\"\ngreet(\"Боря\", greeting=\"Хай\", end=\".\")   # → \"Хай, Боря.\"\n```",
+                  "starter_code": "def greet(name, **opts):\n    pass\n",
+                  "tests": "def test_values():\n    assert [greet(\"Аня\"), greet(\"Боря\", greeting=\"Хай\", end=\".\")] == [\"Привет, Аня!\", \"Хай, Боря.\"], \"Неверное приветствие\"\n",
+                  "solution": "def greet(name, **opts):\n    greeting = opts.get(\"greeting\", \"Привет\")\n    end = opts.get(\"end\", \"!\")\n    return f\"{greeting}, {name}{end}\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `split_known(**kw)` — разделить аргументы на известные (`\"timeout\"`, `\"retries\"`) и остальные. Вернуть пару словарей `(known, unknown)`.\n\n```\nsplit_known(timeout=5, color=\"red\", retries=1)\n# → ({\"timeout\": 5, \"retries\": 1}, {\"color\": \"red\"})\n```",
+                  "starter_code": "def split_known(**kw):\n    pass\n",
+                  "tests": "def test_values():\n    assert split_known(timeout=5, color=\"red\", retries=1) == ({\"timeout\": 5, \"retries\": 1}, {\"color\": \"red\"}), \"Неверное разделение\"\n    assert split_known() == ({}, {}), \"Пусто — два пустых словаря\"\n",
+                  "solution": "KNOWN = (\"timeout\", \"retries\")\n\ndef split_known(**kw):\n    known = {k: v for k, v in kw.items() if k in KNOWN}\n    unknown = {k: v for k, v in kw.items() if k not in KNOWN}\n    return known, unknown\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОбычно у функции есть несколько **обязательных** параметров и много **необязательных** настроек. Обязательные объявляют явно, а «всё остальное» собирают в `**kwargs` и читают с умолчаниями через `get`. Так устроены HTTP-клиенты: `requests.get(url, timeout=..., headers=..., params=...)`.\n\n## Обычные параметры + **kwargs\n\n```python\ndef connect(host, port=80, **options):\n    print(host, port, options)\n\nconnect(\"db\")\nconnect(\"db\", 5432, timeout=5, ssl=True)\nconnect(host=\"x\", retries=3)\n```\n\n- Сначала аргументы распределяются по **своим** параметрам (`host`, `port`) — позиционно или по имени.\n- В `**options` попадают только те именованные аргументы, для которых своего параметра нет.\n- Вывод: `db 80 {}`, `db 5432 {'timeout': 5, 'ssl': True}`, `x 80 {'retries': 3}`.\n\n## Умолчания через get и pop\n\n```python\ndef f(**kw):\n    timeout = kw.get(\"timeout\", 30)\n    debug = kw.pop(\"debug\", False)\n    return timeout, debug, kw\n\nprint(f(), f(timeout=5, debug=True, x=1))\n```\n\n- `kw.get(\"timeout\", 30)` — прочитать с умолчанием, ключ остаётся в словаре.\n- `kw.pop(\"debug\", False)` — **извлечь** с умолчанием: ключ удаляется. Удобно, когда функция сама обрабатывает часть настроек, а остальное передаёт дальше.\n- Вывод: `(30, False, {}) (5, True, {'timeout': 5, 'x': 1})`.\n\n## Без **kwargs лишнее — ошибка\n\n```python\ndef strict(a, b):\n    return a + b\n\ndef loose(a, b, **extra):\n    return a + b\n\ntry:\n    strict(1, 2, c=3)\nexcept TypeError as e:\n    print(e)\nprint(loose(1, 2, c=3))\n```\n\n- У `strict` нет параметра `c` — `TypeError: ... got an unexpected keyword argument 'c'`. Это **хорошо**: опечатка в имени сразу видна.\n- `loose` молча принимает лишнее. Удобно для гибкости, но опечатку `timout=5` никто не заметит.\n- Вывод: `strict() got an unexpected keyword argument 'c'`, `3`.\n\n## Описание запроса\n\n```python\ndef request(method, url, **options):\n    return {\n        \"method\": method.upper(),\n        \"url\": url,\n        \"timeout\": options.get(\"timeout\", 10),\n        \"headers\": options.get(\"headers\", {}),\n    }\n\nprint(request(\"get\", \"/users\", timeout=3))\n```\n\nВывод: `{'method': 'GET', 'url': '/users', 'timeout': 3, 'headers': {}}`.\n\n## Умолчания словарём\n\n```python\nDEFAULTS = {\"timeout\": 30, \"retries\": 3}\n\ndef configure(**settings):\n    return {**DEFAULTS, **settings}\n\nprint(configure(timeout=5), DEFAULTS)\n```\n\n- `{**DEFAULTS, **settings}` — новый словарь: сначала умолчания, поверх — переданные (тема «Словари»).\n- Вывод: `{'timeout': 5, 'retries': 3} {'timeout': 30, 'retries': 3}`.\n\n## Итог\n\n- Обязательные параметры — явно, необязательные настройки — в `**kwargs`.\n- В `**kwargs` попадают только именованные аргументы без своего параметра.\n- `kw.get(k, умолчание)` — прочитать; `kw.pop(k, умолчание)` — извлечь.\n- Без `**kwargs` неизвестное имя — `TypeError` (защита от опечаток); с ним — молчаливое принятие.\n- `{**DEFAULTS, **kwargs}` — настройки с умолчаниями.",
+              "quiz": [
+                {
+                  "q": "Что попадёт в `options` при `connect(\"db\", port=1, ssl=True)` для `def connect(host, port=80, **options)`?",
+                  "options": [
+                    "`{'port': 1, 'ssl': True}`",
+                    "`{'ssl': True}`",
+                    "`{}`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "port — свой параметр."
+                },
+                {
+                  "q": "Чем `kw.pop(\"x\", 0)` отличается от `kw.get(\"x\", 0)`?",
+                  "options": [
+                    "Ничем",
+                    "pop удаляет ключ из словаря",
+                    "get удаляет ключ",
+                    "pop без умолчания"
+                  ],
+                  "answer": 1,
+                  "explain": "pop — извлечь."
+                },
+                {
+                  "q": "Какой минус у функции с `**kwargs`?",
+                  "options": [
+                    "Медленная",
+                    "Опечатка в имени аргумента не вызывает ошибку",
+                    "Нельзя передать позиционные",
+                    "Нет минусов"
+                  ],
+                  "answer": 1,
+                  "explain": "Лишнее принимается молча."
+                }
+              ]
+            },
+            {
+              "slug": "arg-m2-l3",
+              "title": "Распаковка словаря при вызове: f(**d)",
+              "theory": "```py\nconnect(**{\"host\": \"db\", \"port\": 1})   # = connect(host=\"db\", port=1)\nconnect(\"db\", **{\"port\": 1})\nf(**{\"a\": 1, \"c\": 2})                  # TypeError: unexpected keyword 'c'\nfunc(**{**defaults, **overrides})\n[format_user(**r) for r in records]\n```",
+              "exercises": [
+                {
+                  "slug": "arg-m2-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def connect(host, port):\n    return f\"{host}:{port}\"\n\ncfg = {\"host\": \"localhost\", \"port\": 5432}\nprint(connect(**cfg))\nprint(connect(\"db\", **{\"port\": 1}))\n",
+                  "expected_output": "localhost:5432\ndb:1",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m2-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def f(a, b):\n    return a - b\n\nparams = {\"b\": 1, \"a\": 10}\nprint(f(**params))\ntry:\n    f(**{\"a\": 1, \"c\": 2})\nexcept TypeError:\n    print(\"лишний или отсутствующий ключ\")\n",
+                  "expected_output": "9\nлишний или отсутствующий ключ",
+                  "hint": "Порядок ключей не важен — значения раздаются по именам.",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m2-l3-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Настройки print из словаря.",
+                  "code": "opts = {\"sep\": \", \", \"end\": \"!\\n\"}\nprint(\"a\", \"b\", **opts)\nprint(\"x\", \"y\", **{\"sep\": \"-\"})\n",
+                  "expected_output": "a, b!\nx-y",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m2-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `call_with_config(func, config)` — вызвать `func`, передав пары словаря `config` как именованные аргументы.\n\n```\ndef area(width, height): return width * height\ncall_with_config(area, {\"width\": 3, \"height\": 4})   # → 12\n```",
+                  "starter_code": "def call_with_config(func, config):\n    pass\n",
+                  "tests": "def test_values():\n    def area(width, height):\n        return width * height\n    assert call_with_config(area, {\"width\": 3, \"height\": 4}) == 12 and call_with_config(dict, {\"a\": 1}) == {\"a\": 1}, \"Неверный вызов\"\n",
+                  "solution": "def call_with_config(func, config):\n    return func(**config)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `build_url(host, port, path=\"/\")` — строка `\"http://<host>:<port><path>\"` — и функцию `url_from(cfg)`, которая строит адрес из словаря настроек через `build_url(**cfg)`.\n\n```\nurl_from({\"host\": \"localhost\", \"port\": 8000})                  # → \"http://localhost:8000/\"\nurl_from({\"host\": \"x\", \"port\": 1, \"path\": \"/api\"})             # → \"http://x:1/api\"\n```",
+                  "starter_code": "def build_url(host, port, path=\"/\"):\n    pass\n\ndef url_from(cfg):\n    pass\n",
+                  "tests": "def test_values():\n    assert url_from({\"host\": \"localhost\", \"port\": 8000}) == \"http://localhost:8000/\", \"Неверный адрес\"\n    assert url_from({\"host\": \"x\", \"port\": 1, \"path\": \"/api\"}) == \"http://x:1/api\", \"Путь из словаря\"\n\ndef test_unpack():\n    assert \"**cfg\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй build_url(**cfg)\"\n",
+                  "solution": "def build_url(host, port, path=\"/\"):\n    return f\"http://{host}:{port}{path}\"\n\ndef url_from(cfg):\n    return build_url(**cfg)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l3-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `merge_call(func, defaults, overrides)` — вызвать `func` с именованными аргументами из `defaults`, поверх которых записаны `overrides`.\n\n```\ndef connect(host, port): return f\"{host}:{port}\"\nmerge_call(connect, {\"host\": \"localhost\", \"port\": 80}, {\"port\": 8080})   # → \"localhost:8080\"\n```",
+                  "starter_code": "def merge_call(func, defaults, overrides):\n    pass\n",
+                  "tests": "def test_values():\n    def connect(host, port):\n        return f\"{host}:{port}\"\n    assert merge_call(connect, {\"host\": \"localhost\", \"port\": 80}, {\"port\": 8080}) == \"localhost:8080\", \"Неверный вызов\"\n",
+                  "solution": "def merge_call(func, defaults, overrides):\n    return func(**{**defaults, **overrides})\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `safe_call(func, params)` — вызвать `func(**params)`; если ключи не подходят к параметрам функции (`TypeError`) — вернуть `None`.\n\n```\ndef f(a, b): return a + b\nsafe_call(f, {\"a\": 1, \"b\": 2})   # → 3\nsafe_call(f, {\"a\": 1, \"c\": 2})   # → None\n```",
+                  "starter_code": "def safe_call(func, params):\n    pass\n",
+                  "tests": "def test_values():\n    def f(a, b):\n        return a + b\n    assert [safe_call(f, {\"a\": 1, \"b\": 2}), safe_call(f, {\"a\": 1, \"c\": 2}), safe_call(f, {\"a\": 1})] == [3, None, None], \"Неверный результат\"\n",
+                  "solution": "def safe_call(func, params):\n    try:\n        return func(**params)\n    except TypeError:\n        return None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `format_user(name, age, city=\"?\")` — строка `\"<name>, <age>, <city>\"` — и `format_all(records)` — применить `format_user` к каждому словарю из списка через `**`.\n\n```\nformat_all([{\"name\": \"Аня\", \"age\": 25}, {\"age\": 30, \"name\": \"Боря\", \"city\": \"Казань\"}])\n# → [\"Аня, 25, ?\", \"Боря, 30, Казань\"]\n```",
+                  "starter_code": "def format_user(name, age, city=\"?\"):\n    pass\n\ndef format_all(records):\n    pass\n",
+                  "tests": "def test_values():\n    got = format_all([{\"name\": \"Аня\", \"age\": 25}, {\"age\": 30, \"name\": \"Боря\", \"city\": \"Казань\"}])\n    assert got == [\"Аня, 25, ?\", \"Боря, 30, Казань\"], f\"Получено {got}\"\n",
+                  "solution": "def format_user(name, age, city=\"?\"):\n    return f\"{name}, {age}, {city}\"\n\ndef format_all(records):\n    return [format_user(**r) for r in records]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКак `*` раскладывает список в позиционные аргументы, так `**` при **вызове** раскладывает **словарь** в именованные. Это нужно, когда настройки уже лежат в словаре (прочитаны из конфига или JSON), а функция принимает их параметрами: `connect(**db_config)`.\n\n## Две звёздочки при вызове\n\n```python\ndef connect(host, port):\n    return f\"{host}:{port}\"\n\ncfg = {\"host\": \"localhost\", \"port\": 5432}\nprint(connect(**cfg))\nprint(connect(\"db\", **{\"port\": 1}))\n```\n\n- `connect(**cfg)` — то же, что `connect(host=\"localhost\", port=5432)`: каждая пара словаря становится именованным аргументом.\n- Можно смешивать с обычными аргументами.\n- Вывод: `localhost:5432`, `db:1`.\n\n## Имена должны совпадать с параметрами\n\n```python\ndef f(a, b):\n    return a - b\n\nparams = {\"b\": 1, \"a\": 10}\nprint(f(**params))\ntry:\n    f(**{\"a\": 1, \"c\": 2})\nexcept TypeError as e:\n    print(e)\n```\n\n- Порядок ключей не важен — значения раздаются **по именам**. `f(**params)` = `f(a=10, b=1)`.\n- Лишний ключ `c` — `unexpected keyword argument`; не хватает `b` — `missing ... argument`.\n- Вывод: `9`, `f() got an unexpected keyword argument 'c'`.\n\n## Настройки print из словаря\n\n```python\nopts = {\"sep\": \", \", \"end\": \"!\\n\"}\nprint(\"a\", \"b\", **opts)\nprint(\"x\", \"y\", **{\"sep\": \"-\"})\n```\n\nВывод: `a, b!`, `x-y`.\n\n## Словарь с умолчаниями + переопределения\n\n```python\ndef build_url(host, port, path=\"/\"):\n    return f\"http://{host}:{port}{path}\"\n\ndefaults = {\"host\": \"localhost\", \"port\": 80}\nprint(build_url(**defaults))\nprint(build_url(**{**defaults, \"port\": 8080, \"path\": \"/api\"}))\n```\n\n- `{**defaults, ...}` собирает итоговый словарь, `**` раскладывает его в вызов.\n- Вывод: `http://localhost:80/`, `http://localhost:8080/api`.\n\n## Список словарей — в функцию по одному\n\n```python\ndef format_user(name, age, city=\"?\"):\n    return f\"{name}, {age}, {city}\"\n\nrecords = [{\"name\": \"Аня\", \"age\": 25}, {\"age\": 30, \"name\": \"Боря\", \"city\": \"Казань\"}]\nprint([format_user(**r) for r in records])\n```\n\n- Каждая запись раскладывается в параметры; отсутствующий `city` берётся по умолчанию.\n- Вывод: `['Аня, 25, ?', 'Боря, 30, Казань']`.\n\n## Безопасный вызов\n\n```python\ndef f(a, b):\n    return a + b\n\ndef safe_call(func, params):\n    try:\n        return func(**params)\n    except TypeError:\n        return None\n\nprint(safe_call(f, {\"a\": 1, \"b\": 2}), safe_call(f, {\"a\": 1}))\n```\n\nВывод: `3 None`.\n\n## Итог\n\n- `f(**d)` раскладывает словарь в именованные аргументы.\n- Ключи должны совпадать с именами параметров; порядок не важен.\n- Лишний ключ или недостающий обязательный — `TypeError`.\n- Комбинация `f(**{**defaults, **overrides})` — вызов с умолчаниями.\n- В `def` две звёздочки собирают, в вызове — раскладывают.",
+              "quiz": [
+                {
+                  "q": "Что делает `f(**{\"x\": 1})`?",
+                  "options": [
+                    "Передаёт словарь одним аргументом",
+                    "Вызывает f(x=1)",
+                    "Ошибка",
+                    "Вызывает f(1)"
+                  ],
+                  "answer": 1,
+                  "explain": "Пары становятся именованными аргументами."
+                },
+                {
+                  "q": "Важен ли порядок ключей в словаре при `f(**d)`?",
+                  "options": [
+                    "Да",
+                    "Нет — значения раздаются по именам",
+                    "Только для первых двух",
+                    "Зависит от версии"
+                  ],
+                  "answer": 1,
+                  "explain": "Именованные аргументы сопоставляются по имени."
+                },
+                {
+                  "q": "Что будет при `f(**{\"z\": 1})` для `def f(a):`?",
+                  "options": [
+                    "a = 1",
+                    "`TypeError`",
+                    "a = None",
+                    "z игнорируется"
+                  ],
+                  "answer": 1,
+                  "explain": "Нет параметра z и не хватает a."
+                }
+              ]
+            },
+            {
+              "slug": "arg-m2-l4",
+              "title": "kwargs на практике",
+              "theory": "```py\n{k: v for k, v in fields.items() if v is not None}   # тело без None\n{**obj, **changes}                                    # обновлённая копия\nall(u.get(k) == v for k, v in criteria.items())       # фильтр по полям\nhtml(\"div\", \"hi\", class_=\"card\")                      # class -> class_\nk.rstrip(\"_\")\n```",
+              "exercises": [
+                {
+                  "slug": "arg-m2-l4-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def payload(**fields):\n    return {k: v for k, v in fields.items() if v is not None}\n\nprint(payload(name=\"Аня\", email=None, age=25))\n",
+                  "expected_output": "{'name': 'Аня', 'age': 25}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m2-l4-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def update(obj, **changes):\n    new = dict(obj)\n    new.update(changes)\n    return new\n\nuser = {\"name\": \"Аня\", \"age\": 25}\nprint(update(user, age=26), user)\n",
+                  "expected_output": "{'name': 'Аня', 'age': 26} {'name': 'Аня', 'age': 25}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m2-l4-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Атрибуты HTML-тега.",
+                  "code": "def html(tag, text, **attrs):\n    parts = \"\".join(f' {k}=\"{v}\"' for k, v in attrs.items())\n    return f\"<{tag}{parts}>{text}</{tag}>\"\n\nprint(html(\"a\", \"ссылка\", href=\"/x\"))\nprint(html(\"p\", \"текст\"))\n",
+                  "expected_output": "<a href=\"/x\">ссылка</a>\n<p>текст</p>",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m2-l4-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `payload(**fields)` — тело запроса: словарь из переданных полей **без** тех, у которых значение `None` (значения `0`, `False`, `\"\"` оставить).\n\n```\npayload(name=\"Аня\", email=None, age=0)   # → {\"name\": \"Аня\", \"age\": 0}\n```",
+                  "starter_code": "def payload(**fields):\n    pass\n",
+                  "tests": "def test_values():\n    assert payload(name=\"Аня\", email=None, age=0) == {\"name\": \"Аня\", \"age\": 0} and payload(a=False) == {\"a\": False}, \"Неверное тело\"\n",
+                  "solution": "def payload(**fields):\n    return {k: v for k, v in fields.items() if v is not None}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l4-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `update_copy(obj, **changes)` — новый словарь: копия `obj` с применёнными изменениями. Исходный не менять.\n\n```\nupdate_copy({\"name\": \"Аня\", \"age\": 25}, age=26)   # → {\"name\": \"Аня\", \"age\": 26}\n```",
+                  "starter_code": "def update_copy(obj, **changes):\n    pass\n",
+                  "tests": "def test_values():\n    src = {\"name\": \"Аня\", \"age\": 25}\n    assert update_copy(src, age=26) == {\"name\": \"Аня\", \"age\": 26} and src == {\"name\": \"Аня\", \"age\": 25}, \"Неверный результат или исходный изменён\"\n",
+                  "solution": "def update_copy(obj, **changes):\n    return {**obj, **changes}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l4-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `filter_users(users, **criteria)` — пользователи (словари), у которых **все** указанные поля равны заданным значениям. Без критериев — все пользователи.\n\n```\nusers = [{\"name\": \"Аня\", \"role\": \"qa\"}, {\"name\": \"Боря\", \"role\": \"dev\"}]\nfilter_users(users, role=\"qa\")   # → [{\"name\": \"Аня\", \"role\": \"qa\"}]\n```",
+                  "starter_code": "def filter_users(users, **criteria):\n    pass\n",
+                  "tests": "def test_values():\n    users = [{\"name\": \"Аня\", \"role\": \"qa\", \"age\": 25}, {\"name\": \"Боря\", \"role\": \"dev\", \"age\": 25}]\n    assert filter_users(users, role=\"qa\") == [users[0]], \"Фильтр по роли\"\n    assert filter_users(users, age=25) == users and filter_users(users) == users, \"Все подходят\"\n    assert filter_users(users, role=\"qa\", age=30) == [], \"Оба условия\"\n",
+                  "solution": "def filter_users(users, **criteria):\n    result = []\n    for u in users:\n        if all(u.get(k) == v for k, v in criteria.items()):\n            result.append(u)\n    return result\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "arg-m2-l4-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `html(tag, text, **attrs)` — HTML-тег с атрибутами. Слово `class` в Python зарезервировано, поэтому его передают как `class_` — у имён атрибутов убирай `_` в конце.\n\n```\nhtml(\"div\", \"hi\", class_=\"card\", id=\"x\")   # → '<div class=\"card\" id=\"x\">hi</div>'\nhtml(\"p\", \"текст\")                         # → \"<p>текст</p>\"\n```",
+                  "starter_code": "def html(tag, text, **attrs):\n    pass\n",
+                  "tests": "def test_values():\n    assert html(\"div\", \"hi\", class_=\"card\", id=\"x\") == '<div class=\"card\" id=\"x\">hi</div>', f\"Получено {html('div', 'hi', class_='card', id='x')!r}\"\n    assert html(\"p\", \"текст\") == \"<p>текст</p>\", \"Без атрибутов\"\n",
+                  "solution": "def html(tag, text, **attrs):\n    parts = \"\".join(f' {k.rstrip(\"_\")}=\"{v}\"' for k, v in attrs.items())\n    return f\"<{tag}{parts}>{text}</{tag}>\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m2-l4-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `log_event(event, **data)` — строка лога: имя события и пары `ключ=значение`, **отсортированные по ключу**, через пробел.\n\n```\nlog_event(\"login\", user=\"anna\", ok=True)   # → \"login ok=True user=anna\"\nlog_event(\"start\")                         # → \"start\"\n```",
+                  "starter_code": "def log_event(event, **data):\n    pass\n",
+                  "tests": "def test_values():\n    assert [log_event(\"login\", user=\"anna\", ok=True), log_event(\"start\")] == [\"login ok=True user=anna\", \"start\"], \"Неверная строка\"\n",
+                  "solution": "def log_event(event, **data):\n    parts = [event] + [f\"{k}={data[k]}\" for k in sorted(data)]\n    return \" \".join(parts)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`**kwargs` особенно удобен, когда функция **строит данные** из переданных полей: тело запроса, обновлённую копию объекта, HTML-атрибуты, фильтр по полям. Вызов читается как описание: `payload(name=\"Аня\", age=25)`.\n\n## Тело запроса без пустых полей\n\n```python\ndef payload(**fields):\n    return {k: v for k, v in fields.items() if v is not None}\n\nprint(payload(name=\"Аня\", email=None, age=25))\n```\n\n- Необязательные поля, которые не заданы (`None`), в запрос не попадают. Значения `0`, `False`, `\"\"` оставляем — это настоящие данные.\n- Вывод: `{'name': 'Аня', 'age': 25}`.\n\n## Обновлённая копия\n\n```python\ndef update(obj, **changes):\n    new = dict(obj)\n    new.update(changes)\n    return new\n\nuser = {\"name\": \"Аня\", \"age\": 25}\nprint(update(user, age=26), user)\n```\n\n- Изменения — именованными аргументами; исходный словарь не меняется.\n- Короче: `return {**obj, **changes}`.\n- Вывод: `{'name': 'Аня', 'age': 26} {'name': 'Аня', 'age': 25}`.\n\n## Фильтр по полям\n\n```python\ndef filter_users(users, **criteria):\n    return [u for u in users if all(u.get(k) == v for k, v in criteria.items())]\n\nusers = [{\"name\": \"Аня\", \"role\": \"qa\", \"age\": 25}, {\"name\": \"Боря\", \"role\": \"dev\", \"age\": 25}]\nprint(filter_users(users, role=\"qa\"))\nprint(len(filter_users(users, age=25)), len(filter_users(users)))\n```\n\n- Каждый именованный аргумент — условие «поле равно значению»; `all` требует выполнения всех.\n- Без критериев `all(...)` пустого набора — `True`: подходят все.\n- Вывод: список с Аней, затем `2 2`.\n\n## HTML-атрибуты и зарезервированные слова\n\n```python\ndef html(tag, text, **attrs):\n    parts = \"\".join(f' {k.rstrip(\"_\")}=\"{v}\"' for k, v in attrs.items())\n    return f\"<{tag}{parts}>{text}</{tag}>\"\n\nprint(html(\"a\", \"ссылка\", href=\"/x\"))\nprint(html(\"div\", \"hi\", class_=\"card\"))\n```\n\n- Имя аргумента должно быть допустимым именем Python. `class` — зарезервированное слово, поэтому принято писать `class_` и убирать `_` внутри функции.\n- Вывод: `<a href=\"/x\">ссылка</a>`, `<div class=\"card\">hi</div>`.\n\n## Строка лога\n\n```python\ndef log_event(event, **data):\n    return \" \".join([event] + [f\"{k}={data[k]}\" for k in sorted(data)])\n\nprint(log_event(\"login\", user=\"anna\", ok=True))\n```\n\n- Сортировка ключей делает строки лога стабильными — их легко сравнивать и искать.\n- Вывод: `login ok=True user=anna`.\n\n## Итог\n\n- `**kwargs` — удобный способ передать набор полей: тело запроса, изменения, фильтры, атрибуты.\n- Пустые (`None`) поля отфильтровывай, `0`/`False` — оставляй.\n- `{**obj, **changes}` — обновлённая копия.\n- Зарезервированные слова передают с подчёркиванием: `class_`.",
+              "quiz": [
+                {
+                  "q": "Почему атрибут `class` передают как `class_`?",
+                  "options": [
+                    "Так короче",
+                    "`class` — зарезервированное слово Python",
+                    "Так требует HTML",
+                    "Без причины"
+                  ],
+                  "answer": 1,
+                  "explain": "Имя аргумента не может быть ключевым словом."
+                },
+                {
+                  "q": "Что вернёт `filter_users(users)` без критериев (all по пустому набору)?",
+                  "options": [
+                    "Пустой список",
+                    "Всех пользователей",
+                    "Ошибку",
+                    "None"
+                  ],
+                  "answer": 1,
+                  "explain": "all([]) — True."
+                },
+                {
+                  "q": "Как сделать обновлённую копию словаря `obj` с изменениями из `**changes`?",
+                  "options": [
+                    "`obj.update(changes)`",
+                    "`{**obj, **changes}`",
+                    "`obj + changes`",
+                    "`changes`"
+                  ],
+                  "answer": 1,
+                  "explain": "Исходный не меняется."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "arg-m3",
+          "title": "Всё вместе",
+          "icon": "🧩",
+          "description": "Полная сигнатура, функции-обёртки, ошибки вызова и практика",
+          "lessons": [
+            {
+              "slug": "arg-m3-l1",
+              "title": "Порядок параметров: полная сигнатура",
+              "theory": "```py\ndef f(a, b=2, *args, c, d=4, **kwargs): ...\nf(1, 5, 6, 7, c=8, e=9)   # a=1 b=5 args=(6,7) c=8 d=4 kwargs={'e':9}\ndef g(*, key): ...        # key только по имени\ndef h(a, /, b, *, c): ... # a — по позиции, c — по имени\n# порядок: pos-only, /, обычные, *args|*, kw-only, **kwargs\n```",
+              "exercises": [
+                {
+                  "slug": "arg-m3-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def f(a, b=2, *args, c, d=4, **kwargs):\n    print(a, b, args, c, d, kwargs)\n\nf(1, c=3)\nf(1, 5, 6, 7, c=8, e=9)\n",
+                  "expected_output": "1 2 () 3 4 {}\n1 5 (6, 7) 8 4 {'e': 9}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m3-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Только по имени.",
+                  "code": "def g(*, key):\n    return key\n\nprint(g(key=1))\ntry:\n    g(1)\nexcept TypeError:\n    print(\"key только по имени\")\n",
+                  "expected_output": "1\nkey только по имени",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m3-l1-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? / и *.",
+                  "code": "def h(a, /, b, *, c):\n    return a + b + c\n\nprint(h(1, 2, c=3), h(1, b=2, c=3))\ntry:\n    h(a=1, b=2, c=3)\nexcept TypeError:\n    print(\"a только по позиции\")\n",
+                  "expected_output": "6 6\na только по позиции",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m3-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `describe_call(*args, **kwargs)` — строка `\"args=<кортеж>, kwargs=<словарь>\"`.\n\n```\ndescribe_call(1, 2, x=3)   # → \"args=(1, 2), kwargs={'x': 3}\"\ndescribe_call()            # → \"args=(), kwargs={}\"\n```",
+                  "starter_code": "def describe_call(*args, **kwargs):\n    pass\n",
+                  "tests": "def test_values():\n    assert [describe_call(1, 2, x=3), describe_call()] == [\"args=(1, 2), kwargs={'x': 3}\", \"args=(), kwargs={}\"], \"Неверная строка\"\n",
+                  "solution": "def describe_call(*args, **kwargs):\n    return f\"args={args}, kwargs={kwargs}\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m3-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `send(to, *attachments, subject=\"\", urgent=False)` — описание письма словарём: `to`, `attachments` (список), `subject`, `urgent`. Тема и срочность — только по имени.\n\n```\nsend(\"a@x.ru\", \"report.pdf\", subject=\"Отчёт\")\n# → {\"to\": \"a@x.ru\", \"attachments\": [\"report.pdf\"], \"subject\": \"Отчёт\", \"urgent\": False}\n```",
+                  "starter_code": "def send(to, *attachments, subject=\"\", urgent=False):\n    pass\n",
+                  "tests": "def test_values():\n    assert send(\"a@x.ru\", \"report.pdf\", subject=\"Отчёт\") == {\"to\": \"a@x.ru\", \"attachments\": [\"report.pdf\"], \"subject\": \"Отчёт\", \"urgent\": False}, \"Неверное письмо\"\n    assert send(\"b@x.ru\", urgent=True) == {\"to\": \"b@x.ru\", \"attachments\": [], \"subject\": \"\", \"urgent\": True}, \"Без вложений\"\n",
+                  "solution": "def send(to, *attachments, subject=\"\", urgent=False):\n    return {\"to\": to, \"attachments\": list(attachments), \"subject\": subject, \"urgent\": urgent}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m3-l1-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `run(cmd, *args, env=None, **options)` — описание запуска команды: `{\"cmd\": ..., \"args\": [...], \"env\": ..., \"options\": {...}}`. Если `env` не передан — пустой словарь.\n\n```\nrun(\"pytest\", \"-v\", \"tests/\", env={\"CI\": \"1\"}, timeout=60)\n# → {\"cmd\": \"pytest\", \"args\": [\"-v\", \"tests/\"], \"env\": {\"CI\": \"1\"}, \"options\": {\"timeout\": 60}}\n```",
+                  "starter_code": "def run(cmd, *args, env=None, **options):\n    pass\n",
+                  "tests": "def test_values():\n    got = run(\"pytest\", \"-v\", \"tests/\", env={\"CI\": \"1\"}, timeout=60)\n    assert got == {\"cmd\": \"pytest\", \"args\": [\"-v\", \"tests/\"], \"env\": {\"CI\": \"1\"}, \"options\": {\"timeout\": 60}}, f\"Получено {got}\"\n    assert run(\"ls\") == {\"cmd\": \"ls\", \"args\": [], \"env\": {}, \"options\": {}}, \"Умолчания\"\n",
+                  "solution": "def run(cmd, *args, env=None, **options):\n    if env is None:\n        env = {}\n    return {\"cmd\": cmd, \"args\": list(args), \"env\": env, \"options\": options}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m3-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sum_and_label(*nums, label)` — строка `\"<label>: <сумма>\"`. Параметр `label` обязательный и передаётся только по имени.\n\n```\nsum_and_label(1, 2, 3, label=\"итого\")   # → \"итого: 6\"\n```",
+                  "starter_code": "def sum_and_label(*nums, label):\n    pass\n",
+                  "tests": "def test_values():\n    assert [sum_and_label(1, 2, 3, label=\"итого\"), sum_and_label(label=\"пусто\")] == [\"итого: 6\", \"пусто: 0\"], \"Неверная строка\"\n\ndef test_required():\n    try:\n        sum_and_label(1, 2)\n    except TypeError:\n        return\n    assert False, \"Без label должна быть ошибка\"\n",
+                  "solution": "def sum_and_label(*nums, label):\n    return f\"{label}: {sum(nums)}\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m3-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `area(width, height, /, *, unit=\"см\")` — строка `\"<площадь> <unit>²\"`. Размеры — только по позиции, единица — только по имени.\n\n```\narea(3, 4)              # → \"12 см²\"\narea(2, 5, unit=\"м\")    # → \"10 м²\"\n```",
+                  "starter_code": "def area(width, height, /, *, unit=\"см\"):\n    pass\n",
+                  "tests": "def test_values():\n    assert [area(3, 4), area(2, 5, unit=\"м\")] == [\"12 см²\", \"10 м²\"], \"Неверная строка\"\n\ndef test_signature():\n    for bad in (lambda: area(width=1, height=2), lambda: area(1, 2, \"м\")):\n        try:\n            bad()\n        except TypeError:\n            continue\n        assert False, \"Нарушение сигнатуры должно давать TypeError\"\n",
+                  "solution": "def area(width, height, /, *, unit=\"см\"):\n    return f\"{width * height} {unit}²\"\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВ одной функции можно сочетать всё: обычные параметры, значения по умолчанию, `*args`, параметры только по имени и `**kwargs`. Чтобы читать чужие сигнатуры (библиотек, фреймворков) и писать свои, нужно знать **порядок** и правила распределения аргументов.\n\n## Порядок в сигнатуре\n\n```\ndef f(позиционные_только, /, обычные, *args, только_по_имени, **kwargs)\n```\n\n1. Параметры до `/` — только по позиции (необязательная часть).\n2. Обычные параметры (по позиции или по имени), в том числе со значениями по умолчанию.\n3. `*args` — остаток позиционных аргументов. Вместо него может стоять одиночная `*` — «дальше только по имени».\n4. Параметры после `*args`/`*` — только по имени (keyword-only), могут быть обязательными.\n5. `**kwargs` — остаток именованных; всегда последний.\n\nДругой порядок — `SyntaxError`.\n\n## Как раздаются аргументы\n\n```python\ndef f(a, b=2, *args, c, d=4, **kwargs):\n    print(a, b, args, c, d, kwargs)\n\nf(1, c=3)\nf(1, 5, 6, 7, c=8, e=9)\n```\n\n- Позиционные заполняют `a`, `b`, остаток — в `args`.\n- Именованные сопоставляются с параметрами по имени (`c`, `d`), остаток — в `kwargs`.\n- `c` без умолчания после `*args` — обязательный и только по имени.\n- Вывод: `1 2 () 3 4 {}`, `1 5 (6, 7) 8 4 {'e': 9}`.\n\n## Одиночная звёздочка: только по имени\n\n```python\ndef g(*, key):\n    return key\n\nprint(g(key=1))\ntry:\n    g(1)\nexcept TypeError:\n    print(\"key только по имени\")\n```\n\n- `*` без имени не собирает аргументы, а просто требует передавать всё после неё по имени. Вывод: `1`, `key только по имени`.\n\n## Косая черта: только по позиции\n\n```python\ndef h(a, /, b, *, c):\n    return a + b + c\n\nprint(h(1, 2, c=3), h(1, b=2, c=3))\ntry:\n    h(a=1, b=2, c=3)\nexcept TypeError:\n    print(\"a только по позиции\")\n```\n\n- `a` — только позиционно, `b` — как угодно, `c` — только по имени. Вывод: `6 6`, `a только по позиции`.\n\n## Реальный пример сигнатуры\n\n```python\ndef run(cmd, *args, env=None, **options):\n    return {\"cmd\": cmd, \"args\": list(args), \"env\": env or {}, \"options\": options}\n\nprint(run(\"pytest\", \"-v\", \"tests/\", env={\"CI\": \"1\"}, timeout=60))\n```\n\n- Команда — первым аргументом, её аргументы — сколько угодно позиционных, окружение — только по имени, прочие опции — в `options`.\n- `env or {}` — пустой словарь, если `env` не передан (а не изменяемое значение по умолчанию — тема «Функции»).\n- Вывод: `{'cmd': 'pytest', 'args': ['-v', 'tests/'], 'env': {'CI': '1'}, 'options': {'timeout': 60}}`.\n\n## Итог\n\n- Порядок: `позиционные-только, /, обычные, *args (или *), только-по-имени, **kwargs`.\n- Позиционные аргументы: сначала в обычные параметры, остаток — в `*args`.\n- Именованные: по именам, остаток — в `**kwargs`.\n- После `*args` или `*` — только по имени; до `/` — только по позиции.",
+              "quiz": [
+                {
+                  "q": "Что попадёт в `args` при `f(1, 2, 3)` для `def f(a, b=0, *args)`?",
+                  "options": [
+                    "`(2, 3)`",
+                    "`(3,)`",
+                    "`()`",
+                    "`(1, 2, 3)`"
+                  ],
+                  "answer": 1,
+                  "explain": "a=1, b=2, остаток — 3."
+                },
+                {
+                  "q": "Какая сигнатура допустима?",
+                  "options": [
+                    "`def f(**kw, *args)`",
+                    "`def f(*args, **kw)`",
+                    "`def f(**kw, a)`",
+                    "`def f(*args, *more)`"
+                  ],
+                  "answer": 1,
+                  "explain": "**kwargs — всегда последний."
+                },
+                {
+                  "q": "Что означает одиночная `*` в `def f(a, *, b)`?",
+                  "options": [
+                    "b — список",
+                    "b можно передать только по имени",
+                    "b необязательный",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Дальше — только по имени."
+                }
+              ]
+            },
+            {
+              "slug": "arg-m3-l2",
+              "title": "Функции-обёртки: передать всё дальше",
+              "theory": "```py\ndef wrapper(*args, **kwargs):          # принять что угодно\n    return func(*args, **kwargs)       # передать без изменений\ndef safe(func, *args, default=None, **kwargs): ...   # default — только по имени\ndef make_logger(func):\n    def wrapper(*args, **kwargs): ...\n    return wrapper\nadd = make_logger(add)                 # подмена — идея декоратора\n```",
+              "exercises": [
+                {
+                  "slug": "arg-m3-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def logged(func, *args, **kwargs):\n    print(\"вызов\", func.__name__, args, kwargs)\n    return func(*args, **kwargs)\n\nprint(logged(max, 3, 7))\nprint(logged(sorted, [3, 1, 2], reverse=True))\n",
+                  "expected_output": "вызов max (3, 7) {}\n7\nвызов sorted ([3, 1, 2],) {'reverse': True}\n[3, 2, 1]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m3-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Обёртка-замыкание.",
+                  "code": "def make_logger(func):\n    def wrapper(*args, **kwargs):\n        result = func(*args, **kwargs)\n        print(f\"{func.__name__}{args} -> {result}\")\n        return result\n    return wrapper\n\ndef add(a, b):\n    return a + b\n\nadd = make_logger(add)\nadd(2, 3)\n",
+                  "expected_output": "add(2, 3) -> 5",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m3-l2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "calls = []\n\ndef counted(func):\n    def wrapper(*args, **kwargs):\n        calls.append(args)\n        return func(*args, **kwargs)\n    return wrapper\n\ndouble = counted(lambda x: x * 2)\nprint(double(3), double(5), len(calls))\n",
+                  "expected_output": "6 10 2",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m3-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `call_twice(func, *args, **kwargs)` — вызвать `func` дважды с одними и теми же аргументами и вернуть список двух результатов.\n\n```\ncall_twice(pow, 2, 3)                   # → [8, 8]\ncall_twice(sorted, [2, 1], reverse=True)  # → [[2, 1], [2, 1]]\n```",
+                  "starter_code": "def call_twice(func, *args, **kwargs):\n    pass\n",
+                  "tests": "def test_values():\n    assert [call_twice(pow, 2, 3), call_twice(sorted, [2, 1], reverse=True)] == [[8, 8], [[2, 1], [2, 1]]], \"Неверный результат\"\n",
+                  "solution": "def call_twice(func, *args, **kwargs):\n    return [func(*args, **kwargs), func(*args, **kwargs)]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m3-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `safe(func, *args, default=None, **kwargs)` — вызвать `func(*args, **kwargs)`; если возникло любое исключение — вернуть `default`.\n\n```\nsafe(int, \"42\")                 # → 42\nsafe(int, \"x\", default=0)       # → 0\nsafe(int, \"ff\", base=16)        # → 255\n```",
+                  "starter_code": "def safe(func, *args, default=None, **kwargs):\n    pass\n",
+                  "tests": "def test_values():\n    assert [safe(int, \"42\"), safe(int, \"x\", default=0), safe(int, \"ff\", base=16), safe(int, \"x\")] == [42, 0, 255, None], \"Неверный результат\"\n",
+                  "solution": "def safe(func, *args, default=None, **kwargs):\n    try:\n        return func(*args, **kwargs)\n    except Exception:\n        return default\n",
+                  "hint": "default стоит после *args — значит, передаётся только по имени и не попадёт в func.",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m3-l2-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `retry(func, attempts, *args, **kwargs)` — вызывать `func(*args, **kwargs)`, пока вызов не пройдёт без исключения, но не больше `attempts` раз. Вернуть результат или `None`, если все попытки упали.\n\n```\nretry(int, 3, \"5\")    # → 5\nretry(int, 3, \"x\")    # → None\n```",
+                  "starter_code": "def retry(func, attempts, *args, **kwargs):\n    pass\n",
+                  "tests": "def test_values():\n    calls = []\n    def flaky(x, y=0):\n        calls.append(1)\n        if len(calls) < 3:\n            raise ConnectionError(\"нет связи\")\n        return x + y\n    assert retry(flaky, 5, 1, y=2) == 3 and len(calls) == 3, \"Должно получиться с третьей попытки\"\n    assert retry(int, 3, \"x\") is None, \"Все попытки упали — None\"\n",
+                  "solution": "def retry(func, attempts, *args, **kwargs):\n    for _ in range(attempts):\n        try:\n            return func(*args, **kwargs)\n        except Exception:\n            pass\n    return None\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "arg-m3-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `with_defaults(func, **defaults)` — вернуть новую функцию, которая вызывает `func` с переданными аргументами и именованными значениями по умолчанию `defaults` (аргументы вызова важнее).\n\n```\ndef connect(host, port=80, timeout=5): return (host, port, timeout)\nc = with_defaults(connect, port=8080)\nc(\"db\")               # → (\"db\", 8080, 5)\nc(\"db\", port=1)       # → (\"db\", 1, 5)\n```",
+                  "starter_code": "def with_defaults(func, **defaults):\n    pass\n",
+                  "tests": "def test_values():\n    def connect(host, port=80, timeout=5):\n        return (host, port, timeout)\n    c = with_defaults(connect, port=8080)\n    assert [c(\"db\"), c(\"db\", port=1), c(\"x\", timeout=1)] == [(\"db\", 8080, 5), (\"db\", 1, 5), (\"x\", 8080, 1)], \"Неверные вызовы\"\n",
+                  "solution": "def with_defaults(func, **defaults):\n    def wrapper(*args, **kwargs):\n        return func(*args, **{**defaults, **kwargs})\n    return wrapper\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "arg-m3-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `count_calls(func)` — вернуть **пару** `(wrapper, get_count)`: `wrapper` вызывает `func` с любыми аргументами и считает вызовы, `get_count()` возвращает число вызовов.\n\n```\nw, get_count = count_calls(max)\nw(1, 2); w(3, 4)\nget_count()   # → 2\n```",
+                  "starter_code": "def count_calls(func):\n    pass\n",
+                  "tests": "def test_values():\n    w, get_count = count_calls(max)\n    assert w(1, 2) == 2 and w(3, 4, key=abs) == 4 and get_count() == 2, \"Неверный подсчёт\"\n",
+                  "solution": "def count_calls(func):\n    count = 0\n    def wrapper(*args, **kwargs):\n        nonlocal count\n        count += 1\n        return func(*args, **kwargs)\n    def get_count():\n        return count\n    return wrapper, get_count\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nГлавное практическое применение `*args` и `**kwargs` вместе — **функции-обёртки**: принять **любые** аргументы и передать их другой функции без изменений. Так делают логирование вызовов, повтор при ошибках, подсчёт вызовов, замер времени — и на этом построены декораторы (отдельная тема) и фикстуры тестовых фреймворков.\n\n## Передать всё дальше\n\n```python\ndef logged(func, *args, **kwargs):\n    print(\"вызов\", func.__name__, args, kwargs)\n    return func(*args, **kwargs)\n\nprint(logged(max, 3, 7))\nprint(logged(sorted, [3, 1, 2], reverse=True))\n```\n\n- В `def` звёздочки **собирают** всё, что передали, в `args` и `kwargs`.\n- В вызове `func(*args, **kwargs)` звёздочки **раскладывают** обратно — `func` получает ровно то же, что передали в обёртку.\n- `func.__name__` — имя функции.\n- Вывод: `вызов max (3, 7) {}`, `7`, `вызов sorted ([3, 1, 2],) {'reverse': True}`, `[3, 2, 1]`.\n\n## Обёртка-замыкание\n\n```python\ndef make_logger(func):\n    def wrapper(*args, **kwargs):\n        result = func(*args, **kwargs)\n        print(f\"{func.__name__}{args} -> {result}\")\n        return result\n    return wrapper\n\ndef add(a, b):\n    return a + b\n\nadd = make_logger(add)\nadd(2, 3)\n```\n\n- `make_logger` возвращает **новую** функцию `wrapper`, которая помнит `func` (замыкание, тема «Область видимости»).\n- `add = make_logger(add)` — подменяем функцию обёрнутой версией; вызывающий код не меняется. Это и есть идея **декоратора**.\n- Вывод: `add(2, 3) -> 5`.\n\n## Подсчёт вызовов\n\n```python\ncalls = []\n\ndef counted(func):\n    def wrapper(*args, **kwargs):\n        calls.append(args)\n        return func(*args, **kwargs)\n    return wrapper\n\ndouble = counted(lambda x: x * 2)\nprint(double(3), double(5), len(calls))\n```\n\nВывод: `6 10 2`.\n\n## Повтор при ошибке\n\n```python\ndef retry(func, attempts, *args, **kwargs):\n    for _ in range(attempts):\n        try:\n            return func(*args, **kwargs)\n        except Exception:\n            pass\n    return None\n\nprint(retry(int, 3, \"5\"), retry(int, 3, \"x\"))\n```\n\n- Параметры самой обёртки (`func`, `attempts`) стоят **до** `*args`, чтобы не смешаться с аргументами `func`.\n- Вывод: `5 None`.\n\n## Параметры обёртки — только по имени\n\n```python\ndef safe(func, *args, default=None, **kwargs):\n    try:\n        return func(*args, **kwargs)\n    except Exception:\n        return default\n\nprint(safe(int, \"x\", default=0), safe(int, \"ff\", base=16))\n```\n\n- `default` стоит после `*args` → передаётся только по имени и **не** уходит в `func`. А `base=16` уходит в `kwargs` и дальше в `int`.\n- Вывод: `0 255`.\n\n## Умолчания для чужой функции\n\n```python\ndef with_defaults(func, **defaults):\n    def wrapper(*args, **kwargs):\n        return func(*args, **{**defaults, **kwargs})\n    return wrapper\n\ndef connect(host, port=80, timeout=5):\n    return (host, port, timeout)\n\nc = with_defaults(connect, port=8080)\nprint(c(\"db\"), c(\"db\", port=1))\n```\n\n- Аргументы вызова важнее умолчаний обёртки. Вывод: `('db', 8080, 5) ('db', 1, 5)`. (В стандартной библиотеке то же делает `functools.partial`.)\n\n## Итог\n\n- Обёртка: `def wrapper(*args, **kwargs): return func(*args, **kwargs)` — передаёт всё без изменений.\n- Собственные параметры обёртки — до `*args` или только по имени, чтобы не смешаться с аргументами `func`.\n- Обёртка-замыкание, подменяющая функцию, — основа декораторов.\n- Применения: логирование, повторы, подсчёт, умолчания.",
+              "quiz": [
+                {
+                  "q": "Что делает `func(*args, **kwargs)` внутри обёртки?",
+                  "options": [
+                    "Вызывает func без аргументов",
+                    "Передаёт func те же аргументы, что получила обёртка",
+                    "Ошибка",
+                    "Передаёт кортеж и словарь двумя аргументами"
+                  ],
+                  "answer": 1,
+                  "explain": "Звёздочки раскладывают обратно."
+                },
+                {
+                  "q": "Попадёт ли `default=0` в `func` при `safe(int, \"x\", default=0)` для `def safe(func, *args, default=None, **kwargs)`?",
+                  "options": [
+                    "Да",
+                    "Нет — это параметр самой safe",
+                    "Только если int его принимает",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "У default свой параметр."
+                },
+                {
+                  "q": "На каком приёме основаны декораторы?",
+                  "options": [
+                    "Списковые включения",
+                    "Обёртка-замыкание, которая принимает *args, **kwargs",
+                    "Рекурсия",
+                    "Кортежи"
+                  ],
+                  "answer": 1,
+                  "explain": "Функция возвращает обёрнутую функцию."
+                }
+              ]
+            },
+            {
+              "slug": "arg-m3-l3",
+              "title": "Ошибки вызова с *args и **kwargs",
+              "theory": "```py\nf(1, 2, 3)            # missing 1 required keyword-only argument: 'b'\ng(1, x=2)             # got multiple values for argument 'x'\nh(1)                  # takes 0 positional arguments but 1 was given\nh(**{1: \"x\"})         # keywords must be strings\nsummary(1, 2, precision=2)   # параметр после *args — по имени!\nraise TypeError(f\"неизвестный параметр: {key}\")\n```",
+              "exercises": [
+                {
+                  "slug": "arg-m3-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def f(a, *args, b):\n    return a, args, b\n\ntry:\n    f(1, 2, 3)\nexcept TypeError as e:\n    print(e)\nprint(f(1, 2, b=3))\n",
+                  "expected_output": "f() missing 1 required keyword-only argument: 'b'\n(1, (2,), 3)",
+                  "hint": "Всё позиционное съел *args — для b ничего не осталось.",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m3-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def g(x, **kw):\n    return x, kw\n\ntry:\n    g(1, x=2)\nexcept TypeError as e:\n    print(e)\nprint(g(1, y=2))\n",
+                  "expected_output": "g() got multiple values for argument 'x'\n(1, {'y': 2})",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m3-l3-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def h(**kw):\n    return kw\n\ntry:\n    h(1)\nexcept TypeError as e:\n    print(e)\nprint(h(**{\"a\": 1}))\ntry:\n    h(**{1: \"x\"})\nexcept TypeError:\n    print(\"ключи должны быть строками\")\n",
+                  "expected_output": "h() takes 0 positional arguments but 1 was given\n{'a': 1}\nключи должны быть строками",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m3-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `try_call(func, *args, **kwargs)` — вызвать функцию; при `TypeError` вернуть строку `\"ошибка вызова: <текст ошибки>\"`, иначе результат.\n\n```\ntry_call(max, 1, 2)          # → 2\ntry_call(len, 1, 2)          # → \"ошибка вызова: len() takes exactly one argument (2 given)\"\n```",
+                  "starter_code": "def try_call(func, *args, **kwargs):\n    pass\n",
+                  "tests": "def test_values():\n    assert try_call(max, 1, 2) == 2, \"Успешный вызов\"\n    got = try_call(len, 1, 2)\n    assert isinstance(got, str) and got.startswith(\"ошибка вызова: \") and \"len()\" in got, f\"Получено {got!r}\"\n",
+                  "solution": "def try_call(func, *args, **kwargs):\n    try:\n        return func(*args, **kwargs)\n    except TypeError as e:\n        return f\"ошибка вызова: {e}\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m3-l3-e5",
+                  "type": "code",
+                  "prompt": "Программа падает: функция `summary(*values, precision)` ждёт `precision` **по имени**, а её передают позиционно, и он попадает в `values`. Исправь **вызов** (функцию не меняй), чтобы программа напечатала сумму `1.234 + 2.345`, округлённую до 2 знаков.\n\nОжидаемый вывод:\n```\n3.58\n```",
+                  "starter_code": "def summary(*values, precision):\n    return round(sum(values), precision)\n\nprint(summary(1.234, 2.345, 2))\n",
+                  "tests": "def test_output():\n    assert OUTPUT.strip() == \"3.58\", f\"Напечатано {OUTPUT.strip()!r}\"\n\ndef test_function_same():\n    assert summary(1, 2, precision=0) == 3, \"Функцию менять не нужно\"\n",
+                  "solution": "def summary(*values, precision):\n    return round(sum(values), precision)\n\nprint(summary(1.234, 2.345, precision=2))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m3-l3-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `unexpected(allowed, **kwargs)` — отсортированный список имён аргументов, которых нет в списке `allowed`.\n\n```\nunexpected([\"timeout\", \"retries\"], timeout=5, colour=\"red\", debug=True)   # → [\"colour\", \"debug\"]\n```",
+                  "starter_code": "def unexpected(allowed, **kwargs):\n    pass\n",
+                  "tests": "def test_values():\n    assert unexpected([\"timeout\", \"retries\"], timeout=5, colour=\"red\", debug=True) == [\"colour\", \"debug\"] and unexpected([\"a\"], a=1) == [], \"Неверный результат\"\n",
+                  "solution": "def unexpected(allowed, **kwargs):\n    return sorted(k for k in kwargs if k not in allowed)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m3-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `strict_config(**kwargs)` — настройки с умолчаниями `{\"timeout\": 30, \"retries\": 3}`. Если передан **неизвестный** параметр — выбросить `TypeError` с текстом `\"неизвестный параметр: <имя>\"` (для первого такого по порядку).\n\n```\nstrict_config(timeout=5)   # → {\"timeout\": 5, \"retries\": 3}\nstrict_config(colour=1)    # TypeError: неизвестный параметр: colour\n```",
+                  "starter_code": "def strict_config(**kwargs):\n    pass\n",
+                  "tests": "def test_values():\n    assert strict_config(timeout=5) == {\"timeout\": 5, \"retries\": 3} and strict_config() == {\"timeout\": 30, \"retries\": 3}, \"Неверные настройки\"\n\ndef test_unknown():\n    try:\n        strict_config(timeout=1, colour=1)\n    except TypeError as e:\n        assert str(e) == \"неизвестный параметр: colour\", f\"Текст ошибки: {e}\"\n        return\n    assert False, \"Нужен TypeError\"\n",
+                  "solution": "DEFAULTS = {\"timeout\": 30, \"retries\": 3}\n\ndef strict_config(**kwargs):\n    for key in kwargs:\n        if key not in DEFAULTS:\n            raise TypeError(f\"неизвестный параметр: {key}\")\n    return {**DEFAULTS, **kwargs}\n",
+                  "hint": "raise TypeError(\"текст\") — выбросить ошибку.",
+                  "xp": 20
+                },
+                {
+                  "slug": "arg-m3-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `explain_call(func, *args, **kwargs)` — вызвать функцию и вернуть `\"ok: <результат>\"`, а при `TypeError` — `\"TypeError: <текст>\"`.\n\n```\ndef f(a, *, b): return a + b\nexplain_call(f, 1, b=2)   # → \"ok: 3\"\nexplain_call(f, 1, 2)     # → \"TypeError: f() takes 1 positional argument but 2 were given\"\n```",
+                  "starter_code": "def explain_call(func, *args, **kwargs):\n    pass\n",
+                  "tests": "def test_values():\n    def f(a, *, b):\n        return a + b\n    assert explain_call(f, 1, b=2) == \"ok: 3\", \"Успешный вызов\"\n    got = explain_call(f, 1, 2)\n    assert got.startswith(\"TypeError: \") and got.endswith(\"takes 1 positional argument but 2 were given\"), f\"Получено {got!r}\"\n",
+                  "solution": "def explain_call(func, *args, **kwargs):\n    try:\n        return f\"ok: {func(*args, **kwargs)}\"\n    except TypeError as e:\n        return f\"TypeError: {e}\"\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nС `*args` и `**kwargs` появляются новые варианты `TypeError`. Сообщения точные — научившись их читать, ты мгновенно поймёшь, какой аргумент попал не туда.\n\n## Обязательный параметр только по имени\n\n```python\ndef f(a, *args, b):\n    return a, args, b\n\ntry:\n    f(1, 2, 3)\nexcept TypeError as e:\n    print(e)\nprint(f(1, 2, b=3))\n```\n\n- `*args` забрал все позиционные аргументы (2 и 3), для `b` ничего не осталось.\n- Сообщение: `missing 1 required keyword-only argument: 'b'` — «не хватает обязательного аргумента, передаваемого только по имени».\n- Вывод: сообщение, затем `(1, (2,), 3)`.\n\n## Два значения для одного параметра\n\n```python\ndef g(x, **kw):\n    return x, kw\n\ntry:\n    g(1, x=2)\nexcept TypeError as e:\n    print(e)\nprint(g(1, y=2))\n```\n\n- `1` уже ушло в `x` по позиции, а `x=2` пытается передать его ещё раз. В `**kw` оно не попадает — у `x` есть свой параметр.\n- Вывод: `g() got multiple values for argument 'x'`, `(1, {'y': 2})`.\n\n## Позиционный туда, где только **kwargs\n\n```python\ndef h(**kw):\n    return kw\n\ntry:\n    h(1)\nexcept TypeError as e:\n    print(e)\nprint(h(**{\"a\": 1}))\ntry:\n    h(**{1: \"x\"})\nexcept TypeError:\n    print(\"ключи должны быть строками\")\n```\n\n- `**kw` принимает только именованные — `takes 0 positional arguments but 1 was given`.\n- При `**словарь` ключи должны быть строками (это имена аргументов).\n- Вывод: сообщение, `{'a': 1}`, `ключи должны быть строками`.\n\n## Параметр ушёл в *args\n\n```python\ndef summary(*values, precision):\n    return round(sum(values), precision)\n\ntry:\n    summary(1.234, 2.345, 2)\nexcept TypeError as e:\n    print(e)\nprint(summary(1.234, 2.345, precision=2))\n```\n\n- Классическая ошибка: хотели передать `precision`, а он стал третьим числом в `values`.\n- Вывод: `summary() missing 1 required keyword-only argument: 'precision'`, `3.58`.\n\n## Свои проверки аргументов\n\nФункция с `**kwargs` молча принимает опечатки. Если набор допустимых настроек известен, проверь его сам и выбрось понятную ошибку:\n\n```python\nDEFAULTS = {\"timeout\": 30, \"retries\": 3}\n\ndef strict_config(**kwargs):\n    for key in kwargs:\n        if key not in DEFAULTS:\n            raise TypeError(f\"неизвестный параметр: {key}\")\n    return {**DEFAULTS, **kwargs}\n\nprint(strict_config(timeout=5))\ntry:\n    strict_config(timout=5)\nexcept TypeError as e:\n    print(e)\n```\n\n- `raise TypeError(...)` — выбросить ошибку с собственным текстом (тема «Исключения»).\n- Вывод: `{'timeout': 5, 'retries': 3}`, `неизвестный параметр: timout`.\n\n## Итог\n\n- `missing ... keyword-only argument` — обязательный параметр после `*args` не передан по имени.\n- `got multiple values for argument` — аргумент передан и по позиции, и по имени.\n- `takes 0 positional arguments` — позиционный аргумент туда, где только `**kwargs`.\n- `keywords must be strings` — в `**словарь` ключи не строки.\n- Для `**kwargs` с известным набором — своя проверка и `raise TypeError`.",
+              "quiz": [
+                {
+                  "q": "Почему `f(1, 2, 3)` для `def f(a, *args, b)` падает?",
+                  "options": [
+                    "Много аргументов",
+                    "*args забрал всё позиционное, b не передан",
+                    "a лишний",
+                    "Не падает"
+                  ],
+                  "answer": 1,
+                  "explain": "b — только по имени."
+                },
+                {
+                  "q": "Что значит `got multiple values for argument 'x'`?",
+                  "options": [
+                    "x передан дважды: по позиции и по имени",
+                    "x — список",
+                    "x не передан",
+                    "x лишний"
+                  ],
+                  "answer": 0,
+                  "explain": "Один параметр — два значения."
+                },
+                {
+                  "q": "Как защититься от опечаток в именах при `**kwargs`?",
+                  "options": [
+                    "Никак",
+                    "Проверить ключи и выбросить TypeError для неизвестных",
+                    "Использовать *args",
+                    "Удалить **kwargs"
+                  ],
+                  "answer": 1,
+                  "explain": "Своя проверка допустимого набора."
+                }
+              ]
+            },
+            {
+              "slug": "arg-m3-l4",
+              "title": "Практика: фабрики тестовых данных и API-клиент",
+              "theory": "```py\ndef make_user(**overrides):\n    return {\"name\": \"test\", \"active\": True, **overrides}\n[{\"id\": i, **common} for i in range(1, n + 1)]\n\"&\".join(f\"{k}={v}\" for k, v in params.items() if v is not None)\ndef api_call(method, path, *, json=None, headers=None, **params): ...\n[func(item, **kwargs) for item in items]\n```",
+              "exercises": [
+                {
+                  "slug": "arg-m3-l4-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def make_user(**overrides):\n    user = {\"name\": \"test\", \"email\": \"test@x.ru\", \"active\": True}\n    user.update(overrides)\n    return user\n\nprint(make_user())\nprint(make_user(name=\"admin\", active=False))\n",
+                  "expected_output": "{'name': 'test', 'email': 'test@x.ru', 'active': True}\n{'name': 'admin', 'email': 'test@x.ru', 'active': False}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m3-l4-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def build_request(method, path, **params):\n    query = \"&\".join(f\"{k}={v}\" for k, v in params.items())\n    return f\"{method} {path}\" + (f\"?{query}\" if query else \"\")\n\nprint(build_request(\"GET\", \"/users\", page=2, limit=10))\nprint(build_request(\"DELETE\", \"/users/7\"))\n",
+                  "expected_output": "GET /users?page=2&limit=10\nDELETE /users/7",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m3-l4-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def make_users(n, **common):\n    return [{\"id\": i, **common} for i in range(1, n + 1)]\n\nprint(make_users(2, role=\"qa\"))\n",
+                  "expected_output": "[{'id': 1, 'role': 'qa'}, {'id': 2, 'role': 'qa'}]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "arg-m3-l4-e4",
+                  "type": "code",
+                  "prompt": "Напиши фабрику тестовых данных `make_product(**overrides)` — товар по умолчанию `{\"name\": \"товар\", \"price\": 100, \"qty\": 1}`, поля которого можно переопределить.\n\n```\nmake_product(price=500)   # → {\"name\": \"товар\", \"price\": 500, \"qty\": 1}\n```",
+                  "starter_code": "def make_product(**overrides):\n    pass\n",
+                  "tests": "def test_values():\n    assert make_product(price=500) == {\"name\": \"товар\", \"price\": 500, \"qty\": 1} and make_product() == {\"name\": \"товар\", \"price\": 100, \"qty\": 1}, \"Неверный товар\"\n    a = make_product()\n    a[\"price\"] = 1\n    assert make_product()[\"price\"] == 100, \"Каждый вызов — новый словарь\"\n",
+                  "solution": "def make_product(**overrides):\n    return {\"name\": \"товар\", \"price\": 100, \"qty\": 1, **overrides}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m3-l4-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `build_request(method, path, **params)` — строка запроса: метод в верхнем регистре, путь и параметры `?k=v&...`; параметры со значением `None` пропускать. Если параметров нет — без `?`.\n\n```\nbuild_request(\"get\", \"/users\", page=2, q=None)   # → \"GET /users?page=2\"\nbuild_request(\"delete\", \"/x\")                    # → \"DELETE /x\"\n```",
+                  "starter_code": "def build_request(method, path, **params):\n    pass\n",
+                  "tests": "def test_values():\n    assert [build_request(\"get\", \"/users\", page=2, q=None), build_request(\"delete\", \"/x\")] == [\"GET /users?page=2\", \"DELETE /x\"], \"Неверный запрос\"\n",
+                  "solution": "def build_request(method, path, **params):\n    query = \"&\".join(f\"{k}={v}\" for k, v in params.items() if v is not None)\n    line = f\"{method.upper()} {path}\"\n    if query:\n        line += \"?\" + query\n    return line\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m3-l4-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_users(n, **common)` — список из `n` пользователей с `id` от 1 до `n` и общими полями `common`.\n\n```\nmake_users(2, role=\"qa\")   # → [{\"id\": 1, \"role\": \"qa\"}, {\"id\": 2, \"role\": \"qa\"}]\n```",
+                  "starter_code": "def make_users(n, **common):\n    pass\n",
+                  "tests": "def test_values():\n    assert make_users(2, role=\"qa\") == [{\"id\": 1, \"role\": \"qa\"}, {\"id\": 2, \"role\": \"qa\"}] and make_users(0) == [], \"Неверный список\"\n",
+                  "solution": "def make_users(n, **common):\n    return [{\"id\": i, **common} for i in range(1, n + 1)]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m3-l4-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `api_call(method, path, *, json=None, headers=None, **params)` — описание вызова API словарём с ключами `method`, `path`, `params` (словарь остальных именованных), `json`, `headers` (если не передан — пустой словарь).\n\n```\napi_call(\"POST\", \"/users\", json={\"name\": \"Аня\"}, page=1)\n# → {\"method\": \"POST\", \"path\": \"/users\", \"params\": {\"page\": 1}, \"json\": {\"name\": \"Аня\"}, \"headers\": {}}\n```",
+                  "starter_code": "def api_call(method, path, *, json=None, headers=None, **params):\n    pass\n",
+                  "tests": "def test_values():\n    got = api_call(\"POST\", \"/users\", json={\"name\": \"Аня\"}, page=1)\n    assert got == {\"method\": \"POST\", \"path\": \"/users\", \"params\": {\"page\": 1}, \"json\": {\"name\": \"Аня\"}, \"headers\": {}}, f\"Получено {got}\"\n",
+                  "solution": "def api_call(method, path, *, json=None, headers=None, **params):\n    return {\"method\": method, \"path\": path, \"params\": params, \"json\": json, \"headers\": headers or {}}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "arg-m3-l4-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `batch(func, items, **kwargs)` — применить `func` к каждому элементу, передавая одинаковые именованные аргументы: `func(item, **kwargs)`.\n\n```\nbatch(round, [1.234, 5.678], ndigits=1)   # → [1.2, 5.7]\n```",
+                  "starter_code": "def batch(func, items, **kwargs):\n    pass\n",
+                  "tests": "def test_values():\n    assert batch(round, [1.234, 5.678], ndigits=1) == [1.2, 5.7] and batch(str, []) == [], \"Неверный результат\"\n    assert batch(int, [\"ff\", \"10\"], base=16) == [255, 16], \"kwargs передаются в каждый вызов\"\n",
+                  "solution": "def batch(func, items, **kwargs):\n    return [func(item, **kwargs) for item in items]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВ автотестах постоянно нужны **тестовые данные**: пользователь, товар, заказ — обычно «стандартный», но в каждом тесте с парой отличий. И нужен удобный **клиент API**, который принимает путь и любые параметры. Оба инструмента естественно пишутся через `**kwargs`.\n\n## Фабрика тестовых данных\n\n```python\ndef make_user(**overrides):\n    user = {\"name\": \"test\", \"email\": \"test@x.ru\", \"active\": True}\n    user.update(overrides)\n    return user\n\nprint(make_user())\nprint(make_user(name=\"admin\", active=False))\n```\n\n- Значения по умолчанию описаны один раз; тест указывает только то, что для него важно.\n- Каждый вызов создаёт **новый** словарь — тесты не влияют друг на друга.\n- Вывод: пользователь по умолчанию и пользователь `admin` с `active=False`.\n\nКороче через распаковку: `return {\"name\": \"test\", ..., **overrides}`.\n\n## Много объектов сразу\n\n```python\ndef make_users(n, **common):\n    return [{\"id\": i, **common} for i in range(1, n + 1)]\n\nprint(make_users(2, role=\"qa\"))\n```\n\n- Общие поля передаются один раз, `id` у каждого свой. Вывод: `[{'id': 1, 'role': 'qa'}, {'id': 2, 'role': 'qa'}]`.\n\n## Построитель запроса\n\n```python\ndef build_request(method, path, **params):\n    query = \"&\".join(f\"{k}={v}\" for k, v in params.items() if v is not None)\n    line = f\"{method.upper()} {path}\"\n    if query:\n        line += \"?\" + query\n    return line\n\nprint(build_request(\"get\", \"/users\", page=2, q=None))\nprint(build_request(\"delete\", \"/users/7\"))\n```\n\n- Параметры запроса — именованными аргументами; незаданные (`None`) пропускаются.\n- Вывод: `GET /users?page=2`, `DELETE /users/7`.\n\n## Клиент API: чёткие и свободные параметры\n\n```python\ndef api_call(method, path, *, json=None, headers=None, **params):\n    return {\"method\": method, \"path\": path, \"params\": params, \"json\": json, \"headers\": headers or {}}\n\nprint(api_call(\"POST\", \"/users\", json={\"name\": \"Аня\"}, page=1))\n```\n\n- Важные параметры (`json`, `headers`) объявлены явно и только по имени — их видно в сигнатуре, и в них нельзя опечататься.\n- Всё прочее — параметры запроса — в `**params`.\n- Вывод: `{'method': 'POST', 'path': '/users', 'params': {'page': 1}, 'json': {'name': 'Аня'}, 'headers': {}}`.\n\nТак устроен популярный `requests`: `requests.post(url, json=..., headers=..., params=..., timeout=...)`.\n\n## Одинаковые настройки для многих вызовов\n\n```python\ndef batch(func, items, **kwargs):\n    return [func(item, **kwargs) for item in items]\n\nprint(batch(round, [1.234, 5.678], ndigits=1), batch(int, [\"ff\", \"10\"], base=16))\n```\n\nВывод: `[1.2, 5.7] [255, 16]`.\n\n## Итог\n\n- Фабрика данных: умолчания + `**overrides`; каждый вызов — новый объект.\n- `make_users(n, **common)` — пачка объектов с общими полями.\n- Параметры запроса — `**params`, `None` пропускаем.\n- Важные параметры — явно (и только по имени), остальное — в `**kwargs`.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `make_user(active=False)` для фабрики с умолчаниями `{\"name\": \"test\", \"active\": True}`?",
+                  "options": [
+                    "`{\"active\": False}`",
+                    "`{\"name\": \"test\", \"active\": False}`",
+                    "Ошибка",
+                    "`{\"name\": \"test\", \"active\": True}`"
+                  ],
+                  "answer": 1,
+                  "explain": "Переопределяется только переданное."
+                },
+                {
+                  "q": "Зачем фабрика создаёт новый словарь при каждом вызове?",
+                  "options": [
+                    "Быстрее",
+                    "Чтобы тесты не влияли друг на друга",
+                    "Так требует Python",
+                    "Не нужно"
+                  ],
+                  "answer": 1,
+                  "explain": "Общий объект испортился бы между тестами."
+                },
+                {
+                  "q": "Почему `json` и `headers` в `api_call` объявлены явно, а не в `**params`?",
+                  "options": [
+                    "Короче",
+                    "Они видны в сигнатуре и защищены от опечаток",
+                    "Так быстрее",
+                    "Иначе ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Важные параметры — явно."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
