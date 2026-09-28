@@ -221,7 +221,7 @@ export function runSession(view, opts) {
         ${isCode ? `<div id="ed"></div>`
           : isCmd ? `${ex.code ? `<pre class="code-view term">${esc(ex.code)}</pre>` : ""}
             <div class="term-input"><span class="term-prompt">$</span>
-              <input class="answer code" id="answer" placeholder="Введи команду или ответ и нажми Enter"
+              <input class="answer code" id="answer" placeholder="команда или ответ"
                 spellcheck="false" autocomplete="off" autocapitalize="off"></div>`
           : `<pre class="code-view">${highlight(ex.code)}</pre>
           <textarea class="answer code" id="answer" placeholder="Введи вывод программы — каждую строку с новой строки" spellcheck="false"></textarea>`}
