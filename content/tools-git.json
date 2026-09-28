@@ -1,0 +1,1514 @@
+{
+  "topics": [
+    {
+      "slug": "tools-git",
+      "title": "Git",
+      "icon": "🌿",
+      "color": "#f05033",
+      "description": "init и clone, status, add и commit, log и diff, .gitignore, ветки, merge и конфликты, push/pull/fetch, pull request, restore/reset/revert, stash, rebase, cherry-pick, теги, blame, bisect",
+      "group": "Инструменты",
+      "modules": [
+        {
+          "slug": "git-m1",
+          "title": "Основы",
+          "icon": "🌱",
+          "description": "Репозиторий, коммиты и индекс, история и diff, .gitignore",
+          "lessons": [
+            {
+              "slug": "git-intro",
+              "title": "Репозиторий: init, clone, status",
+              "theory": "```bash\ngit init                                  # новый репозиторий\ngit clone https://github.com/acme/x.git   # скачать\ngit config --global user.name \"Anna\"      # кто я\ngit config --global user.email \"a@x.ru\"\ngit status                                # состояние\ngit status -s                             # коротко: M A ?? D\n```",
+              "exercises": [
+                {
+                  "slug": "git-intro-e1",
+                  "type": "command",
+                  "prompt": "Преврати текущую папку в git-репозиторий.",
+                  "code": "",
+                  "expected_output": "git init",
+                  "solution": "git init",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-intro-e2",
+                  "type": "command",
+                  "prompt": "Скачай репозиторий `https://github.com/acme/api-tests.git` к себе на компьютер.",
+                  "code": "",
+                  "expected_output": "git clone https://github.com/acme/api-tests.git\ngit clone https://github.com/acme/api-tests",
+                  "solution": "git clone https://github.com/acme/api-tests.git",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-intro-e3",
+                  "type": "command",
+                  "prompt": "Покажи текущее состояние репозитория: какие файлы изменены, какие добавлены в коммит.",
+                  "code": "",
+                  "expected_output": "git status\ngit status -s\ngit status --short",
+                  "solution": "git status",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-intro-e4",
+                  "type": "command",
+                  "prompt": "Как называется текущая ветка? Введи только её имя.",
+                  "code": "$ git status\nOn branch main\nYour branch is up to date with 'origin/main'.\n\nnothing to commit, working tree clean\n",
+                  "expected_output": "main",
+                  "solution": "main",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-intro-e5",
+                  "type": "command",
+                  "prompt": "Какой файл git ещё **не отслеживает** (новый)? Введи имя файла.",
+                  "code": "$ git status\nOn branch main\nChanges not staged for commit:\n        modified:   tests/test_login.py\n\nUntracked files:\n        tests/test_cart.py\n",
+                  "expected_output": "tests/test_cart.py",
+                  "solution": "tests/test_cart.py",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-intro-e6",
+                  "type": "command",
+                  "prompt": "Задай имя автора коммитов `Anna Petrova` для **всех** своих репозиториев.",
+                  "code": "",
+                  "expected_output": "git config --global user.name \"Anna Petrova\"\ngit config --global user.name 'Anna Petrova'",
+                  "solution": "git config --global user.name \"Anna Petrova\"",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-intro-e7",
+                  "type": "command",
+                  "prompt": "Скачай репозиторий `https://github.com/acme/ui-tests.git` в папку с именем `ui`.",
+                  "code": "",
+                  "expected_output": "git clone https://github.com/acme/ui-tests.git ui\ngit clone https://github.com/acme/ui-tests ui",
+                  "solution": "git clone https://github.com/acme/ui-tests.git ui",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-intro-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_status(lines)` — разобрать короткий вывод `git status -s`. Каждая строка: два символа статуса, пробел, путь. Верни словарь `{\"modified\": [...], \"added\": [...], \"untracked\": [...], \"deleted\": [...]}`:\n\n- `\" M\"` или `\"M \"` → modified;\n- `\"A \"` → added;\n- `\"??\"` → untracked;\n- `\" D\"` или `\"D \"` → deleted.",
+                  "starter_code": "def parse_status(lines):\n    pass\n",
+                  "tests": "def test_values():\n    lines = [\" M tests/test_login.py\", \"?? tests/test_cart.py\", \"A  conftest.py\", \" D old.py\", \"M  README.md\"]\n    assert parse_status(lines) == {\"modified\": [\"tests/test_login.py\", \"README.md\"], \"added\": [\"conftest.py\"],\n                                   \"untracked\": [\"tests/test_cart.py\"], \"deleted\": [\"old.py\"]}, parse_status(lines)\n    assert parse_status([]) == {\"modified\": [], \"added\": [], \"untracked\": [], \"deleted\": []}, \"Чистый репозиторий\"\n",
+                  "solution": "def parse_status(lines):\n    result = {\"modified\": [], \"added\": [], \"untracked\": [], \"deleted\": []}\n    for line in lines:\n        code, path = line[:2], line[3:]\n        if code == \"??\":\n            result[\"untracked\"].append(path)\n        elif \"A\" in code:\n            result[\"added\"].append(path)\n        elif \"D\" in code:\n            result[\"deleted\"].append(path)\n        elif \"M\" in code:\n            result[\"modified\"].append(path)\n    return result\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nАвтотесты — такой же код, как и продукт: их пишут несколько человек, меняют, откатывают, проверяют на ревью. **Git** — система контроля версий: она помнит каждую версию каждого файла, позволяет работать параллельно в разных ветках и объединять изменения. Без git не обходится ни один проект, а тестировщику ещё и нужно уметь переключаться на ветку разработчика, чтобы проверить фичу до релиза.\n\n## Термины\n\n- **Репозиторий** (repo) — папка проекта, в которой git хранит всю историю (в скрытой папке `.git`).\n- **Коммит** — сохранённый снимок изменений с сообщением, автором и уникальным **хешем** (например, `a1b2c3d`).\n- **Ветка** — независимая линия коммитов (например, `main` — основная).\n- **Удалённый репозиторий** (remote) — копия на сервере: GitHub, GitLab. Обычно называется `origin`.\n\n## Создать или скачать репозиторий\n\n```bash\n$ git init\nInitialized empty Git repository in /home/anna/tests/.git/\n$ git clone https://github.com/acme/api-tests.git\n$ git clone https://github.com/acme/ui-tests.git ui\n```\n\n- `git init` — превратить текущую папку в репозиторий (появится `.git`).\n- `git clone адрес` — скачать репозиторий со всей историей в новую папку с именем проекта; последним аргументом можно задать своё имя папки.\n\n## Кто я: настройка\n\n```bash\n$ git config --global user.name \"Anna Petrova\"\n$ git config --global user.email \"anna@example.com\"\n$ git config --list\n```\n\n- Имя и почта попадают в каждый коммит. `--global` — для всех репозиториев на компьютере; без него — только для текущего.\n\n## git status — главная команда\n\n```bash\n$ git status\nOn branch main\nChanges to be committed:\n        modified:   conftest.py\nChanges not staged for commit:\n        modified:   tests/test_login.py\nUntracked files:\n        tests/test_cart.py\n```\n\nЧто показывает каждая часть:\n\n- `On branch main` — текущая ветка.\n- **Changes to be committed** — изменения в **индексе** (подготовлены к коммиту).\n- **Changes not staged** — файл изменён, но в индекс не добавлен.\n- **Untracked files** — новые файлы, которые git ещё не отслеживает.\n- `git status -s` — коротко: `M` — изменён, `A` — добавлен, `??` — новый, `D` — удалён. Левая колонка — индекс, правая — рабочая папка.\n\nЗапускай `git status` перед каждым коммитом — он подскажет, что происходит и какие команды можно выполнить.\n\n## Итог\n\n- Репозиторий, коммит, ветка, remote (`origin`).\n- `git init` — новый, `git clone` — скачать.\n- `git config --global user.name/user.email` — один раз на компьютере.\n- `git status` (`-s`) — состояние: индекс, изменённые, новые файлы.",
+              "quiz": [
+                {
+                  "q": "Что делает `git clone`?",
+                  "options": [
+                    "Создаёт пустой репозиторий",
+                    "Скачивает репозиторий со всей историей",
+                    "Копирует ветку",
+                    "Отправляет изменения"
+                  ],
+                  "answer": 1,
+                  "explain": "git init — пустой репозиторий."
+                },
+                {
+                  "q": "Что означает Untracked file?",
+                  "options": [
+                    "Удалённый файл",
+                    "Новый файл, который git ещё не отслеживает",
+                    "Файл в конфликте",
+                    "Игнорируемый файл"
+                  ],
+                  "answer": 1,
+                  "explain": "Добавь его через git add."
+                },
+                {
+                  "q": "Где git хранит историю проекта?",
+                  "options": [
+                    "На GitHub",
+                    "В скрытой папке .git",
+                    "В файле .gitignore",
+                    "В облаке"
+                  ],
+                  "answer": 1,
+                  "explain": "Удалишь .git — пропадёт история."
+                }
+              ]
+            },
+            {
+              "slug": "git-commit",
+              "title": "Коммиты: add и commit",
+              "theory": "```bash\ngit add file.py              # в индекс\ngit add .                    # всё в папке\ngit commit -m \"test: add login cases\"\ngit commit -am \"fix: flaky\"  # изменённые отслеживаемые\ngit restore --staged f.log   # убрать из индекса\n# типы: feat fix test docs refactor chore ci\n```",
+              "exercises": [
+                {
+                  "slug": "git-commit-e1",
+                  "type": "command",
+                  "prompt": "Добавь в индекс (подготовь к коммиту) файл `tests/test_login.py`.",
+                  "code": "",
+                  "expected_output": "git add tests/test_login.py",
+                  "solution": "git add tests/test_login.py",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-commit-e2",
+                  "type": "command",
+                  "prompt": "Добавь в индекс **все** изменения в текущей папке.",
+                  "code": "",
+                  "expected_output": "git add .\ngit add -A\ngit add --all",
+                  "solution": "git add .",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-commit-e3",
+                  "type": "command",
+                  "prompt": "Сделай коммит с сообщением `Add login tests`.",
+                  "code": "",
+                  "expected_output": "git commit -m \"Add login tests\"\ngit commit -m 'Add login tests'",
+                  "solution": "git commit -m \"Add login tests\"",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-commit-e4",
+                  "type": "command",
+                  "prompt": "Одной командой добавь в коммит все изменения **уже отслеживаемых** файлов и сделай коммит с сообщением `Fix flaky test`.",
+                  "code": "",
+                  "expected_output": "git commit -am \"Fix flaky test\"\ngit commit -am 'Fix flaky test'\ngit commit -a -m \"Fix flaky test\"\ngit commit -a -m 'Fix flaky test'",
+                  "solution": "git commit -am \"Fix flaky test\"",
+                  "hint": "Флаг -a сам добавляет изменённые файлы (но не новые).",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-commit-e5",
+                  "type": "command",
+                  "prompt": "Убери файл `debug.log` из индекса (он был добавлен по ошибке), не удаляя сам файл.",
+                  "code": "",
+                  "expected_output": "git restore --staged debug.log\ngit reset debug.log\ngit reset HEAD debug.log\ngit rm --cached debug.log",
+                  "solution": "git restore --staged debug.log",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-commit-e6",
+                  "type": "command",
+                  "prompt": "Сколько файлов попадёт в следующий коммит? Введи число.",
+                  "code": "$ git status\nChanges to be committed:\n        modified:   conftest.py\n        new file:   tests/test_cart.py\n\nChanges not staged for commit:\n        modified:   README.md\n",
+                  "expected_output": "2",
+                  "solution": "2",
+                  "hint": "В коммит попадает только то, что в разделе «Changes to be committed».",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-commit-e7",
+                  "type": "command",
+                  "prompt": "Добавь в индекс все файлы `.py` из папки `tests`.",
+                  "code": "",
+                  "expected_output": "git add tests/*.py\ngit add 'tests/*.py'\ngit add \"tests/*.py\"\ngit add tests/\\*.py",
+                  "solution": "git add tests/*.py",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-commit-e8",
+                  "type": "code",
+                  "prompt": "Во многих командах сообщения коммитов пишут по правилу **Conventional Commits**: `тип(область): описание` или `тип: описание`, где тип — один из `feat`, `fix`, `test`, `docs`, `refactor`, `chore`, `ci`. Описание не пустое и не длиннее 72 символов.\n\nНапиши функцию `is_conventional(message)` — `True`, если **первая строка** сообщения подходит под правило.",
+                  "starter_code": "import re\n\n\ndef is_conventional(message):\n    pass\n",
+                  "tests": "def test_values():\n    good = [\"test: add login cases\", \"fix(api): handle 404\", \"ci: run tests in parallel\\n\\nподробности\"]\n    bad = [\"Add tests\", \"feat:\", \"bug: fix\", \"test(api) add\", \"docs: \" + \"x\" * 80]\n    assert all(is_conventional(m) for m in good), [m for m in good if not is_conventional(m)]\n    assert not any(is_conventional(m) for m in bad), [m for m in bad if is_conventional(m)]\n",
+                  "solution": "import re\n\nPATTERN = re.compile(r\"(feat|fix|test|docs|refactor|chore|ci)(\\([\\w-]+\\))?: (.+)\")\n\n\ndef is_conventional(message):\n    first = message.splitlines()[0] if message else \"\"\n    m = PATTERN.fullmatch(first)\n    return bool(m) and len(m.group(3)) <= 72\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКоммит — точка сохранения, к которой можно вернуться. Хорошие коммиты маленькие и понятные: «добавил тесты корзины», «исправил нестабильный тест». Тогда в истории легко найти, когда что-то сломалось, и откатить одно изменение, не трогая остальные.\n\n## Три зоны\n\n1. **Рабочая папка** — файлы, которые ты редактируешь.\n2. **Индекс** (staging area) — «корзина» того, что войдёт в следующий коммит.\n3. **Репозиторий** — сохранённые коммиты.\n\nПуть изменения: правишь файл → `git add` (в индекс) → `git commit` (в историю).\n\n## add и commit\n\n```bash\n$ git add tests/test_login.py\n$ git add .\n$ git commit -m \"Add login tests\"\n[main 4c3b2a1] Add login tests\n 2 files changed, 40 insertions(+)\n```\n\n- `git add путь` — добавить файл в индекс; `git add .` — всё изменённое и новое в текущей папке; `git add tests/*.py` — по шаблону.\n- `git commit -m \"сообщение\"` — сохранить индекс как коммит. Без `-m` откроется редактор для сообщения.\n- В выводе: ветка, короткий хеш, сообщение, сколько строк добавлено.\n\n## Быстрый коммит отслеживаемых файлов\n\n```bash\n$ git commit -am \"Fix flaky test\"\n```\n\n- `-a` сам добавляет в индекс все **изменённые отслеживаемые** файлы. Новые файлы он **не** добавит — для них нужен `git add`.\n\n## Убрать из индекса\n\n```bash\n$ git restore --staged debug.log\n```\n\n- Файл остаётся изменённым на диске, но не попадёт в коммит. Старый вариант той же команды — `git reset debug.log`.\n\n## Хорошее сообщение коммита\n\n- Первая строка — кратко **что** сделано, до ~72 символов, в повелительном наклонении: «Add», «Fix», «Remove».\n- Многие команды используют **Conventional Commits**: `тип(область): описание`, например `test(api): add cart cases`, `fix: flaky timeout`. Типы: `feat`, `fix`, `test`, `docs`, `refactor`, `chore`, `ci`.\n- Плохо: `fix`, `wip`, `изменения`, `asdf`.\n\n## Итог\n\n- Рабочая папка → `git add` → индекс → `git commit` → история.\n- `git add .` — всё, `git commit -am` — только отслеживаемые.\n- `git restore --staged` — убрать из индекса.\n- Сообщение: коротко, по делу, часто в формате Conventional Commits.",
+              "quiz": [
+                {
+                  "q": "Что такое индекс (staging area)?",
+                  "options": [
+                    "История коммитов",
+                    "Набор изменений, которые войдут в следующий коммит",
+                    "Удалённый репозиторий",
+                    "Список веток"
+                  ],
+                  "answer": 1,
+                  "explain": "Туда попадает то, что ты добавил через git add."
+                },
+                {
+                  "q": "Добавит ли `git commit -am` новый файл?",
+                  "options": [
+                    "Да",
+                    "Нет, только изменённые отслеживаемые",
+                    "Только .py",
+                    "Только в main"
+                  ],
+                  "answer": 1,
+                  "explain": "Новые файлы — через git add."
+                },
+                {
+                  "q": "Какое сообщение коммита лучше?",
+                  "options": [
+                    "fix",
+                    "wip",
+                    "test: add cart edge cases",
+                    "изменения"
+                  ],
+                  "answer": 2,
+                  "explain": "Понятно, что и где сделано."
+                }
+              ]
+            },
+            {
+              "slug": "git-log",
+              "title": "История и изменения: log, diff, show",
+              "theory": "```bash\ngit log --oneline            # история кратко\ngit log --oneline -5         # последние 5\ngit log -- tests/test_x.py   # по файлу\ngit log --oneline --graph --all\ngit diff                     # не в индексе\ngit diff --staged            # в индексе\ngit diff main feature/x      # между ветками\ngit show a1b2c3d             # один коммит\n```",
+              "exercises": [
+                {
+                  "slug": "git-log-e1",
+                  "type": "command",
+                  "prompt": "Покажи историю коммитов, по одной строке на коммит.",
+                  "code": "",
+                  "expected_output": "git log --oneline\ngit log --pretty=oneline",
+                  "solution": "git log --oneline",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-log-e2",
+                  "type": "command",
+                  "prompt": "Покажи последние 5 коммитов в кратком виде.",
+                  "code": "",
+                  "expected_output": "git log --oneline -5\ngit log --oneline -n 5\ngit log -5 --oneline\ngit log -n 5 --oneline\ngit log --oneline -n5",
+                  "solution": "git log --oneline -5",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-log-e3",
+                  "type": "command",
+                  "prompt": "Покажи, что изменилось в файлах, но ещё **не добавлено** в индекс.",
+                  "code": "",
+                  "expected_output": "git diff",
+                  "solution": "git diff",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-log-e4",
+                  "type": "command",
+                  "prompt": "Покажи изменения, которые **уже в индексе** и попадут в коммит.",
+                  "code": "",
+                  "expected_output": "git diff --staged\ngit diff --cached",
+                  "solution": "git diff --staged",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-log-e5",
+                  "type": "command",
+                  "prompt": "Покажи содержимое коммита `a1b2c3d`: сообщение и изменения.",
+                  "code": "",
+                  "expected_output": "git show a1b2c3d",
+                  "solution": "git show a1b2c3d",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-log-e6",
+                  "type": "command",
+                  "prompt": "Покажи историю изменений только одного файла `tests/test_login.py`.",
+                  "code": "",
+                  "expected_output": "git log tests/test_login.py\ngit log -- tests/test_login.py\ngit log --oneline tests/test_login.py\ngit log --oneline -- tests/test_login.py\ngit log -p tests/test_login.py\ngit log -p -- tests/test_login.py",
+                  "solution": "git log tests/test_login.py",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-log-e7",
+                  "type": "command",
+                  "prompt": "Какой хеш у коммита, который **добавил тесты корзины**? Введи 7 символов.",
+                  "code": "$ git log --oneline\n4c3b2a1 (HEAD -> main) fix: flaky timeout in cart\n9f8e7d6 test: add cart tests\n1a2b3c4 feat: cart page\n",
+                  "expected_output": "9f8e7d6",
+                  "solution": "9f8e7d6",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-log-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_oneline(lines)` — разобрать вывод `git log --oneline` в список словарей `{\"hash\": ..., \"message\": ...}`. Пометки в скобках вроде `(HEAD -> main)` или `(tag: v1.0)` в начале сообщения нужно убрать.",
+                  "starter_code": "import re\n\n\ndef parse_oneline(lines):\n    pass\n",
+                  "tests": "def test_values():\n    lines = [\"4c3b2a1 (HEAD -> main, origin/main) fix: flaky timeout\", \"9f8e7d6 test: add cart tests\", \"1a2b3c4 (tag: v1.0) feat: cart page\"]\n    assert parse_oneline(lines) == [\n        {\"hash\": \"4c3b2a1\", \"message\": \"fix: flaky timeout\"},\n        {\"hash\": \"9f8e7d6\", \"message\": \"test: add cart tests\"},\n        {\"hash\": \"1a2b3c4\", \"message\": \"feat: cart page\"},\n    ], parse_oneline(lines)\n",
+                  "solution": "import re\n\n\ndef parse_oneline(lines):\n    result = []\n    for line in lines:\n        sha, rest = line.split(\" \", 1)\n        rest = re.sub(r\"^\\([^)]*\\) \", \"\", rest)\n        result.append({\"hash\": sha, \"message\": rest})\n    return result\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nТест вчера проходил, а сегодня падает — что изменилось? История коммитов и разница между версиями отвечают на этот вопрос. Тестировщик постоянно смотрит, что вошло в сборку, какие файлы затронуты и что именно поменялось в коде.\n\n## История: git log\n\n```bash\n$ git log --oneline\n4c3b2a1 (HEAD -> main, origin/main) fix: flaky timeout in cart\n9f8e7d6 test: add cart tests\n1a2b3c4 (tag: v1.0) feat: cart page\n$ git log --oneline -5\n$ git log --oneline tests/test_login.py\n$ git log --oneline --graph --all\n```\n\n- `git log` — полная история: хеш, автор, дата, сообщение. Выход — `q`.\n- `--oneline` — по строке на коммит: короткий хеш и сообщение.\n- `-5` — только последние пять.\n- `git log путь` — только коммиты, менявшие этот файл.\n- `--graph --all` — дерево всех веток.\n- `(HEAD -> main)` — где ты сейчас, `origin/main` — где ветка на сервере, `tag:` — метка версии.\n\n## Разница: git diff\n\n```bash\n$ git diff\n$ git diff --staged\n$ git diff main feature/cart\n$ git diff --stat main\n```\n\n- `git diff` — изменения, которые **ещё не в индексе**.\n- `git diff --staged` (или `--cached`) — что **уже в индексе** и войдёт в коммит.\n- `git diff A B` — разница между ветками или коммитами.\n- `--stat` — только список файлов и количество строк.\n- В выводе строки с `+` добавлены, с `-` удалены.\n\n## Один коммит: git show\n\n```bash\n$ git show a1b2c3d\n$ git show a1b2c3d --stat\n```\n\n- Сообщение, автор и все изменения конкретного коммита.\n\n## Итог\n\n- `git log --oneline` (`-5`, `путь`, `--graph --all`) — история.\n- `git diff` — не в индексе, `--staged` — в индексе, `A B` — между ветками.\n- `git show хеш` — один коммит.",
+              "quiz": [
+                {
+                  "q": "Что покажет `git diff --staged`?",
+                  "options": [
+                    "Все изменения",
+                    "Изменения в индексе",
+                    "Историю",
+                    "Список веток"
+                  ],
+                  "answer": 1,
+                  "explain": "То, что войдёт в коммит."
+                },
+                {
+                  "q": "Что означает `HEAD -> main` в логе?",
+                  "options": [
+                    "Ветку на сервере",
+                    "Текущее положение: ты на ветке main",
+                    "Тег",
+                    "Ошибку"
+                  ],
+                  "answer": 1,
+                  "explain": "HEAD — где ты сейчас."
+                },
+                {
+                  "q": "Как посмотреть коммиты, менявшие один файл?",
+                  "options": [
+                    "git show файл",
+                    "git log файл",
+                    "git diff файл",
+                    "git status файл"
+                  ],
+                  "answer": 1,
+                  "explain": "git log -- путь."
+                }
+              ]
+            },
+            {
+              "slug": "git-ignore",
+              "title": "Что не коммитить: .gitignore",
+              "theory": "```bash\n# .gitignore\n.venv/\n__pycache__/\n*.log\nallure-results/\n.env\n!schema.json          # исключение\ngit rm --cached .env  # перестать отслеживать\ngit check-ignore -v file\n```",
+              "exercises": [
+                {
+                  "slug": "git-ignore-e1",
+                  "type": "command",
+                  "prompt": "Какую строку добавить в `.gitignore`, чтобы git игнорировал папку виртуального окружения `.venv`?",
+                  "code": "",
+                  "expected_output": ".venv/\n.venv\n/.venv\n/.venv/",
+                  "solution": ".venv/",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-ignore-e2",
+                  "type": "command",
+                  "prompt": "Какая строка в `.gitignore` заставит игнорировать **все** файлы с расширением `.log`?",
+                  "code": "",
+                  "expected_output": "*.log",
+                  "solution": "*.log",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-ignore-e3",
+                  "type": "command",
+                  "prompt": "Какая строка игнорирует папку с результатами Allure `allure-results`?",
+                  "code": "",
+                  "expected_output": "allure-results/\nallure-results\n/allure-results/\n/allure-results",
+                  "solution": "allure-results/",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-ignore-e4",
+                  "type": "command",
+                  "prompt": "Файл `.env` с паролями **уже** попал в репозиторий. Убери его из git (из отслеживания), но оставь на диске.",
+                  "code": "",
+                  "expected_output": "git rm --cached .env",
+                  "solution": "git rm --cached .env",
+                  "hint": "Потом добавь .env в .gitignore и закоммить удаление.",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-ignore-e5",
+                  "type": "command",
+                  "prompt": "Какая строка `.gitignore` игнорирует все папки `__pycache__` на любом уровне?",
+                  "code": "",
+                  "expected_output": "__pycache__/\n__pycache__\n**/__pycache__/\n**/__pycache__",
+                  "solution": "__pycache__/",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-ignore-e6",
+                  "type": "command",
+                  "prompt": "Проверь, какое правило `.gitignore` заставляет игнорировать файл `report.html`.",
+                  "code": "",
+                  "expected_output": "git check-ignore -v report.html\ngit check-ignore --verbose report.html",
+                  "solution": "git check-ignore -v report.html",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-ignore-e7",
+                  "type": "command",
+                  "prompt": "Как в `.gitignore` сделать **исключение**: игнорировать все `.json`, кроме `schema.json`? Введи строку-исключение.",
+                  "code": "",
+                  "expected_output": "!schema.json\n!/schema.json",
+                  "solution": "!schema.json",
+                  "hint": "Исключение начинается с восклицательного знака.",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-ignore-e8",
+                  "type": "code",
+                  "prompt": "Напиши упрощённую проверку `.gitignore`: функцию `is_ignored(path, patterns)`. Путь игнорируется, если **хотя бы одна часть** пути (папка или имя файла) подходит под один из шаблонов (`fnmatch`). Шаблон может заканчиваться на `/` — тогда он относится только к папкам (не к последней части пути). Исключений `!` в этой задаче нет.",
+                  "starter_code": "import fnmatch\n\n\ndef is_ignored(path, patterns):\n    pass\n",
+                  "tests": "def test_values():\n    pats = [\".venv/\", \"*.log\", \"__pycache__/\", \"allure-results/\"]\n    yes = [\".venv/lib/x.py\", \"app.log\", \"tests/__pycache__/a.pyc\", \"allure-results/1.json\", \"logs/run.log\"]\n    no = [\"tests/test_log.py\", \"README.md\", \"src/app.py\", \"venv.txt\"]\n    assert all(is_ignored(p, pats) for p in yes), [p for p in yes if not is_ignored(p, pats)]\n    assert not any(is_ignored(p, pats) for p in no), [p for p in no if is_ignored(p, pats)]\n    assert not is_ignored(\"allure-results\", pats), \"Шаблон с / — только для папок\"\n",
+                  "solution": "import fnmatch\n\n\ndef is_ignored(path, patterns):\n    parts = path.split(\"/\")\n    for pat in patterns:\n        dir_only = pat.endswith(\"/\")\n        pat = pat.rstrip(\"/\")\n        candidates = parts[:-1] if dir_only else parts\n        if any(fnmatch.fnmatch(part, pat) for part in candidates):\n            return True\n    return False\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nНе всё в папке проекта нужно хранить в git: виртуальное окружение (сотни мегабайт), кэш `__pycache__`, отчёты Allure, логи, а главное — **файлы с паролями** (`.env`). Файл `.gitignore` говорит git: «эти файлы не замечай».\n\n## Пример .gitignore\n\n```bash\n$ cat .gitignore\n# окружение и кэш\n.venv/\n__pycache__/\n*.pyc\n.pytest_cache/\n\n# результаты прогонов\nallure-results/\nallure-report/\n*.log\n\n# секреты\n.env\n!schema.json\n```\n\nЧто означает каждое правило:\n\n- `.venv/` — папка (косая черта в конце — только папки) на любом уровне.\n- `*.pyc`, `*.log` — все файлы с таким расширением.\n- `#` — комментарий.\n- `/config.local.json` — черта в начале — только в корне репозитория.\n- `!schema.json` — исключение: **не** игнорировать, даже если подходит под правило выше.\n- `**/logs` — папка `logs` на любой глубине (обычно достаточно `logs/`).\n\n## Файл уже в репозитории\n\n```bash\n$ git rm --cached .env\n$ echo \".env\" >> .gitignore\n$ git commit -am \"chore: stop tracking .env\"\n```\n\n- `.gitignore` не действует на файлы, которые **уже отслеживаются**. Их нужно убрать из индекса: `git rm --cached` (файл останется на диске).\n- Если в репозиторий попал пароль — он остался в истории. Его нужно **сменить**, а не только удалить файл.\n\n## Проверить правило\n\n```bash\n$ git check-ignore -v report.html\n.gitignore:8:*.html    report.html\n```\n\n- Показывает, какое правило из какой строки срабатывает.\n- `git status --ignored` — список игнорируемых файлов.\n\n## Итог\n\n- `.gitignore` — шаблоны файлов, которые git не замечает.\n- `папка/` — папки, `*.ext` — расширения, `!` — исключение, `#` — комментарий.\n- Уже отслеживаемые файлы — `git rm --cached`.\n- Секреты — никогда в git; утёкший пароль — сменить.",
+              "quiz": [
+                {
+                  "q": "Что делает строка `*.log` в .gitignore?",
+                  "options": [
+                    "Игнорирует папку log",
+                    "Игнорирует все файлы с расширением .log",
+                    "Удаляет логи",
+                    "Ничего"
+                  ],
+                  "answer": 1,
+                  "explain": "* — любые символы."
+                },
+                {
+                  "q": "Файл уже в репозитории, его добавили в .gitignore. Он перестанет отслеживаться?",
+                  "options": [
+                    "Да, сразу",
+                    "Нет, нужно git rm --cached",
+                    "Только после push",
+                    "Только в новой ветке"
+                  ],
+                  "answer": 1,
+                  "explain": ".gitignore действует на неотслеживаемые файлы."
+                },
+                {
+                  "q": "Что означает `!` в начале строки .gitignore?",
+                  "options": [
+                    "Комментарий",
+                    "Исключение из правила",
+                    "Обязательный файл",
+                    "Удалить файл"
+                  ],
+                  "answer": 1,
+                  "explain": "Файл не будет игнорироваться."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "git-m2",
+          "title": "Ветки и командная работа",
+          "icon": "🌿",
+          "description": "Ветки, слияние и конфликты, удалённый репозиторий, pull request",
+          "lessons": [
+            {
+              "slug": "git-branch",
+              "title": "Ветки",
+              "theory": "```bash\ngit branch                 # список, * — текущая\ngit switch -c test/cart    # создать и перейти (checkout -b)\ngit switch main            # перейти (checkout main)\ngit branch -a              # вместе с удалёнными\ngit branch -m new-name     # переименовать текущую\ngit branch -d old          # удалить слитую (-D — принудительно)\n```",
+              "exercises": [
+                {
+                  "slug": "git-branch-e1",
+                  "type": "command",
+                  "prompt": "Покажи список локальных веток.",
+                  "code": "",
+                  "expected_output": "git branch\ngit branch --list",
+                  "solution": "git branch",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-branch-e2",
+                  "type": "command",
+                  "prompt": "Создай новую ветку `feature/login-tests` и сразу переключись на неё.",
+                  "code": "",
+                  "expected_output": "git switch -c feature/login-tests\ngit checkout -b feature/login-tests",
+                  "solution": "git switch -c feature/login-tests",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-branch-e3",
+                  "type": "command",
+                  "prompt": "Переключись на существующую ветку `main`.",
+                  "code": "",
+                  "expected_output": "git switch main\ngit checkout main",
+                  "solution": "git switch main",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-branch-e4",
+                  "type": "command",
+                  "prompt": "Удали локальную ветку `feature/old`, которая уже слита в основную.",
+                  "code": "",
+                  "expected_output": "git branch -d feature/old\ngit branch --delete feature/old",
+                  "solution": "git branch -d feature/old",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-branch-e5",
+                  "type": "command",
+                  "prompt": "Покажи **все** ветки, включая ветки удалённого репозитория.",
+                  "code": "",
+                  "expected_output": "git branch -a\ngit branch --all",
+                  "solution": "git branch -a",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-branch-e6",
+                  "type": "command",
+                  "prompt": "На какой ветке ты сейчас? Введи её имя.",
+                  "code": "$ git branch\n  main\n* bugfix/timeout\n  feature/cart\n",
+                  "expected_output": "bugfix/timeout",
+                  "solution": "bugfix/timeout",
+                  "hint": "Текущая ветка отмечена звёздочкой.",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-branch-e7",
+                  "type": "command",
+                  "prompt": "Переименуй **текущую** ветку в `feature/cart-tests`.",
+                  "code": "",
+                  "expected_output": "git branch -m feature/cart-tests\ngit branch --move feature/cart-tests",
+                  "solution": "git branch -m feature/cart-tests",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-branch-e8",
+                  "type": "code",
+                  "prompt": "В команде договорились называть ветки так: `тип/описание`, где тип — `feature`, `bugfix`, `test` или `hotfix`, а описание — строчные латинские буквы, цифры и дефисы (например, `test/login-2fa`). Напиши функцию `valid_branch(name)`.",
+                  "starter_code": "import re\n\n\ndef valid_branch(name):\n    pass\n",
+                  "tests": "def test_values():\n    good = [\"feature/login\", \"test/login-2fa\", \"bugfix/cart-timeout\", \"hotfix/500-on-pay\"]\n    bad = [\"main\", \"feature/Login\", \"tests/login\", \"feature/\", \"feature/login tests\", \"feature/логин\"]\n    assert all(valid_branch(b) for b in good), [b for b in good if not valid_branch(b)]\n    assert not any(valid_branch(b) for b in bad), [b for b in bad if valid_branch(b)]\n",
+                  "solution": "import re\n\n\ndef valid_branch(name):\n    return re.fullmatch(r\"(feature|bugfix|test|hotfix)/[a-z0-9-]+\", name) is not None\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n**Ветка** позволяет работать над задачей отдельно, не ломая основной код. Разработчик делает фичу в `feature/cart`, тестировщик пишет тесты в `test/cart-e2e`, а `main` остаётся стабильной. Когда работа готова и проверена, ветку вливают обратно.\n\n## Как устроены ветки\n\n- Ветка — просто подвижный указатель на последний коммит своей линии.\n- `HEAD` — указатель на ветку, на которой ты сейчас.\n- Новая ветка начинается с текущего коммита; дальше её коммиты не влияют на другие ветки.\n\n## Команды\n\n```bash\n$ git branch\n  main\n* bugfix/timeout\n  feature/cart\n$ git switch -c feature/login-tests\n$ git switch main\n$ git branch -a\n$ git branch -m feature/cart-tests\n$ git branch -d feature/old\n```\n\nЧто делает каждая команда:\n\n- `git branch` — список локальных веток, `*` — текущая.\n- `git switch -c имя` — **создать** ветку и перейти на неё. Старый вариант — `git checkout -b имя`.\n- `git switch имя` (или `git checkout имя`) — перейти на существующую ветку. Незакоммиченные изменения переходят вместе с тобой — если они мешают, git откажет.\n- `git branch -a` — все ветки, включая удалённые (`remotes/origin/...`).\n- `git branch -m новое` — переименовать текущую ветку.\n- `git branch -d имя` — удалить ветку, уже слитую в текущую. `-D` — удалить принудительно (несохранённая работа пропадёт).\n\n## Именование веток\n\n- Договорённость команды обычно такая: `тип/описание`: `feature/cart`, `bugfix/login-500`, `test/cart-e2e`, `hotfix/pay`.\n- Строчные латинские буквы, цифры и дефисы, без пробелов. Часто в имя добавляют номер задачи: `test/QA-123-cart`.\n\n## Итог\n\n- Ветка — независимая линия коммитов; `HEAD` — где ты.\n- `git switch -c` — создать и перейти, `git switch` — перейти.\n- `git branch` (`-a`, `-m`, `-d`) — список, переименование, удаление.\n- Имена: `тип/описание-через-дефисы`.",
+              "quiz": [
+                {
+                  "q": "Что делает `git switch -c test/cart`?",
+                  "options": [
+                    "Удаляет ветку",
+                    "Создаёт ветку и переключается на неё",
+                    "Переименовывает ветку",
+                    "Вливает ветку"
+                  ],
+                  "answer": 1,
+                  "explain": "То же, что git checkout -b."
+                },
+                {
+                  "q": "Как в выводе `git branch` отмечена текущая ветка?",
+                  "options": [
+                    "Жирным",
+                    "Звёздочкой *",
+                    "Стрелкой",
+                    "Никак"
+                  ],
+                  "answer": 1,
+                  "explain": "* перед именем."
+                },
+                {
+                  "q": "Чем `git branch -D` отличается от `-d`?",
+                  "options": [
+                    "Ничем",
+                    "Удаляет даже неслитую ветку",
+                    "Удаляет на сервере",
+                    "Переименовывает"
+                  ],
+                  "answer": 1,
+                  "explain": "Можно потерять работу."
+                }
+              ]
+            },
+            {
+              "slug": "git-merge",
+              "title": "Слияние и конфликты",
+              "theory": "```bash\ngit merge feature/cart          # влить в текущую\n# <<<<<<< HEAD  … наше  ======= … их  >>>>>>> branch\ngit diff --name-only --diff-filter=U   # файлы в конфликте\ngit add file && git commit      # конфликт разрешён\ngit merge --abort               # отменить слияние\n```",
+              "exercises": [
+                {
+                  "slug": "git-merge-e1",
+                  "type": "command",
+                  "prompt": "Ты на ветке `main`. Влей в неё изменения из ветки `feature/cart`.",
+                  "code": "",
+                  "expected_output": "git merge feature/cart",
+                  "solution": "git merge feature/cart",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-merge-e2",
+                  "type": "command",
+                  "prompt": "Во время слияния возник конфликт, и ты хочешь всё отменить и вернуться к состоянию до `merge`.",
+                  "code": "",
+                  "expected_output": "git merge --abort",
+                  "solution": "git merge --abort",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-merge-e3",
+                  "type": "command",
+                  "prompt": "Какой файл в конфликте? Введи путь.",
+                  "code": "$ git merge feature/cart\nAuto-merging tests/conftest.py\nCONFLICT (content): Merge conflict in tests/conftest.py\nAutomatic merge failed; fix conflicts and then commit the result.\n",
+                  "expected_output": "tests/conftest.py",
+                  "solution": "tests/conftest.py",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-merge-e4",
+                  "type": "command",
+                  "prompt": "Ты вручную исправил конфликт в `tests/conftest.py`. Какой командой отметить файл как разрешённый?",
+                  "code": "",
+                  "expected_output": "git add tests/conftest.py",
+                  "solution": "git add tests/conftest.py",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-merge-e5",
+                  "type": "command",
+                  "prompt": "После разрешения всех конфликтов заверши слияние коммитом (без указания сообщения — git подставит своё).",
+                  "code": "",
+                  "expected_output": "git commit\ngit commit --no-edit\ngit merge --continue",
+                  "solution": "git commit",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-merge-e6",
+                  "type": "command",
+                  "prompt": "Какое значение `TIMEOUT` в ветке, которую **вливают** (`feature/cart`)? Введи число.",
+                  "code": "<<<<<<< HEAD\nTIMEOUT = 10\n=======\nTIMEOUT = 30\n>>>>>>> feature/cart\n",
+                  "expected_output": "30",
+                  "solution": "30",
+                  "hint": "Между <<<<<<< и ======= — текущая ветка, между ======= и >>>>>>> — вливаемая.",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-merge-e7",
+                  "type": "command",
+                  "prompt": "Покажи список файлов с неразрешёнными конфликтами одной командой `git diff` с флагом.",
+                  "code": "",
+                  "expected_output": "git diff --name-only --diff-filter=U\ngit diff --diff-filter=U --name-only",
+                  "solution": "git diff --name-only --diff-filter=U",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-merge-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `resolve(text, side)` — разрешить конфликты в тексте файла: для каждого блока\n`<<<<<<< …` / `=======` / `>>>>>>> …` оставить строки стороны `\"ours\"` (до `=======`) или `\"theirs\"` (после). Строки вне конфликтов сохраняются. Вернуть текст с `\\n` между строками.",
+                  "starter_code": "def resolve(text, side):\n    pass\n",
+                  "tests": "TEXT = \"import os\\n<<<<<<< HEAD\\nTIMEOUT = 10\\n=======\\nTIMEOUT = 30\\nRETRIES = 2\\n>>>>>>> feature/cart\\nURL = 'x'\"\n\ndef test_values():\n    assert resolve(TEXT, \"ours\") == \"import os\\nTIMEOUT = 10\\nURL = 'x'\", resolve(TEXT, \"ours\")\n    assert resolve(TEXT, \"theirs\") == \"import os\\nTIMEOUT = 30\\nRETRIES = 2\\nURL = 'x'\", resolve(TEXT, \"theirs\")\n    assert resolve(\"a\\nb\", \"ours\") == \"a\\nb\", \"Без конфликтов\"\n",
+                  "solution": "def resolve(text, side):\n    result = []\n    state = None\n    for line in text.split(\"\\n\"):\n        if line.startswith(\"<<<<<<<\"):\n            state = \"ours\"\n        elif line.startswith(\"=======\") and state == \"ours\":\n            state = \"theirs\"\n        elif line.startswith(\">>>>>>>\") and state == \"theirs\":\n            state = None\n        elif state is None or state == side:\n            result.append(line)\n    return \"\\n\".join(result)\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВетки создают, чтобы потом **соединить**: влить фичу в `main`, забрать свежий `main` в свою ветку. Обычно git делает это сам. Но если два человека изменили одни и те же строки, возникает **конфликт**, и решать его придётся тебе.\n\n## git merge\n\n```bash\n$ git switch main\n$ git merge feature/cart\nUpdating 1a2b3c4..9f8e7d6\nFast-forward\n```\n\n- `git merge ветка` — влить указанную ветку в **текущую**.\n- **Fast-forward** — в `main` новых коммитов не было, git просто передвинул указатель.\n- Если изменения были в обеих ветках, git создаст **коммит слияния** (merge commit).\n\n## Конфликт\n\n```bash\n$ git merge feature/cart\nAuto-merging tests/conftest.py\nCONFLICT (content): Merge conflict in tests/conftest.py\nAutomatic merge failed; fix conflicts and then commit the result.\n```\n\nВ файле появятся маркеры:\n\n```bash\n<<<<<<< HEAD\nTIMEOUT = 10\n=======\nTIMEOUT = 30\n>>>>>>> feature/cart\n```\n\n- Между `<<<<<<< HEAD` и `=======` — версия **текущей** ветки.\n- Между `=======` и `>>>>>>> feature/cart` — версия **вливаемой**.\n- Нужно оставить правильный вариант (или объединить оба) и **удалить все маркеры**.\n\n## Как разрешить\n\n```bash\n$ git status\n$ git diff --name-only --diff-filter=U\n$ git add tests/conftest.py\n$ git commit\n$ git merge --abort\n```\n\nПо шагам:\n\n1. `git status` показывает файлы в конфликте (both modified). `--diff-filter=U` — только их список.\n2. Открыть каждый файл, выбрать нужные строки, удалить маркеры.\n3. `git add файл` — отметить конфликт как разрешённый.\n4. `git commit` — завершить слияние (сообщение git подставит сам).\n5. Если запутался — `git merge --abort` вернёт всё как было до слияния.\n\nРедакторы (VS Code, PyCharm) показывают конфликты с кнопками «принять текущее / входящее / оба».\n\n## Итог\n\n- `git merge ветка` — влить в текущую; fast-forward или merge commit.\n- Конфликт: `<<<<<<< HEAD` — наше, `>>>>>>>` — вливаемое; маркеры удалить.\n- Разрешение: исправить → `git add` → `git commit`.\n- `git merge --abort` — отменить слияние.",
+              "quiz": [
+                {
+                  "q": "В какую ветку вливает `git merge feature/cart`?",
+                  "options": [
+                    "В feature/cart",
+                    "В текущую ветку",
+                    "В main всегда",
+                    "В origin"
+                  ],
+                  "answer": 1,
+                  "explain": "Сначала переключись на ветку-получатель."
+                },
+                {
+                  "q": "Что находится между `<<<<<<< HEAD` и `=======`?",
+                  "options": [
+                    "Вливаемая версия",
+                    "Версия текущей ветки",
+                    "Общий предок",
+                    "Комментарий"
+                  ],
+                  "answer": 1,
+                  "explain": "После ======= — вливаемая."
+                },
+                {
+                  "q": "Как отметить, что конфликт в файле разрешён?",
+                  "options": [
+                    "git resolve",
+                    "git add файл",
+                    "git merge --done",
+                    "git push"
+                  ],
+                  "answer": 1,
+                  "explain": "Затем git commit."
+                }
+              ]
+            },
+            {
+              "slug": "git-remote",
+              "title": "Удалённый репозиторий: push, pull, fetch",
+              "theory": "```bash\ngit remote -v                     # удалённые репозитории\ngit push -u origin my-branch      # первый push ветки\ngit push                          # дальше\ngit fetch                         # скачать, ничего не вливая\ngit pull                          # fetch + merge\ngit pull --rebase                 # fetch + rebase\ngit switch feature/x              # ветка коллеги после fetch\n```",
+              "exercises": [
+                {
+                  "slug": "git-remote-e1",
+                  "type": "command",
+                  "prompt": "Покажи удалённые репозитории и их адреса.",
+                  "code": "",
+                  "expected_output": "git remote -v\ngit remote --verbose",
+                  "solution": "git remote -v",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-remote-e2",
+                  "type": "command",
+                  "prompt": "Отправь новую ветку `feature/login-tests` в удалённый репозиторий `origin` впервые и свяжи её с ним.",
+                  "code": "",
+                  "expected_output": "git push -u origin feature/login-tests\ngit push --set-upstream origin feature/login-tests",
+                  "solution": "git push -u origin feature/login-tests",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-remote-e3",
+                  "type": "command",
+                  "prompt": "Ветка уже связана с удалённой. Отправь новые коммиты.",
+                  "code": "",
+                  "expected_output": "git push",
+                  "solution": "git push",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-remote-e4",
+                  "type": "command",
+                  "prompt": "Забери свежие изменения из удалённой ветки и сразу влей их в текущую.",
+                  "code": "",
+                  "expected_output": "git pull\ngit pull origin\ngit pull --rebase",
+                  "solution": "git pull",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-remote-e5",
+                  "type": "command",
+                  "prompt": "Скачай информацию о новых коммитах и ветках с `origin`, **ничего не вливая** в свои ветки.",
+                  "code": "",
+                  "expected_output": "git fetch\ngit fetch origin\ngit fetch --all",
+                  "solution": "git fetch",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-remote-e6",
+                  "type": "command",
+                  "prompt": "Переключись на ветку коллеги `feature/payment`, которая есть только на `origin` (после `git fetch`).",
+                  "code": "",
+                  "expected_output": "git switch feature/payment\ngit checkout feature/payment\ngit switch -c feature/payment origin/feature/payment\ngit checkout -b feature/payment origin/feature/payment\ngit checkout -t origin/feature/payment\ngit switch --track origin/feature/payment\ngit checkout --track origin/feature/payment",
+                  "solution": "git switch feature/payment",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-remote-e7",
+                  "type": "command",
+                  "prompt": "На сколько коммитов твоя ветка отстаёт от удалённой? Введи число.",
+                  "code": "$ git status\nOn branch main\nYour branch is behind 'origin/main' by 3 commits, and can be fast-forwarded.\n",
+                  "expected_output": "3",
+                  "solution": "3",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-remote-e8",
+                  "type": "command",
+                  "prompt": "`git push` отклонён: «Updates were rejected because the remote contains work that you do not have locally». Какой командой **сначала** забрать чужие изменения, переставив свои коммиты поверх них (без коммита слияния)?",
+                  "code": "",
+                  "expected_output": "git pull --rebase\ngit pull --rebase origin main\ngit pull -r",
+                  "solution": "git pull --rebase",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nТвой репозиторий на компьютере и репозиторий на GitHub/GitLab — две копии. Изменения между ними не синхронизируются сами: свои коммиты нужно **отправить** (`push`), чужие — **забрать** (`pull`/`fetch`). CI запускает тесты именно на коммитах с сервера.\n\n## Удалённые репозитории\n\n```bash\n$ git remote -v\norigin  git@github.com:acme/api-tests.git (fetch)\norigin  git@github.com:acme/api-tests.git (push)\n```\n\n- `origin` — стандартное имя удалённого репозитория после `git clone`.\n- Адрес бывает HTTPS (`https://github.com/...`) или SSH (`git@github.com:...`) — для SSH нужен настроенный ключ.\n\n## push: отправить\n\n```bash\n$ git push -u origin feature/login-tests\n$ git push\n```\n\n- Первый раз для новой ветки: `-u` (`--set-upstream`) связывает локальную ветку с удалённой. Потом достаточно `git push`.\n- Если на сервере есть коммиты, которых у тебя нет, push будет отклонён — сначала забери их.\n\n## fetch и pull: забрать\n\n```bash\n$ git fetch\n$ git status\nYour branch is behind 'origin/main' by 3 commits, and can be fast-forwarded.\n$ git pull\n$ git pull --rebase\n```\n\n- `git fetch` — только **скачать** информацию о новых коммитах и ветках, ничего не меняя в твоих ветках. Безопасно всегда.\n- После fetch `git status` покажет, насколько ты отстаёшь (behind) или опережаешь (ahead).\n- `git pull` = `fetch` + `merge`: скачать и влить в текущую ветку.\n- `git pull --rebase` = `fetch` + `rebase`: твои локальные коммиты встанут поверх свежих, без лишнего коммита слияния. Многие команды используют именно его.\n\n## Ветка коллеги\n\n```bash\n$ git fetch\n$ git switch feature/payment\n```\n\n- Если ветка есть на `origin`, а локально нет, `git switch имя` создаст локальную ветку, связанную с удалённой.\n\n## Итог\n\n- `git remote -v` — куда отправляем; `origin` — сервер.\n- `git push -u origin ветка` — первый раз, дальше `git push`.\n- `git fetch` — узнать новое, `git pull` — забрать и влить, `--rebase` — без коммита слияния.\n- behind — отстаёшь, ahead — опережаешь.",
+              "quiz": [
+                {
+                  "q": "Чем `git fetch` отличается от `git pull`?",
+                  "options": [
+                    "Ничем",
+                    "fetch только скачивает, pull ещё и вливает",
+                    "fetch отправляет",
+                    "pull только скачивает"
+                  ],
+                  "answer": 1,
+                  "explain": "fetch безопасен всегда."
+                },
+                {
+                  "q": "Зачем флаг `-u` в `git push -u origin ветка`?",
+                  "options": [
+                    "Удалить ветку",
+                    "Связать локальную ветку с удалённой",
+                    "Обновить",
+                    "Отправить теги"
+                  ],
+                  "answer": 1,
+                  "explain": "Дальше хватит git push."
+                },
+                {
+                  "q": "Что значит «Your branch is behind by 3 commits»?",
+                  "options": [
+                    "У тебя 3 лишних коммита",
+                    "На сервере 3 коммита, которых у тебя нет",
+                    "Конфликт",
+                    "Ветка удалена"
+                  ],
+                  "answer": 1,
+                  "explain": "Нужно git pull."
+                }
+              ]
+            },
+            {
+              "slug": "git-pr",
+              "title": "Pull request и работа в команде",
+              "theory": "```bash\ngit switch main && git pull\ngit switch -c test/cart-e2e\ngit add . && git commit -m \"test: add cart e2e\"\ngit push -u origin test/cart-e2e     # → открыть PR\ngh pr create --fill                  # или через GitHub CLI\ngh pr checkout 42                    # проверить чужой PR\ngit commit -am \"fix: review\" && git push   # правки после ревью\n```",
+              "exercises": [
+                {
+                  "slug": "git-pr-e1",
+                  "type": "command",
+                  "prompt": "Типичный цикл тестировщика. Ты на `main`. Сначала обнови `main` с сервера — введи команду.",
+                  "code": "",
+                  "expected_output": "git pull\ngit pull origin main\ngit pull --rebase",
+                  "solution": "git pull",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-pr-e2",
+                  "type": "command",
+                  "prompt": "Создай от `main` ветку `test/cart-e2e` и переключись на неё.",
+                  "code": "",
+                  "expected_output": "git switch -c test/cart-e2e\ngit checkout -b test/cart-e2e",
+                  "solution": "git switch -c test/cart-e2e",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-pr-e3",
+                  "type": "command",
+                  "prompt": "Ты написал тесты. Добавь все изменения и сделай коммит `test: add cart e2e`.",
+                  "code": "",
+                  "expected_output": "git add . && git commit -m \"test: add cart e2e\"\ngit add . && git commit -m 'test: add cart e2e'\ngit add -A && git commit -m \"test: add cart e2e\"\ngit add -A && git commit -m 'test: add cart e2e'\ngit commit -am \"test: add cart e2e\"\ngit commit -am 'test: add cart e2e'",
+                  "solution": "git add . && git commit -m \"test: add cart e2e\"",
+                  "hint": "Две команды можно соединить через &&.",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-pr-e4",
+                  "type": "command",
+                  "prompt": "Отправь ветку `test/cart-e2e` на `origin` и свяжи её, чтобы открыть pull request.",
+                  "code": "",
+                  "expected_output": "git push -u origin test/cart-e2e\ngit push --set-upstream origin test/cart-e2e\ngit push -u origin HEAD",
+                  "solution": "git push -u origin test/cart-e2e",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-pr-e5",
+                  "type": "command",
+                  "prompt": "Создай pull request из текущей ветки через GitHub CLI (утилита `gh`), без дополнительных параметров.",
+                  "code": "",
+                  "expected_output": "gh pr create\ngh pr create --fill\ngh pr create -f",
+                  "solution": "gh pr create",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-pr-e6",
+                  "type": "command",
+                  "prompt": "Скачай к себе и переключись на ветку pull request №42 через GitHub CLI, чтобы протестировать его локально.",
+                  "code": "",
+                  "expected_output": "gh pr checkout 42",
+                  "solution": "gh pr checkout 42",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-pr-e7",
+                  "type": "command",
+                  "prompt": "Ревьюер попросил поправить тест. Ты исправил файл. Какими командами обновить PR? Добавь все изменения, закоммить с сообщением `fix: review comments` и отправь.",
+                  "code": "",
+                  "expected_output": "git add . && git commit -m \"fix: review comments\" && git push\ngit add . && git commit -m 'fix: review comments' && git push\ngit commit -am \"fix: review comments\" && git push\ngit commit -am 'fix: review comments' && git push\ngit add -A && git commit -m \"fix: review comments\" && git push\ngit add -A && git commit -m 'fix: review comments' && git push",
+                  "solution": "git add . && git commit -m \"fix: review comments\" && git push",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "git-pr-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `pr_checklist(pr)` — «бот» для pull request. `pr` — словарь `{\"title\": str, \"branch\": str, \"files\": [пути], \"tests_passed\": bool}`. Вернуть список замечаний (пустой — всё хорошо):\n\n- `\"нет префикса в заголовке\"` — если заголовок не начинается с `feat:`, `fix:` или `test:`;\n- `\"ветка main\"` — если ветка `main`;\n- `\"изменён код без тестов\"` — если среди файлов есть `src/...`, но нет ни одного `tests/...`;\n- `\"тесты упали\"` — если `tests_passed` ложно.",
+                  "starter_code": "def pr_checklist(pr):\n    pass\n",
+                  "tests": "def test_values():\n    ok = {\"title\": \"test: cart\", \"branch\": \"test/cart\", \"files\": [\"tests/test_cart.py\"], \"tests_passed\": True}\n    assert pr_checklist(ok) == [], pr_checklist(ok)\n    bad = {\"title\": \"cart\", \"branch\": \"main\", \"files\": [\"src/cart.py\"], \"tests_passed\": False}\n    assert pr_checklist(bad) == [\"нет префикса в заголовке\", \"ветка main\", \"изменён код без тестов\", \"тесты упали\"], pr_checklist(bad)\n    mixed = {\"title\": \"fix: cart\", \"branch\": \"bugfix/cart\", \"files\": [\"src/cart.py\", \"tests/test_cart.py\"], \"tests_passed\": True}\n    assert pr_checklist(mixed) == [], \"Код с тестами — хорошо\"\n",
+                  "solution": "def pr_checklist(pr):\n    issues = []\n    if not pr[\"title\"].startswith((\"feat:\", \"fix:\", \"test:\")):\n        issues.append(\"нет префикса в заголовке\")\n    if pr[\"branch\"] == \"main\":\n        issues.append(\"ветка main\")\n    has_src = any(f.startswith(\"src/\") for f in pr[\"files\"])\n    has_tests = any(f.startswith(\"tests/\") for f in pr[\"files\"])\n    if has_src and not has_tests:\n        issues.append(\"изменён код без тестов\")\n    if not pr[\"tests_passed\"]:\n        issues.append(\"тесты упали\")\n    return issues\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВ командах не пушат напрямую в `main`. Изменения предлагают через **pull request** (PR; в GitLab — merge request, MR): коллеги смотрят код, CI прогоняет тесты, и только потом ветку вливают. Тестировщик участвует дважды: присылает свои PR с тестами и проверяет PR разработчиков — локально запускает их ветку.\n\n## Цикл работы над задачей\n\n```bash\n$ git switch main\n$ git pull\n$ git switch -c test/cart-e2e\n$ git add . && git commit -m \"test: add cart e2e\"\n$ git push -u origin test/cart-e2e\n```\n\nПо шагам:\n\n1. Обновить `main`, чтобы начать от свежей версии.\n2. Создать ветку под задачу.\n3. Писать тесты, делать осмысленные коммиты. `&&` — выполнить вторую команду, только если первая прошла успешно.\n4. Отправить ветку и открыть PR на GitHub/GitLab (ссылку на создание git печатает прямо после push).\n\n## GitHub CLI\n\n```bash\n$ gh pr create --fill\n$ gh pr list\n$ gh pr checkout 42\n$ gh pr view 42 --web\n```\n\n- `gh` — официальная утилита GitHub для терминала.\n- `gh pr create` — создать PR из текущей ветки (`--fill` — заголовок и описание из коммитов).\n- `gh pr checkout 42` — скачать ветку PR №42 и переключиться на неё — так тестировщик проверяет чужую задачу локально.\n\n## Ревью и исправления\n\n```bash\n$ git add . && git commit -m \"fix: review comments\" && git push\n```\n\n- Ревьюер оставляет комментарии. Ты исправляешь в той же ветке и пушишь — PR обновится сам.\n- Хороший PR: понятный заголовок (часто в формате Conventional Commits), описание «что и зачем», ссылка на задачу, небольшой размер, зелёный CI.\n\n## Что проверяет тестировщик в чужом PR\n\n- Ветка запускается, тесты проходят локально и в CI.\n- Новая функциональность покрыта тестами; изменённый код без тестов — повод спросить.\n- Ручная проверка сценариев из задачи на стенде или локально.\n\n## Итог\n\n- Работа идёт через ветки и PR, а не прямой push в `main`.\n- Цикл: `pull` → `switch -c` → коммиты → `push -u` → PR → ревью → merge.\n- `gh pr create`, `gh pr checkout N` — GitHub CLI.\n- Исправления после ревью — новыми коммитами в ту же ветку.",
+              "quiz": [
+                {
+                  "q": "Что такое pull request?",
+                  "options": [
+                    "Команда git pull",
+                    "Предложение влить ветку, с ревью и проверкой CI",
+                    "Скачивание репозитория",
+                    "Удаление ветки"
+                  ],
+                  "answer": 1,
+                  "explain": "В GitLab — merge request."
+                },
+                {
+                  "q": "Как тестировщику проверить PR №42 локально через GitHub CLI?",
+                  "options": [
+                    "gh pr view 42",
+                    "gh pr checkout 42",
+                    "git pull 42",
+                    "git merge 42"
+                  ],
+                  "answer": 1,
+                  "explain": "Скачает ветку и переключит на неё."
+                },
+                {
+                  "q": "Как внести исправления после ревью?",
+                  "options": [
+                    "Создать новый PR",
+                    "Закоммитить в ту же ветку и сделать push",
+                    "Удалить ветку",
+                    "Переписать main"
+                  ],
+                  "answer": 1,
+                  "explain": "PR обновится автоматически."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "git-m3",
+          "title": "Исправление ошибок и продвинутое",
+          "icon": "🛠️",
+          "description": "Отмена изменений, stash, rebase, cherry-pick, теги, blame и bisect",
+          "lessons": [
+            {
+              "slug": "git-undo",
+              "title": "Отменить изменения",
+              "theory": "```bash\ngit restore file.py            # отменить правки (пропадут!)\ngit commit --amend --no-edit   # дополнить последний коммит\ngit commit --amend -m \"msg\"    # поменять сообщение\ngit reset HEAD~1               # отменить коммит, правки в файлах\ngit reset --hard HEAD~1        # выбросить коммит и правки\ngit revert a1b2c3d             # отменить отправленный (новым коммитом)\ngit reflog                     # найти потерянное\ngit clean -nd / -fd            # показать / удалить неотслеживаемое\n```",
+              "exercises": [
+                {
+                  "slug": "git-undo-e1",
+                  "type": "command",
+                  "prompt": "Отмени незакоммиченные изменения в файле `conftest.py` — верни его к последнему коммиту.",
+                  "code": "",
+                  "expected_output": "git restore conftest.py\ngit checkout -- conftest.py\ngit checkout conftest.py",
+                  "solution": "git restore conftest.py",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-undo-e2",
+                  "type": "command",
+                  "prompt": "Ты сделал коммит, но забыл добавить файл и хочешь **исправить последний коммит** (файл уже добавлен в индекс), не меняя сообщение.",
+                  "code": "",
+                  "expected_output": "git commit --amend --no-edit\ngit commit --no-edit --amend",
+                  "solution": "git commit --amend --no-edit",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-undo-e3",
+                  "type": "command",
+                  "prompt": "Исправь опечатку в сообщении последнего коммита на `test: add login cases`.",
+                  "code": "",
+                  "expected_output": "git commit --amend -m \"test: add login cases\"\ngit commit --amend -m 'test: add login cases'",
+                  "solution": "git commit --amend -m \"test: add login cases\"",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-undo-e4",
+                  "type": "command",
+                  "prompt": "Отмени последний коммит, но **сохрани** его изменения в рабочих файлах (коммит ещё не отправлен).",
+                  "code": "",
+                  "expected_output": "git reset HEAD~1\ngit reset HEAD~\ngit reset --mixed HEAD~1\ngit reset --soft HEAD~1\ngit reset HEAD^\ngit reset --soft HEAD~\ngit reset --mixed HEAD~",
+                  "solution": "git reset HEAD~1",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-undo-e5",
+                  "type": "command",
+                  "prompt": "Коммит `a1b2c3d` уже отправлен и сломал тесты. Создай новый коммит, который отменяет его изменения (историю не переписывать).",
+                  "code": "",
+                  "expected_output": "git revert a1b2c3d\ngit revert --no-edit a1b2c3d",
+                  "solution": "git revert a1b2c3d",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-undo-e6",
+                  "type": "command",
+                  "prompt": "Полностью выбрось последний **неотправленный** коммит вместе с изменениями (осторожно!).",
+                  "code": "",
+                  "expected_output": "git reset --hard HEAD~1\ngit reset --hard HEAD~\ngit reset --hard HEAD^",
+                  "solution": "git reset --hard HEAD~1",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-undo-e7",
+                  "type": "command",
+                  "prompt": "Ты случайно сделал `reset --hard`. Какой командой посмотреть журнал всех перемещений HEAD, чтобы найти потерянный коммит?",
+                  "code": "",
+                  "expected_output": "git reflog\ngit reflog show\ngit log -g",
+                  "solution": "git reflog",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-undo-e8",
+                  "type": "command",
+                  "prompt": "Удали из рабочей папки все **неотслеживаемые** файлы и папки (мусор после прогона тестов). Используй флаги для файлов и папок.",
+                  "code": "",
+                  "expected_output": "git clean -fd\ngit clean -df\ngit clean -f -d\ngit clean -d -f\ngit clean -fdx\ngit clean -xfd",
+                  "solution": "git clean -fd",
+                  "hint": "Сначала можно посмотреть, что удалится: git clean -nd.",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОшибки неизбежны: испортил файл, закоммитил лишнее, опечатался в сообщении, сломал тесты коммитом, который уже на сервере. В git почти всё можно исправить — важно выбрать правильную команду и понимать, какие из них **теряют** данные.\n\n## Отменить изменения в файле\n\n```bash\n$ git restore conftest.py\n```\n\n- Вернуть файл к версии последнего коммита. **Незакоммиченные правки пропадут навсегда.** Старый вариант — `git checkout -- conftest.py`.\n\n## Исправить последний коммит\n\n```bash\n$ git add forgotten.py\n$ git commit --amend --no-edit\n$ git commit --amend -m \"test: add login cases\"\n```\n\n- `--amend` заменяет последний коммит новым: добавляет файлы из индекса и/или меняет сообщение. `--no-edit` — оставить сообщение прежним.\n- Делай так только с коммитами, которые **ещё не отправлены**: amend меняет хеш, это переписывание истории.\n\n## reset: откатить неотправленные коммиты\n\n```bash\n$ git reset HEAD~1\n$ git reset --soft HEAD~1\n$ git reset --hard HEAD~1\n```\n\n- `HEAD~1` — один коммит назад от текущего (`HEAD~3` — три).\n- `--mixed` (по умолчанию) — коммит отменён, изменения остались в файлах, но не в индексе.\n- `--soft` — коммит отменён, изменения остались в индексе.\n- `--hard` — коммит и изменения **выброшены**. Опасно.\n\n## revert: отменить отправленный коммит\n\n```bash\n$ git revert a1b2c3d\n```\n\n- Создаёт **новый** коммит, обратный указанному. История не переписывается — безопасно для общих веток (`main`).\n- Правило: отправленное — `revert`, неотправленное — можно `reset`.\n\n## Спасательный круг: reflog\n\n```bash\n$ git reflog\n4c3b2a1 HEAD@{0}: reset: moving to HEAD~1\n9f8e7d6 HEAD@{1}: commit: test: add cart tests\n$ git reset --hard 9f8e7d6\n```\n\n- `reflog` помнит все перемещения `HEAD` за последние недели — даже «удалённые» коммиты можно найти и вернуть.\n\n## Убрать мусор\n\n```bash\n$ git clean -nd\n$ git clean -fd\n```\n\n- `git clean` удаляет **неотслеживаемые** файлы. `-n` — только показать, что удалится; `-f` — удалить; `-d` — вместе с папками; `-x` — и игнорируемые тоже.\n\n## Итог\n\n- `restore файл` — отменить правки в файле.\n- `commit --amend` — поправить последний (неотправленный) коммит.\n- `reset --soft/--mixed/--hard HEAD~1` — откатить неотправленное.\n- `revert хеш` — отменить отправленное новым коммитом.\n- `reflog` — вернуть потерянное; `clean -fd` — удалить неотслеживаемое.",
+              "quiz": [
+                {
+                  "q": "Коммит уже в main на сервере и сломал тесты. Как его отменить?",
+                  "options": [
+                    "git reset --hard",
+                    "git revert хеш",
+                    "git commit --amend",
+                    "git clean"
+                  ],
+                  "answer": 1,
+                  "explain": "revert не переписывает историю."
+                },
+                {
+                  "q": "Что делает `git reset --hard HEAD~1`?",
+                  "options": [
+                    "Отменяет коммит, сохраняя изменения",
+                    "Выбрасывает коммит вместе с изменениями",
+                    "Создаёт обратный коммит",
+                    "Удаляет ветку"
+                  ],
+                  "answer": 1,
+                  "explain": "Изменения пропадут."
+                },
+                {
+                  "q": "Где найти «потерянный» после reset коммит?",
+                  "options": [
+                    "git log",
+                    "git reflog",
+                    "git stash",
+                    "Нигде"
+                  ],
+                  "answer": 1,
+                  "explain": "reflog хранит перемещения HEAD."
+                }
+              ]
+            },
+            {
+              "slug": "git-stash",
+              "title": "Отложить работу: stash",
+              "theory": "```bash\ngit stash                     # спрятать\ngit stash push -m \"wip cart\"  # с описанием\ngit stash -u                  # вместе с новыми файлами\ngit stash list                # stash@{0} — последний\ngit stash pop                 # вернуть и удалить\ngit stash apply stash@{1}     # вернуть, оставив в списке\ngit stash drop / clear\n```",
+              "exercises": [
+                {
+                  "slug": "git-stash-e1",
+                  "type": "command",
+                  "prompt": "Тебя срочно попросили проверить другую ветку. Спрячь текущие незакоммиченные изменения.",
+                  "code": "",
+                  "expected_output": "git stash\ngit stash push",
+                  "solution": "git stash",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-stash-e2",
+                  "type": "command",
+                  "prompt": "Верни последние спрятанные изменения и удали их из хранилища.",
+                  "code": "",
+                  "expected_output": "git stash pop",
+                  "solution": "git stash pop",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-stash-e3",
+                  "type": "command",
+                  "prompt": "Покажи список всех спрятанных наборов изменений.",
+                  "code": "",
+                  "expected_output": "git stash list",
+                  "solution": "git stash list",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-stash-e4",
+                  "type": "command",
+                  "prompt": "Спрячь изменения с понятным описанием `wip cart tests`.",
+                  "code": "",
+                  "expected_output": "git stash push -m \"wip cart tests\"\ngit stash push -m 'wip cart tests'\ngit stash save \"wip cart tests\"\ngit stash save 'wip cart tests'\ngit stash -m \"wip cart tests\"\ngit stash -m 'wip cart tests'",
+                  "solution": "git stash push -m \"wip cart tests\"",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-stash-e5",
+                  "type": "command",
+                  "prompt": "Спрячь изменения **вместе с новыми (неотслеживаемыми)** файлами.",
+                  "code": "",
+                  "expected_output": "git stash -u\ngit stash push -u\ngit stash --include-untracked\ngit stash push --include-untracked",
+                  "solution": "git stash -u",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-stash-e6",
+                  "type": "command",
+                  "prompt": "Примени второй по счёту stash (`stash@{1}`), **не удаляя** его из списка.",
+                  "code": "",
+                  "expected_output": "git stash apply stash@{1}\ngit stash apply 1",
+                  "solution": "git stash apply stash@{1}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-stash-e7",
+                  "type": "command",
+                  "prompt": "Какой stash самый свежий? Введи его описание.",
+                  "code": "$ git stash list\nstash@{0}: On test/login: wip login\nstash@{1}: On test/cart: wip cart\n",
+                  "expected_output": "wip login",
+                  "solution": "wip login",
+                  "hint": "stash@{0} — последний спрятанный.",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-stash-e8",
+                  "type": "command",
+                  "prompt": "Удали все спрятанные наборы изменений.",
+                  "code": "",
+                  "expected_output": "git stash clear",
+                  "solution": "git stash clear",
+                  "hint": "",
+                  "xp": 10
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nТы на середине задачи, и тебя просят срочно проверить другую ветку. Коммитить недоделанное не хочется, а переключиться с незакоммиченными изменениями git не даст. `git stash` «прячет» изменения на полку и возвращает чистую рабочую папку.\n\n## Спрятать и вернуть\n\n```bash\n$ git stash\nSaved working directory and index state WIP on test/cart: 9f8e7d6 test: add cart tests\n$ git switch bugfix/pay\n$ git switch test/cart\n$ git stash pop\n```\n\n- `git stash` — спрятать изменения отслеживаемых файлов (и индекс). Рабочая папка станет чистой.\n- `git stash pop` — вернуть последние спрятанные изменения и удалить их из хранилища.\n- При возврате возможен конфликт — разрешается так же, как при слиянии.\n\n## С описанием и новыми файлами\n\n```bash\n$ git stash push -m \"wip cart tests\"\n$ git stash -u\n```\n\n- `-m` — подпись, чтобы потом понять, что это.\n- `-u` (`--include-untracked`) — спрятать и новые файлы; без него они останутся в папке.\n\n## Несколько наборов\n\n```bash\n$ git stash list\nstash@{0}: On test/login: wip login\nstash@{1}: On test/cart: wip cart\n$ git stash apply stash@{1}\n$ git stash drop stash@{1}\n$ git stash clear\n```\n\n- Хранилище — стопка: `stash@{0}` — самый свежий.\n- `apply` — вернуть, но **оставить** в списке (можно применить в нескольких ветках); `pop` = `apply` + `drop`.\n- `drop` — удалить один, `clear` — удалить все.\n- `git stash show -p stash@{0}` — посмотреть содержимое.\n\n## Итог\n\n- `git stash` — спрятать, `git stash pop` — вернуть.\n- `-m \"описание\"`, `-u` — с новыми файлами.\n- `list`, `apply`, `drop`, `clear`; `stash@{0}` — последний.",
+              "quiz": [
+                {
+                  "q": "Чем `stash pop` отличается от `stash apply`?",
+                  "options": [
+                    "Ничем",
+                    "pop ещё и удаляет из списка",
+                    "apply удаляет",
+                    "pop работает только с новыми файлами"
+                  ],
+                  "answer": 1,
+                  "explain": "apply оставляет копию."
+                },
+                {
+                  "q": "Какой stash самый свежий?",
+                  "options": [
+                    "stash@{1}",
+                    "stash@{0}",
+                    "Последний в списке",
+                    "stash@{latest}"
+                  ],
+                  "answer": 1,
+                  "explain": "Стопка: новый сверху."
+                },
+                {
+                  "q": "Как спрятать и новые (неотслеживаемые) файлы?",
+                  "options": [
+                    "git stash -a",
+                    "git stash -u",
+                    "git stash --new",
+                    "Нельзя"
+                  ],
+                  "answer": 1,
+                  "explain": "--include-untracked."
+                }
+              ]
+            },
+            {
+              "slug": "git-rebase",
+              "title": "Rebase и cherry-pick",
+              "theory": "```bash\ngit rebase main                  # мои коммиты поверх main\ngit log --oneline main..HEAD     # что будет перенесено\ngit add file && git rebase --continue\ngit rebase --abort\ngit push --force-with-lease      # после rebase своей ветки\ngit pull --rebase origin main\ngit cherry-pick 9f8e7d6          # перенести один коммит\n```",
+              "exercises": [
+                {
+                  "slug": "git-rebase-e1",
+                  "type": "command",
+                  "prompt": "Ты на ветке `test/cart`. Перенеси свои коммиты поверх свежего `main` (он уже обновлён локально).",
+                  "code": "",
+                  "expected_output": "git rebase main",
+                  "solution": "git rebase main",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-rebase-e2",
+                  "type": "command",
+                  "prompt": "Во время rebase был конфликт, ты его исправил и сделал `git add`. Как продолжить rebase?",
+                  "code": "",
+                  "expected_output": "git rebase --continue",
+                  "solution": "git rebase --continue",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-rebase-e3",
+                  "type": "command",
+                  "prompt": "Отмени начатый rebase и вернись к исходному состоянию ветки.",
+                  "code": "",
+                  "expected_output": "git rebase --abort",
+                  "solution": "git rebase --abort",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-rebase-e4",
+                  "type": "command",
+                  "prompt": "После rebase отправь переписанную ветку на сервер **безопасным** принудительным способом.",
+                  "code": "",
+                  "expected_output": "git push --force-with-lease\ngit push --force-with-lease origin test/cart",
+                  "solution": "git push --force-with-lease",
+                  "hint": "--force-with-lease не затрёт чужие коммиты, которые ты ещё не видел.",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-rebase-e5",
+                  "type": "command",
+                  "prompt": "Перенеси в текущую ветку один конкретный коммит `9f8e7d6` из другой ветки.",
+                  "code": "",
+                  "expected_output": "git cherry-pick 9f8e7d6",
+                  "solution": "git cherry-pick 9f8e7d6",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-rebase-e6",
+                  "type": "command",
+                  "prompt": "Обнови свою ветку от `origin/main` одной командой: забери изменения и перенеси свои коммиты поверх (ты на своей ветке).",
+                  "code": "",
+                  "expected_output": "git pull --rebase origin main\ngit pull -r origin main",
+                  "solution": "git pull --rebase origin main",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-rebase-e7",
+                  "type": "command",
+                  "prompt": "Сколько **твоих** коммитов будет перенесено при `git rebase main`? Введи число.",
+                  "code": "$ git log --oneline main..test/cart\nb2c3d4e test: cart edge cases\na1b2c3d test: add cart tests\n",
+                  "expected_output": "2",
+                  "solution": "2",
+                  "hint": "main..test/cart — коммиты, которые есть в test/cart, но нет в main.",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-rebase-e8",
+                  "type": "code",
+                  "prompt": "Смоделируй rebase. Функция `rebase(base, branch_commits)` — `base` — список коммитов целевой ветки (например, `main`), `branch_commits` — список коммитов твоей ветки, начиная с общего предка (первый элемент — общий коммит с `base`). Вернуть итоговую историю: все коммиты `base`, затем твои коммиты после общего предка, каждый с пометкой `'` (штрих — новый хеш после переноса).\n\n```\nrebase([\"A\", \"B\", \"C\"], [\"A\", \"X\", \"Y\"])   # → [\"A\", \"B\", \"C\", \"X'\", \"Y'\"]\n```",
+                  "starter_code": "def rebase(base, branch_commits):\n    pass\n",
+                  "tests": "def test_values():\n    assert rebase([\"A\", \"B\", \"C\"], [\"A\", \"X\", \"Y\"]) == [\"A\", \"B\", \"C\", \"X'\", \"Y'\"], rebase([\"A\", \"B\", \"C\"], [\"A\", \"X\", \"Y\"])\n    assert rebase([\"A\", \"B\"], [\"B\", \"Z\"]) == [\"A\", \"B\", \"Z'\"] and rebase([\"A\"], [\"A\"]) == [\"A\"], \"Другие случаи\"\n",
+                  "solution": "def rebase(base, branch_commits):\n    return list(base) + [c + \"'\" for c in branch_commits[1:]]\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПока ты писал тесты в своей ветке, `main` ушёл вперёд. Можно влить `main` в ветку через merge, но история станет запутанной. **Rebase** переносит твои коммиты поверх свежего `main` — история получается прямой, как будто ты начал работу только что. **Cherry-pick** переносит один конкретный коммит.\n\n## rebase\n\n```bash\n$ git switch test/cart\n$ git rebase main\nSuccessfully rebased and updated refs/heads/test/cart.\n```\n\n- Git берёт коммиты твоей ветки, которых нет в `main`, и заново применяет их поверх последнего коммита `main`.\n- У перенесённых коммитов **новые хеши** — это переписывание истории.\n- `git log --oneline main..test/cart` — какие коммиты будут перенесены.\n\n## Конфликты при rebase\n\n```bash\n$ git rebase main\nCONFLICT (content): Merge conflict in tests/conftest.py\n$ git add tests/conftest.py\n$ git rebase --continue\n$ git rebase --abort\n```\n\n- Коммиты переносятся по одному, конфликт может возникнуть на любом.\n- Исправь файл → `git add` → `git rebase --continue`. Передумал — `git rebase --abort`.\n\n## Отправить после rebase\n\n```bash\n$ git push --force-with-lease\n```\n\n- Ветка на сервере содержит старые версии коммитов, обычный push будет отклонён.\n- `--force-with-lease` перезапишет ветку, **только если** на сервере нет чужих коммитов, которых ты не видел. `--force` затрёт всё — опасно.\n- **Никогда не делай rebase общих веток** (`main`, `develop`) — только своих.\n\n## pull --rebase\n\n```bash\n$ git pull --rebase origin main\n```\n\n- Забрать свежий `main` и перенести свои коммиты поверх — одной командой.\n\n## cherry-pick\n\n```bash\n$ git cherry-pick 9f8e7d6\n```\n\n- Скопировать один коммит из другой ветки в текущую (с новым хешем). Пример: исправление из `main` срочно нужно в ветке релиза.\n\n## Итог\n\n- `git rebase main` — перенести свои коммиты поверх `main`; хеши меняются.\n- Конфликт: `add` → `rebase --continue`, отмена — `rebase --abort`.\n- После rebase — `push --force-with-lease`; общие ветки не ребейзить.\n- `cherry-pick хеш` — перенести один коммит.",
+              "quiz": [
+                {
+                  "q": "Что происходит с хешами коммитов при rebase?",
+                  "options": [
+                    "Не меняются",
+                    "Меняются — коммиты создаются заново",
+                    "Удаляются",
+                    "Становятся короче"
+                  ],
+                  "answer": 1,
+                  "explain": "Поэтому это переписывание истории."
+                },
+                {
+                  "q": "Почему лучше `--force-with-lease`, чем `--force`?",
+                  "options": [
+                    "Быстрее",
+                    "Не затрёт чужие коммиты, которых ты не видел",
+                    "Не требует прав",
+                    "Работает без сети"
+                  ],
+                  "answer": 1,
+                  "explain": "Безопасный принудительный push."
+                },
+                {
+                  "q": "Что делает `git cherry-pick 9f8e7d6`?",
+                  "options": [
+                    "Удаляет коммит",
+                    "Копирует коммит в текущую ветку",
+                    "Показывает коммит",
+                    "Отменяет коммит"
+                  ],
+                  "answer": 1,
+                  "explain": "С новым хешем."
+                }
+              ]
+            },
+            {
+              "slug": "git-advanced",
+              "title": "Теги, blame, bisect",
+              "theory": "```bash\ngit tag -a v1.2.0 -m \"Release 1.2.0\"\ngit push --tags\ngit blame tests/test_pay.py\ngit log -S \"TIMEOUT\"                 # когда текст появился/исчез\ngit bisect start HEAD v1.1.0         # плохой, хороший\ngit bisect run pytest tests/test_pay.py\ngit bisect good / bad / reset\n```",
+              "exercises": [
+                {
+                  "slug": "git-advanced-e1",
+                  "type": "command",
+                  "prompt": "Поставь аннотированный тег `v1.2.0` на текущий коммит с сообщением `Release 1.2.0`.",
+                  "code": "",
+                  "expected_output": "git tag -a v1.2.0 -m \"Release 1.2.0\"\ngit tag -a v1.2.0 -m 'Release 1.2.0'",
+                  "solution": "git tag -a v1.2.0 -m \"Release 1.2.0\"",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-advanced-e2",
+                  "type": "command",
+                  "prompt": "Отправь все теги на `origin`.",
+                  "code": "",
+                  "expected_output": "git push --tags\ngit push origin --tags",
+                  "solution": "git push --tags",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-advanced-e3",
+                  "type": "command",
+                  "prompt": "Узнай, кто и в каком коммите менял каждую строку файла `tests/test_pay.py`.",
+                  "code": "",
+                  "expected_output": "git blame tests/test_pay.py",
+                  "solution": "git blame tests/test_pay.py",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-advanced-e4",
+                  "type": "command",
+                  "prompt": "Начни двоичный поиск коммита, который сломал тест.",
+                  "code": "",
+                  "expected_output": "git bisect start",
+                  "solution": "git bisect start",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-advanced-e5",
+                  "type": "command",
+                  "prompt": "Во время `bisect` ты проверил текущий коммит — тест **падает**. Как отметить его?",
+                  "code": "",
+                  "expected_output": "git bisect bad",
+                  "solution": "git bisect bad",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-advanced-e6",
+                  "type": "command",
+                  "prompt": "Автоматизируй bisect: пусть git сам запускает `pytest tests/test_pay.py` на каждом шаге.",
+                  "code": "",
+                  "expected_output": "git bisect run pytest tests/test_pay.py\ngit bisect run python -m pytest tests/test_pay.py",
+                  "solution": "git bisect run pytest tests/test_pay.py",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-advanced-e7",
+                  "type": "command",
+                  "prompt": "Покажи, в каких коммитах менялась строка `TIMEOUT` в истории (поиск по содержимому изменений).",
+                  "code": "",
+                  "expected_output": "git log -S \"TIMEOUT\"\ngit log -S TIMEOUT\ngit log -S 'TIMEOUT'\ngit log -G \"TIMEOUT\"\ngit log -G TIMEOUT\ngit log -p -S \"TIMEOUT\"\ngit log -p -S TIMEOUT",
+                  "solution": "git log -S \"TIMEOUT\"",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "git-advanced-e8",
+                  "type": "code",
+                  "prompt": "Реализуй идею `git bisect`: функция `first_bad(commits, is_bad)` — `commits` — список коммитов от старого к новому, первый точно хороший, последний точно плохой; `is_bad(commit)` — запуск теста. Найди **первый** плохой коммит двоичным поиском. Функция должна вызывать `is_bad` не больше `log2(n) + 2` раз.",
+                  "starter_code": "def first_bad(commits, is_bad):\n    pass\n",
+                  "tests": "import math\n\ndef test_values():\n    commits = [f\"c{i}\" for i in range(100)]\n    calls = []\n    def is_bad(c):\n        calls.append(c)\n        return int(c[1:]) >= 63\n    assert first_bad(commits, is_bad) == \"c63\", first_bad(commits, is_bad)\n    assert len(calls) <= math.log2(100) + 2, f\"Слишком много запусков: {len(calls)}\"\n    assert first_bad([\"good\", \"bad\"], lambda c: c == \"bad\") == \"bad\", \"Два коммита\"\n",
+                  "solution": "def first_bad(commits, is_bad):\n    lo, hi = 0, len(commits) - 1      # lo — хороший, hi — плохой\n    while hi - lo > 1:\n        mid = (lo + hi) // 2\n        if is_bad(commits[mid]):\n            hi = mid\n        else:\n            lo = mid\n    return commits[hi]\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nТри инструмента, которые особенно полезны тестировщику: **теги** отмечают версии (что именно тестировали), **blame** показывает, кто и когда поменял строку, **bisect** автоматически находит коммит, который сломал тест, среди сотен коммитов.\n\n## Теги\n\n```bash\n$ git tag -a v1.2.0 -m \"Release 1.2.0\"\n$ git tag\nv1.1.0\nv1.2.0\n$ git push --tags\n$ git switch --detach v1.1.0\n```\n\n- Тег — постоянная метка на коммите, обычно номер версии. `-a` — аннотированный: с автором, датой и сообщением.\n- Теги не отправляются обычным push — нужен `git push --tags`.\n- `git switch --detach v1.1.0` — посмотреть код конкретной версии, например чтобы воспроизвести баг из продакшена.\n\n## blame: кто поменял строку\n\n```bash\n$ git blame tests/test_pay.py\n9f8e7d6 (Anna 2026-03-08 10:00) TIMEOUT = 30\n```\n\n- Для каждой строки: коммит, автор, дата. Помогает найти, когда и зачем появилась строка, и у кого спросить.\n- `git log -S \"TIMEOUT\"` — коммиты, в которых **появлялся или исчезал** текст.\n\n## bisect: найти ломающий коммит\n\n```bash\n$ git bisect start\n$ git bisect bad\n$ git bisect good v1.1.0\nBisecting: 50 revisions left to test after this (roughly 6 steps)\n$ pytest tests/test_pay.py\n$ git bisect good\n$ git bisect reset\n```\n\nПо шагам:\n\n1. `start`, отметить текущий коммит плохим (`bad`), а известный рабочий — хорошим (`good`).\n2. Git переключает на коммит посередине. Запускаешь тест и отвечаешь `good` или `bad`.\n3. Каждый ответ отсекает половину диапазона: 100 коммитов — примерно 7 шагов.\n4. Git называет первый плохой коммит. `git bisect reset` — вернуться на исходную ветку.\n\n## bisect автоматически\n\n```bash\n$ git bisect start HEAD v1.1.0\n$ git bisect run pytest tests/test_pay.py\n```\n\n- `git bisect run команда` — git сам запускает тест на каждом шаге: код выхода 0 — хороший коммит, иначе плохой. Идеально, когда есть автотест, воспроизводящий баг.\n\n## Итог\n\n- `git tag -a vX -m` + `git push --tags` — версии.\n- `git blame файл`, `git log -S текст` — кто и когда менял.\n- `git bisect start/bad/good/reset` — двоичный поиск ломающего коммита; `bisect run` — автоматически.",
+              "quiz": [
+                {
+                  "q": "Отправляются ли теги обычным `git push`?",
+                  "options": [
+                    "Да",
+                    "Нет, нужен git push --tags",
+                    "Только аннотированные",
+                    "Только в main"
+                  ],
+                  "answer": 1,
+                  "explain": "Теги отправляются отдельно."
+                },
+                {
+                  "q": "Сколько примерно шагов нужно bisect для 100 коммитов?",
+                  "options": [
+                    "100",
+                    "50",
+                    "около 7",
+                    "1"
+                  ],
+                  "answer": 2,
+                  "explain": "Каждый шаг делит диапазон пополам."
+                },
+                {
+                  "q": "Что показывает `git blame`?",
+                  "options": [
+                    "Ошибки в коде",
+                    "Кто и в каком коммите менял каждую строку",
+                    "Упавшие тесты",
+                    "Конфликты"
+                  ],
+                  "answer": 1,
+                  "explain": "Автор, дата, коммит."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
