@@ -144,25 +144,70 @@ export function sound(kind) {
   } catch { /* звук необязателен */ }
 }
 
-// Победный звук за верный ответ: быстрое восходящее арпеджио (до-ми-соль-до)
-// с «колокольчиком» — вторым голосом на октаву выше — и коротким хвостом.
+// Победный звук за верный ответ — короткая «фанфара медных»: та-да-да-ДАМ (соль-до-ми-соль)
+// и финальный аккорд. Тембр трубы: пилообразная волна через фильтр, который «раскрывается»
+// в начале ноты; по три слегка расстроенных голоса на ноту и вибрато дают объём,
+// а искусственное эхо зала (свёртка) — пространство.
+let hall = null;
+function hallReverb() {
+  if (hall) return hall;
+  const len = audio.sampleRate * 1.6;
+  const ir = audio.createBuffer(2, len, audio.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = ir.getChannelData(ch);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 3;
+  }
+  const conv = audio.createConvolver();
+  conv.buffer = ir;
+  const wet = audio.createGain();
+  wet.gain.value = 0.35;
+  conv.connect(wet).connect(audio.destination);
+  hall = conv;
+  return hall;
+}
+
+function brass(freq, t, dur, vol) {
+  const out = audio.createGain();
+  out.gain.setValueAtTime(0.0001, t);
+  out.gain.exponentialRampToValueAtTime(vol, t + 0.03);
+  out.gain.setValueAtTime(vol, t + dur * 0.7);
+  out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  const filter = audio.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.Q.value = 2;
+  filter.frequency.setValueAtTime(freq * 1.5, t);
+  filter.frequency.exponentialRampToValueAtTime(freq * 6, t + 0.06);   // «вдох» трубы
+  filter.frequency.exponentialRampToValueAtTime(freq * 3.5, t + dur);
+  filter.connect(out);
+  out.connect(audio.destination);
+  out.connect(hallReverb());
+  const vibrato = audio.createOscillator(), depth = audio.createGain();
+  vibrato.frequency.value = 5.5;
+  depth.gain.value = freq * 0.006;
+  vibrato.connect(depth);
+  for (const detune of [-7, 0, 7]) {
+    const o = audio.createOscillator();
+    o.type = "sawtooth";
+    o.frequency.value = freq;
+    o.detune.value = detune;
+    depth.connect(o.frequency);
+    o.connect(filter);
+    o.start(t); o.stop(t + dur + 0.05);
+  }
+  vibrato.start(t); vibrato.stop(t + dur + 0.05);
+}
+
 function winSound() {
-  const start = audio.currentTime;
-  [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
-    const t = start + i * 0.07;
-    const last = i === 3;
-    const len = last ? 0.45 : 0.16;
-    for (const [mult, type, vol] of [[1, "triangle", 0.18], [2, "sine", 0.05]]) {
-      const o = audio.createOscillator(), g = audio.createGain();
-      o.type = type;
-      o.frequency.value = f * mult;
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(vol, t + 0.015);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + len);
-      o.connect(g).connect(audio.destination);
-      o.start(t); o.stop(t + len + 0.02);
-    }
-  });
+  const t = audio.currentTime + 0.02;
+  const G4 = 392, C5 = 523.25, E5 = 659.25, G5 = 783.99, C4 = 261.63;
+  brass(G4, t, 0.12, 0.07);
+  brass(C5, t + 0.11, 0.12, 0.07);
+  brass(E5, t + 0.22, 0.12, 0.07);
+  // финальный аккорд до мажор: мелодия сверху, опора снизу
+  brass(G5, t + 0.33, 0.7, 0.08);
+  brass(E5, t + 0.33, 0.7, 0.045);
+  brass(C5, t + 0.33, 0.7, 0.045);
+  brass(C4, t + 0.33, 0.7, 0.05);
 }
 
 // ---------- Тосты и модалки ----------
@@ -220,26 +265,30 @@ export function burst(el) {
   const ctx = c.getContext("2d");
   const colors = ["#58cc02", "#1cb0f6", "#ffc800", "#ff4b4b", "#ce82ff", "#ff9600"];
   const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
-  const parts = Array.from({ length: 36 }, () => {
-    const angle = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;   // веер вверх и в стороны
-    const speed = Math.random() * 7 + 5;
+  const FRAMES = 120;
+  const parts = Array.from({ length: 90 }, () => {
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * 2.4;   // веер вверх и в стороны
+    const speed = Math.random() * 10 + 9;
     return {
-      x: cx + (Math.random() - 0.5) * rect.width * 0.6, y: cy,
+      x: cx + (Math.random() - 0.5) * rect.width * 0.8, y: cy,
       vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
-      r: Math.random() * 5 + 4, a: Math.random() * 6, va: (Math.random() - 0.5) * 0.4,
+      w: Math.random() * 8 + 8, h: Math.random() * 4 + 5,
+      a: Math.random() * 6, va: (Math.random() - 0.5) * 0.35,
+      flip: Math.random() * 6, vflip: Math.random() * 0.2 + 0.1,   // «кувыркание» бумажки
       c: colors[Math.floor(Math.random() * colors.length)],
     };
   });
   let frame = 0;
   (function tick() {
     ctx.clearRect(0, 0, c.width, c.height);
-    ctx.globalAlpha = Math.min(1, (70 - frame) / 20);          // плавно гаснет в конце
+    ctx.globalAlpha = Math.min(1, (FRAMES - frame) / 25);        // плавно гаснет в конце
     for (const p of parts) {
-      p.vy += 0.35; p.vx *= 0.98; p.x += p.vx; p.y += p.vy; p.a += p.va;
-      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
-      ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); ctx.restore();
+      p.vy += 0.32; p.vx *= 0.985; p.vy *= 0.99;
+      p.x += p.vx; p.y += p.vy; p.a += p.va; p.flip += p.vflip;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.scale(1, Math.cos(p.flip));
+      ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
     }
-    if (++frame < 70 && c.isConnected) requestAnimationFrame(tick); else c.remove();
+    if (++frame < FRAMES && c.isConnected) requestAnimationFrame(tick); else c.remove();
   })();
 }
 
