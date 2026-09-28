@@ -1,0 +1,1478 @@
+{
+  "topics": [
+    {
+      "slug": "py-lambda",
+      "title": "lambda",
+      "icon": "λ",
+      "color": "#ce82ff",
+      "description": "Анонимные функции, колбэки, ключи сортировки, map/filter/reduce, operator и partial, диспетчеры и ловушки",
+      "group": "Python",
+      "modules": [
+        {
+          "slug": "lam-m1",
+          "title": "Основы lambda",
+          "icon": "λ",
+          "description": "Синтаксис, ограничения, ключи сортировки и колбэки",
+          "lessons": [
+            {
+              "slug": "lam-m1-l1",
+              "title": "Что такое lambda",
+              "theory": "```py\nsquare = lambda x: x ** 2          # = def square(x): return x ** 2\nadd = lambda a, b=10: a + b\nlambda: 42                         # без параметров\nlambda x: \"+\" if x > 0 else \"-\"    # условное выражение можно\nsorted(words, key=lambda w: w[-1]) # главное применение\n```",
+              "exercises": [
+                {
+                  "slug": "lam-m1-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "double = lambda x: x * 2\nprint(double(21))\nprint(double(\"ха\"))\n",
+                  "expected_output": "42\nхаха",
+                  "hint": "Для строки `*` означает повторение.",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-m1-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "add = lambda a, b=10: a + b\nprint(add(1, 2))\nprint(add(5))\n",
+                  "expected_output": "3\n15",
+                  "hint": "У `b` есть значение по умолчанию.",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-m1-l1-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Лямбду можно вызвать сразу.",
+                  "code": "print((lambda x, y: x * y)(6, 7))\nprint((lambda: \"без аргументов\")())\n",
+                  "expected_output": "42\nбез аргументов",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-m1-l1-e4",
+                  "type": "code",
+                  "prompt": "Создай переменную `cube` и положи в неё лямбда-функцию, которая возводит число в куб.\n\n- Лямбда получает одно число `x`.\n- Возвращает `x` в третьей степени (`x * x * x` или `x ** 3`).\n\nПримеры использования:\n```\ncube(3)    # → 27\ncube(-2)   # → -8\n```\nВажно: именно `cube = lambda ...`, а не `def cube(...)` — тест это проверяет.",
+                  "starter_code": "cube = ...\n",
+                  "tests": "def test_is_lambda():\n    assert callable(cube) and cube.__name__ == \"<lambda>\", \"cube должна быть лямбдой: cube = lambda x: ...\"\n\ndef test_values():\n    assert cube(3) == 27 and cube(-2) == -8, \"cube(3) → 27, cube(-2) → -8\"\n",
+                  "solution": "cube = lambda x: x ** 3\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-m1-l1-e5",
+                  "type": "code",
+                  "prompt": "Создай переменную `is_even` — лямбду, которая проверяет, чётное ли число.\n\n- Получает: целое число.\n- Возвращает: `True`, если число чётное, иначе `False`.\n\nПримеры:\n```\nis_even(4)   # → True\nis_even(7)   # → False\n```\nЗапись: `is_even = lambda n: ...`. Чётность проверяется остатком от деления на 2.",
+                  "starter_code": "is_even = ...\n",
+                  "tests": "def test_is_lambda():\n    assert callable(is_even) and is_even.__name__ == \"<lambda>\", \"is_even должна быть лямбдой\"\n\ndef test_values():\n    assert is_even(4) is True and is_even(7) is False, \"is_even(4) → True, is_even(7) → False\"\n",
+                  "solution": "is_even = lambda n: n % 2 == 0\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-m1-l1-e6",
+                  "type": "code",
+                  "prompt": "Создай переменную `sign` — лямбду, которая возвращает знак числа в виде символа.\n\n- Получает: число.\n- Возвращает строку:\n  - `\"+\"` — если число больше нуля;\n  - `\"-\"` — если меньше нуля;\n  - `\"0\"` — если равно нулю.\n\nПримеры:\n```\nsign(5)    # → \"+\"\nsign(-1)   # → \"-\"\nsign(0)    # → \"0\"\n```\nВ лямбде нельзя писать `if` как отдельную команду, но можно тернарный оператор — даже вложенный.",
+                  "starter_code": "sign = ...\n",
+                  "tests": "def test_is_lambda():\n    assert callable(sign) and sign.__name__ == \"<lambda>\", \"sign должна быть лямбдой\"\n\ndef test_values():\n    assert [sign(5), sign(-1), sign(0)] == [\"+\", \"-\", \"0\"], f\"Получено {[sign(5), sign(-1), sign(0)]}\"\n",
+                  "solution": "sign = lambda x: \"+\" if x > 0 else \"-\" if x < 0 else \"0\"\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "lam-m1-l1-e7",
+                  "type": "code",
+                  "prompt": "Создай лямбду `clamp` с тремя параметрами `x, lo, hi` — «зажать» число в границы: вернуть `lo`, если `x` меньше, `hi`, если больше, иначе `x`.\n\n```\nclamp(15, 0, 10)   # → 10\nclamp(-3, 0, 10)   # → 0\n```\nПодсказка: `max(lo, min(x, hi))`.",
+                  "starter_code": "clamp = ...\n",
+                  "tests": "def test_is_lambda():\n    assert callable(clamp) and clamp.__name__ == \"<lambda>\", \"clamp должна быть лямбдой\"\n\ndef test_values():\n    assert [clamp(15, 0, 10), clamp(-3, 0, 10), clamp(5, 0, 10)] == [10, 0, 5], \"Неверный результат\"\n",
+                  "solution": "clamp = lambda x, lo, hi: max(lo, min(x, hi))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-m1-l1-e8",
+                  "type": "code",
+                  "prompt": "Создай лямбду `greet` с параметром `name`, у которого значение по умолчанию `\"гость\"`. Она возвращает `\"Привет, <name>!\"`.\n\n```\ngreet(\"Аня\")   # → \"Привет, Аня!\"\ngreet()        # → \"Привет, гость!\"\n```",
+                  "starter_code": "greet = ...\n",
+                  "tests": "def test_is_lambda():\n    assert callable(greet) and greet.__name__ == \"<lambda>\", \"greet должна быть лямбдой\"\n\ndef test_values():\n    assert greet(\"Аня\") == \"Привет, Аня!\" and greet() == \"Привет, гость!\", \"Неверное приветствие\"\n",
+                  "solution": "greet = lambda name=\"гость\": f\"Привет, {name}!\"\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЧасто нужна маленькая функция «на один раз»: ключ сортировки, условие фильтра, обработчик. Объявлять её через `def` с именем — долго и засоряет код. Для таких случаев есть **`lambda`** — короткая **безымянная** функция, записанная прямо там, где она нужна.\n\n## Синтаксис\n\n```python\nsquare = lambda x: x ** 2\nprint(square(4))\n\ndef square_def(x):\n    return x ** 2\n\nprint(square_def(4))\n```\n\n- `lambda` — ключевое слово.\n- `x` — параметры (как в `def`), до двоеточия.\n- `x ** 2` после двоеточия — **одно выражение**; его значение и возвращается. Слово `return` не пишут.\n- Обе функции ведут себя одинаково. Вывод: `16`, `16`.\n\n## Параметры\n\n```python\ndouble = lambda x: x * 2\nprint(double(21), double(\"ха\"))\nadd = lambda a, b=10: a + b\nprint(add(1, 2), add(5))\n```\n\n- Лямбда — обычная функция: тип аргумента не важен, `*` для строки означает повторение.\n- Параметров может быть несколько, у них бывают значения по умолчанию.\n- Вывод: `42 хаха`, `3 15`.\n\n## Вызов на месте и без параметров\n\n```python\nprint((lambda x, y: x * y)(6, 7))\nprint((lambda: \"без аргументов\")())\n```\n\n- Лямбду можно вызвать сразу, взяв в скобки. На практике так делают редко — это для понимания, что лямбда просто функция.\n- `lambda: ...` — без параметров. Вывод: `42`, `без аргументов`.\n\n## Условие внутри\n\n```python\nsign = lambda x: \"+\" if x > 0 else \"-\" if x < 0 else \"0\"\nprint(sign(5), sign(-1), sign(0))\n```\n\n- `if` как отдельную команду в лямбде писать нельзя, но **условное выражение** `a if cond else b` — можно, даже цепочкой.\n- Вывод: `+ - 0`.\n\n## Главная польза\n\nЛямбду передают **прямо в аргумент** другой функции:\n\n```python\nwords = [\"banana\", \"fig\", \"kiwi\"]\nprint(sorted(words, key=lambda w: w[-1]))\n```\n\n- Сортировка по последней букве (a, g, i) — без отдельного `def`. Вывод: `['banana', 'fig', 'kiwi']`.\n\nПрисваивать лямбду имени (как `square = lambda ...` выше) можно, но по стилю PEP 8 для именованных функций лучше `def` (урок «Ловушки и стиль»). В заданиях этого урока мы делаем так для тренировки синтаксиса.\n\n## Итог\n\n- `lambda параметры: выражение` — безымянная функция из одного выражения.\n- `return` не пишут; условия — через `a if cond else b`.\n- Параметры как в `def`: несколько, со значениями по умолчанию, ни одного.\n- Главное применение — передать короткую функцию в аргумент (`key=`, `filter`, колбэки).",
+              "quiz": [
+                {
+                  "q": "Что вернёт `(lambda x: x + 1)(4)`?",
+                  "options": [
+                    "`4`",
+                    "`5`",
+                    "Функцию",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Лямбду вызвали сразу."
+                },
+                {
+                  "q": "Что можно написать после двоеточия в лямбде?",
+                  "options": [
+                    "Несколько строк",
+                    "Одно выражение",
+                    "return x",
+                    "Цикл for"
+                  ],
+                  "answer": 1,
+                  "explain": "Его значение и возвращается."
+                },
+                {
+                  "q": "Допустимо ли `lambda x: \"да\" if x else \"нет\"`?",
+                  "options": [
+                    "Нет, if запрещён",
+                    "Да, это условное выражение",
+                    "Только в def",
+                    "Только без else"
+                  ],
+                  "answer": 1,
+                  "explain": "Условное выражение — это выражение."
+                }
+              ]
+            },
+            {
+              "slug": "lam-syntax",
+              "title": "Синтаксис и ограничения lambda",
+              "theory": "```py\nlambda *args: len(args)\nlambda **kw: kw\nlambda a, b=2, *, c=3: a + b + c\nlambda x: return x * 2      # SyntaxError — return не пишут\nlambda x: (x, x * 2)        # несколько значений — кортеж\nf.__name__                  # '<lambda>'\n```\n- Нельзя: return, присваивание, циклы, try, несколько строк.",
+              "exercises": [
+                {
+                  "slug": "lam-syntax-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Разные параметры.",
+                  "code": "f = lambda: \"без параметров\"\ng = lambda *args: len(args)\nh = lambda a, b=2, *, c=3: a + b + c\nprint(f(), g(1, 2, 3), h(1), h(1, c=10))\n",
+                  "expected_output": "без параметров 3 6 13",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-syntax-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? lambda и def.",
+                  "code": "square = lambda x: x * x\n\ndef square_def(x):\n    return x * x\n\nprint(square.__name__, square_def.__name__, square(5) == square_def(5))\n",
+                  "expected_output": "<lambda> square_def True",
+                  "hint": "У лямбды нет своего имени — только <lambda>.",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-syntax-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "parity = lambda n: \"чёт\" if n % 2 == 0 else \"нечет\"\nprint([parity(n) for n in range(3)])\nprint((lambda x: (x, x * 2))(4))\n",
+                  "expected_output": "['чёт', 'нечет', 'чёт']\n(4, 8)",
+                  "hint": "Вернуть несколько значений можно кортежем — в скобках.",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-syntax-e4",
+                  "type": "code",
+                  "prompt": "Создай лямбду `max2(a, b)` — большее из двух чисел, **без** встроенной `max`: используй условное выражение.",
+                  "starter_code": "max2 = ...\n",
+                  "tests": "def test_is_lambda():\n    assert callable(max2) and max2.__name__ == \"<lambda>\", \"max2 должна быть лямбдой\"\n    assert \"max(\" not in open(\"solution.py\", encoding=\"utf-8\").read().replace(\"max2(\", \"\"), \"Без встроенной max\"\n\ndef test_values():\n    assert [max2(3, 7), max2(9, 2), max2(4, 4)] == [7, 9, 4], \"Неверный результат\"\n",
+                  "solution": "max2 = lambda a, b: a if a > b else b\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-syntax-e5",
+                  "type": "code",
+                  "prompt": "Создай лямбду `count_args`, которая принимает **любое** количество позиционных аргументов и возвращает, сколько их передали.\n\n```\ncount_args(1, 2, 3)   # → 3\ncount_args()          # → 0\n```",
+                  "starter_code": "count_args = ...\n",
+                  "tests": "def test_is_lambda():\n    assert callable(count_args) and count_args.__name__ == \"<lambda>\", \"count_args должна быть лямбдой\"\n\ndef test_values():\n    assert [count_args(1, 2, 3), count_args()] == [3, 0], \"Неверный результат\"\n",
+                  "solution": "count_args = lambda *args: len(args)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-syntax-e6",
+                  "type": "code",
+                  "prompt": "Создай лямбду `describe`, которая принимает любые **именованные** аргументы и возвращает строку `\"k1=v1, k2=v2\"` в порядке передачи.\n\n```\ndescribe(a=1, b=\"x\")   # → \"a=1, b=x\"\n```",
+                  "starter_code": "describe = ...\n",
+                  "tests": "def test_is_lambda():\n    assert callable(describe) and describe.__name__ == \"<lambda>\", \"describe должна быть лямбдой\"\n\ndef test_values():\n    assert describe(a=1, b=\"x\") == \"a=1, b=x\" and describe() == \"\", \"Неверная строка\"\n",
+                  "solution": "describe = lambda **kw: \", \".join(f\"{k}={v}\" for k, v in kw.items())\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-syntax-e7",
+                  "type": "code",
+                  "prompt": "В заготовке синтаксическая ошибка: внутри лямбды написан `return`. Исправь — лямбда `double` должна возвращать удвоенное число.",
+                  "starter_code": "double = lambda x: return x * 2\n",
+                  "tests": "def test_values():\n    assert double(4) == 8 and double.__name__ == \"<lambda>\", \"double(4) → 8, и это должна остаться лямбда\"\n",
+                  "solution": "double = lambda x: x * 2\n",
+                  "hint": "После двоеточия лямбды — только выражение; return не пишут.",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-syntax-e8",
+                  "type": "code",
+                  "prompt": "По стилю PEP 8 лямбду не присваивают имени — для этого есть `def`. Перепиши `area` из заготовки обычной функцией с docstring `\"Площадь прямоугольника.\"`.",
+                  "starter_code": "area = lambda w, h: w * h\n",
+                  "tests": "def test_def():\n    assert area.__name__ == \"area\", \"Нужна обычная функция def area\"\n    assert area.__doc__ == \"Площадь прямоугольника.\", \"Добавь docstring\"\n    assert area(3, 4) == 12, \"Неверная площадь\"\n",
+                  "solution": "def area(w, h):\n    \"\"\"Площадь прямоугольника.\"\"\"\n    return w * h\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nУ лямбды почти те же возможности параметров, что у `def`, но есть жёсткое ограничение: тело — **одно выражение**. Нужно знать, что можно, что нельзя, и чем лямбда отличается от обычной функции.\n\n## Все виды параметров\n\n```python\nf = lambda: \"без параметров\"\ng = lambda *args: len(args)\nh = lambda a, b=2, *, c=3: a + b + c\nprint(f(), g(1, 2, 3), h(1), h(1, c=10))\nkw = lambda **kw: \", \".join(f\"{k}={v}\" for k, v in kw.items())\nprint(kw(a=1, b=\"x\"))\n```\n\n- Работают значения по умолчанию, `*args`, `**kwargs`, параметры только по имени после `*` (тема «*args и **kwargs»).\n- Вывод: `без параметров 3 6 13`, `a=1, b=x`.\n\n## Одно выражение — и только\n\nВнутри лямбды **нельзя**:\n- `return` — значение выражения возвращается само;\n- присваивание `x = ...` (оператор, а не выражение);\n- циклы `for`/`while`, `if` как блок, `try`, `import`;\n- несколько строк.\n\n`lambda x: return x * 2` — `SyntaxError`. Правильно: `lambda x: x * 2`.\n\n**Можно** всё, что является выражением: арифметику, вызовы функций, условное выражение, включения, кортежи.\n\n```python\nparity = lambda n: \"чёт\" if n % 2 == 0 else \"нечет\"\nprint([parity(n) for n in range(3)])\nprint((lambda x: (x, x * 2))(4))\nprint((lambda nums: [n * n for n in nums if n > 0])([-1, 2, 3]))\n```\n\n- Несколько значений — кортеж в скобках; внутри лямбды можно даже списковое включение.\n- Вывод: `['чёт', 'нечет', 'чёт']`, `(4, 8)`, `[4, 9]`.\n\n## Чем лямбда отличается от def\n\n```python\nsquare = lambda x: x * x\n\ndef square_def(x):\n    return x * x\n\nprint(square.__name__, square_def.__name__, square(5) == square_def(5))\n```\n\n- Работают одинаково, но у лямбды нет имени — `__name__` равно `<lambda>`. В сообщениях об ошибках это мешает понять, какая функция упала.\n- У лямбды нельзя написать docstring и аннотации типов.\n- Вывод: `<lambda> square_def True`.\n\n## Когда что\n\n- Короткая функция на один раз, передаётся аргументом — `lambda`.\n- Функции нужно имя, документация, несколько строк, тесты — `def`.\n\n```python\ndef area(w, h):\n    \"\"\"Площадь прямоугольника.\"\"\"\n    return w * h\n\nprint(area(3, 4), area.__doc__)\n```\n\nВывод: `12 Площадь прямоугольника.`.\n\n## Итог\n\n- Параметры лямбды — как у `def`: умолчания, `*args`, `**kwargs`, только по имени.\n- Тело — одно выражение: без `return`, присваиваний, циклов, `try`.\n- Условия — через условное выражение; несколько значений — кортеж.\n- У лямбды имя `<lambda>`, нет docstring. Для именованных функций — `def`.",
+              "quiz": [
+                {
+                  "q": "Какая лямбда корректна?",
+                  "options": [
+                    "`lambda x: return x`",
+                    "`lambda x: x = 1`",
+                    "`lambda *a: sum(a)`",
+                    "`lambda x: for i in x: i`"
+                  ],
+                  "answer": 2,
+                  "explain": "*args допустим, тело — выражение."
+                },
+                {
+                  "q": "Что выведет `print((lambda: 0).__name__)`?",
+                  "options": [
+                    "`lambda`",
+                    "`<lambda>`",
+                    "`None`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "У лямбды нет своего имени."
+                },
+                {
+                  "q": "Как вернуть из лямбды два значения?",
+                  "options": [
+                    "Двумя return",
+                    "Кортежем: `lambda x: (x, x*2)`",
+                    "Нельзя",
+                    "Через yield"
+                  ],
+                  "answer": 1,
+                  "explain": "Кортеж — одно значение-выражение."
+                }
+              ]
+            },
+            {
+              "slug": "lam-m1-l2",
+              "title": "key= в sorted, min, max",
+              "theory": "```py\nsorted(words, key=lambda w: w[-1])\nmin(users, key=lambda u: u[\"age\"])\nmax(tests, key=lambda t: t[1])[0]\nsorted(users, key=lambda u: (-u[1], u[0]))\nmax(items, key=..., default=None)\n```",
+              "exercises": [
+                {
+                  "slug": "lam-m1-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "words = [\"банан\", \"ёж\", \"яблоко\", \"кот\"]\nprint(sorted(words, key=len))\n",
+                  "expected_output": "['ёж', 'кот', 'банан', 'яблоко']",
+                  "hint": "При равной длине порядок сохраняется как в исходном списке (сортировка стабильная).",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-m1-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "nums = [3, -10, 7, -2]\nprint(max(nums, key=abs))\nprint(sorted(nums, key=lambda x: -x))\n",
+                  "expected_output": "-10\n[7, 3, -2, -10]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-m1-l2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "users = [(\"Аня\", 30), (\"Боря\", 25), (\"Вика\", 30)]\nprint(sorted(users, key=lambda u: (-u[1], u[0])))\n",
+                  "expected_output": "[('Аня', 30), ('Вика', 30), ('Боря', 25)]",
+                  "hint": "Сначала по возрасту по убыванию (минус!), при равенстве — по имени.",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-m1-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `by_price(products)`, которая сортирует товары по цене.\n\n- Получает: `products` — список словарей вида `{\"name\": \"чай\", \"price\": 300}`.\n- Возвращает: **новый** список этих же товаров, отсортированный по цене **от дешёвых к дорогим**.\n\nПример:\n```\nby_price([{\"name\": \"A\", \"price\": 300},\n          {\"name\": \"B\", \"price\": 100},\n          {\"name\": \"C\", \"price\": 200}])\n# → [B (100), C (200), A (300)]\n```\nИспользуй `sorted` с аргументом `key=lambda ...`.",
+                  "starter_code": "def by_price(products):\n    pass\n",
+                  "tests": "def test_sort():\n    data = [{\"name\": \"A\", \"price\": 300}, {\"name\": \"B\", \"price\": 100}, {\"name\": \"C\", \"price\": 200}]\n    assert [p[\"name\"] for p in by_price(data)] == [\"B\", \"C\", \"A\"], \"Ожидался порядок B, C, A\"\n",
+                  "solution": "def by_price(products):\n    return sorted(products, key=lambda p: p[\"price\"])\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-m1-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `slowest(tests)`, которая находит самый долгий тест.\n\n- Получает: `tests` — список пар `(имя_теста, время_в_секундах)`.\n- Возвращает: **имя** (строку) теста с наибольшим временем.\n\nПример:\n```\nslowest([(\"login\", 1.2), (\"search\", 4.5), (\"logout\", 0.3)])   # → \"search\"\n```\nПодсказка: `max` с `key=lambda ...` вернёт всю пару — из неё нужно взять имя.",
+                  "starter_code": "def slowest(tests):\n    pass\n",
+                  "tests": "def test_basic():\n    assert slowest([(\"login\", 1.2), (\"search\", 4.5), (\"logout\", 0.3)]) == \"search\", \"Самый долгий — search\"\n",
+                  "solution": "def slowest(tests):\n    return max(tests, key=lambda t: t[1])[0]\n",
+                  "hint": "`max(tests, key=lambda t: t[1])` вернёт пару, а нужно имя — возьми `[0]`.",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-m1-l2-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `leaderboard(scores)`, которая строит таблицу лидеров.\n\n- Получает: `scores` — словарь `{имя: очки}`.\n- Возвращает: список **имён**, упорядоченный так:\n  1. по очкам — от большего к меньшему;\n  2. если очков поровну — по алфавиту.\n\nПример:\n```\nleaderboard({\"Боря\": 50, \"Аня\": 80, \"Вика\": 50, \"Гоша\": 10})\n# → [\"Аня\", \"Боря\", \"Вика\", \"Гоша\"]\n#    Аня — больше всех очков; у Бори и Вики поровну, поэтому по алфавиту\n```\nПодсказка: ключ сортировки может быть кортежем, а «по убыванию» для чисел — это сортировка по `-очки`.",
+                  "starter_code": "def leaderboard(scores):\n    pass\n",
+                  "tests": "def test_order():\n    scores = {\"Боря\": 50, \"Аня\": 80, \"Вика\": 50, \"Гоша\": 10}\n    assert leaderboard(scores) == [\"Аня\", \"Боря\", \"Вика\", \"Гоша\"], f\"Получено {leaderboard(scores)}\"\n",
+                  "solution": "def leaderboard(scores):\n    return sorted(scores, key=lambda name: (-scores[name], name))\n",
+                  "hint": "Перебор словаря даёт ключи. Ключ сортировки — кортеж `(-очки, имя)`.",
+                  "xp": 20
+                },
+                {
+                  "slug": "lam-m1-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sort_by_domain(emails)` — адреса по домену (часть после `@`), при одинаковом домене — по всему адресу.\n\n```\nsort_by_domain([\"b@x.ru\", \"a@y.io\", \"a@x.ru\"])   # → [\"a@x.ru\", \"b@x.ru\", \"a@y.io\"]\n```",
+                  "starter_code": "def sort_by_domain(emails):\n    pass\n",
+                  "tests": "def test_values():\n    assert sort_by_domain([\"b@x.ru\", \"a@y.io\", \"a@x.ru\"]) == [\"a@x.ru\", \"b@x.ru\", \"a@y.io\"], \"Неверный порядок\"\n",
+                  "solution": "def sort_by_domain(emails):\n    return sorted(emails, key=lambda e: (e.split(\"@\")[1], e))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-m1-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `oldest(users)` — имя самого старшего из списка словарей `name`, `age`; пустой список — `None`. Используй `max` с `key` и `default`.",
+                  "starter_code": "def oldest(users):\n    pass\n",
+                  "tests": "def test_values():\n    assert oldest([{\"name\": \"a\", \"age\": 20}, {\"name\": \"b\", \"age\": 40}]) == \"b\" and oldest([]) is None, \"Неверный результат\"\n",
+                  "solution": "def oldest(users):\n    best = max(users, key=lambda u: u[\"age\"], default=None)\n    return best[\"name\"] if best else None\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСамое частое место для лямбды — параметр **`key`** у `sorted`, `min`, `max`: он говорит, **по чему** сравнивать элементы. Для словарей, пар и объектов готовых функций часто нет — и тут лямбда незаменима.\n\n## key у sorted, min, max\n\n```python\nwords = [\"банан\", \"ёж\", \"яблоко\", \"кот\"]\nprint(sorted(words, key=len))\nprint(sorted(words, key=lambda w: w[-1]))\nnums = [3, -10, 7, -2]\nprint(max(nums, key=abs), sorted(nums, key=lambda x: -x))\n```\n\n- `key=функция` — сравнивать по её результату, а возвращать исходные элементы (тема «sorted, filter и map»).\n- `key=len` — готовая функция; `lambda w: w[-1]` — своя, «последняя буква».\n- `lambda x: -x` — по убыванию (то же, что `reverse=True` для чисел).\n- Сортировка стабильная: при равной длине «ёж» и «кот» остались в исходном порядке.\n- Вывод: `['ёж', 'кот', 'банан', 'яблоко']`, `['ёж', 'банан', 'яблоко', 'кот']` (последние буквы ж, н, о, т), `-10 [7, 3, -2, -10]`.\n\n## Словари и пары\n\n```python\nusers = [{\"name\": \"Аня\", \"age\": 30}, {\"name\": \"Боря\", \"age\": 25}]\nprint(min(users, key=lambda u: u[\"age\"])[\"name\"])\nproducts = [{\"name\": \"A\", \"price\": 300}, {\"name\": \"B\", \"price\": 100}]\nprint([p[\"name\"] for p in sorted(products, key=lambda p: p[\"price\"])])\ntests = [(\"login\", 1.2), (\"search\", 4.5)]\nprint(max(tests, key=lambda t: t[1])[0])\n```\n\n- Лямбда достаёт поле словаря или элемент пары. `max`/`min` возвращают **весь** элемент — нужное поле берём после.\n- Вывод: `Боря`, `['B', 'A']`, `search`.\n\n## Несколько признаков\n\n```python\nusers = [(\"Аня\", 30), (\"Боря\", 25), (\"Вика\", 30)]\nprint(sorted(users, key=lambda u: (-u[1], u[0])))\nscores = {\"Боря\": 50, \"Аня\": 80, \"Вика\": 50}\nprint(sorted(scores, key=lambda name: (-scores[name], name)))\n```\n\n- Ключ-кортеж: сначала возраст по убыванию (минус), при равенстве — имя по алфавиту.\n- Для словаря перебираются ключи; лямбда использует внешний словарь `scores` — это нормально, лямбда видит окружающие переменные.\n- Вывод: `[('Аня', 30), ('Вика', 30), ('Боря', 25)]`, `['Аня', 'Боря', 'Вика']`.\n\n## default для пустых коллекций\n\n```python\nprint(max([], key=lambda u: u[\"age\"], default=None))\n```\n\n- Пустая коллекция без `default` — `ValueError`. Вывод: `None`.\n\n## Итог\n\n- `key=lambda x: ...` — по чему сравнивать в `sorted`, `min`, `max`.\n- Поле словаря — `lambda u: u[\"поле\"]`; элемент пары — `lambda p: p[1]`.\n- Несколько признаков — ключ-кортеж; обратный порядок чисел — минус.\n- `max`/`min` возвращают элемент целиком.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `max([\"a\", \"bbb\", \"cc\"], key=len)`?",
+                  "options": [
+                    "`3`",
+                    "`\"bbb\"`",
+                    "`\"cc\"`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Возвращается элемент, а не длина."
+                },
+                {
+                  "q": "Как отсортировать словари по полю \"price\"?",
+                  "options": [
+                    "`sorted(items, key=\"price\")`",
+                    "`sorted(items, key=lambda p: p[\"price\"])`",
+                    "`items.sort(\"price\")`",
+                    "`sorted(items[\"price\"])`"
+                  ],
+                  "answer": 1,
+                  "explain": "Ключ — функция."
+                },
+                {
+                  "q": "Что делает `key=lambda x: -x` для чисел?",
+                  "options": [
+                    "Ошибка",
+                    "Сортирует по убыванию",
+                    "Делает числа отрицательными в результате",
+                    "Ничего"
+                  ],
+                  "answer": 1,
+                  "explain": "Элементы не меняются — меняется ключ."
+                }
+              ]
+            },
+            {
+              "slug": "lam-callbacks",
+              "title": "Функции как аргументы: колбэки",
+              "theory": "```py\ndef apply_twice(f, x):\n    return f(f(x))\napply_twice(lambda x: x + 3, 1)          # 7\ndef count_if(items, predicate): ...\ncount_if(nums, lambda x: x > 0)\nretry(action, 5, lambda r: r >= 300)     # повтор до условия\n```",
+              "exercises": [
+                {
+                  "slug": "lam-callbacks-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def apply_twice(f, x):\n    return f(f(x))\n\nprint(apply_twice(lambda x: x + 3, 1), apply_twice(lambda s: s + \"!\", \"ура\"))\n",
+                  "expected_output": "7 ура!!",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-callbacks-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Две функции-параметра.",
+                  "code": "def process(items, transform, keep):\n    return [transform(x) for x in items if keep(x)]\n\nprint(process([1, 2, 3, 4], lambda x: x * 10, lambda x: x % 2 == 0))\n",
+                  "expected_output": "[20, 40]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-callbacks-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def retry(action, attempts, is_ok):\n    for i in range(1, attempts + 1):\n        result = action(i)\n        if is_ok(result):\n            return i, result\n    return None\n\nprint(retry(lambda n: n * 100, 5, lambda r: r >= 300))\n",
+                  "expected_output": "(3, 300)",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-callbacks-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `apply_to_all(func, items)` — список результатов `func` для каждого элемента.\n\n```\napply_to_all(lambda x: x * x, [1, 2, 3])   # → [1, 4, 9]\n```",
+                  "starter_code": "def apply_to_all(func, items):\n    pass\n",
+                  "tests": "def test_values():\n    assert apply_to_all(lambda x: x * x, [1, 2, 3]) == [1, 4, 9] and apply_to_all(str.upper, [\"a\"]) == [\"A\"], \"Неверный результат\"\n",
+                  "solution": "def apply_to_all(func, items):\n    return [func(x) for x in items]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-callbacks-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `count_if(items, predicate)` — сколько элементов удовлетворяют условию-функции.\n\n```\ncount_if([1, -2, 3], lambda x: x > 0)   # → 2\n```",
+                  "starter_code": "def count_if(items, predicate):\n    pass\n",
+                  "tests": "def test_values():\n    assert count_if([1, -2, 3], lambda x: x > 0) == 2 and count_if([], lambda x: True) == 0, \"Неверный подсчёт\"\n",
+                  "solution": "def count_if(items, predicate):\n    return sum(1 for x in items if predicate(x))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-callbacks-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `find_first(items, predicate)` — первый элемент, для которого `predicate` вернул истину, или `None`.",
+                  "starter_code": "def find_first(items, predicate):\n    pass\n",
+                  "tests": "def test_values():\n    assert find_first([1, 8, 3, 9], lambda x: x > 5) == 8 and find_first([1], lambda x: x > 5) is None, \"Неверный результат\"\n",
+                  "solution": "def find_first(items, predicate):\n    for x in items:\n        if predicate(x):\n            return x\n    return None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-callbacks-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `partition(items, predicate)` — пара списков `(подходящие, остальные)`.\n\n```\npartition([1, 2, 3, 4], lambda x: x % 2 == 0)   # → ([2, 4], [1, 3])\n```",
+                  "starter_code": "def partition(items, predicate):\n    pass\n",
+                  "tests": "def test_values():\n    assert partition([1, 2, 3, 4], lambda x: x % 2 == 0) == ([2, 4], [1, 3]) and partition([], bool) == ([], []), \"Неверный результат\"\n",
+                  "solution": "def partition(items, predicate):\n    yes, no = [], []\n    for x in items:\n        (yes if predicate(x) else no).append(x)\n    return yes, no\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-callbacks-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `wait_for(check, max_attempts)` — вызывать `check(номер_попытки)` для попыток 1, 2, … до `max_attempts`; вернуть номер первой попытки, где `check` вернул истину, иначе `-1`.\n\n```\nwait_for(lambda n: n >= 3, 5)   # → 3\nwait_for(lambda n: False, 2)    # → -1\n```",
+                  "starter_code": "def wait_for(check, max_attempts):\n    pass\n",
+                  "tests": "def test_values():\n    assert [wait_for(lambda n: n >= 3, 5), wait_for(lambda n: False, 2), wait_for(lambda n: True, 1)] == [3, -1, 1], \"Неверный результат\"\n",
+                  "solution": "def wait_for(check, max_attempts):\n    for attempt in range(1, max_attempts + 1):\n        if check(attempt):\n            return attempt\n    return -1\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n**Колбэк** (callback) — функция, которую передают другой функции, чтобы та вызвала её в нужный момент. Так пишут универсальные функции: «обработай каждый элемент **этим** способом», «повторяй, пока **это** условие не выполнится». Лямбда — удобный способ передать короткий колбэк.\n\n## Функция, принимающая функцию\n\n```python\ndef apply_twice(f, x):\n    return f(f(x))\n\nprint(apply_twice(lambda x: x + 3, 1), apply_twice(lambda s: s + \"!\", \"ура\"))\n```\n\n- Параметр `f` — функция; внутри её вызывают как обычно.\n- Одна `apply_twice` работает с любыми функциями. Вывод: `7 ура!!`.\n\n## Несколько колбэков\n\n```python\ndef process(items, transform, keep):\n    return [transform(x) for x in items if keep(x)]\n\nprint(process([1, 2, 3, 4], lambda x: x * 10, lambda x: x % 2 == 0))\n```\n\n- `keep` решает, брать ли элемент; `transform` — как его изменить. Поведение задаёт вызывающий код.\n- Вывод: `[20, 40]`.\n\n## Универсальные помощники\n\n```python\ndef count_if(items, predicate):\n    return sum(1 for x in items if predicate(x))\n\ndef find_first(items, predicate):\n    for x in items:\n        if predicate(x):\n            return x\n    return None\n\nprint(count_if([1, -2, 3], lambda x: x > 0), find_first([1, 8, 3], lambda x: x > 5))\n```\n\n- **Предикат** — функция, возвращающая `True`/`False`. Вывод: `2 8`.\n\n## Повтор до условия\n\n```python\ndef retry(action, attempts, is_ok):\n    for i in range(1, attempts + 1):\n        result = action(i)\n        if is_ok(result):\n            return i, result\n    return None\n\nprint(retry(lambda n: n * 100, 5, lambda r: r >= 300))\n```\n\n- `action` — что делать на попытке, `is_ok` — когда остановиться. Так устроены ожидания в автотестах: «повторять проверку, пока элемент не появится». Вывод: `(3, 300)`.\n\n## Разделить по условию\n\n```python\ndef partition(items, predicate):\n    yes, no = [], []\n    for x in items:\n        (yes if predicate(x) else no).append(x)\n    return yes, no\n\nprint(partition([1, 2, 3, 4], lambda x: x % 2 == 0))\n```\n\n- `(yes if ... else no).append(x)` — выбрать список условным выражением и добавить в него. Вывод: `([2, 4], [1, 3])`.\n\n## Итог\n\n- Колбэк — функция-аргумент, которую вызывает другая функция.\n- Предикат — колбэк, возвращающий `True`/`False`.\n- Колбэки делают функции универсальными: логику задаёт вызывающий.\n- Короткий колбэк — лямбда, длинный — функция `def`, переданная по имени.",
+              "quiz": [
+                {
+                  "q": "Что такое колбэк?",
+                  "options": [
+                    "Ошибка",
+                    "Функция, переданная другой функции для вызова",
+                    "Возврат значения",
+                    "Цикл"
+                  ],
+                  "answer": 1,
+                  "explain": "Её вызывают «обратно»."
+                },
+                {
+                  "q": "Что вернёт `apply_twice(lambda x: x * 3, 2)` для `def apply_twice(f, x): return f(f(x))`?",
+                  "options": [
+                    "`6`",
+                    "`18`",
+                    "`12`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "2·3 = 6, 6·3 = 18."
+                },
+                {
+                  "q": "Что такое предикат?",
+                  "options": [
+                    "Функция, возвращающая True/False",
+                    "Любая лямбда",
+                    "Список условий",
+                    "Тип данных"
+                  ],
+                  "answer": 0,
+                  "explain": "Например, lambda x: x > 0."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "lam-m2",
+          "title": "map, filter, reduce",
+          "icon": "🔧",
+          "description": "Функции высшего порядка, reduce, замыкания, operator и partial",
+          "lessons": [
+            {
+              "slug": "lam-m2-l1",
+              "title": "map и filter с лямбдами",
+              "theory": "```py\nlist(map(lambda x: x ** 2, nums))\nlist(filter(lambda x: x % 2, nums))\nlist(map(len, words))                    # готовая функция — без lambda\nlist(map(lambda a, b: a + b, xs, ys))\nlist(map(lambda u: u[\"email\"], filter(lambda u: u[\"active\"], users)))\n```",
+              "exercises": [
+                {
+                  "slug": "lam-m2-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "print(list(map(lambda x: x ** 2, [1, 2, 3, 4])))\nprint(list(filter(lambda x: x % 2, [1, 2, 3, 4])))\n",
+                  "expected_output": "[1, 4, 9, 16]\n[1, 3]",
+                  "hint": "`x % 2` для нечётных равно 1 (истина), для чётных — 0 (ложь).",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-m2-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "words = [\"api\", \"UI\", \"Docker\"]\nprint(list(map(str.upper, words)))\nprint(list(map(len, words)))\n",
+                  "expected_output": "['API', 'UI', 'DOCKER']\n[3, 2, 6]",
+                  "hint": "Передавать можно любую функцию, не только лямбду.",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-m2-l1-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? `map` можно вызвать с двумя списками.",
+                  "code": "print(list(map(lambda a, b: a + b, [1, 2, 3], [10, 20, 30])))\n",
+                  "expected_output": "[11, 22, 33]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-m2-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `to_ints(strings)`, которая превращает строки с числами в настоящие числа.\n\n- Получает: `strings` — список строк, в каждой записано целое число.\n- Возвращает: **список** целых чисел в том же порядке.\n\nПримеры:\n```\nto_ints([\"1\", \"20\", \"-3\"])   # → [1, 20, -3]\n```\nИспользуй `map`. Помни, что `map` возвращает не список, а итератор — оберни результат в `list(...)`.",
+                  "starter_code": "def to_ints(strings):\n    pass\n",
+                  "tests": "def test_values():\n    assert to_ints([\"1\", \"20\", \"-3\"]) == [1, 20, -3], f\"Получено {to_ints(['1', '20', '-3'])}\"\n\ndef test_is_list():\n    assert isinstance(to_ints([\"1\"]), list), \"Верни именно список (оберни map в list)\"\n",
+                  "solution": "def to_ints(strings):\n    return list(map(int, strings))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-m2-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `failed_codes(codes)`, которая отбирает коды ответов с ошибками.\n\n- Получает: `codes` — список HTTP-кодов ответов (числа).\n- Возвращает: список только тех кодов, которые **400 и больше** (ошибки клиента и сервера), в исходном порядке.\n\nПример:\n```\nfailed_codes([200, 404, 201, 500, 302])   # → [404, 500]\n```\nИспользуй `filter` с лямбдой и оберни результат в `list(...)`.",
+                  "starter_code": "def failed_codes(codes):\n    pass\n",
+                  "tests": "def test_filter():\n    assert failed_codes([200, 404, 201, 500, 302]) == [404, 500], f\"Получено {failed_codes([200, 404, 201, 500, 302])}\"\n",
+                  "solution": "def failed_codes(codes):\n    return list(filter(lambda c: c >= 400, codes))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-m2-l1-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `emails(users)`, которая собирает email активных пользователей.\n\n- Получает: `users` — список словарей вида `{\"email\": \"Anna@Mail.ru\", \"active\": True}`.\n- Возвращает: список email **только активных** пользователей (`active` равно `True`), каждый email — в нижнем регистре.\n\nПример:\n```\nemails([\n    {\"email\": \"Anna@Mail.ru\", \"active\": True},\n    {\"email\": \"bob@mail.ru\",  \"active\": False},\n    {\"email\": \"VIKA@mail.ru\", \"active\": True},\n])\n# → [\"anna@mail.ru\", \"vika@mail.ru\"]\n```\nСначала `filter` (оставить активных), затем `map` (достать email и сделать `.lower()`).",
+                  "starter_code": "def emails(users):\n    pass\n",
+                  "tests": "def test_emails():\n    users = [\n        {\"email\": \"Anna@Mail.ru\", \"active\": True},\n        {\"email\": \"bob@mail.ru\", \"active\": False},\n        {\"email\": \"VIKA@mail.ru\", \"active\": True},\n    ]\n    assert emails(users) == [\"anna@mail.ru\", \"vika@mail.ru\"], f\"Получено {emails(users)}\"\n",
+                  "solution": "def emails(users):\n    active = filter(lambda u: u[\"active\"], users)\n    return list(map(lambda u: u[\"email\"].lower(), active))\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "lam-m2-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `squares_of_evens(nums)` — квадраты чётных чисел через `filter` и `map` с лямбдами.\n\n```\nsquares_of_evens([1, 2, 3, 4])   # → [4, 16]\n```",
+                  "starter_code": "def squares_of_evens(nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert squares_of_evens([1, 2, 3, 4]) == [4, 16] and squares_of_evens([]) == [], \"Неверный результат\"\n\ndef test_map_filter():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"map(\" in src and \"filter(\" in src, \"Используй map и filter\"\n",
+                  "solution": "def squares_of_evens(nums):\n    return list(map(lambda x: x * x, filter(lambda x: x % 2 == 0, nums)))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-m2-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_prices(raw)` — строки цен с запятой в качестве разделителя (`\"12,5\"`) превратить в `float` через `map` и лямбду.\n\n```\nparse_prices([\"12,5\", \"3\", \"0,99\"])   # → [12.5, 3.0, 0.99]\n```",
+                  "starter_code": "def parse_prices(raw):\n    pass\n",
+                  "tests": "def test_values():\n    assert parse_prices([\"12,5\", \"3\", \"0,99\"]) == [12.5, 3.0, 0.99] and parse_prices([]) == [], \"Неверный результат\"\n",
+                  "solution": "def parse_prices(raw):\n    return list(map(lambda s: float(s.replace(\",\", \".\")), raw))\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`map` и `filter` — функции «высшего порядка»: они принимают функцию и применяют её к коллекции. Вместе с лямбдой это короткий способ преобразовать или отфильтровать данные. Подробно они разобраны в теме «sorted, filter и map»; здесь — упор на связку с лямбдами.\n\n## map и filter с лямбдой\n\n```python\nprint(list(map(lambda x: x ** 2, [1, 2, 3, 4])))\nprint(list(filter(lambda x: x % 2, [1, 2, 3, 4])))\n```\n\n- `map(f, items)` — `f(x)` для каждого элемента; `filter(f, items)` — элементы, где `f(x)` истинно.\n- `x % 2` — 1 (истина) для нечётных, 0 (ложь) для чётных.\n- Оба возвращают **ленивый итератор** — для списка `list(...)`.\n- Вывод: `[1, 4, 9, 16]`, `[1, 3]`.\n\n## Не только лямбды\n\n```python\nwords = [\"api\", \"UI\", \"Docker\"]\nprint(list(map(str.upper, words)))\nprint(list(map(len, words)))\n```\n\n- Если функция уже есть — передай её по имени, лямбда не нужна: `map(len, ...)`, а не `map(lambda w: len(w), ...)`.\n- Вывод: `['API', 'UI', 'DOCKER']`, `[3, 2, 6]`.\n\n## Две коллекции\n\n```python\nprint(list(map(lambda a, b: a + b, [1, 2, 3], [10, 20, 30])))\n```\n\n- Лямбда с двумя параметрами получает элементы попарно. Вывод: `[11, 22, 33]`.\n\n## Цепочка filter → map\n\n```python\nusers = [\n    {\"email\": \"Anna@Mail.ru\", \"active\": True},\n    {\"email\": \"bob@mail.ru\", \"active\": False},\n]\nactive = filter(lambda u: u[\"active\"], users)\nprint(list(map(lambda u: u[\"email\"].lower(), active)))\nprint(list(map(lambda s: float(s.replace(\",\", \".\")), [\"12,5\", \"3\"])))\n```\n\n- Сначала отбор, потом преобразование; промежуточного списка нет — `map` берёт значения прямо из итератора `filter`.\n- Вывод: `['anna@mail.ru']`, `[12.5, 3.0]`.\n\n## То же включением\n\n```python\nnums = [1, 2, 3, 4]\nprint(list(map(lambda x: x * x, filter(lambda x: x % 2 == 0, nums))))\nprint([x * x for x in nums if x % 2 == 0])\n```\n\n- Результат одинаковый. С лямбдами включение обычно читается легче; `map`/`filter` важно уметь **читать** в чужом коде.\n- Вывод: `[4, 16]` дважды.\n\n## Итог\n\n- `map(lambda x: ..., items)` — преобразовать; `filter(lambda x: ..., items)` — отобрать.\n- Готовую функцию передают без лямбды: `map(len, ...)`.\n- Результат — итератор; для списка `list(...)`.\n- Цепочка `map(..., filter(...))` эквивалентна включению с `if`.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `list(filter(lambda x: x > 2, [1, 3, 5]))`?",
+                  "options": [
+                    "`[1]`",
+                    "`[3, 5]`",
+                    "`[True, True]`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Элементы, где условие истинно."
+                },
+                {
+                  "q": "Что лучше: `map(lambda w: len(w), words)` или `map(len, words)`?",
+                  "options": [
+                    "Первое",
+                    "Второе — функция уже есть",
+                    "Одинаково",
+                    "Оба ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Лишняя лямбда не нужна."
+                },
+                {
+                  "q": "Что возвращает `map` без `list`?",
+                  "options": [
+                    "Список",
+                    "Ленивый итератор",
+                    "Кортеж",
+                    "None"
+                  ],
+                  "answer": 1,
+                  "explain": "Значения — по запросу."
+                }
+              ]
+            },
+            {
+              "slug": "lam-m2-l2",
+              "title": "reduce и замыкания",
+              "theory": "```py\nfrom functools import reduce\nreduce(lambda acc, x: acc * x, nums, 1)   # произведение\nreduce(lambda a, b: a if a > b else b, nums)\ndef adder(n):\n    return lambda x: x + n               # замыкание помнит n\n[lambda i=i: i for i in range(3)]        # фиксация значения\n```",
+              "exercises": [
+                {
+                  "slug": "lam-m2-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "from functools import reduce\nprint(reduce(lambda acc, x: acc * x, [1, 2, 3, 4], 1))\nprint(reduce(lambda acc, x: acc + x, [\"a\", \"b\", \"c\"], \"\"))\n",
+                  "expected_output": "24\nabc",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-m2-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def adder(n):\n    return lambda x: x + n\n\nplus5 = adder(5)\nplus10 = adder(10)\nprint(plus5(1), plus10(1))\n",
+                  "expected_output": "6 11",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-m2-l2-e3",
+                  "type": "output",
+                  "prompt": "Ловушка! Что выведет программа?",
+                  "code": "funcs = [lambda: i for i in range(3)]\nprint([f() for f in funcs])\nfixed = [lambda i=i: i for i in range(3)]\nprint([f() for f in fixed])\n",
+                  "expected_output": "[2, 2, 2]\n[0, 1, 2]",
+                  "hint": "Все лямбды первого списка смотрят на одну и ту же переменную i, которая к концу цикла стала 2.",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-m2-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `max_by_reduce(nums)`, которая находит максимум с помощью `reduce`.\n\n- Получает: `nums` — непустой список чисел.\n- Возвращает: наибольшее число.\n\nПримеры:\n```\nmax_by_reduce([3, 9, 2])   # → 9\nmax_by_reduce([-5, -1])    # → -1\n```\nОграничения: без встроенной `max`. Используй `functools.reduce` и лямбду, которая из двух чисел возвращает большее.",
+                  "starter_code": "from functools import reduce\n\ndef max_by_reduce(nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert max_by_reduce([3, 9, 2]) == 9 and max_by_reduce([-5, -1]) == -1, \"Максимум посчитан неверно\"\n",
+                  "solution": "from functools import reduce\n\ndef max_by_reduce(nums):\n    return reduce(lambda a, b: a if a > b else b, nums)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-m2-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_validator(min_len)` — «фабрику» проверок длины.\n\n- Получает: `min_len` — минимально допустимую длину строки.\n- Возвращает: **новую функцию**. Эта функция принимает строку и возвращает `True`, если длина строки не меньше `min_len`, иначе `False`.\n\nПример:\n```\ncheck8 = make_validator(8)   # получили функцию\ncheck8(\"12345678\")           # → True\ncheck8(\"123\")                # → False\n\ncheck2 = make_validator(2)   # у каждой проверки — свой min_len\ncheck2(\"ab\")                 # → True\n```",
+                  "starter_code": "def make_validator(min_len):\n    pass\n",
+                  "tests": "def test_validator():\n    check8 = make_validator(8)\n    assert callable(check8), \"make_validator должна вернуть функцию\"\n    assert check8(\"12345678\") is True and check8(\"123\") is False, \"check8 проверяет длину ≥ 8\"\n\ndef test_independent():\n    check2 = make_validator(2)\n    assert check2(\"ab\") is True, \"Каждый валидатор помнит свой min_len\"\n",
+                  "solution": "def make_validator(min_len):\n    return lambda s: len(s) >= min_len\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-m2-l2-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `compose(f, g)`, которая склеивает две функции в одну.\n\n- Получает: две функции `f` и `g`, каждая принимает одно значение.\n- Возвращает: **новую функцию**, которая для аргумента `x` сначала вызывает `g(x)`, а потом передаёт результат в `f`. То есть считает `f(g(x))`.\n\nПример:\n```\ninc = lambda x: x + 1\ndbl = lambda x: x * 2\ncompose(inc, dbl)(5)   # → 11   сначала dbl(5) = 10, потом inc(10) = 11\ncompose(dbl, inc)(5)   # → 12   сначала inc(5) = 6,  потом dbl(6) = 12\n```",
+                  "starter_code": "def compose(f, g):\n    pass\n",
+                  "tests": "def test_compose():\n    inc = lambda x: x + 1\n    dbl = lambda x: x * 2\n    assert compose(inc, dbl)(5) == 11, \"compose(inc, dbl)(5) = inc(dbl(5)) = 11\"\n    assert compose(dbl, inc)(5) == 12, \"compose(dbl, inc)(5) = dbl(inc(5)) = 12\"\n",
+                  "solution": "def compose(f, g):\n    return lambda x: f(g(x))\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "lam-m2-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши фабрику `make_formatter(prefix)` — возвращает лямбду, которая для сообщения возвращает `\"[<prefix>] <сообщение>\"`.\n\n```\ninfo = make_formatter(\"INFO\")\ninfo(\"старт\")   # → \"[INFO] старт\"\n```",
+                  "starter_code": "def make_formatter(prefix):\n    pass\n",
+                  "tests": "def test_values():\n    info, err = make_formatter(\"INFO\"), make_formatter(\"ERR\")\n    assert info(\"старт\") == \"[INFO] старт\" and err(\"x\") == \"[ERR] x\", \"Неверный формат\"\n",
+                  "solution": "def make_formatter(prefix):\n    return lambda msg: f\"[{prefix}] {msg}\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-m2-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `product(nums)` — произведение чисел через `reduce` с начальным значением `1` (для пустого списка — `1`).",
+                  "starter_code": "from functools import reduce\n\ndef product(nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert [product([2, 3, 4]), product([]), product([5])] == [24, 1, 5], \"Неверное произведение\"\n",
+                  "solution": "from functools import reduce\n\ndef product(nums):\n    return reduce(lambda a, b: a * b, nums, 1)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`reduce` **сворачивает** коллекцию в одно значение: произведение, строку, максимум. А лямбды, созданные внутри функции, умеют **запоминать** её переменные — это замыкания, на которых строятся «фабрики» функций. Обе идеи часто встречаются вместе с лямбдами.\n\n## reduce\n\n```python\nfrom functools import reduce\nprint(reduce(lambda acc, x: acc * x, [1, 2, 3, 4], 1))\nprint(reduce(lambda acc, x: acc + x, [\"a\", \"b\", \"c\"], \"\"))\n```\n\n- `reduce` живёт в модуле `functools` — его нужно импортировать.\n- `reduce(f, items, start)`: `acc = start`, затем для каждого `x` — `acc = f(acc, x)`. Результат — последний `acc`.\n- Произведение: `((((1·1)·2)·3)·4) = 24`. Вывод: `24`, `abc`.\n\n```python\nfrom functools import reduce\nprint(reduce(lambda a, b: a if a > b else b, [3, 9, 2]))\n```\n\n- Максимум: на каждом шаге оставляем большее. Без начального значения `acc` — первый элемент. Вывод: `9`.\n\n## Замыкание: функция, возвращающая лямбду\n\n```python\ndef adder(n):\n    return lambda x: x + n\n\nplus5 = adder(5)\nplus10 = adder(10)\nprint(plus5(1), plus10(1))\n```\n\n- Лямбда, созданная внутри `adder`, запоминает `n` из её вызова — это **замыкание** (тема «Область видимости»).\n- Каждый вызов `adder` создаёт свою функцию со своим `n`. Вывод: `6 11`.\n\n```python\ndef make_validator(min_len):\n    return lambda s: len(s) >= min_len\n\ncheck8 = make_validator(8)\nprint(check8(\"12345678\"), check8(\"123\"))\n\ndef compose(f, g):\n    return lambda x: f(g(x))\n\nprint(compose(lambda x: x + 1, lambda x: x * 2)(5))\n```\n\n- Фабрика проверок; композиция двух функций: сначала `g`, потом `f`.\n- Вывод: `True False`, `11`.\n\n## Ловушка позднего связывания\n\n```python\nfuncs = [lambda: i for i in range(3)]\nprint([f() for f in funcs])\nfixed = [lambda i=i: i for i in range(3)]\nprint([f() for f in fixed])\n```\n\n- Лямбды запоминают **переменную** `i`, а не её значение: к моменту вызова она равна 2.\n- `i=i` — значение по умолчанию вычисляется при создании и фиксирует текущее `i`.\n- Вывод: `[2, 2, 2]`, `[0, 1, 2]`.\n\n## Итог\n\n- `from functools import reduce`; `reduce(f, items, start)` сворачивает коллекцию.\n- Лямбда внутри функции помнит её переменные — замыкание; так делают фабрики функций.\n- Лямбды в цикле видят последнее значение переменной — фиксируй `x=x`.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `reduce(lambda a, x: a + x, [1, 2, 3], 10)`?",
+                  "options": [
+                    "`6`",
+                    "`16`",
+                    "`10`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "10 + 1 + 2 + 3."
+                },
+                {
+                  "q": "Откуда импортируют reduce?",
+                  "options": [
+                    "Встроенная функция",
+                    "`from functools import reduce`",
+                    "`from operator import reduce`",
+                    "`import reduce`"
+                  ],
+                  "answer": 1,
+                  "explain": "В Python 3 — из functools."
+                },
+                {
+                  "q": "Что вернёт `adder(3)(4)` для `def adder(n): return lambda x: x + n`?",
+                  "options": [
+                    "`3`",
+                    "`7`",
+                    "Функцию",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Лямбда помнит n = 3."
+                }
+              ]
+            },
+            {
+              "slug": "lam-reduce",
+              "title": "reduce подробнее",
+              "theory": "```py\nreduce(f, items)          # acc = первый элемент\nreduce(f, items, start)   # acc = start (нужно для пустых)\nreduce(f, [])             # TypeError\nreduce(lambda acc, d: acc * 10 + d, digits, 0)\nreduce(lambda acc, d: {**acc, **d}, dicts, {})\n# sum, max, \"\".join, all, any — вместо reduce, где можно\n```",
+              "exercises": [
+                {
+                  "slug": "lam-reduce-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Начальное значение.",
+                  "code": "from functools import reduce\nprint(reduce(lambda a, b: a + b, [1, 2, 3, 4]))\nprint(reduce(lambda a, b: a + b, [5]))\nprint(reduce(lambda a, b: a + b, [], 0))\ntry:\n    reduce(lambda a, b: a + b, [])\nexcept TypeError:\n    print(\"пустой список без начального значения\")\n",
+                  "expected_output": "10\n5\n0\nпустой список без начального значения",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-reduce-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Проследи шаги.",
+                  "code": "from functools import reduce\n\ndef step(acc, x):\n    print(f\"acc={acc}, x={x}\")\n    return acc * 10 + x\n\nprint(reduce(step, [1, 2, 3]))\n",
+                  "expected_output": "acc=1, x=2\nacc=12, x=3\n123",
+                  "hint": "Без начального значения первый элемент сразу становится acc.",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-reduce-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Накопление словаря.",
+                  "code": "from functools import reduce\nwords = [\"a\", \"bb\", \"a\"]\ncounts = reduce(lambda d, w: {**d, w: d.get(w, 0) + 1}, words, {})\nprint(counts)\n",
+                  "expected_output": "{'a': 2, 'bb': 1}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-reduce-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `digits_to_number(digits)` — собрать число из списка цифр через `reduce`: `acc * 10 + x`. Пустой список — `0`.\n\n```\ndigits_to_number([1, 2, 3])   # → 123\n```",
+                  "starter_code": "from functools import reduce\n\ndef digits_to_number(digits):\n    pass\n",
+                  "tests": "def test_values():\n    assert [digits_to_number([1, 2, 3]), digits_to_number([]), digits_to_number([0, 7])] == [123, 0, 7], \"Неверное число\"\n",
+                  "solution": "from functools import reduce\n\ndef digits_to_number(digits):\n    return reduce(lambda acc, d: acc * 10 + d, digits, 0)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-reduce-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `longest_word(words)` — самое длинное слово через `reduce` (при равенстве — первое); пустой список — `\"\"`.",
+                  "starter_code": "from functools import reduce\n\ndef longest_word(words):\n    pass\n",
+                  "tests": "def test_values():\n    assert [longest_word([\"ab\", \"abcd\", \"xyzw\"]), longest_word([])] == [\"abcd\", \"\"], \"Неверный результат\"\n\ndef test_reduce():\n    assert \"reduce(\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй reduce\"\n",
+                  "solution": "from functools import reduce\n\ndef longest_word(words):\n    return reduce(lambda best, w: w if len(w) > len(best) else best, words, \"\")\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-reduce-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `merge_dicts(dicts)` — слить список словарей в один (более поздние важнее) через `reduce` с начальным `{}`.",
+                  "starter_code": "from functools import reduce\n\ndef merge_dicts(dicts):\n    pass\n",
+                  "tests": "def test_values():\n    assert merge_dicts([{\"a\": 1}, {\"b\": 2}, {\"a\": 3}]) == {\"a\": 3, \"b\": 2} and merge_dicts([]) == {}, \"Неверный результат\"\n",
+                  "solution": "from functools import reduce\n\ndef merge_dicts(dicts):\n    return reduce(lambda acc, d: {**acc, **d}, dicts, {})\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-reduce-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `flatten(lists)` — склеить список списков через `reduce` и `+`.",
+                  "starter_code": "from functools import reduce\n\ndef flatten(lists):\n    pass\n",
+                  "tests": "def test_values():\n    assert flatten([[1, 2], [3], []]) == [1, 2, 3] and flatten([]) == [], \"Неверный результат\"\n",
+                  "solution": "from functools import reduce\n\ndef flatten(lists):\n    return reduce(lambda acc, lst: acc + lst, lists, [])\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-reduce-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `compose_all(funcs)` — одна функция, применяющая функции списка **слева направо**: `compose_all([f, g])(x) == g(f(x))`. Пустой список — функция, возвращающая аргумент без изменений.\n\n```\ncompose_all([lambda x: x + 1, lambda x: x * 10])(2)   # → 30\n```",
+                  "starter_code": "from functools import reduce\n\ndef compose_all(funcs):\n    pass\n",
+                  "tests": "def test_values():\n    assert compose_all([lambda x: x + 1, lambda x: x * 10])(2) == 30, \"Сначала +1, потом *10\"\n    assert compose_all([])(5) == 5 and compose_all([str.strip, str.upper])(\" a \") == \"A\", \"Неверный результат\"\n",
+                  "solution": "from functools import reduce\n\ndef compose_all(funcs):\n    return reduce(lambda f, g: lambda x: g(f(x)), funcs, lambda x: x)\n",
+                  "hint": "Начни с «тождественной» функции lambda x: x и на каждом шаге оборачивай.",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`reduce` — универсальный «свёртыватель»: из списка можно получить число, строку, словарь, даже функцию. Нужно понимать, как он проходит по элементам, зачем начальное значение и когда вместо `reduce` лучше `sum`, `max` или цикл.\n\n## Начальное значение\n\n```python\nfrom functools import reduce\nprint(reduce(lambda a, b: a + b, [1, 2, 3, 4]))\nprint(reduce(lambda a, b: a + b, [5]))\nprint(reduce(lambda a, b: a + b, [], 0))\ntry:\n    reduce(lambda a, b: a + b, [])\nexcept TypeError:\n    print(\"пустой список без начального значения\")\n```\n\n- Без начального значения первый элемент становится `acc`, функция начинает со второго.\n- Один элемент без начального — он и возвращается, функция не вызывается ни разу.\n- Пустой список без начального — `TypeError`; с начальным — возвращается оно само.\n- Вывод: `10`, `5`, `0`, `пустой список без начального значения`.\n\nПравило: **передавай начальное значение**, если список может быть пустым.\n\n## Шаги reduce\n\n```python\nfrom functools import reduce\n\ndef step(acc, x):\n    print(f\"acc={acc}, x={x}\")\n    return acc * 10 + x\n\nprint(reduce(step, [1, 2, 3]))\n```\n\n- Функция вызывается `len - 1` раз (без начального значения): `1*10+2 = 12`, `12*10+3 = 123`.\n- Вывод: `acc=1, x=2`, `acc=12, x=3`, `123`.\n\n## Накопление сложных значений\n\n```python\nfrom functools import reduce\nwords = [\"a\", \"bb\", \"a\"]\nprint(reduce(lambda d, w: {**d, w: d.get(w, 0) + 1}, words, {}))\nprint(reduce(lambda acc, lst: acc + lst, [[1, 2], [3], []], []))\nprint(reduce(lambda best, w: w if len(w) > len(best) else best, [\"ab\", \"abcd\", \"xyzw\"], \"\"))\n```\n\n- Накопитель может быть словарём, списком, строкой — каждый шаг возвращает **новый** накопитель.\n- Вывод: `{'a': 2, 'bb': 1}`, `[1, 2, 3]`, `abcd`.\n\n## Свёртка функций\n\n```python\nfrom functools import reduce\nfuncs = [lambda x: x + 1, lambda x: x * 10]\npipeline = reduce(lambda f, g: lambda x: g(f(x)), funcs, lambda x: x)\nprint(pipeline(2))\n```\n\n- Начинаем с функции «ничего не делать» `lambda x: x` и на каждом шаге оборачиваем: новая функция сначала применяет старую, потом очередную.\n- Вывод: `30` — (2 + 1) × 10.\n\n## Когда не нужен reduce\n\n- Сумма — `sum(...)`, максимум — `max(...)`, склейка строк — `\"\".join(...)`, «все/хоть один» — `all`/`any`: они короче и понятнее.\n- Сложная логика — обычный цикл с накопителем читается лучше.\n- `reduce` хорош, когда нужна именно «свёртка» своей операцией: цифры → число, композиция функций, слияние словарей.\n\n## Итог\n\n- `reduce(f, items, start)` — `acc = f(acc, x)` для каждого элемента.\n- Без `start` первый элемент — начальный `acc`; пустой список без `start` — `TypeError`.\n- Накопитель может быть любым: число, словарь, список, функция.\n- Для суммы, максимума, склейки есть готовые функции — используй их.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `reduce(lambda a, b: a * b, [7])`?",
+                  "options": [
+                    "`0`",
+                    "`7`",
+                    "`49`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Один элемент — он и есть результат."
+                },
+                {
+                  "q": "Что будет при `reduce(lambda a, b: a + b, [])`?",
+                  "options": [
+                    "`0`",
+                    "`TypeError`",
+                    "`None`",
+                    "`[]`"
+                  ],
+                  "answer": 1,
+                  "explain": "Нужно начальное значение."
+                },
+                {
+                  "q": "Что лучше для суммы списка?",
+                  "options": [
+                    "`reduce(lambda a, b: a + b, nums, 0)`",
+                    "`sum(nums)`",
+                    "Одинаково",
+                    "Цикл while"
+                  ],
+                  "answer": 1,
+                  "explain": "Готовая функция понятнее."
+                }
+              ]
+            },
+            {
+              "slug": "lam-operator",
+              "title": "Модуль operator и functools.partial",
+              "theory": "```py\nimport operator\nreduce(operator.mul, nums, 1)          # вместо lambda a, b: a * b\nfrom operator import itemgetter\nsorted(pairs, key=itemgetter(1))       # вместо lambda p: p[1]\nmap(itemgetter(\"name\"), users)\nfrom functools import partial\nfrom_bin = partial(int, base=2)        # from_bin(\"101\") -> 5\n```",
+              "exercises": [
+                {
+                  "slug": "lam-operator-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import operator\nfrom functools import reduce\nprint(operator.add(2, 3), operator.mul(4, 5))\nprint(reduce(operator.mul, [1, 2, 3, 4]))\n",
+                  "expected_output": "5 20\n24",
+                  "hint": "operator.add(a, b) — то же, что lambda a, b: a + b.",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-operator-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? itemgetter.",
+                  "code": "from operator import itemgetter\npairs = [(\"b\", 2), (\"a\", 3)]\nprint(sorted(pairs, key=itemgetter(0)))\nget_name = itemgetter(\"name\")\nprint(get_name({\"name\": \"Аня\", \"age\": 25}))\nprint(itemgetter(0, 2)(\"abc\"))\n",
+                  "expected_output": "[('a', 3), ('b', 2)]\nАня\n('a', 'c')",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-operator-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? partial.",
+                  "code": "from functools import partial\n\ndef power(base, exp):\n    return base ** exp\n\nsquare = partial(power, exp=2)\ncube = partial(power, exp=3)\nprint(square(5), cube(2))\nint2 = partial(int, base=2)\nprint(int2(\"101\"))\n",
+                  "expected_output": "25 8\n5",
+                  "hint": "partial «замораживает» часть аргументов и возвращает новую функцию.",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-operator-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `product(nums)` — произведение через `reduce` и `operator.mul` (начальное значение `1`).",
+                  "starter_code": "import operator\nfrom functools import reduce\n\ndef product(nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert [product([2, 3, 4]), product([])] == [24, 1], \"Неверное произведение\"\n\ndef test_operator():\n    assert \"operator.mul\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй operator.mul\"\n",
+                  "solution": "import operator\nfrom functools import reduce\n\ndef product(nums):\n    return reduce(operator.mul, nums, 1)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-operator-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sort_by_second(pairs)` — пары по второму элементу через `itemgetter(1)`.",
+                  "starter_code": "from operator import itemgetter\n\ndef sort_by_second(pairs):\n    pass\n",
+                  "tests": "def test_values():\n    assert sort_by_second([(\"a\", 3), (\"b\", 1)]) == [(\"b\", 1), (\"a\", 3)], \"Неверный порядок\"\n\ndef test_itemgetter():\n    assert \"itemgetter(1)\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй itemgetter(1)\"\n",
+                  "solution": "from operator import itemgetter\n\ndef sort_by_second(pairs):\n    return sorted(pairs, key=itemgetter(1))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-operator-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `names(users)` — список значений `\"name\"` из списка словарей через `map` и `itemgetter(\"name\")`.",
+                  "starter_code": "from operator import itemgetter\n\ndef names(users):\n    pass\n",
+                  "tests": "def test_values():\n    assert names([{\"name\": \"Аня\"}, {\"name\": \"Боря\"}]) == [\"Аня\", \"Боря\"] and names([]) == [], \"Неверный результат\"\n",
+                  "solution": "from operator import itemgetter\n\ndef names(users):\n    return list(map(itemgetter(\"name\"), users))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-operator-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_parsers()` — вернуть пару функций `(from_bin, from_hex)`, созданных через `partial(int, base=...)`.\n\n```\nfrom_bin, from_hex = make_parsers()\nfrom_bin(\"101\"), from_hex(\"ff\")   # → 5, 255\n```",
+                  "starter_code": "from functools import partial\n\ndef make_parsers():\n    pass\n",
+                  "tests": "def test_values():\n    from_bin, from_hex = make_parsers()\n    assert from_bin(\"101\") == 5 and from_hex(\"ff\") == 255, \"Неверный разбор\"\n",
+                  "solution": "from functools import partial\n\ndef make_parsers():\n    return partial(int, base=2), partial(int, base=16)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-operator-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `log(message, level=\"DEBUG\")` — строка `\"[<level>] <message>\"`, и создай через `partial` функцию `log_info`, у которой уровень всегда `\"INFO\"`.\n\n```\nlog(\"x\")          # → \"[DEBUG] x\"\nlog_info(\"старт\") # → \"[INFO] старт\"\n```",
+                  "starter_code": "from functools import partial\n\ndef log(message, level=\"DEBUG\"):\n    pass\n\nlog_info = None\n",
+                  "tests": "def test_values():\n    assert log(\"x\") == \"[DEBUG] x\" and log_info(\"старт\") == \"[INFO] старт\", \"Неверный лог\"\n\ndef test_partial():\n    assert \"partial(\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Создай log_info через partial\"\n",
+                  "solution": "from functools import partial\n\ndef log(message, level=\"DEBUG\"):\n    return f\"[{level}] {message}\"\n\nlog_info = partial(log, level=\"INFO\")\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nМногие лямбды повторяют стандартные операции: `lambda a, b: a + b`, `lambda x: x[1]`, `lambda s: int(s, base=2)`. Для них в стандартной библиотеке есть готовые функции: модуль **`operator`** и **`functools.partial`**. Они короче, быстрее и часто понятнее.\n\n## operator: операторы как функции\n\n```python\nimport operator\nfrom functools import reduce\nprint(operator.add(2, 3), operator.mul(4, 5))\nprint(reduce(operator.mul, [1, 2, 3, 4]))\n```\n\n- `operator.add(a, b)` — то же, что `a + b`; `operator.mul` — `a * b`. Есть `sub`, `truediv`, `eq`, `lt` и другие.\n- Удобно передавать туда, где нужна функция двух аргументов: `reduce(operator.mul, ...)` вместо `reduce(lambda a, b: a * b, ...)`.\n- Вывод: `5 20`, `24`.\n\n## itemgetter: «достать элемент»\n\n```python\nfrom operator import itemgetter\npairs = [(\"b\", 2), (\"a\", 3)]\nprint(sorted(pairs, key=itemgetter(0)))\nget_name = itemgetter(\"name\")\nprint(get_name({\"name\": \"Аня\", \"age\": 25}))\nprint(itemgetter(0, 2)(\"abc\"))\nusers = [{\"name\": \"Аня\"}, {\"name\": \"Боря\"}]\nprint(list(map(itemgetter(\"name\"), users)))\n```\n\n- `itemgetter(k)` — функция `lambda x: x[k]`: элемент по индексу или ключу.\n- С несколькими аргументами возвращает кортеж — готовый ключ по нескольким полям.\n- Вывод: `[('a', 3), ('b', 2)]`, `Аня`, `('a', 'c')`, `['Аня', 'Боря']`.\n\n## partial: зафиксировать аргументы\n\n```python\nfrom functools import partial\n\ndef power(base, exp):\n    return base ** exp\n\nsquare = partial(power, exp=2)\ncube = partial(power, exp=3)\nprint(square(5), cube(2))\nint2 = partial(int, base=2)\nprint(int2(\"101\"))\n```\n\n- `partial(функция, аргументы...)` — новая функция, у которой часть аргументов уже подставлена.\n- `partial(int, base=2)` — «разобрать двоичную строку».\n- Вывод: `25 8`, `5`.\n\n```python\nfrom functools import partial\n\ndef log(message, level=\"DEBUG\"):\n    return f\"[{level}] {message}\"\n\nlog_info = partial(log, level=\"INFO\")\nprint(log(\"x\"), log_info(\"старт\"))\n```\n\n- `partial` против лямбды: `partial(log, level=\"INFO\")` ≈ `lambda m: log(m, level=\"INFO\")`, но у `partial` видно, какая функция и какие аргументы зафиксированы.\n- Вывод: `[DEBUG] x [INFO] старт`.\n\n## Итог\n\n- `operator.add`, `mul`, … — операторы как функции для `reduce`, `map`, `sorted`.\n- `itemgetter(k)` — `lambda x: x[k]`; с несколькими ключами — кортеж.\n- `partial(f, ...)` — новая функция с зафиксированными аргументами.\n- Готовые функции часто заменяют короткие лямбды.",
+              "quiz": [
+                {
+                  "q": "Чему эквивалентен `itemgetter(1)`?",
+                  "options": [
+                    "`lambda x: x + 1`",
+                    "`lambda x: x[1]`",
+                    "`lambda x: 1`",
+                    "`lambda x: x * 1`"
+                  ],
+                  "answer": 1,
+                  "explain": "Элемент по индексу 1."
+                },
+                {
+                  "q": "Что вернёт `partial(pow, 2)(10)`?",
+                  "options": [
+                    "`100`",
+                    "`1024`",
+                    "`20`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "pow(2, 10)."
+                },
+                {
+                  "q": "Что делает `operator.add(2, 3)`?",
+                  "options": [
+                    "Ошибка",
+                    "Возвращает 5",
+                    "Складывает на месте",
+                    "Возвращает функцию"
+                  ],
+                  "answer": 1,
+                  "explain": "Оператор + как функция."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "lam-m3",
+          "title": "Лямбды на практике",
+          "icon": "🛠️",
+          "description": "Диспетчеры, сложные ключи сортировки, ловушки и стиль, практика",
+          "lessons": [
+            {
+              "slug": "lam-dispatch",
+              "title": "Лямбды в словарях: диспетчеры и правила",
+              "theory": "```py\nOPS = {\"+\": lambda a, b: a + b, \"*\": lambda a, b: a * b}\nOPS[op](a, b)                              # достать и вызвать\nCOMMANDS.get(cmd, lambda s: s)(text)       # умолчание — ничего не делать\n[name for name, check in rules.items() if not check(v)]\n```",
+              "exercises": [
+                {
+                  "slug": "lam-dispatch-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "ops = {\"+\": lambda a, b: a + b, \"-\": lambda a, b: a - b, \"*\": lambda a, b: a * b}\nfor op in \"+-*\":\n    print(op, ops[op](6, 3))\n",
+                  "expected_output": "+ 9\n- 3\n* 18",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-dispatch-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "formatters = {\"upper\": str.upper, \"title\": str.title, \"reverse\": lambda s: s[::-1]}\ntext = \"hello world\"\nprint([formatters[name](text) for name in [\"upper\", \"reverse\"]])\n",
+                  "expected_output": "['HELLO WORLD', 'dlrow olleh']",
+                  "hint": "В одном словаре могут лежать и готовые функции, и лямбды.",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-dispatch-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Правила проверки.",
+                  "code": "rules = {\n    \"not empty\": lambda s: bool(s.strip()),\n    \"short\": lambda s: len(s) <= 5,\n}\nfor value in [\"abc\", \"   \", \"abcdef\"]:\n    print(repr(value), [name for name, check in rules.items() if not check(value)])\n",
+                  "expected_output": "'abc' []\n'   ' ['not empty']\n'abcdef' ['short']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-dispatch-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `calculate(a, op, b)` — калькулятор на словаре лямбд для `+ - * /`. Деление на ноль — `None` (условное выражение внутри лямбды). Неизвестная операция — `None`.\n\n```\ncalculate(6, \"/\", 3)   # → 2.0\ncalculate(6, \"/\", 0)   # → None\n```",
+                  "starter_code": "def calculate(a, op, b):\n    pass\n",
+                  "tests": "def test_values():\n    got = [calculate(6, \"+\", 3), calculate(6, \"-\", 3), calculate(6, \"*\", 3), calculate(6, \"/\", 3), calculate(6, \"/\", 0), calculate(6, \"%\", 3)]\n    assert got == [9, 3, 18, 2.0, None, None], f\"Получено {got}\"\n",
+                  "solution": "OPS = {\n    \"+\": lambda a, b: a + b,\n    \"-\": lambda a, b: a - b,\n    \"*\": lambda a, b: a * b,\n    \"/\": lambda a, b: a / b if b != 0 else None,\n}\n\ndef calculate(a, op, b):\n    func = OPS.get(op)\n    return func(a, b) if func else None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-dispatch-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `apply_command(text, command)` — команды `\"upper\"`, `\"lower\"`, `\"strip\"`, `\"reverse\"` из словаря функций; неизвестная команда — вернуть текст без изменений.",
+                  "starter_code": "def apply_command(text, command):\n    pass\n",
+                  "tests": "def test_values():\n    got = [apply_command(\"Ab\", \"upper\"), apply_command(\"Ab\", \"lower\"), apply_command(\" a \", \"strip\"), apply_command(\"abc\", \"reverse\"), apply_command(\"x\", \"?\")]\n    assert got == [\"AB\", \"ab\", \"a\", \"cba\", \"x\"], f\"Получено {got}\"\n",
+                  "solution": "COMMANDS = {\n    \"upper\": str.upper,\n    \"lower\": str.lower,\n    \"strip\": str.strip,\n    \"reverse\": lambda s: s[::-1],\n}\n\ndef apply_command(text, command):\n    return COMMANDS.get(command, lambda s: s)(text)\n",
+                  "hint": "get с умолчанием lambda s: s — «ничего не делать».",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-dispatch-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `failed_rules(value, rules)` — `rules` это словарь «название → функция-проверка». Вернуть отсортированный список названий проверок, которые значение **не прошло**.\n\n```\nfailed_rules(\"\", {\"not empty\": lambda s: bool(s), \"short\": lambda s: len(s) < 5})   # → [\"not empty\"]\n```",
+                  "starter_code": "def failed_rules(value, rules):\n    pass\n",
+                  "tests": "def test_values():\n    rules = {\"not empty\": lambda s: bool(s), \"short\": lambda s: len(s) < 5, \"no spaces\": lambda s: \" \" not in s}\n    assert failed_rules(\"\", rules) == [\"not empty\"] and failed_rules(\"a b cd\", rules) == [\"no spaces\", \"short\"], \"Неверный результат\"\n",
+                  "solution": "def failed_rules(value, rules):\n    return sorted(name for name, check in rules.items() if not check(value))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-dispatch-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `final_price(price, kind)` — скидки в словаре лямбд: `\"none\"` — без скидки, `\"sale\"` — 10%, `\"vip\"` — 20%. Результат округлить до 2 знаков. Неизвестный вид — `ValueError`.",
+                  "starter_code": "def final_price(price, kind):\n    pass\n",
+                  "tests": "def test_values():\n    assert [final_price(100, \"none\"), final_price(100, \"sale\"), final_price(99.9, \"vip\")] == [100, 90.0, 79.92], \"Неверная цена\"\n\ndef test_unknown():\n    try:\n        final_price(1, \"x\")\n    except ValueError:\n        return\n    assert False, \"Нужен ValueError\"\n",
+                  "solution": "DISCOUNTS = {\n    \"none\": lambda p: p,\n    \"sale\": lambda p: p * 0.9,\n    \"vip\": lambda p: p * 0.8,\n}\n\ndef final_price(price, kind):\n    if kind not in DISCOUNTS:\n        raise ValueError(f\"неизвестная скидка: {kind}\")\n    return round(DISCOUNTS[kind](price), 2)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-dispatch-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `run_pipeline(value, steps)` — применить к числу шаги по очереди. Шаги — названия из словаря `STEPS`: `\"double\"`, `\"inc\"`, `\"square\"`.\n\n```\nrun_pipeline(3, [\"inc\", \"double\", \"square\"])   # → 64\n```",
+                  "starter_code": "def run_pipeline(value, steps):\n    pass\n",
+                  "tests": "def test_values():\n    assert run_pipeline(3, [\"inc\", \"double\", \"square\"]) == 64 and run_pipeline(5, []) == 5, \"Неверный результат\"\n",
+                  "solution": "STEPS = {\"double\": lambda x: x * 2, \"inc\": lambda x: x + 1, \"square\": lambda x: x * x}\n\ndef run_pipeline(value, steps):\n    for name in steps:\n        value = STEPS[name](value)\n    return value\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСловарь, где значения — функции, заменяет длинные цепочки `if/elif`: «операция → как вычислить», «команда → что сделать», «правило → как проверить». Лямбды удобно класть в такие словари прямо при объявлении.\n\n## Калькулятор на словаре\n\n```python\nops = {\"+\": lambda a, b: a + b, \"-\": lambda a, b: a - b, \"*\": lambda a, b: a * b}\nfor op in \"+-*\":\n    print(op, ops[op](6, 3))\n```\n\n- `ops[op]` достаёт функцию, `(6, 3)` — вызывает. Новая операция — одна строка в словаре.\n- Вывод: `+ 9`, `- 3`, `* 18`.\n\nОсобые случаи — условным выражением внутри лямбды или проверкой снаружи:\n\n```python\nOPS = {\"/\": lambda a, b: a / b if b != 0 else None}\nfunc = OPS.get(\"%\")\nprint(OPS[\"/\"](6, 0), func(1, 2) if func else None)\n```\n\nВывод: `None None`.\n\n## Готовые функции и лямбды вместе\n\n```python\nformatters = {\"upper\": str.upper, \"title\": str.title, \"reverse\": lambda s: s[::-1]}\ntext = \"hello world\"\nprint([formatters[name](text) for name in [\"upper\", \"reverse\"]])\nprint({\"upper\": str.upper}.get(\"zzz\", lambda s: s)(\"без изменений\"))\n```\n\n- Значением может быть любая функция. Умолчание в `get` — лямбда «ничего не делать».\n- Вывод: `['HELLO WORLD', 'dlrow olleh']`, `без изменений`.\n\n## Правила проверки\n\n```python\nrules = {\n    \"not empty\": lambda s: bool(s.strip()),\n    \"short\": lambda s: len(s) <= 5,\n}\nfor value in [\"abc\", \"   \", \"abcdef\"]:\n    print(repr(value), [name for name, check in rules.items() if not check(value)])\n```\n\n- Каждое правило — название и функция-проверка. Результат — список нарушенных правил: удобно для сообщений валидации.\n- Вывод: `'abc' []`, `'   ' ['not empty']`, `'abcdef' ['short']`.\n\n## Конвейер шагов по названиям\n\n```python\nSTEPS = {\"double\": lambda x: x * 2, \"inc\": lambda x: x + 1, \"square\": lambda x: x * x}\nvalue = 3\nfor name in [\"inc\", \"double\", \"square\"]:\n    value = STEPS[name](value)\nprint(value)\n```\n\n- Последовательность обработки задаётся списком названий — например, из конфига. Вывод: `64`.\n\n## Итог\n\n- Словарь «ключ → функция» заменяет `if/elif` и легко расширяется.\n- `d[key](args)` — достать и вызвать; `d.get(key, умолчание)` — с запасным вариантом.\n- Значения — готовые функции или лямбды.\n- Правила валидации и шаги обработки удобно хранить так же.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `{\"+\": lambda a, b: a + b}[\"+\"](2, 3)`?",
+                  "options": [
+                    "Функцию",
+                    "`5`",
+                    "`\"+\"`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Достали лямбду и вызвали."
+                },
+                {
+                  "q": "Зачем в `d.get(cmd, lambda s: s)(text)` лямбда по умолчанию?",
+                  "options": [
+                    "Для скорости",
+                    "Неизвестная команда вернёт текст без изменений",
+                    "Иначе SyntaxError",
+                    "Не нужна"
+                  ],
+                  "answer": 1,
+                  "explain": "Функция «ничего не делать»."
+                },
+                {
+                  "q": "Что хранится в словаре правил `{\"short\": lambda s: len(s) <= 5}`?",
+                  "options": [
+                    "Строки",
+                    "Функции-проверки",
+                    "Числа",
+                    "Списки"
+                  ],
+                  "answer": 1,
+                  "explain": "Значения — функции."
+                }
+              ]
+            },
+            {
+              "slug": "lam-sortkeys",
+              "title": "Сложные ключи сортировки",
+              "theory": "```py\nsorted(xs, key=lambda x: (x is None, x if x is not None else 0))   # None в конец\nsorted(files, key=lambda f: int(f[3:-4]))                           # числа как числа\nsorted(tasks, key=lambda t: (PRIO[t[0]], t[1]))                     # свой порядок\nsorted(rs, key=lambda r: (r[1] != \"fail\", -r[2]))                   # группы + убывание\n```",
+              "exercises": [
+                {
+                  "slug": "lam-sortkeys-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? None в конец.",
+                  "code": "items = [3, None, 1, None, 2]\nprint(sorted(items, key=lambda x: (x is None, x if x is not None else 0)))\n",
+                  "expected_output": "[1, 2, 3, None, None]",
+                  "hint": "False < True: элементы с x is None == True уходят в конец.",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-sortkeys-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? «Естественная» сортировка.",
+                  "code": "files = [\"img10.png\", \"img2.png\", \"img1.png\"]\nprint(sorted(files))\nprint(sorted(files, key=lambda f: int(f[3:-4])))\n",
+                  "expected_output": "['img1.png', 'img10.png', 'img2.png']\n['img1.png', 'img2.png', 'img10.png']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-sortkeys-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "tasks = [(\"low\", \"b\"), (\"high\", \"a\"), (\"mid\", \"c\"), (\"high\", \"d\")]\nprio = {\"high\": 0, \"mid\": 1, \"low\": 2}\nprint(sorted(tasks, key=lambda t: (prio[t[0]], t[1])))\n",
+                  "expected_output": "[('high', 'a'), ('high', 'd'), ('mid', 'c'), ('low', 'b')]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-sortkeys-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `none_last(nums)` — числа по возрастанию, а `None` — в конце.\n\n```\nnone_last([3, None, 1])   # → [1, 3, None]\n```",
+                  "starter_code": "def none_last(nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert none_last([3, None, 1]) == [1, 3, None] and none_last([None, None]) == [None, None] and none_last([]) == [], \"Неверный порядок\"\n",
+                  "solution": "def none_last(nums):\n    return sorted(nums, key=lambda x: (x is None, x if x is not None else 0))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-sortkeys-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `natural_sort(names)` — строки вида «буквы + число» (`\"test2\"`, `\"test10\"`, `\"case1\"`) отсортировать по буквенной части, а затем по числу **как числу**. Если цифр нет — число считать 0.\n\n```\nnatural_sort([\"test10\", \"test2\", \"case1\", \"test\"])   # → [\"case1\", \"test\", \"test2\", \"test10\"]\n```",
+                  "starter_code": "def natural_sort(names):\n    pass\n",
+                  "tests": "def test_values():\n    assert natural_sort([\"test10\", \"test2\", \"case1\", \"test\"]) == [\"case1\", \"test\", \"test2\", \"test10\"], f\"Получено {natural_sort(['test10', 'test2', 'case1', 'test'])}\"\n",
+                  "solution": "def natural_key(name):\n    prefix = name.rstrip(\"0123456789\")\n    digits = name[len(prefix):]\n    return (prefix, int(digits) if digits else 0)\n\ndef natural_sort(names):\n    return sorted(names, key=natural_key)\n",
+                  "hint": "Сложный ключ удобнее вынести в функцию и передать key=natural_key.",
+                  "xp": 20
+                },
+                {
+                  "slug": "lam-sortkeys-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `by_priority(tasks)` — задачи-словари `{\"title\": ..., \"priority\": \"high\"|\"mid\"|\"low\"}`: сначала `high`, потом `mid`, потом `low`; внутри — по названию. Вернуть названия.",
+                  "starter_code": "def by_priority(tasks):\n    pass\n",
+                  "tests": "def test_values():\n    tasks = [{\"title\": \"b\", \"priority\": \"low\"}, {\"title\": \"a\", \"priority\": \"high\"}, {\"title\": \"c\", \"priority\": \"high\"}, {\"title\": \"d\", \"priority\": \"mid\"}]\n    assert by_priority(tasks) == [\"a\", \"c\", \"d\", \"b\"], f\"Получено {by_priority(tasks)}\"\n",
+                  "solution": "PRIO = {\"high\": 0, \"mid\": 1, \"low\": 2}\n\ndef by_priority(tasks):\n    return [t[\"title\"] for t in sorted(tasks, key=lambda t: (PRIO[t[\"priority\"]], t[\"title\"]))]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-sortkeys-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sort_by_extension(files)` — по расширению (после последней точки, без учёта регистра), потом по имени.\n\n```\nsort_by_extension([\"b.txt\", \"a.PNG\", \"c.png\", \"a.txt\"])   # → [\"a.PNG\", \"c.png\", \"a.txt\", \"b.txt\"]\n```",
+                  "starter_code": "def sort_by_extension(files):\n    pass\n",
+                  "tests": "def test_values():\n    assert sort_by_extension([\"b.txt\", \"a.PNG\", \"c.png\", \"a.txt\"]) == [\"a.PNG\", \"c.png\", \"a.txt\", \"b.txt\"], \"Неверный порядок\"\n",
+                  "solution": "def sort_by_extension(files):\n    return sorted(files, key=lambda f: (f.rsplit(\".\", 1)[-1].lower(), f))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-sortkeys-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `triage(results)` — результаты `(имя, статус, время)`: сначала упавшие (`\"fail\"`), внутри групп — по времени по убыванию. Вернуть имена.\n\n```\ntriage([(\"a\", \"pass\", 1), (\"b\", \"fail\", 2), (\"c\", \"fail\", 5), (\"d\", \"pass\", 3)])   # → [\"c\", \"b\", \"d\", \"a\"]\n```",
+                  "starter_code": "def triage(results):\n    pass\n",
+                  "tests": "def test_values():\n    assert triage([(\"a\", \"pass\", 1), (\"b\", \"fail\", 2), (\"c\", \"fail\", 5), (\"d\", \"pass\", 3)]) == [\"c\", \"b\", \"d\", \"a\"], \"Неверный порядок\"\n",
+                  "solution": "def triage(results):\n    return [r[0] for r in sorted(results, key=lambda r: (r[1] != \"fail\", -r[2]))]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nРеальные данные редко сортируются «как есть»: пустые значения должны уходить в конец, `img10` — идти после `img2`, приоритеты — в своём порядке. Всё это решается правильным **ключом** — лямбдой или функцией.\n\n## None в конец\n\n```python\nitems = [3, None, 1, None, 2]\nprint(sorted(items, key=lambda x: (x is None, x if x is not None else 0)))\n```\n\n- `None` нельзя сравнивать с числами — прямая сортировка упала бы с `TypeError`.\n- Ключ-кортеж: первый элемент `x is None` — `False` для чисел и `True` для `None`; `False < True`, поэтому числа идут раньше. Второй элемент упорядочивает числа (для `None` подставлен 0, чтобы сравнение не падало).\n- Вывод: `[1, 2, 3, None, None]`.\n\n## «Естественная» сортировка\n\n```python\nfiles = [\"img10.png\", \"img2.png\", \"img1.png\"]\nprint(sorted(files))\nprint(sorted(files, key=lambda f: int(f[3:-4])))\n```\n\n- Строки сравниваются посимвольно: `\"img10\"` < `\"img2\"`, потому что `\"1\"` < `\"2\"`.\n- Ключ вырезает числовую часть и превращает в `int`.\n- Вывод: `['img1.png', 'img10.png', 'img2.png']`, `['img1.png', 'img2.png', 'img10.png']`.\n\nДля общего случая ключ удобнее вынести в функцию:\n\n```python\ndef natural_key(name):\n    prefix = name.rstrip(\"0123456789\")\n    digits = name[len(prefix):]\n    return (prefix, int(digits) if digits else 0)\n\nprint(sorted([\"test10\", \"test2\", \"case1\", \"test\"], key=natural_key))\n```\n\n- `rstrip(\"0123456789\")` убирает цифры с конца — остаётся буквенная часть; цифры — то, что было отрезано.\n- Вывод: `['case1', 'test', 'test2', 'test10']`.\n\n## Свой порядок через словарь рангов\n\n```python\ntasks = [(\"low\", \"b\"), (\"high\", \"a\"), (\"mid\", \"c\"), (\"high\", \"d\")]\nprio = {\"high\": 0, \"mid\": 1, \"low\": 2}\nprint(sorted(tasks, key=lambda t: (prio[t[0]], t[1])))\n```\n\n- Вывод: `[('high', 'a'), ('high', 'd'), ('mid', 'c'), ('low', 'b')]`.\n\n## Сначала упавшие, потом по времени\n\n```python\nresults = [(\"a\", \"pass\", 1), (\"b\", \"fail\", 2), (\"c\", \"fail\", 5), (\"d\", \"pass\", 3)]\nprint([r[0] for r in sorted(results, key=lambda r: (r[1] != \"fail\", -r[2]))])\n```\n\n- `r[1] != \"fail\"` — `False` для упавших (идут первыми); `-r[2]` — время по убыванию.\n- Вывод: `['c', 'b', 'd', 'a']`.\n\n## Итог\n\n- Логический элемент ключа `(условие, ...)` делит на группы: `False` раньше `True`.\n- `None` в конец — `(x is None, x or 0)`; числа в строках — вырезать и `int`.\n- Нестандартный порядок — словарь рангов.\n- Сложный ключ — в отдельную функцию и `key=функция`.",
+              "quiz": [
+                {
+                  "q": "Что будет при `sorted([2, None, 1])`?",
+                  "options": [
+                    "`[None, 1, 2]`",
+                    "`TypeError`",
+                    "`[1, 2, None]`",
+                    "`[2, None, 1]`"
+                  ],
+                  "answer": 1,
+                  "explain": "None нельзя сравнить с числом."
+                },
+                {
+                  "q": "Почему `sorted([\"img10\", \"img2\"])` даёт `[\"img10\", \"img2\"]`?",
+                  "options": [
+                    "Баг",
+                    "Строки сравниваются посимвольно: \"1\" < \"2\"",
+                    "Сортировка по длине",
+                    "Так задумано для чисел"
+                  ],
+                  "answer": 1,
+                  "explain": "Нужен ключ с int."
+                },
+                {
+                  "q": "Какие элементы окажутся первыми при `key=lambda r: (r.status != \"fail\", ...)`?",
+                  "options": [
+                    "pass",
+                    "fail — у них False",
+                    "Случайные",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "False < True."
+                }
+              ]
+            },
+            {
+              "slug": "lam-pitfalls",
+              "title": "Ловушки и стиль",
+              "theory": "```py\n[lambda x, i=i: x + i for i in range(3)]   # фиксация значения\nscale = lambda x: x * factor               # factor читается при вызове\nf.__name__ == \"<lambda>\"                   # в отладке безымянна\nis_adult = lambda a: a >= 18               # PEP 8: лучше def\nlambda x, acc=[]: ...                      # общий список — ловушка\n```",
+              "exercises": [
+                {
+                  "slug": "lam-pitfalls-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Позднее связывание.",
+                  "code": "adders = [lambda x: x + i for i in range(3)]\nprint([f(10) for f in adders])\nadders = [lambda x, i=i: x + i for i in range(3)]\nprint([f(10) for f in adders])\n",
+                  "expected_output": "[12, 12, 12]\n[10, 11, 12]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-pitfalls-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Лямбда читает переменную при вызове.",
+                  "code": "factor = 2\nscale = lambda x: x * factor\nprint(scale(5))\nfactor = 10\nprint(scale(5))\n",
+                  "expected_output": "10\n50",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-pitfalls-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Имена в отладке.",
+                  "code": "checks = [lambda x: x > 0, lambda x: x < 100]\nprint([c.__name__ for c in checks])\n\ndef positive(x):\n    return x > 0\n\nprint(positive.__name__)\n",
+                  "expected_output": "['<lambda>', '<lambda>']\npositive",
+                  "hint": "В трассировке ошибки лямбда тоже будет безымянной <lambda>.",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-pitfalls-e4",
+                  "type": "code",
+                  "prompt": "Исправь позднее связывание: `make_greeters(names)` должна вернуть список функций без аргументов, каждая возвращает `\"Привет, <своё имя>\"`.",
+                  "starter_code": "def make_greeters(names):\n    return [lambda: f\"Привет, {name}\" for name in names]\n",
+                  "tests": "def test_values():\n    assert [g() for g in make_greeters([\"Аня\", \"Боря\"])] == [\"Привет, Аня\", \"Привет, Боря\"], \"Все функции возвращают последнее имя?\"\n",
+                  "solution": "def make_greeters(names):\n    return [lambda name=name: f\"Привет, {name}\" for name in names]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-pitfalls-e5",
+                  "type": "code",
+                  "prompt": "По PEP 8 не присваивают лямбду имени. Перепиши `is_adult` из заготовки через `def` (функция должна называться `is_adult`).",
+                  "starter_code": "is_adult = lambda age: age >= 18\n",
+                  "tests": "def test_def():\n    assert is_adult.__name__ == \"is_adult\", \"Нужна функция def is_adult\"\n    assert is_adult(18) is True and is_adult(17) is False, \"Неверный результат\"\n",
+                  "solution": "def is_adult(age):\n    return age >= 18\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-pitfalls-e6",
+                  "type": "code",
+                  "prompt": "В заготовке `map` с лямбдой используется ради побочного эффекта (`append`) — это плохой стиль. Перепиши `doubled(nums)` так, чтобы она **строила** результат без `append`.",
+                  "starter_code": "def doubled(nums):\n    result = []\n    list(map(lambda x: result.append(x * 2), nums))\n    return result\n",
+                  "tests": "def test_values():\n    assert doubled([1, 2, 3]) == [2, 4, 6] and doubled([]) == [], \"Неверный результат\"\n\ndef test_no_side_effects():\n    assert \"append\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Построй список без append\"\n",
+                  "solution": "def doubled(nums):\n    return list(map(lambda x: x * 2, nums))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-pitfalls-e7",
+                  "type": "code",
+                  "prompt": "Лямбда с цепочкой условий из заготовки нечитаема. Перепиши `grade` обычной функцией с `if/elif/else` (без `lambda`).",
+                  "starter_code": "grade = lambda s: \"A\" if s >= 90 else \"B\" if s >= 75 else \"C\" if s >= 60 else \"F\"\n",
+                  "tests": "def test_values():\n    assert [grade(95), grade(80), grade(60), grade(10)] == [\"A\", \"B\", \"C\", \"F\"], \"Неверная оценка\"\n\ndef test_no_lambda():\n    assert \"lambda\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Перепиши через def\"\n",
+                  "solution": "def grade(s):\n    if s >= 90:\n        return \"A\"\n    elif s >= 75:\n        return \"B\"\n    elif s >= 60:\n        return \"C\"\n    else:\n        return \"F\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-pitfalls-e8",
+                  "type": "code",
+                  "prompt": "Лямбда `collect = lambda x, acc=[]: acc.append(x) or acc` накапливает значения между вызовами — список по умолчанию общий. Напиши функцию `collect(x, acc=None)`, которая возвращает **новый** список: элементы `acc` (если передан) и `x` в конце. Вызовы не должны влиять друг на друга.",
+                  "starter_code": "def collect(x, acc=None):\n    pass\n",
+                  "tests": "def test_values():\n    assert collect(1) == [1] and collect(2) == [2], \"Вызовы не должны накапливаться\"\n    src = [1]\n    assert collect(2, src) == [1, 2] and src == [1], \"Переданный список не меняется\"\n",
+                  "solution": "def collect(x, acc=None):\n    if acc is None:\n        acc = []\n    return acc + [x]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЛямбды удобны, но у них есть характерные ловушки: позднее связывание переменных, безымянность в отладке, соблазн запихнуть в одну строку слишком много. Разберём, как их избегать и когда лучше обычная функция.\n\n## Позднее связывание\n\n```python\nadders = [lambda x: x + i for i in range(3)]\nprint([f(10) for f in adders])\nadders = [lambda x, i=i: x + i for i in range(3)]\nprint([f(10) for f in adders])\n```\n\n- Все лямбды первого списка ссылаются на **одну** переменную `i`, к моменту вызова равную 2.\n- `i=i` фиксирует значение при создании. Вывод: `[12, 12, 12]`, `[10, 11, 12]`.\n\n## Лямбда читает переменную в момент вызова\n\n```python\nfactor = 2\nscale = lambda x: x * factor\nprint(scale(5))\nfactor = 10\nprint(scale(5))\n```\n\n- Лямбда не запоминает значение `factor` при создании — она читает переменную при каждом вызове. Изменили переменную — изменилось поведение.\n- Вывод: `10`, `50`.\n\n## Безымянность\n\n```python\nchecks = [lambda x: x > 0, lambda x: x < 100]\nprint([c.__name__ for c in checks])\n\ndef positive(x):\n    return x > 0\n\nprint(positive.__name__)\n```\n\n- В сообщениях об ошибках и отчётах тестов лямбда видна как `<lambda>` — непонятно, какая именно упала.\n- Вывод: `['<lambda>', '<lambda>']`, `positive`.\n\n## PEP 8: не присваивай лямбду имени\n\n```py\nis_adult = lambda age: age >= 18      # плохо\ndef is_adult(age):                    # хорошо\n    return age >= 18\n```\n\n- Если функции нужно имя — пиши `def`: у неё будет нормальное `__name__`, можно добавить docstring, аннотации и несколько строк.\n\n## Не усложняй\n\n```python\ngrade = lambda s: \"A\" if s >= 90 else \"B\" if s >= 75 else \"C\" if s >= 60 else \"F\"\nprint(grade(80))\n```\n\n- Работает (вывод: `B`), но читать тяжело. Цепочку условий лучше записать `def` с `if/elif/else`.\n- Правило: если лямбда не читается с одного взгляда — это функция.\n\n## Побочные эффекты — не в map и лямбде\n\n```python\nresult = []\nlist(map(lambda x: result.append(x * 2), [1, 2]))\nprint(result, list(map(lambda x: x * 2, [1, 2])))\n```\n\n- Первый вариант использует `map` ради побочного эффекта `append` и создаёт бесполезный список `None`. Второй — строит результат напрямую.\n- Вывод: `[2, 4] [2, 4]`.\n\n## Изменяемое значение по умолчанию\n\n```python\ncollect = lambda x, acc=[]: acc.append(x) or acc\nprint(collect(1), collect(2))\n```\n\n- Та же ловушка, что у `def` (тема «Функции»): список по умолчанию создаётся один раз и накапливается. Вывод: `[1, 2] [1, 2]` — оба вызова вернули один и тот же список.\n\n## Итог\n\n- Лямбды в цикле — `lambda x, i=i: ...`.\n- Лямбда читает внешние переменные при вызове, а не при создании.\n- Нужно имя, docstring или несколько условий — `def`.\n- Не используй `map`/лямбды ради побочных эффектов.\n- Изменяемое значение по умолчанию — ловушка и в лямбде.",
+              "quiz": [
+                {
+                  "q": "Что выведет `[f() for f in [lambda: i for i in range(2)]]`?",
+                  "options": [
+                    "`[0, 1]`",
+                    "`[1, 1]`",
+                    "`[0, 0]`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Позднее связывание."
+                },
+                {
+                  "q": "Почему по PEP 8 не пишут `f = lambda x: ...`?",
+                  "options": [
+                    "Не работает",
+                    "Для именованной функции есть def с нормальным именем",
+                    "Медленно",
+                    "Запрещено синтаксисом"
+                  ],
+                  "answer": 1,
+                  "explain": "Лямбда безымянна."
+                },
+                {
+                  "q": "Какое значение `factor` использует `lambda x: x * factor`?",
+                  "options": [
+                    "На момент создания",
+                    "На момент вызова",
+                    "Всегда 0",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Переменная читается при вызове."
+                }
+              ]
+            },
+            {
+              "slug": "lam-practice",
+              "title": "Практика: обработка результатов тестов",
+              "theory": "```py\nsorted(tests, key=lambda t: (t[\"ok\"], -t[\"time\"]))\nlist(map(lambda t: t[\"name\"], filter(lambda t: not t[\"ok\"], tests)))\nhandlers.get(code, lambda b: f\"ошибка {code}\")(body)\ndef build_report(tests, formatter=lambda t: t[\"name\"]): ...\n```",
+              "exercises": [
+                {
+                  "slug": "lam-practice-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "tests = [{\"name\": \"login\", \"time\": 1.2, \"ok\": True},\n         {\"name\": \"pay\", \"time\": 3.4, \"ok\": False},\n         {\"name\": \"cart\", \"time\": 0.5, \"ok\": True}]\nprint([t[\"name\"] for t in sorted(tests, key=lambda t: -t[\"time\"])])\nprint(list(map(lambda t: t[\"name\"], filter(lambda t: not t[\"ok\"], tests))))\n",
+                  "expected_output": "['pay', 'login', 'cart']\n['pay']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-practice-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "from functools import reduce\ntests = [{\"time\": 1.2}, {\"time\": 3.4}, {\"time\": 0.5}]\nprint(round(reduce(lambda acc, t: acc + t[\"time\"], tests, 0), 1))\nprint(max(tests, key=lambda t: t[\"time\"])[\"time\"])\n",
+                  "expected_output": "5.1\n3.4",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-practice-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Обработчики ответов.",
+                  "code": "handlers = {\n    200: lambda body: f\"ok: {body}\",\n    404: lambda body: \"не найдено\",\n}\nfor code, body in [(200, \"{}\"), (404, \"\"), (500, \"x\")]:\n    print(handlers.get(code, lambda b: f\"ошибка {code}\")(body))\n",
+                  "expected_output": "ok: {}\nне найдено\nошибка 500",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "lam-practice-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `failed_names(tests)` — имена упавших тестов (`\"ok\": False`) через `filter` и `map` с лямбдами.",
+                  "starter_code": "def failed_names(tests):\n    pass\n",
+                  "tests": "def test_values():\n    tests = [{\"name\": \"a\", \"ok\": True}, {\"name\": \"b\", \"ok\": False}]\n    assert failed_names(tests) == [\"b\"] and failed_names([]) == [], \"Неверный результат\"\n",
+                  "solution": "def failed_names(tests):\n    return list(map(lambda t: t[\"name\"], filter(lambda t: not t[\"ok\"], tests)))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-practice-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `total_time(tests)` — сумма времени через `reduce` с лямбдой, округлённая до 2 знаков.",
+                  "starter_code": "from functools import reduce\n\ndef total_time(tests):\n    pass\n",
+                  "tests": "def test_values():\n    assert [total_time([{\"time\": 1.2}, {\"time\": 3.4}]), total_time([])] == [4.6, 0], \"Неверная сумма\"\n",
+                  "solution": "from functools import reduce\n\ndef total_time(tests):\n    return round(reduce(lambda acc, t: acc + t[\"time\"], tests, 0), 2)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-practice-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `rank_tests(tests)` — сначала упавшие, внутри — по времени по убыванию. Вернуть имена.",
+                  "starter_code": "def rank_tests(tests):\n    pass\n",
+                  "tests": "def test_values():\n    tests = [{\"name\": \"a\", \"ok\": True, \"time\": 5}, {\"name\": \"b\", \"ok\": False, \"time\": 1}, {\"name\": \"c\", \"ok\": False, \"time\": 3}]\n    assert rank_tests(tests) == [\"c\", \"b\", \"a\"], f\"Получено {rank_tests(tests)}\"\n",
+                  "solution": "def rank_tests(tests):\n    return [t[\"name\"] for t in sorted(tests, key=lambda t: (t[\"ok\"], -t[\"time\"]))]\n",
+                  "hint": "False < True: упавшие (ok=False) окажутся первыми.",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-practice-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `handle(code, body)` — словарь обработчиков: `200` → `\"ok: <body>\"`, `404` → `\"не найдено\"`; для остальных кодов — `\"ошибка <code>\"` (обработчик по умолчанию через `get`).",
+                  "starter_code": "def handle(code, body):\n    pass\n",
+                  "tests": "def test_values():\n    assert [handle(200, \"{}\"), handle(404, \"\"), handle(500, \"x\")] == [\"ok: {}\", \"не найдено\", \"ошибка 500\"], \"Неверный результат\"\n",
+                  "solution": "HANDLERS = {\n    200: lambda body: f\"ok: {body}\",\n    404: lambda body: \"не найдено\",\n}\n\ndef handle(code, body):\n    return HANDLERS.get(code, lambda b: f\"ошибка {code}\")(body)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "lam-practice-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `build_report(tests, formatter=...)` — список строк отчёта: `formatter(t)` для каждого теста. По умолчанию `formatter` — лямбда, возвращающая `\"<name>: ok\"` или `\"<name>: fail\"`.\n\n```\nbuild_report([{\"name\": \"a\", \"ok\": True}])                              # → [\"a: ok\"]\nbuild_report([{\"name\": \"a\", \"ok\": True}], lambda t: t[\"name\"].upper())  # → [\"A\"]\n```",
+                  "starter_code": "def build_report(tests, formatter=None):\n    pass\n",
+                  "tests": "def test_values():\n    tests = [{\"name\": \"a\", \"ok\": True}, {\"name\": \"b\", \"ok\": False}]\n    assert build_report(tests) == [\"a: ok\", \"b: fail\"], \"Формат по умолчанию\"\n    assert build_report(tests, lambda t: t[\"name\"].upper()) == [\"A\", \"B\"], \"Свой форматтер\"\n",
+                  "solution": "def build_report(tests, formatter=lambda t: f\"{t['name']}: {'ok' if t['ok'] else 'fail'}\"):\n    return [formatter(t) for t in tests]\n",
+                  "hint": "Лямбда — неизменяемое значение по умолчанию, в отличие от списка.",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСоберём лямбды в типичных задачах обработки результатов тестов: сортировка, отбор, свёртка, обработчики ответов, настраиваемое форматирование через функцию-параметр.\n\n## Сортировка и отбор\n\n```python\ntests = [{\"name\": \"login\", \"time\": 1.2, \"ok\": True},\n         {\"name\": \"pay\", \"time\": 3.4, \"ok\": False},\n         {\"name\": \"cart\", \"time\": 0.5, \"ok\": True}]\nprint([t[\"name\"] for t in sorted(tests, key=lambda t: -t[\"time\"])])\nprint(list(map(lambda t: t[\"name\"], filter(lambda t: not t[\"ok\"], tests))))\nprint([t[\"name\"] for t in sorted(tests, key=lambda t: (t[\"ok\"], -t[\"time\"]))])\n```\n\n- Самые долгие первыми; имена упавших; упавшие первыми, внутри — по времени.\n- `t[\"ok\"]` в ключе: `False < True`, поэтому упавшие впереди.\n- Вывод: `['pay', 'login', 'cart']`, `['pay']`, `['pay', 'login', 'cart']`.\n\n## Свёртка и максимум\n\n```python\nfrom functools import reduce\ntests = [{\"time\": 1.2}, {\"time\": 3.4}, {\"time\": 0.5}]\nprint(round(reduce(lambda acc, t: acc + t[\"time\"], tests, 0), 1))\nprint(max(tests, key=lambda t: t[\"time\"])[\"time\"])\nprint(round(sum(t[\"time\"] for t in tests), 1))\n```\n\n- Общее время через `reduce` и то же через `sum` с генератором (проще). Вывод: `5.1`, `3.4`, `5.1`.\n\n## Обработчики ответов\n\n```python\nhandlers = {\n    200: lambda body: f\"ok: {body}\",\n    404: lambda body: \"не найдено\",\n}\nfor code, body in [(200, \"{}\"), (404, \"\"), (500, \"x\")]:\n    print(handlers.get(code, lambda b: f\"ошибка {code}\")(body))\n```\n\n- Словарь «код → обработчик» и обработчик по умолчанию. Лямбда-умолчание читает `code` при вызове — здесь она вызывается сразу, поэтому видит текущий код.\n- Вывод: `ok: {}`, `не найдено`, `ошибка 500`.\n\n## Функция-параметр со значением по умолчанию\n\n```python\ndef build_report(tests, formatter=lambda t: f\"{t['name']}: {'ok' if t['ok'] else 'fail'}\"):\n    return [formatter(t) for t in tests]\n\ntests = [{\"name\": \"a\", \"ok\": True}, {\"name\": \"b\", \"ok\": False}]\nprint(build_report(tests))\nprint(build_report(tests, lambda t: t[\"name\"].upper()))\n```\n\n- Поведение по умолчанию задано лямбдой, но вызывающий код может передать свою. Лямбда — неизменяемое значение по умолчанию, ловушки со списком тут нет.\n- Вывод: `['a: ok', 'b: fail']`, `['A', 'B']`.\n\n## Итог\n\n- `sorted`/`max` с лямбдой-ключом — упорядочить и найти лучший.\n- `filter` + `map` с лямбдами — отобрать и преобразовать (или включение).\n- Словарь лямбд — обработчики по кодам и командам.\n- Функция-параметр с лямбдой по умолчанию — настраиваемое поведение.",
+              "quiz": [
+                {
+                  "q": "Какие тесты окажутся первыми при `key=lambda t: t[\"ok\"]`?",
+                  "options": [
+                    "ok=True",
+                    "ok=False",
+                    "Случайные",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "False < True."
+                },
+                {
+                  "q": "Безопасна ли лямбда как значение параметра по умолчанию?",
+                  "options": [
+                    "Нет, как список",
+                    "Да — функцию не изменить",
+                    "Только без аргументов",
+                    "Запрещено"
+                  ],
+                  "answer": 1,
+                  "explain": "Ловушка — только у изменяемых значений."
+                },
+                {
+                  "q": "Что проще для суммы времени тестов?",
+                  "options": [
+                    "`reduce(lambda a, t: a + t[\"time\"], tests, 0)`",
+                    "`sum(t[\"time\"] for t in tests)`",
+                    "Одинаково",
+                    "Цикл while"
+                  ],
+                  "answer": 1,
+                  "explain": "sum с генератором."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
