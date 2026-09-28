@@ -142,7 +142,8 @@ def sandbox_check() -> int:
         return 1
     checks = [
         ("код выполняется", "print(2 + 2)", "4"),
-        ("pytest и pydantic на месте", "import pytest, xdist, pydantic\nprint('ok')", "ok"),
+        ("библиотеки для тестов на месте",
+         "import pytest, xdist, pydantic, allure, requests, responses, httpx, jsonschema\nprint('ok')", "ok"),
         ("нет сети", "import socket\ntry:\n    socket.create_connection(('1.1.1.1', 53), timeout=2)\n"
                      "    print('online')\nexcept OSError:\n    print('offline')", "offline"),
         ("пользователь nobody", "import os\nprint(os.getuid())", "65534"),
