@@ -144,14 +144,14 @@ export function sound(kind) {
   } catch { /* звук необязателен */ }
 }
 
-// Победный звук за верный ответ — короткая мягкая фанфара низких медных (валторна/туба):
-// «па-ДАМ» (соль → аккорд до мажор), около полусекунды. Мягкий тембр: смесь пилы и
-// треугольника через низкий фильтр без резонанса; два слегка расстроенных голоса
-// и короткое эхо дают объём, но не затягивают звук.
+// Победный звук за верный ответ — яркий «дзынь-дзынь», как в Duolingo: две быстрые
+// высокие ноты вверх (до → соль), звонкий колокольчатый тембр. Колокольчик — FM-синтез:
+// синусоида, частоту которой «дёргает» вторая синусоида (обертоны металла), плюс
+// тихий голос на октаву выше для блеска и короткое эхо для объёма. Всего ~0.45 с.
 let hall = null;
 function hallReverb() {
   if (hall) return hall;
-  const len = audio.sampleRate * 0.7;
+  const len = audio.sampleRate * 0.5;
   const ir = audio.createBuffer(2, len, audio.sampleRate);
   for (let ch = 0; ch < 2; ch++) {
     const d = ir.getChannelData(ch);
@@ -160,45 +160,41 @@ function hallReverb() {
   const conv = audio.createConvolver();
   conv.buffer = ir;
   const wet = audio.createGain();
-  wet.gain.value = 0.18;
+  wet.gain.value = 0.2;
   conv.connect(wet).connect(audio.destination);
   hall = conv;
   return hall;
 }
 
-function horn(freq, t, dur, vol) {
+function chime(freq, t, dur, vol) {
   const out = audio.createGain();
   out.gain.setValueAtTime(0.0001, t);
-  out.gain.exponentialRampToValueAtTime(vol, t + 0.04);          // мягкая атака
-  out.gain.setValueAtTime(vol, t + dur * 0.6);
-  out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  const filter = audio.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.Q.value = 0.5;
-  filter.frequency.setValueAtTime(freq * 1.2, t);
-  filter.frequency.exponentialRampToValueAtTime(Math.min(freq * 3, 1400), t + 0.05);
-  filter.frequency.exponentialRampToValueAtTime(freq * 1.5, t + dur);
-  filter.connect(out);
+  out.gain.exponentialRampToValueAtTime(vol, t + 0.008);         // мгновенный удар
+  out.gain.exponentialRampToValueAtTime(0.0001, t + dur);        // звенящее затухание
   out.connect(audio.destination);
   out.connect(hallReverb());
-  for (const [type, detune, level] of [["sawtooth", -5, 0.5], ["triangle", 5, 1]]) {
-    const o = audio.createOscillator(), g = audio.createGain();
-    o.type = type;
-    o.frequency.value = freq;
-    o.detune.value = detune;
-    g.gain.value = level;
-    o.connect(g).connect(filter);
-    o.start(t); o.stop(t + dur + 0.05);
-  }
+
+  const carrier = audio.createOscillator();
+  carrier.frequency.value = freq;
+  const mod = audio.createOscillator(), modGain = audio.createGain();
+  mod.frequency.value = freq * 3.5;
+  modGain.gain.setValueAtTime(freq * 1.2, t);                    // яркость удара…
+  modGain.gain.exponentialRampToValueAtTime(freq * 0.05, t + dur * 0.6);   // …быстро смягчается
+  mod.connect(modGain).connect(carrier.frequency);
+  carrier.connect(out);
+
+  const shine = audio.createOscillator(), shineGain = audio.createGain();
+  shine.frequency.value = freq * 2;
+  shineGain.gain.value = 0.25;
+  shine.connect(shineGain).connect(out);
+
+  for (const o of [carrier, mod, shine]) { o.start(t); o.stop(t + dur + 0.02); }
 }
 
 function winSound() {
-  const t = audio.currentTime + 0.02;
-  const C3 = 130.81, G3 = 196, C4 = 261.63, E4 = 329.63;
-  horn(G3, t, 0.12, 0.16);                 // «па»
-  horn(C4, t + 0.11, 0.38, 0.14);          // «ДАМ» — аккорд до мажор
-  horn(E4, t + 0.11, 0.38, 0.08);
-  horn(C3, t + 0.11, 0.38, 0.14);
+  const t = audio.currentTime + 0.01;
+  chime(1046.5, t, 0.22, 0.16);          // «дзынь» (до)
+  chime(1568, t + 0.1, 0.4, 0.18);       // «дзынь!» (соль) — выше и звонче
 }
 
 // ---------- Тосты и модалки ----------
