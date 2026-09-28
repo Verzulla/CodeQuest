@@ -1,0 +1,1514 @@
+{
+  "topics": [
+    {
+      "slug": "test-allure",
+      "title": "Allure и отчёты",
+      "icon": "📊",
+      "color": "#ff9600",
+      "description": "allure-pytest, шаги, вложения, метки и ссылки, generate/serve и история, статусы и категории, JUnit XML, сводка и quality gate, Allure в CI, сервер отчётов, уведомления, conftest для отчётов",
+      "group": "Тестирование",
+      "modules": [
+        {
+          "slug": "alr-m1",
+          "title": "Allure в тестах",
+          "icon": "📊",
+          "description": "Подключение, шаги, вложения, метки и ссылки",
+          "lessons": [
+            {
+              "slug": "alr-intro",
+              "title": "Что такое Allure и как его подключить",
+              "theory": "```bash\npip install allure-pytest\npytest --alluredir=allure-results [--clean-alluredir]\nallure serve allure-results                       # сразу в браузере\nallure generate allure-results -o allure-report --clean\nallure open allure-report\n# *-result.json — тест, *-container.json — фикстуры, *-attachment.* — вложения\n```",
+              "exercises": [
+                {
+                  "slug": "alr-intro-e1",
+                  "type": "command",
+                  "prompt": "Установи плагин Allure для pytest.",
+                  "code": "",
+                  "expected_output": "pip install allure-pytest\npython -m pip install allure-pytest\nuv add --dev allure-pytest\nuv add allure-pytest --dev",
+                  "solution": "pip install allure-pytest",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-intro-e2",
+                  "type": "command",
+                  "prompt": "Запусти тесты так, чтобы результаты для Allure сохранялись в папку `allure-results`.",
+                  "code": "",
+                  "expected_output": "pytest --alluredir=allure-results\npytest --alluredir allure-results\npython -m pytest --alluredir=allure-results",
+                  "solution": "pytest --alluredir=allure-results",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-intro-e3",
+                  "type": "command",
+                  "prompt": "Сгенерируй HTML-отчёт из `allure-results` в папку `allure-report`, очистив её перед генерацией.",
+                  "code": "",
+                  "expected_output": "allure generate allure-results -o allure-report --clean\nallure generate allure-results --clean -o allure-report\nallure generate --clean allure-results -o allure-report\nallure generate allure-results -o allure-report -c\nallure generate -c allure-results -o allure-report\nallure generate allure-results --output allure-report --clean",
+                  "solution": "allure generate allure-results -o allure-report --clean",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-intro-e4",
+                  "type": "command",
+                  "prompt": "Сгенерируй отчёт во временную папку и сразу открой его в браузере одной командой.",
+                  "code": "",
+                  "expected_output": "allure serve allure-results",
+                  "solution": "allure serve allure-results",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-intro-e5",
+                  "type": "command",
+                  "prompt": "Открой уже сгенерированный отчёт из папки `allure-report`.",
+                  "code": "",
+                  "expected_output": "allure open allure-report",
+                  "solution": "allure open allure-report",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-intro-e6",
+                  "type": "command",
+                  "prompt": "Какую программу нужно установить, чтобы работала команда `allure` (генератор отчётов)? Введи название языковой платформы.",
+                  "code": "",
+                  "expected_output": "Java\njava\nJRE\nJDK",
+                  "solution": "Java",
+                  "hint": "Allure Commandline написан на Java.",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-intro-e7",
+                  "type": "command",
+                  "prompt": "Сколько тестов в прогоне, если в `allure-results` лежат эти файлы? Введи число.",
+                  "code": "$ ls allure-results\n1b2c-result.json   7f8e-result.json   9a0b-result.json\n3d4e-container.json   5c6d-attachment.png\n",
+                  "expected_output": "3",
+                  "solution": "3",
+                  "hint": "Один тест — один *-result.json.",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-intro-e8",
+                  "type": "code",
+                  "prompt": "Проверка запустит твои тесты с `--alluredir`. Напиши тест `test_status`, который проверяет, что `health()` возвращает `\"ok\"`. Больше ничего не нужно — Allure запишет результат сам. Это позволит убедиться, что плагин подключён.",
+                  "starter_code": "import allure\nimport pytest\n\n\ndef health():\n    return \"ok\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_allure_result():\n    code, res = run_allure()\n    assert \"test_status\" in res, f\"В отчёте нет test_status: {list(res)}\"\n    assert res[\"test_status\"][\"status\"] == \"passed\", res[\"test_status\"][\"status\"]\n",
+                  "solution": "import allure\nimport pytest\n\n\ndef health():\n    return \"ok\"\n\n\ndef test_status():\n    assert health() == \"ok\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВывод pytest в терминале удобен разработчику, но менеджеру, аналитику или коллеге нужен понятный отчёт: сколько тестов прошло, что упало, на каком шаге, со скриншотами и логами, с историей прошлых прогонов. **Allure Report** — самый популярный формат отчётов об автотестах. Его ждут почти во всех вакансиях QA Automation.\n\n## Как это устроено\n\n1. Плагин **allure-pytest** во время прогона пишет сырые результаты: по JSON-файлу на тест, вложения, контейнеры фикстур — в папку `allure-results`.\n2. Утилита **Allure** (командная строка, работает на Java) превращает эти файлы в HTML-отчёт.\n\n## Подключение\n\n```bash\n$ pip install allure-pytest\n$ pytest --alluredir=allure-results\n$ ls allure-results\n1b2c-result.json  7f8e-result.json  3d4e-container.json  5c6d-attachment.png\n```\n\n- `--alluredir=папка` — куда складывать результаты. Без этого флага плагин ничего не пишет.\n- Один `*-result.json` — один тест (со статусом, шагами, метками); `*-container.json` — фикстуры; `*-attachment.*` — вложения.\n- Результаты накапливаются между прогонами. Чтобы отчёт был только по последнему прогону, папку очищают: `--clean-alluredir`.\n\n## Отчёт\n\n```bash\n$ allure serve allure-results\n$ allure generate allure-results -o allure-report --clean\n$ allure open allure-report\n```\n\n- `allure serve` — сгенерировать во временную папку и сразу открыть в браузере. Удобно локально.\n- `allure generate … -o папка --clean` — сохранить отчёт (для CI, публикации). `--clean` — очистить папку перед генерацией.\n- `allure open` — открыть готовый отчёт (он запускает локальный веб-сервер: открыть `index.html` просто двойным кликом не получится).\n- Установка утилиты: нужна Java; дальше `brew install allure`, `scoop install allure` или архив с GitHub.\n\n## Что внутри отчёта\n\n- **Overview** — сводка, графики, окружение, тренды истории.\n- **Suites** — дерево тестов по файлам и классам.\n- **Behaviors** — дерево по epic/feature/story.\n- **Graphs**, **Timeline** — статистика и время выполнения, в том числе параллельного.\n- У каждого теста: шаги, вложения, параметры, метки, ссылки, история.\n\n## Итог\n\n- `allure-pytest` + `pytest --alluredir=allure-results` — сырые результаты.\n- `allure serve` — посмотреть; `allure generate -o … --clean` — сохранить; `allure open` — открыть.\n- Утилите `allure` нужна Java.\n- Один `*-result.json` = один тест.",
+              "quiz": [
+                {
+                  "q": "Что делает флаг `--alluredir`?",
+                  "options": [
+                    "Генерирует HTML",
+                    "Указывает папку для сырых результатов Allure",
+                    "Открывает отчёт",
+                    "Устанавливает Allure"
+                  ],
+                  "answer": 1,
+                  "explain": "HTML строит утилита allure."
+                },
+                {
+                  "q": "Чем `allure serve` отличается от `allure generate`?",
+                  "options": [
+                    "Ничем",
+                    "serve генерирует во временную папку и сразу открывает",
+                    "generate открывает браузер",
+                    "serve только для CI"
+                  ],
+                  "answer": 1,
+                  "explain": "generate сохраняет отчёт в папку."
+                },
+                {
+                  "q": "Что нужно установить для команды `allure`?",
+                  "options": [
+                    "Node.js",
+                    "Java",
+                    "Docker",
+                    "Go"
+                  ],
+                  "answer": 1,
+                  "explain": "Allure Commandline работает на Java."
+                }
+              ]
+            },
+            {
+              "slug": "alr-steps",
+              "title": "Шаги: allure.step",
+              "theory": "```py\nwith allure.step(\"Открыть страницу\"):\n    page.open()\n\n@allure.step(\"Войти как {user}\")\ndef login(user): ...\n\nwith allure.step(\"Заказ\"):\n    with allure.step(\"Оплатить\"): ...\n# failed — assert, broken — другое исключение\n```",
+              "exercises": [
+                {
+                  "slug": "alr-steps-e1",
+                  "type": "code",
+                  "prompt": "Разбей тест `test_login` на шаги Allure контекстным менеджером `with allure.step(...)`: `\"Открыть страницу входа\"`, `\"Ввести логин и пароль\"`, `\"Проверить приветствие\"`. Внутри шагов вызывай функции из заготовки.",
+                  "starter_code": "import allure\nimport pytest\n\n\ndef open_login():\n    return \"login page\"\n\n\ndef enter(user, password):\n    return user == \"anna\" and password == \"secret\"\n\n\ndef greeting(user):\n    return f\"Привет, {user}\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_steps():\n    code, res = run_allure()\n    r = res.get(\"test_login\")\n    assert r and r[\"status\"] == \"passed\", f\"Нужен проходящий test_login: {list(res)}\"\n    assert step_names(r) == [\"Открыть страницу входа\", \"Ввести логин и пароль\", \"Проверить приветствие\"], step_names(r)\n",
+                  "solution": "import allure\nimport pytest\n\n\ndef open_login():\n    return \"login page\"\n\n\ndef enter(user, password):\n    return user == \"anna\" and password == \"secret\"\n\n\ndef greeting(user):\n    return f\"Привет, {user}\"\n\n\ndef test_login():\n    with allure.step(\"Открыть страницу входа\"):\n        assert open_login() == \"login page\"\n    with allure.step(\"Ввести логин и пароль\"):\n        assert enter(\"anna\", \"secret\")\n    with allure.step(\"Проверить приветствие\"):\n        assert greeting(\"anna\") == \"Привет, anna\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-steps-e2",
+                  "type": "code",
+                  "prompt": "Шаг можно объявить **декоратором** — тогда каждый вызов функции станет шагом, а параметры подставятся в название. Сделай функцию `add_to_cart(item)` шагом с названием `\"Добавить {item} в корзину\"` и тест `test_cart`, который вызывает её для `\"чай\"` и `\"кофе\"`.",
+                  "starter_code": "import allure\nimport pytest\n\nCART = []\n\n\ndef add_to_cart(item):\n    CART.append(item)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_steps():\n    code, res = run_allure()\n    r = res.get(\"test_cart\")\n    assert r and r[\"status\"] == \"passed\", list(res)\n    names = step_names(r)\n    assert len(names) == 2 and \"чай\" in names[0] and \"кофе\" in names[1] and names[0].startswith(\"Добавить\"), names\n",
+                  "solution": "import allure\nimport pytest\n\nCART = []\n\n\n@allure.step(\"Добавить {item} в корзину\")\ndef add_to_cart(item):\n    CART.append(item)\n\n\ndef test_cart():\n    add_to_cart(\"чай\")\n    add_to_cart(\"кофе\")\n    assert CART == [\"чай\", \"кофе\"]\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "@allure.step('… {item} …') над функцией.",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-steps-e3",
+                  "type": "code",
+                  "prompt": "Шаги бывают **вложенными**. Напиши тест `test_order` со шагом `\"Оформить заказ\"`, внутри которого два шага: `\"Заполнить адрес\"` и `\"Оплатить\"`.",
+                  "starter_code": "import allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_steps():\n    code, res = run_allure()\n    r = res.get(\"test_order\")\n    assert r and r[\"status\"] == \"passed\", list(res)\n    assert step_names(r) == [\"Оформить заказ\", \"  Заполнить адрес\", \"  Оплатить\"], step_names(r)\n",
+                  "solution": "import allure\nimport pytest\n\n\ndef test_order():\n    with allure.step(\"Оформить заказ\"):\n        with allure.step(\"Заполнить адрес\"):\n            pass\n        with allure.step(\"Оплатить\"):\n            pass\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-steps-e4",
+                  "type": "command",
+                  "prompt": "Какой шаг **упал**? Введи его название.",
+                  "code": "test_order  ✗ failed\n  ✓ Открыть корзину\n  ✓ Заполнить адрес\n  ✗ Оплатить\n      AssertionError: статус 500\n  · Проверить письмо\n",
+                  "expected_output": "Оплатить",
+                  "solution": "Оплатить",
+                  "hint": "Шаги после упавшего не выполняются.",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-steps-e5",
+                  "type": "command",
+                  "prompt": "Каким будет название шага при вызове `login(\"anna\")`, если функция объявлена как `@allure.step(\"Войти как {user}\")`? Введи название.",
+                  "code": "",
+                  "expected_output": "Войти как 'anna'\nВойти как anna",
+                  "solution": "Войти как 'anna'",
+                  "hint": "allure-pytest подставляет строковые параметры через repr — с кавычками.",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-steps-e6",
+                  "type": "code",
+                  "prompt": "Статус шага — как у кода внутри. Напиши тест `test_payment` с двумя шагами: `\"Создать заказ\"` (проходит) и `\"Проверить статус\"`, внутри которого `assert pay() == \"paid\"`. Функция `pay()` сейчас с багом — тест упадёт, и в отчёте будет видно, **на каком шаге**.",
+                  "starter_code": "import allure\nimport pytest\n\n\ndef pay():\n    return \"error\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_steps():\n    code, res = run_allure()\n    r = res.get(\"test_payment\")\n    assert r and r[\"status\"] == \"failed\", f\"Тест должен упасть на баге: {list(res)}\"\n    steps = r.get(\"steps\", [])\n    assert [s[\"name\"] for s in steps] == [\"Создать заказ\", \"Проверить статус\"], step_names(r)\n    assert [s[\"status\"] for s in steps] == [\"passed\", \"failed\"], [s[\"status\"] for s in steps]\n",
+                  "solution": "import allure\nimport pytest\n\n\ndef pay():\n    return \"error\"\n\n\ndef test_payment():\n    with allure.step(\"Создать заказ\"):\n        order = {\"id\": 1}\n    with allure.step(\"Проверить статус\"):\n        assert pay() == \"paid\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-steps-e7",
+                  "type": "command",
+                  "prompt": "Чем в отчёте Allure отличается статус `broken` от `failed`? Введи слово `assert`, если `failed` — это упавшая проверка, или `другое`.",
+                  "code": "",
+                  "expected_output": "assert",
+                  "solution": "assert",
+                  "hint": "failed — не прошёл assert; broken — любое другое исключение (ошибка в коде или окружении).",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-steps-e8",
+                  "type": "code",
+                  "prompt": "В реальных проектах шаги прячут в **Page Object**. Создай класс `LoginPage` с методами-шагами (декоратором): `open()` — `\"Открыть страницу входа\"`, `login(user)` — `\"Войти как {user}\"`. Тест `test_page` вызывает `open()` и `login(\"anna\")`.",
+                  "starter_code": "import allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_steps():\n    code, res = run_allure()\n    r = res.get(\"test_page\")\n    assert r and r[\"status\"] == \"passed\", list(res)\n    names = step_names(r)\n    assert len(names) == 2 and names[0] == \"Открыть страницу входа\" and names[1].startswith(\"Войти как\") and \"anna\" in names[1], names\n",
+                  "solution": "import allure\nimport pytest\n\n\nclass LoginPage:\n    @allure.step(\"Открыть страницу входа\")\n    def open(self):\n        return self\n\n    @allure.step(\"Войти как {user}\")\n    def login(self, user):\n        return user\n\n\ndef test_page():\n    page = LoginPage()\n    page.open()\n    page.login(\"anna\")\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКогда падает длинный UI- или API-тест, из трассировки не всегда понятно, где именно: на входе, в корзине или при оплате? **Шаги** делят тест на понятные действия. В отчёте видно, какие шаги прошли, на каком упало, и сколько каждый занял — тест читается как сценарий, даже без знания кода.\n\n## Контекстный менеджер\n\n```py\nimport allure\n\n\ndef test_login():\n    with allure.step(\"Открыть страницу входа\"):\n        page.open()\n    with allure.step(\"Ввести логин и пароль\"):\n        page.login(\"anna\", \"secret\")\n    with allure.step(\"Проверить приветствие\"):\n        assert page.greeting() == \"Привет, anna\"\n```\n\n- Всё, что выполняется внутри `with allure.step(\"…\")`, попадает в этот шаг.\n- Статус шага — как у кода внутри: упал `assert` — шаг `failed`, остальные шаги после него не выполняются.\n\n## Вложенные шаги\n\n```py\nwith allure.step(\"Оформить заказ\"):\n    with allure.step(\"Заполнить адрес\"):\n        ...\n    with allure.step(\"Оплатить\"):\n        ...\n```\n\n- Вложенность отображается деревом — удобно для крупных сценариев.\n\n## Декоратор\n\n```py\n@allure.step(\"Добавить {item} в корзину\")\ndef add_to_cart(item):\n    ...\n\n\nclass LoginPage:\n    @allure.step(\"Войти как {user}\")\n    def login(self, user):\n        ...\n```\n\n- Каждый вызов функции становится шагом. `{имя}` в названии заменяется значением параметра (строки подставляются через `repr`, с кавычками: `Войти как 'anna'`).\n- Так шаги встраивают в **Page Object** и клиенты API: тест остаётся коротким, а отчёт — подробным.\n\n## Статусы в отчёте\n\n- `passed` — прошёл.\n- `failed` — не прошла проверка (`AssertionError`) — вероятно, баг продукта.\n- `broken` — любое другое исключение: ошибка в тесте, в окружении, таймаут.\n- `skipped` — пропущен.\n\n## Итог\n\n- `with allure.step(\"…\")` — шаг; вложенные шаги — дерево.\n- `@allure.step(\"… {param} …\")` — каждый вызов функции — шаг.\n- Шаги в Page Object и API-клиентах делают отчёт читаемым.\n- failed — проверка, broken — другое исключение.",
+              "quiz": [
+                {
+                  "q": "Какой статус будет у теста, упавшего на `assert`?",
+                  "options": [
+                    "broken",
+                    "failed",
+                    "skipped",
+                    "passed"
+                  ],
+                  "answer": 1,
+                  "explain": "broken — другие исключения."
+                },
+                {
+                  "q": "Что подставится в `@allure.step(\"Войти как {user}\")` при вызове `login(\"anna\")`?",
+                  "options": [
+                    "{user}",
+                    "'anna'",
+                    "user",
+                    "Ничего"
+                  ],
+                  "answer": 1,
+                  "explain": "Значение параметра через repr."
+                },
+                {
+                  "q": "Выполнятся ли шаги после упавшего шага?",
+                  "options": [
+                    "Да",
+                    "Нет, тест прерывается",
+                    "Только вложенные",
+                    "Только в CI"
+                  ],
+                  "answer": 1,
+                  "explain": "Исключение прерывает тест."
+                }
+              ]
+            },
+            {
+              "slug": "alr-attach",
+              "title": "Вложения: логи, JSON, скриншоты",
+              "theory": "```py\nallure.attach(json.dumps(body), name=\"response\", attachment_type=allure.attachment_type.JSON)\nallure.attach(\"text\", name=\"log\", attachment_type=allure.attachment_type.TEXT)\nallure.attach(png_bytes, name=\"screenshot\", attachment_type=allure.attachment_type.PNG)\nallure.attach.file(path, name=\"report\", attachment_type=allure.attachment_type.CSV)\n# внутри with allure.step(...) — вложение шага\n# скриншот при падении — pytest_runtest_makereport в conftest\n```",
+              "exercises": [
+                {
+                  "slug": "alr-attach-e1",
+                  "type": "code",
+                  "prompt": "Приложи к тесту `test_api` тело ответа как JSON-вложение с именем `\"response\"`: `allure.attach(json.dumps(body), name=\"response\", attachment_type=allure.attachment_type.JSON)`. `body` — результат `fake_response()`.",
+                  "starter_code": "import json\nimport allure\nimport pytest\n\n\ndef fake_response():\n    return {\"id\": 1, \"status\": \"active\"}\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_attach():\n    code, res = run_allure()\n    r = res.get(\"test_api\")\n    assert r and r[\"status\"] == \"passed\", list(res)\n    att = [a for a in attachments(r) if a[\"name\"] == \"response\"]\n    assert att and att[0][\"type\"] == \"application/json\", attachments(r)\n    with open(\"ar/\" + att[0][\"source\"], encoding=\"utf-8\") as f:\n        assert json.load(f) == {\"id\": 1, \"status\": \"active\"}, \"Во вложении должно быть тело ответа\"\n",
+                  "solution": "import json\nimport allure\nimport pytest\n\n\ndef fake_response():\n    return {\"id\": 1, \"status\": \"active\"}\n\n\ndef test_api():\n    body = fake_response()\n    allure.attach(json.dumps(body), name=\"response\", attachment_type=allure.attachment_type.JSON)\n    assert body[\"status\"] == \"active\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-attach-e2",
+                  "type": "code",
+                  "prompt": "Приложи **текстовый** лог к шагу. В тесте `test_log` создай шаг `\"Выполнить запрос\"` и внутри него приложи строку `\"GET /users -> 200\"` с именем `\"request\"` и типом `TEXT`.",
+                  "starter_code": "import allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_attach():\n    code, res = run_allure()\n    r = res.get(\"test_log\")\n    assert r and r[\"status\"] == \"passed\", list(res)\n    steps = r.get(\"steps\", [])\n    assert steps and steps[0][\"name\"] == \"Выполнить запрос\", step_names(r)\n    att = steps[0].get(\"attachments\", [])\n    assert att and att[0][\"name\"] == \"request\" and att[0][\"type\"] == \"text/plain\", f\"Вложение должно быть внутри шага: {att}\"\n    with open(\"ar/\" + att[0][\"source\"], encoding=\"utf-8\") as f:\n        assert f.read() == \"GET /users -> 200\"\n",
+                  "solution": "import allure\nimport pytest\n\n\ndef test_log():\n    with allure.step(\"Выполнить запрос\"):\n        allure.attach(\"GET /users -> 200\", name=\"request\", attachment_type=allure.attachment_type.TEXT)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-attach-e3",
+                  "type": "code",
+                  "prompt": "Приложи **файл**: тест `test_file(tmp_path)` пишет в `tmp_path / \"report.csv\"` строку `\"id,status\\n1,ok\\n\"` и прикладывает файл через `allure.attach.file(путь, name=\"report\", attachment_type=allure.attachment_type.CSV)`.",
+                  "starter_code": "import allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_attach():\n    code, res = run_allure()\n    r = res.get(\"test_file\")\n    assert r and r[\"status\"] == \"passed\", list(res)\n    att = [a for a in attachments(r) if a[\"name\"] == \"report\"]\n    assert att and att[0][\"type\"] == \"text/csv\", attachments(r)\n    with open(\"ar/\" + att[0][\"source\"], encoding=\"utf-8\") as f:\n        assert f.read() == \"id,status\\n1,ok\\n\"\n",
+                  "solution": "import allure\nimport pytest\n\n\ndef test_file(tmp_path):\n    path = tmp_path / \"report.csv\"\n    path.write_text(\"id,status\\n1,ok\\n\", encoding=\"utf-8\")\n    allure.attach.file(path, name=\"report\", attachment_type=allure.attachment_type.CSV)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-attach-e4",
+                  "type": "command",
+                  "prompt": "Какой тип вложения (`allure.attachment_type.…`) выбрать для скриншота браузера? Введи имя константы.",
+                  "code": "",
+                  "expected_output": "PNG",
+                  "solution": "PNG",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-attach-e5",
+                  "type": "command",
+                  "prompt": "Как называется хук pytest в `conftest.py`, в котором обычно делают скриншот, если тест упал? Введи имя функции.",
+                  "code": "",
+                  "expected_output": "pytest_runtest_makereport",
+                  "solution": "pytest_runtest_makereport",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-attach-e6",
+                  "type": "code",
+                  "prompt": "Скриншот нужен только при **падении**. Твой код станет частью тестов: напиши функцию-помощник `attach_on_failure(passed, screenshot)`. Если `passed` ложно — приложить байты `screenshot` как PNG с именем `\"screenshot\"`. Затем тесты `test_ok` (вызывает помощник с `True` и проходит) и `test_bad` (вызывает с `False` и падает `assert False`).",
+                  "starter_code": "import allure\nimport pytest\n\nFAKE_PNG = b\"\\x89PNG\\r\\n\\x1a\\n\" + bytes(16)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_attach():\n    code, res = run_allure()\n    ok, bad = res.get(\"test_ok\"), res.get(\"test_bad\")\n    assert ok and bad, list(res)\n    assert not [a for a in attachments(ok) if a[\"name\"] == \"screenshot\"], \"У прошедшего теста скриншота быть не должно\"\n    shots = [a for a in attachments(bad) if a[\"name\"] == \"screenshot\"]\n    assert shots and shots[0][\"type\"] == \"image/png\", attachments(bad)\n",
+                  "solution": "import allure\nimport pytest\n\nFAKE_PNG = b\"\\x89PNG\\r\\n\\x1a\\n\" + bytes(16)\n\n\ndef attach_on_failure(passed, screenshot):\n    if not passed:\n        allure.attach(screenshot, name=\"screenshot\", attachment_type=allure.attachment_type.PNG)\n\n\ndef test_ok():\n    attach_on_failure(True, FAKE_PNG)\n\n\ndef test_bad():\n    attach_on_failure(False, FAKE_PNG)\n    assert False\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-attach-e7",
+                  "type": "command",
+                  "prompt": "Сколько вложений у теста? Введи число.",
+                  "code": "def test_api():\n    with allure.step(\"Запрос\"):\n        allure.attach(req, name=\"request\", attachment_type=allure.attachment_type.JSON)\n        allure.attach(resp, name=\"response\", attachment_type=allure.attachment_type.JSON)\n    assert resp_status == 200\n",
+                  "expected_output": "2",
+                  "solution": "2",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-attach-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `attach_request(method, url, status, body)` — шаг `\"{method} {url}\"` (декоратором или контекстным менеджером), внутри которого приложены: текст `\"status: <status>\"` с именем `\"status\"` и тело как JSON с именем `\"body\"`. Тест `test_users` вызывает `attach_request(\"GET\", \"/users\", 200, {\"items\": []})`.",
+                  "starter_code": "import json\nimport allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_attach():\n    code, res = run_allure()\n    r = res.get(\"test_users\")\n    assert r and r[\"status\"] == \"passed\", list(res)\n    steps = r.get(\"steps\", [])\n    assert steps and \"GET\" in steps[0][\"name\"] and \"/users\" in steps[0][\"name\"], step_names(r)\n    names = {a[\"name\"]: a for a in steps[0].get(\"attachments\", [])}\n    assert set(names) == {\"status\", \"body\"}, f\"Внутри шага нужны вложения status и body: {list(names)}\"\n    with open(\"ar/\" + names[\"status\"][\"source\"], encoding=\"utf-8\") as f:\n        assert f.read() == \"status: 200\"\n    with open(\"ar/\" + names[\"body\"][\"source\"], encoding=\"utf-8\") as f:\n        assert json.load(f) == {\"items\": []}\n",
+                  "solution": "import json\nimport allure\nimport pytest\n\n\ndef attach_request(method, url, status, body):\n    with allure.step(f\"{method} {url}\"):\n        allure.attach(f\"status: {status}\", name=\"status\", attachment_type=allure.attachment_type.TEXT)\n        allure.attach(json.dumps(body), name=\"body\", attachment_type=allure.attachment_type.JSON)\n\n\ndef test_users():\n    attach_request(\"GET\", \"/users\", 200, {\"items\": []})\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nУпавший UI-тест без скриншота — загадка; упавший API-тест без тела запроса и ответа — повод перезапускать. **Вложения** сохраняют в отчёте доказательства: логи, JSON, HTML страницы, скриншоты, видео. Разработчик видит всё нужное, не запуская тест.\n\n## allure.attach\n\n```py\nimport json\nimport allure\n\n\ndef test_api():\n    body = {\"id\": 1, \"status\": \"active\"}\n    allure.attach(json.dumps(body, ensure_ascii=False), name=\"response\",\n                  attachment_type=allure.attachment_type.JSON)\n    allure.attach(\"GET /users -> 200\", name=\"request\", attachment_type=allure.attachment_type.TEXT)\n```\n\n- `allure.attach(содержимое, name=…, attachment_type=…)` — строка или байты.\n- Типы: `TEXT`, `JSON`, `HTML`, `XML`, `CSV`, `PNG`, `JPG`, `MP4` и другие. От типа зависит, как вложение покажется в отчёте.\n- Вложение внутри `with allure.step(...)` привязывается к этому шагу.\n\n## allure.attach.file\n\n```py\ndef test_file(tmp_path):\n    path = tmp_path / \"report.csv\"\n    path.write_text(\"id,status\\n1,ok\\n\", encoding=\"utf-8\")\n    allure.attach.file(path, name=\"report\", attachment_type=allure.attachment_type.CSV)\n```\n\n- Приложить существующий файл: лог сервера, выгрузку, скачанный документ, видео.\n\n## Скриншот при падении\n\n```py\n# conftest.py\n@pytest.hookimpl(hookwrapper=True)\ndef pytest_runtest_makereport(item, call):\n    outcome = yield\n    report = outcome.get_result()\n    if report.when == \"call\" and report.failed:\n        page = item.funcargs.get(\"page\")\n        if page:\n            allure.attach(page.screenshot(), name=\"screenshot\",\n                          attachment_type=allure.attachment_type.PNG)\n```\n\n- Хук `pytest_runtest_makereport` вызывается после каждого этапа теста (setup, call, teardown). `report.failed` на этапе `call` — тест упал.\n- `item.funcargs` — фикстуры теста; из них берём браузерную страницу и делаем скриншот.\n- Подробно хуки разберём в практическом уроке модуля 3.\n\n## Что прикладывать\n\n- API: метод, URL, заголовки (без секретов!), тело запроса, статус и тело ответа.\n- UI: скриншот, HTML страницы, логи консоли браузера, видео.\n- Всегда: логи приложения за время теста.\n- Не прикладывай пароли и токены — отчёты читают многие.\n\n## Итог\n\n- `allure.attach(данные, name, attachment_type)`; внутри шага — к шагу.\n- `allure.attach.file(путь, …)` — готовый файл.\n- Скриншот при падении — хук `pytest_runtest_makereport` в conftest.\n- Секреты не прикладывать.",
+              "quiz": [
+                {
+                  "q": "Куда попадёт вложение, сделанное внутри `with allure.step(...)`?",
+                  "options": [
+                    "В тест целиком",
+                    "В этот шаг",
+                    "В отдельный отчёт",
+                    "Никуда"
+                  ],
+                  "answer": 1,
+                  "explain": "Вложение привязывается к текущему шагу."
+                },
+                {
+                  "q": "Какой тип вложения выбрать для скриншота?",
+                  "options": [
+                    "TEXT",
+                    "PNG",
+                    "JSON",
+                    "HTML"
+                  ],
+                  "answer": 1,
+                  "explain": "attachment_type.PNG."
+                },
+                {
+                  "q": "Что нельзя прикладывать к отчёту?",
+                  "options": [
+                    "Скриншоты",
+                    "Тела ответов",
+                    "Пароли и токены",
+                    "Логи"
+                  ],
+                  "answer": 2,
+                  "explain": "Отчёты видят многие."
+                }
+              ]
+            },
+            {
+              "slug": "alr-labels",
+              "title": "Метки: title, severity, feature, story, ссылки",
+              "theory": "```py\n@allure.title(\"Вход с правильным паролем\")\n@allure.description(\"…\")\n@allure.severity(allure.severity_level.CRITICAL)   # blocker critical normal minor trivial\n@allure.epic(\"Магазин\") @allure.feature(\"Корзина\") @allure.story(\"Оплата\")\n@allure.tag(\"smoke\")   @allure.label(\"owner\", \"qa\")\n@allure.testcase(url, \"TC-15\")  @allure.issue(url, \"BUG-42\")  @allure.link(url, name=…)\nallure.dynamic.title(f\"… {param}\")\n```",
+              "exercises": [
+                {
+                  "slug": "alr-labels-e1",
+                  "type": "code",
+                  "prompt": "Дай тесту `test_login` человекочитаемое название `\"Вход с правильным паролем\"` через `@allure.title` и описание `\"Проверяем успешный вход\"` через `@allure.description`.",
+                  "starter_code": "import allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_labels():\n    code, res = run_allure()\n    r = res.get(\"Вход с правильным паролем\")\n    assert r, f\"Не найден тест с таким названием: {list(res)}\"\n    assert r.get(\"description\") == \"Проверяем успешный вход\", r.get(\"description\")\n",
+                  "solution": "import allure\nimport pytest\n\n\n@allure.title(\"Вход с правильным паролем\")\n@allure.description(\"Проверяем успешный вход\")\ndef test_login():\n    assert True\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-labels-e2",
+                  "type": "code",
+                  "prompt": "Укажи важность: тест `test_payment` — `CRITICAL`, тест `test_avatar` — `MINOR` (через `@allure.severity(allure.severity_level.…)`).",
+                  "starter_code": "import allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_labels():\n    code, res = run_allure()\n    assert label(res[\"test_payment\"], \"severity\") == [\"critical\"], label(res[\"test_payment\"], \"severity\")\n    assert label(res[\"test_avatar\"], \"severity\") == [\"minor\"], label(res[\"test_avatar\"], \"severity\")\n",
+                  "solution": "import allure\nimport pytest\n\n\n@allure.severity(allure.severity_level.CRITICAL)\ndef test_payment():\n    assert True\n\n\n@allure.severity(allure.severity_level.MINOR)\ndef test_avatar():\n    assert True\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-labels-e3",
+                  "type": "code",
+                  "prompt": "Сгруппируй тесты по функциональности: `@allure.epic(\"Магазин\")`, `@allure.feature(\"Корзина\")` и `@allure.story(...)`. Тест `test_add` — story `\"Добавление товара\"`, тест `test_remove` — story `\"Удаление товара\"`; epic и feature у обоих одинаковые. Подсказка: epic и feature можно повесить на **класс** `TestCart`.",
+                  "starter_code": "import allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_labels():\n    code, res = run_allure()\n    add, rem = res.get(\"test_add\"), res.get(\"test_remove\")\n    assert add and rem, list(res)\n    for r in (add, rem):\n        assert label(r, \"epic\") == [\"Магазин\"] and label(r, \"feature\") == [\"Корзина\"], r[\"labels\"]\n    assert label(add, \"story\") == [\"Добавление товара\"] and label(rem, \"story\") == [\"Удаление товара\"], (label(add, \"story\"), label(rem, \"story\"))\n",
+                  "solution": "import allure\nimport pytest\n\n\n@allure.epic(\"Магазин\")\n@allure.feature(\"Корзина\")\nclass TestCart:\n    @allure.story(\"Добавление товара\")\n    def test_add(self):\n        assert True\n\n    @allure.story(\"Удаление товара\")\n    def test_remove(self):\n        assert True\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-labels-e4",
+                  "type": "code",
+                  "prompt": "Свяжи тест с задачами: тесту `test_refund` добавь ссылку на тест-кейс `@allure.testcase(\"https://tms/TC-15\", \"TC-15\")` и на баг `@allure.issue(\"https://tracker/BUG-42\", \"BUG-42\")`.",
+                  "starter_code": "import allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_links():\n    code, res = run_allure()\n    r = res.get(\"test_refund\")\n    assert r, list(res)\n    links = {(l[\"type\"], l[\"url\"]) for l in r.get(\"links\", [])}\n    assert (\"test_case\", \"https://tms/TC-15\") in links or (\"tms\", \"https://tms/TC-15\") in links, links\n    assert (\"issue\", \"https://tracker/BUG-42\") in links, links\n",
+                  "solution": "import allure\nimport pytest\n\n\n@allure.testcase(\"https://tms/TC-15\", \"TC-15\")\n@allure.issue(\"https://tracker/BUG-42\", \"BUG-42\")\ndef test_refund():\n    assert True\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-labels-e5",
+                  "type": "command",
+                  "prompt": "Какие уровни `severity` есть в Allure, если перечислить от самого важного? Введи первый (самый важный).",
+                  "code": "",
+                  "expected_output": "blocker\nBLOCKER",
+                  "solution": "blocker",
+                  "hint": "blocker, critical, normal, minor, trivial.",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-labels-e6",
+                  "type": "command",
+                  "prompt": "Какой уровень severity у теста **по умолчанию**, если метка не указана?",
+                  "code": "",
+                  "expected_output": "normal\nNORMAL",
+                  "solution": "normal",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-labels-e7",
+                  "type": "code",
+                  "prompt": "Название можно задать **динамически** внутри теста — например, для параметризованного случая. Параметризуй `test_role(role)` значениями `\"admin\"` и `\"qa\"` и внутри задай название `f\"Доступ для роли {role}\"` через `allure.dynamic.title`.",
+                  "starter_code": "import allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_dynamic():\n    code, res = run_allure()\n    assert set(res) == {\"Доступ для роли admin\", \"Доступ для роли qa\"}, list(res)\n    assert res[\"Доступ для роли qa\"][\"parameters\"] == [{\"name\": \"role\", \"value\": \"'qa'\"}], res[\"Доступ для роли qa\"][\"parameters\"]\n",
+                  "solution": "import allure\nimport pytest\n\n\n@pytest.mark.parametrize(\"role\", [\"admin\", \"qa\"])\ndef test_role(role):\n    allure.dynamic.title(f\"Доступ для роли {role}\")\n    assert role\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-labels-e8",
+                  "type": "code",
+                  "prompt": "Итог модуля. Оформи тест `test_checkout` полностью: название `\"Оформление заказа\"`, severity `CRITICAL`, feature `\"Заказы\"`, тег `\"smoke\"` (`@allure.tag`), два шага `\"Добавить товар\"` и `\"Оплатить\"`, а внутри «Оплатить» — вложение-текст `\"paid\"` с именем `\"status\"`.",
+                  "starter_code": "import allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\ndef test_full():\n    code, res = run_allure()\n    r = res.get(\"Оформление заказа\")\n    assert r and r[\"status\"] == \"passed\", list(res)\n    assert label(r, \"severity\") == [\"critical\"] and label(r, \"feature\") == [\"Заказы\"] and \"smoke\" in label(r, \"tag\"), r[\"labels\"]\n    assert [s[\"name\"] for s in r[\"steps\"]] == [\"Добавить товар\", \"Оплатить\"], step_names(r)\n    att = r[\"steps\"][1].get(\"attachments\", [])\n    assert att and att[0][\"name\"] == \"status\", \"Вложение status должно быть внутри шага «Оплатить»\"\n",
+                  "solution": "import allure\nimport pytest\n\n\n@allure.title(\"Оформление заказа\")\n@allure.severity(allure.severity_level.CRITICAL)\n@allure.feature(\"Заказы\")\n@allure.tag(\"smoke\")\ndef test_checkout():\n    with allure.step(\"Добавить товар\"):\n        pass\n    with allure.step(\"Оплатить\"):\n        allure.attach(\"paid\", name=\"status\", attachment_type=allure.attachment_type.TEXT)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВ отчёте на тысячу тестов нужно быстро понять: что сломалось в «Корзине», какие упали критичные тесты, какие связаны с багом BUG-42. **Метки** (labels) и **ссылки** (links) делают отчёт структурированным: группировка по функциональности, приоритеты, связь с задачами и тест-кейсами.\n\n## Название и описание\n\n```py\n@allure.title(\"Вход с правильным паролем\")\n@allure.description(\"Проверяем успешный вход и приветствие\")\ndef test_login():\n    ...\n```\n\n- `title` — человекочитаемое название вместо `test_login`.\n- `description` — описание (есть `description_html`). Docstring теста тоже станет описанием.\n\n## Важность\n\n```py\n@allure.severity(allure.severity_level.CRITICAL)\ndef test_payment():\n    ...\n```\n\n- Уровни: `BLOCKER`, `CRITICAL`, `NORMAL` (по умолчанию), `MINOR`, `TRIVIAL`.\n- В отчёте можно отфильтровать упавшие критичные тесты — с них начинают разбор.\n\n## Группировка: epic, feature, story\n\n```py\n@allure.epic(\"Магазин\")\n@allure.feature(\"Корзина\")\nclass TestCart:\n    @allure.story(\"Добавление товара\")\n    def test_add(self):\n        ...\n\n    @allure.story(\"Удаление товара\")\n    def test_remove(self):\n        ...\n```\n\n- Три уровня бизнес-структуры: эпик → функциональность → пользовательская история. Вкладка **Behaviors** показывает дерево по ним.\n- Декоратор на классе применяется ко всем его тестам.\n- `@allure.tag(\"smoke\")` — теги; `@allure.label(\"owner\", \"qa-team\")` — любая своя метка.\n\n## Ссылки\n\n```py\n@allure.testcase(\"https://tms/TC-15\", \"TC-15\")\n@allure.issue(\"https://tracker/BUG-42\", \"BUG-42\")\n@allure.link(\"https://docs/cart\", name=\"Требования\")\ndef test_refund():\n    ...\n```\n\n- Ссылки на тест-кейс, баг и любые страницы кликабельны в отчёте.\n- В `pytest.ini` можно задать шаблоны: `--allure-link-pattern=issue:https://tracker/{}`, тогда достаточно `@allure.issue(\"BUG-42\")`.\n\n## Динамически\n\n```py\n@pytest.mark.parametrize(\"role\", [\"admin\", \"qa\"])\ndef test_role(role):\n    allure.dynamic.title(f\"Доступ для роли {role}\")\n    allure.dynamic.severity(allure.severity_level.CRITICAL if role == \"admin\" else allure.severity_level.NORMAL)\n```\n\n- `allure.dynamic.title / description / severity / feature / tag / label / link` — задать внутри теста, когда значение зависит от данных.\n- Параметры parametrize Allure показывает сам в блоке Parameters.\n\n## Итог\n\n- `@allure.title`, `@allure.description`, `@allure.severity(...)`.\n- `epic` → `feature` → `story` — дерево Behaviors; `tag`, `label` — свои метки.\n- `testcase`, `issue`, `link` — ссылки.\n- `allure.dynamic.*` — метки внутри теста.",
+              "quiz": [
+                {
+                  "q": "Какой severity у теста по умолчанию?",
+                  "options": [
+                    "critical",
+                    "normal",
+                    "minor",
+                    "blocker"
+                  ],
+                  "answer": 1,
+                  "explain": "Если метка не указана."
+                },
+                {
+                  "q": "В каком порядке идут уровни группировки?",
+                  "options": [
+                    "story → feature → epic",
+                    "epic → feature → story",
+                    "feature → epic → story",
+                    "tag → story → epic"
+                  ],
+                  "answer": 1,
+                  "explain": "От крупного к мелкому."
+                },
+                {
+                  "q": "Как задать название теста в зависимости от параметра?",
+                  "options": [
+                    "@allure.title с f-строкой",
+                    "allure.dynamic.title(...) внутри теста",
+                    "ids=",
+                    "Нельзя"
+                  ],
+                  "answer": 1,
+                  "explain": "Декоратор вычисляется до параметров."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "alr-m2",
+          "title": "Отчёты",
+          "icon": "📈",
+          "description": "Генерация и история отчёта, статусы и категории, JUnit XML, сводка по результатам",
+          "lessons": [
+            {
+              "slug": "alr-report",
+              "title": "Генерация отчёта, история и окружение",
+              "theory": "```bash\nallure generate allure-results --single-file -o allure-report --clean\ncp -r allure-report/history allure-results/     # тренды и история\n# allure-results/environment.properties:  Browser=firefox\n# allure-results/categories.json:\n#   [{\"name\": \"Окружение\", \"matchedStatuses\": [\"broken\"], \"messageRegex\": \".*Timeout.*\"}]\n```",
+              "exercises": [
+                {
+                  "slug": "alr-report-e1",
+                  "type": "command",
+                  "prompt": "Сгенерируй отчёт одним HTML-файлом (удобно отправить по почте или приложить к задаче).",
+                  "code": "",
+                  "expected_output": "allure generate allure-results --single-file -o allure-report --clean\nallure generate --single-file allure-results -o allure-report\nallure generate allure-results --single-file\nallure generate --single-file allure-results\nallure generate allure-results -o allure-report --clean --single-file\nallure generate allure-results --single-file --clean -o allure-report",
+                  "solution": "allure generate allure-results --single-file -o allure-report --clean",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-report-e2",
+                  "type": "command",
+                  "prompt": "Чтобы в новом отчёте появились графики истории (тренды), что нужно скопировать из прошлого отчёта в `allure-results` перед генерацией? Введи имя папки.",
+                  "code": "",
+                  "expected_output": "history\nallure-report/history",
+                  "solution": "history",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-report-e3",
+                  "type": "command",
+                  "prompt": "Скопируй историю прошлого отчёта `allure-report/history` в `allure-results/` одной командой.",
+                  "code": "",
+                  "expected_output": "cp -r allure-report/history allure-results/\ncp -r allure-report/history allure-results\ncp -R allure-report/history allure-results/",
+                  "solution": "cp -r allure-report/history allure-results/",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-report-e4",
+                  "type": "command",
+                  "prompt": "Как называется файл в `allure-results`, который заполняет блок «Environment» (окружение) в отчёте? Введи имя файла.",
+                  "code": "",
+                  "expected_output": "environment.properties\nenvironment.xml",
+                  "solution": "environment.properties",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-report-e5",
+                  "type": "command",
+                  "prompt": "Как называется файл в `allure-results`, который задаёт свои категории дефектов (например, «Проблемы окружения»)? Введи имя.",
+                  "code": "",
+                  "expected_output": "categories.json",
+                  "solution": "categories.json",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-report-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `write_environment(path, env)` — записать словарь `env` в файл формата `environment.properties`: каждая пара — строка `ключ=значение`, ключи отсортированы по алфавиту.",
+                  "starter_code": "def write_environment(path, env):\n    pass\n",
+                  "tests": "def test_values():\n    write_environment(\"environment.properties\", {\"Browser\": \"chrome\", \"Base.URL\": \"https://stage\", \"Python\": \"3.12\"})\n    with open(\"environment.properties\", encoding=\"utf-8\") as f:\n        assert f.read() == \"Base.URL=https://stage\\nBrowser=chrome\\nPython=3.12\\n\", \"Неверный формат файла\"\n",
+                  "solution": "def write_environment(path, env):\n    with open(path, \"w\", encoding=\"utf-8\") as f:\n        for key in sorted(env):\n            f.write(f\"{key}={env[key]}\\n\")\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-report-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_categories()` — вернуть список категорий для `categories.json`:\n\n- `{\"name\": \"Проблемы окружения\", \"matchedStatuses\": [\"broken\"], \"messageRegex\": \".*ConnectionError.*\"}`;\n- `{\"name\": \"Дефекты продукта\", \"matchedStatuses\": [\"failed\"]}`.\n\nИ функцию `save_categories(path)` — записать их в файл как JSON (с `ensure_ascii=False`).",
+                  "starter_code": "import json\n\n\ndef make_categories():\n    pass\n\n\ndef save_categories(path):\n    pass\n",
+                  "tests": "import json\n\ndef test_values():\n    cats = make_categories()\n    assert cats == [\n        {\"name\": \"Проблемы окружения\", \"matchedStatuses\": [\"broken\"], \"messageRegex\": \".*ConnectionError.*\"},\n        {\"name\": \"Дефекты продукта\", \"matchedStatuses\": [\"failed\"]},\n    ], cats\n    save_categories(\"categories.json\")\n    text = open(\"categories.json\", encoding=\"utf-8\").read()\n    assert json.loads(text) == cats and \"Проблемы\" in text, \"Файл — JSON с кириллицей без \\\\u-экранирования\"\n",
+                  "solution": "import json\n\n\ndef make_categories():\n    return [\n        {\"name\": \"Проблемы окружения\", \"matchedStatuses\": [\"broken\"], \"messageRegex\": \".*ConnectionError.*\"},\n        {\"name\": \"Дефекты продукта\", \"matchedStatuses\": [\"failed\"]},\n    ]\n\n\ndef save_categories(path):\n    with open(path, \"w\", encoding=\"utf-8\") as f:\n        json.dump(make_categories(), f, ensure_ascii=False, indent=2)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-report-e8",
+                  "type": "command",
+                  "prompt": "Что покажет блок Environment в отчёте для ключа `Browser`?",
+                  "code": "$ cat allure-results/environment.properties\nBase.URL=https://stage.example.com\nBrowser=firefox\nBrowser.Version=128.0\n",
+                  "expected_output": "firefox",
+                  "solution": "firefox",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОдин отчёт показывает один прогон. Но важнее динамика: стало лучше или хуже, какие тесты начали падать, какие мигают. Для этого Allure умеет хранить **историю**. А блоки **Environment** и **Categories** отвечают на вопросы «на чём гоняли» и «что это за падения».\n\n## Варианты генерации\n\n```bash\n$ allure generate allure-results -o allure-report --clean\n$ allure generate allure-results --single-file -o allure-report --clean\n```\n\n- Обычный отчёт — папка с `index.html` и данными; открывается через веб-сервер (`allure open`, GitHub Pages).\n- `--single-file` — один самодостаточный HTML-файл: можно отправить по почте или приложить к задаче.\n\n## История и тренды\n\n```bash\n$ cp -r allure-report/history allure-results/\n$ allure generate allure-results -o allure-report --clean\n```\n\n- В сгенерированном отчёте есть папка `history`. Если перед следующей генерацией скопировать её в `allure-results`, отчёт покажет графики трендов и историю каждого теста (вкладка History, пометки flaky).\n- В CI историю хранят между запусками: в ветке `gh-pages`, в кэше или на сервере отчётов.\n\n## Окружение: environment.properties\n\n```bash\n$ cat allure-results/environment.properties\nBase.URL=https://stage.example.com\nBrowser=firefox\nPython=3.12\n```\n\n- Пары `ключ=значение`; отображаются в блоке Environment на главной. Сразу видно, какой стенд, браузер и версия тестировались.\n- Файл пишут скриптом или хуком pytest перед генерацией.\n\n## Категории: categories.json\n\n```bash\n$ cat allure-results/categories.json\n[\n  {\"name\": \"Проблемы окружения\", \"matchedStatuses\": [\"broken\"], \"messageRegex\": \".*ConnectionError.*\"},\n  {\"name\": \"Дефекты продукта\", \"matchedStatuses\": [\"failed\"]}\n]\n```\n\n- Свои правила группировки падений: по статусу и регулярному выражению для сообщения (`messageRegex`) или трассировки (`traceRegex`).\n- Вкладка **Categories** сразу отделяет «сервер лёг» от настоящих багов.\n- Правила проверяются по порядку; падение попадает в первую подходящую категорию. Стандартные категории — Product defects (failed) и Test defects (broken).\n\n## Итог\n\n- `--single-file` — отчёт одним HTML.\n- История: скопировать `allure-report/history` в `allure-results` перед генерацией.\n- `environment.properties` — окружение, `categories.json` — свои категории.",
+              "quiz": [
+                {
+                  "q": "Что нужно, чтобы в отчёте появились тренды?",
+                  "options": [
+                    "Флаг --trend",
+                    "Скопировать history прошлого отчёта в allure-results",
+                    "Allure TestOps",
+                    "Ничего"
+                  ],
+                  "answer": 1,
+                  "explain": "История хранится в папке history."
+                },
+                {
+                  "q": "Какой файл заполняет блок Environment?",
+                  "options": [
+                    "env.json",
+                    "environment.properties",
+                    "settings.ini",
+                    ".env"
+                  ],
+                  "answer": 1,
+                  "explain": "Пары ключ=значение."
+                },
+                {
+                  "q": "Для чего categories.json?",
+                  "options": [
+                    "Для меток feature",
+                    "Для своих правил группировки падений",
+                    "Для истории",
+                    "Для скриншотов"
+                  ],
+                  "answer": 1,
+                  "explain": "По статусу и тексту ошибки."
+                }
+              ]
+            },
+            {
+              "slug": "alr-status",
+              "title": "Статусы, категории и флаки",
+              "theory": "```py\n# passed · failed (AssertionError) · broken (другое исключение) · skipped · unknown\n# разбор: broken окружения → critical failed → шаги/вложения/история\n# flaky — меняет статус без изменений кода; retries — все попытки\n```",
+              "exercises": [
+                {
+                  "slug": "alr-status-e1",
+                  "type": "command",
+                  "prompt": "Какой статус Allure получит тест, упавший на `assert`?",
+                  "code": "",
+                  "expected_output": "failed",
+                  "solution": "failed",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-status-e2",
+                  "type": "command",
+                  "prompt": "Какой статус получит тест, в котором возникло исключение `KeyError` (не assert)?",
+                  "code": "",
+                  "expected_output": "broken",
+                  "solution": "broken",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-status-e3",
+                  "type": "command",
+                  "prompt": "Какой статус получит тест с `@pytest.mark.skip`?",
+                  "code": "",
+                  "expected_output": "skipped",
+                  "solution": "skipped",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-status-e4",
+                  "type": "command",
+                  "prompt": "Сколько тестов **сломано** (broken)? Введи число.",
+                  "code": "Total: 40\n  passed   33\n  failed    3\n  broken    2\n  skipped   2\n",
+                  "expected_output": "2",
+                  "solution": "2",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-status-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `status_of(outcome, exc_type)` — как Allure определяет статус: `outcome` — `\"passed\"`, `\"failed\"` или `\"skipped\"`, `exc_type` — имя класса исключения (или `None`). Если тест упал с `AssertionError` — `\"failed\"`, с любым другим исключением — `\"broken\"`; пропущенный — `\"skipped\"`; прошедший — `\"passed\"`.",
+                  "starter_code": "def status_of(outcome, exc_type):\n    pass\n",
+                  "tests": "def test_values():\n    assert status_of(\"passed\", None) == \"passed\" and status_of(\"skipped\", None) == \"skipped\", \"passed/skipped\"\n    assert status_of(\"failed\", \"AssertionError\") == \"failed\", \"assert\"\n    assert status_of(\"failed\", \"KeyError\") == \"broken\" and status_of(\"failed\", \"TimeoutError\") == \"broken\", \"broken\"\n",
+                  "solution": "def status_of(outcome, exc_type):\n    if outcome == \"failed\":\n        return \"failed\" if exc_type == \"AssertionError\" else \"broken\"\n    return outcome\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-status-e6",
+                  "type": "code",
+                  "prompt": "Реализуй сопоставление с категориями, как делает Allure: функция `categorize(result, categories)` — `result` — словарь `{\"status\": ..., \"message\": ...}`, `categories` — список словарей с `name`, `matchedStatuses` и необязательным `messageRegex`. Вернуть имя **первой** подходящей категории: статус входит в `matchedStatuses`, и, если есть `messageRegex`, сообщение ему соответствует целиком (`re.fullmatch`, флаг `re.S`). Если ничего не подошло — `None`.",
+                  "starter_code": "import re\n\n\ndef categorize(result, categories):\n    pass\n",
+                  "tests": "CATS = [\n    {\"name\": \"Проблемы окружения\", \"matchedStatuses\": [\"broken\"], \"messageRegex\": \".*ConnectionError.*\"},\n    {\"name\": \"Дефекты продукта\", \"matchedStatuses\": [\"failed\"]},\n    {\"name\": \"Сломанные тесты\", \"matchedStatuses\": [\"broken\"]},\n]\n\ndef test_values():\n    assert categorize({\"status\": \"broken\", \"message\": \"requests.ConnectionError: timeout\"}, CATS) == \"Проблемы окружения\"\n    assert categorize({\"status\": \"broken\", \"message\": \"KeyError: 'id'\"}, CATS) == \"Сломанные тесты\"\n    assert categorize({\"status\": \"failed\", \"message\": \"assert 1 == 2\"}, CATS) == \"Дефекты продукта\"\n    assert categorize({\"status\": \"passed\", \"message\": \"\"}, CATS) is None\n",
+                  "solution": "import re\n\n\ndef categorize(result, categories):\n    for cat in categories:\n        if result[\"status\"] not in cat[\"matchedStatuses\"]:\n            continue\n        pattern = cat.get(\"messageRegex\")\n        if pattern and not re.fullmatch(pattern, result.get(\"message\", \"\"), re.S):\n            continue\n        return cat[\"name\"]\n    return None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-status-e7",
+                  "type": "command",
+                  "prompt": "Тест в истории последних прогонов: ✓ ✗ ✓ ✓ ✗. Код не менялся. Как Allure (и тестировщики) называет такой тест? Введи слово латиницей.",
+                  "code": "",
+                  "expected_output": "flaky",
+                  "solution": "flaky",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-status-e8",
+                  "type": "code",
+                  "prompt": "Найди флаки по истории: функция `find_flaky(history)` — `history` — словарь «имя теста → список статусов последних прогонов». Тест флаки, если среди статусов есть и `\"passed\"`, и `\"failed\"`/`\"broken\"`. Вернуть отсортированный список имён.",
+                  "starter_code": "def find_flaky(history):\n    pass\n",
+                  "tests": "def test_values():\n    h = {\n        \"test_login\": [\"passed\", \"failed\", \"passed\"],\n        \"test_cart\": [\"passed\", \"passed\"],\n        \"test_pay\": [\"failed\", \"failed\"],\n        \"test_api\": [\"broken\", \"passed\"],\n    }\n    assert find_flaky(h) == [\"test_api\", \"test_login\"] and find_flaky({}) == [], find_flaky(h)\n",
+                  "solution": "def find_flaky(history):\n    result = []\n    for name, statuses in history.items():\n        s = set(statuses)\n        if \"passed\" in s and s & {\"failed\", \"broken\"}:\n            result.append(name)\n    return sorted(result)\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nРазбор упавшего прогона начинается с вопроса «что это за падение»: баг продукта, ошибка в тесте, нестабильность окружения? Статусы и категории Allure отвечают на него до того, как ты откроешь первый тест.\n\n## Статусы\n\n- **passed** — тест прошёл.\n- **failed** — не прошла проверка (`AssertionError`). Скорее всего, баг продукта или изменились требования.\n- **broken** — упал с другим исключением: `KeyError`, `TimeoutError`, `ConnectionError`. Скорее проблема теста или окружения.\n- **skipped** — пропущен (`skip`, `skipif`, xfail).\n- **unknown** — результат не определён (например, прогон прервали).\n\n```python\ndef status_of(outcome, exc_type):\n    if outcome == \"failed\":\n        return \"failed\" if exc_type == \"AssertionError\" else \"broken\"\n    return outcome\n\nprint(status_of(\"failed\", \"AssertionError\"), status_of(\"failed\", \"KeyError\"), status_of(\"passed\", None))\n```\n\n- Вывод: `failed broken passed`.\n\n## Порядок разбора\n\n1. Сначала **broken** в категории «проблемы окружения» — если лёг стенд, остальные падения могут быть следствием.\n2. Потом **failed** с высокой severity.\n3. Для каждого: шаги, вложения, история. Тест падал раньше? Падает стабильно?\n\n## Flaky\n\n- Тест, который меняет статус без изменений в коде (✓ ✗ ✓ ✓ ✗), Allure помечает иконкой flaky — по данным истории.\n- Частые причины: ожидания в UI, гонки при параллельном запуске, общие тестовые данные, нестабильный стенд.\n- Такие тесты заводят задачами и исправляют: они подрывают доверие ко всему набору.\n\n## Retries\n\n- Если тест перезапускался (плагин `pytest-rerunfailures`), Allure покажет все попытки на вкладке Retries. Прошёл со второй попытки — всё равно повод разобраться.\n\n## Итог\n\n- failed — проверка не прошла; broken — другое исключение; skipped; unknown.\n- Разбор: окружение → критичные failed → детали.\n- Flaky — по истории; retries — все попытки.",
+              "quiz": [
+                {
+                  "q": "Тест упал с `ConnectionError`. Какой статус?",
+                  "options": [
+                    "failed",
+                    "broken",
+                    "skipped",
+                    "unknown"
+                  ],
+                  "answer": 1,
+                  "explain": "Не AssertionError."
+                },
+                {
+                  "q": "Как Allure узнаёт, что тест flaky?",
+                  "options": [
+                    "По имени",
+                    "По истории прошлых прогонов",
+                    "По severity",
+                    "По времени"
+                  ],
+                  "answer": 1,
+                  "explain": "Нужна сохранённая история."
+                },
+                {
+                  "q": "С чего разумно начать разбор упавшего прогона?",
+                  "options": [
+                    "С тестов по алфавиту",
+                    "С broken из-за окружения",
+                    "С пропущенных",
+                    "С passed"
+                  ],
+                  "answer": 1,
+                  "explain": "Упавшее окружение ломает всё остальное."
+                }
+              ]
+            },
+            {
+              "slug": "alr-junit",
+              "title": "JUnit XML и другие форматы",
+              "theory": "```bash\npytest --junitxml=report.xml\npytest --html=report.html --self-contained-html   # pytest-html\n```\n```py\nimport xml.etree.ElementTree as ET\nroot = ET.fromstring(text)               # или ET.parse(path).getroot()\nroot.get(\"failures\")\nfor case in root.iter(\"testcase\"):\n    f = case.find(\"failure\")             # None, если нет\n```",
+              "exercises": [
+                {
+                  "slug": "alr-junit-e1",
+                  "type": "command",
+                  "prompt": "Запусти pytest так, чтобы результаты сохранились в формате JUnit XML в файл `report.xml` (его понимают почти все CI).",
+                  "code": "",
+                  "expected_output": "pytest --junitxml=report.xml\npytest --junit-xml=report.xml\npython -m pytest --junitxml=report.xml",
+                  "solution": "pytest --junitxml=report.xml",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-junit-e2",
+                  "type": "command",
+                  "prompt": "Установи плагин для простого HTML-отчёта pytest.",
+                  "code": "",
+                  "expected_output": "pip install pytest-html\npython -m pip install pytest-html\nuv add --dev pytest-html",
+                  "solution": "pip install pytest-html",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-junit-e3",
+                  "type": "command",
+                  "prompt": "Запусти pytest и сохрани самодостаточный HTML-отчёт в `report.html` (плагин pytest-html установлен).",
+                  "code": "",
+                  "expected_output": "pytest --html=report.html --self-contained-html\npytest --self-contained-html --html=report.html\npytest --html=report.html",
+                  "solution": "pytest --html=report.html --self-contained-html",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-junit-e4",
+                  "type": "command",
+                  "prompt": "Сколько тестов упало по этому JUnit XML? Введи число.",
+                  "code": "<testsuite name=\"pytest\" tests=\"5\" failures=\"1\" errors=\"1\" skipped=\"1\" time=\"2.31\">\n  <testcase classname=\"tests.test_api\" name=\"test_status\" time=\"0.12\"/>\n  ...\n</testsuite>\n",
+                  "expected_output": "1",
+                  "solution": "1",
+                  "hint": "failures — упавшие assert, errors — ошибки (аналог broken).",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-junit-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `junit_summary(xml_text)` — разобрать JUnit XML модулем `xml.etree.ElementTree` и вернуть словарь `{\"tests\": N, \"failures\": N, \"errors\": N, \"skipped\": N}` из атрибутов корневого `<testsuite>` (числа — int). Если корень — `<testsuites>`, взять первый `<testsuite>` внутри.",
+                  "starter_code": "import xml.etree.ElementTree as ET\n\n\ndef junit_summary(xml_text):\n    pass\n",
+                  "tests": "XML1 = '<testsuite name=\"pytest\" tests=\"5\" failures=\"1\" errors=\"1\" skipped=\"1\" time=\"2.3\"></testsuite>'\nXML2 = '<testsuites><testsuite name=\"pytest\" tests=\"3\" failures=\"0\" errors=\"0\" skipped=\"0\" time=\"1\"/></testsuites>'\n\ndef test_values():\n    assert junit_summary(XML1) == {\"tests\": 5, \"failures\": 1, \"errors\": 1, \"skipped\": 1}, junit_summary(XML1)\n    assert junit_summary(XML2) == {\"tests\": 3, \"failures\": 0, \"errors\": 0, \"skipped\": 0}, junit_summary(XML2)\n",
+                  "solution": "import xml.etree.ElementTree as ET\n\n\ndef junit_summary(xml_text):\n    root = ET.fromstring(xml_text)\n    suite = root if root.tag == \"testsuite\" else root.find(\"testsuite\")\n    return {key: int(suite.get(key, 0)) for key in (\"tests\", \"failures\", \"errors\", \"skipped\")}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-junit-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `failed_cases(xml_text)` — список строк `\"classname::name: сообщение\"` для каждого `<testcase>`, внутри которого есть `<failure>` или `<error>` (сообщение — атрибут `message`).",
+                  "starter_code": "import xml.etree.ElementTree as ET\n\n\ndef failed_cases(xml_text):\n    pass\n",
+                  "tests": "XML = '''<testsuite tests=\"3\">\n  <testcase classname=\"tests.test_api\" name=\"test_ok\" time=\"0.1\"/>\n  <testcase classname=\"tests.test_api\" name=\"test_status\" time=\"0.2\"><failure message=\"assert 500 == 200\">...</failure></testcase>\n  <testcase classname=\"tests.test_ui\" name=\"test_login\" time=\"1.0\"><error message=\"TimeoutError\">...</error></testcase>\n</testsuite>'''\n\ndef test_values():\n    assert failed_cases(XML) == [\"tests.test_api::test_status: assert 500 == 200\", \"tests.test_ui::test_login: TimeoutError\"], failed_cases(XML)\n",
+                  "solution": "import xml.etree.ElementTree as ET\n\n\ndef failed_cases(xml_text):\n    result = []\n    for case in ET.fromstring(xml_text).iter(\"testcase\"):\n        problem = case.find(\"failure\")\n        if problem is None:\n            problem = case.find(\"error\")\n        if problem is not None:\n            result.append(f\"{case.get('classname')}::{case.get('name')}: {problem.get('message')}\")\n    return result\n",
+                  "hint": "У Element без детей bool() ложно — сравнивай с None явно.",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-junit-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `slowest(xml_text, n)` — `n` самых долгих тестов из JUnit XML как список кортежей `(name, time)` (время — float), по убыванию времени.",
+                  "starter_code": "import xml.etree.ElementTree as ET\n\n\ndef slowest(xml_text, n):\n    pass\n",
+                  "tests": "XML = '''<testsuite>\n  <testcase classname=\"a\" name=\"t1\" time=\"0.5\"/>\n  <testcase classname=\"a\" name=\"t2\" time=\"3.25\"/>\n  <testcase classname=\"a\" name=\"t3\" time=\"1.0\"/>\n</testsuite>'''\n\ndef test_values():\n    assert slowest(XML, 2) == [(\"t2\", 3.25), (\"t3\", 1.0)] and slowest(XML, 0) == [], slowest(XML, 2)\n",
+                  "solution": "import xml.etree.ElementTree as ET\n\n\ndef slowest(xml_text, n):\n    cases = [(c.get(\"name\"), float(c.get(\"time\", 0))) for c in ET.fromstring(xml_text).iter(\"testcase\")]\n    return sorted(cases, key=lambda c: -c[1])[:n]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-junit-e8",
+                  "type": "command",
+                  "prompt": "В каком формате, кроме Allure, почти любой CI (GitHub Actions, GitLab, Jenkins) умеет показывать результаты тестов? Введи название формата.",
+                  "code": "",
+                  "expected_output": "JUnit XML\nJUnit\njunit\njunit xml\nJUnit-XML",
+                  "solution": "JUnit XML",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nAllure — не единственный формат. **JUnit XML** понимают почти все CI-системы: GitHub Actions, GitLab, Jenkins, TeamCity показывают по нему результаты прямо в интерфейсе merge request. Иногда нужен и простой HTML-отчёт без Java. А разбирать эти форматы скриптом полезно для уведомлений и статистики.\n\n## JUnit XML\n\n```bash\n$ pytest --junitxml=report.xml\n$ cat report.xml\n<testsuites>\n  <testsuite name=\"pytest\" tests=\"5\" failures=\"1\" errors=\"1\" skipped=\"1\" time=\"2.31\">\n    <testcase classname=\"tests.test_api\" name=\"test_status\" time=\"0.12\"/>\n    <testcase classname=\"tests.test_api\" name=\"test_users\" time=\"0.30\">\n      <failure message=\"assert 500 == 200\">…трассировка…</failure>\n    </testcase>\n  </testsuite>\n</testsuites>\n```\n\n- `failures` — упавшие проверки (аналог failed), `errors` — ошибки (аналог broken), `skipped`.\n- Каждый `<testcase>`: `classname` (модуль/класс), `name`, `time`; внутри — `<failure>`, `<error>` или `<skipped>`.\n\n## Разбор в Python\n\n```python\nimport xml.etree.ElementTree as ET\n\nxml_text = \"\"\"<testsuite tests=\"2\" failures=\"1\">\n  <testcase classname=\"tests.test_api\" name=\"test_ok\" time=\"0.1\"/>\n  <testcase classname=\"tests.test_api\" name=\"test_bad\" time=\"0.2\"><failure message=\"assert 1 == 2\"/></testcase>\n</testsuite>\"\"\"\nroot = ET.fromstring(xml_text)\nprint(root.get(\"tests\"), root.get(\"failures\"))\nfor case in root.iter(\"testcase\"):\n    failure = case.find(\"failure\")\n    if failure is not None:\n        print(case.get(\"name\"), failure.get(\"message\"))\n```\n\n- `ET.fromstring` — разобрать строку, `ET.parse(путь).getroot()` — файл.\n- `.get(\"атрибут\")` — значение атрибута (строка), `.iter(\"тег\")` — все элементы на любой глубине, `.find(\"тег\")` — первый дочерний.\n- `find` возвращает `None`, если элемента нет. Сравнивай с `None` явно: у элемента без детей `bool()` ложно.\n- Вывод: `2 1`, `test_bad assert 1 == 2`.\n\n## pytest-html\n\n```bash\n$ pip install pytest-html\n$ pytest --html=report.html --self-contained-html\n```\n\n- Простой HTML-отчёт без Java: таблица тестов, логи, возможность добавить картинки. Хорош для небольших проектов.\n\n## Итог\n\n- `pytest --junitxml=report.xml` — формат для любого CI.\n- `failures` ≈ failed, `errors` ≈ broken; `<testcase>` с `<failure>/<error>/<skipped>`.\n- `xml.etree.ElementTree`: `fromstring`, `iter`, `find`, `get`.\n- `pytest-html` — простой отчёт без Java.",
+              "quiz": [
+                {
+                  "q": "Что в JUnit XML соответствует статусу broken?",
+                  "options": [
+                    "failures",
+                    "errors",
+                    "skipped",
+                    "tests"
+                  ],
+                  "answer": 1,
+                  "explain": "failures — это упавшие assert."
+                },
+                {
+                  "q": "Что вернёт `case.find(\"failure\")`, если элемента нет?",
+                  "options": [
+                    "Пустую строку",
+                    "None",
+                    "Ошибку",
+                    "False"
+                  ],
+                  "answer": 1,
+                  "explain": "Проверяй через is not None."
+                },
+                {
+                  "q": "Зачем JUnit XML, если есть Allure?",
+                  "options": [
+                    "Он красивее",
+                    "Его понимают почти все CI и показывают в интерфейсе",
+                    "Он быстрее",
+                    "Allure его требует"
+                  ],
+                  "answer": 1,
+                  "explain": "Встроенная поддержка в CI."
+                }
+              ]
+            },
+            {
+              "slug": "alr-summary",
+              "title": "Сводка по результатам",
+              "theory": "```py\nresults = [json.loads(p.read_text()) for p in Path(\"allure-results\").glob(\"*-result.json\")]\n# r[\"status\"], r[\"labels\"], r[\"steps\"], r[\"start\"], r[\"stop\"] (мс)\nrate = passed * 100 / (passed + failed + broken)      # без skipped\n# allure-report/widgets/summary.json → statistic\n# quality gate: нарушено правило → sys.exit(1)\n```",
+              "exercises": [
+                {
+                  "slug": "alr-summary-e1",
+                  "type": "code",
+                  "prompt": "Напиши функцию `summary(results)` — `results` — список результатов Allure (словари с ключом `\"status\"`). Вернуть словарь с количеством по статусам `passed`, `failed`, `broken`, `skipped` (все 4 ключа, даже если 0) и `total`.",
+                  "starter_code": "def summary(results):\n    pass\n",
+                  "tests": "def test_values():\n    res = [{\"status\": s} for s in [\"passed\", \"passed\", \"failed\", \"broken\", \"passed\", \"skipped\"]]\n    assert summary(res) == {\"passed\": 3, \"failed\": 1, \"broken\": 1, \"skipped\": 1, \"total\": 6}, summary(res)\n    assert summary([]) == {\"passed\": 0, \"failed\": 0, \"broken\": 0, \"skipped\": 0, \"total\": 0}\n",
+                  "solution": "def summary(results):\n    counts = {\"passed\": 0, \"failed\": 0, \"broken\": 0, \"skipped\": 0}\n    for r in results:\n        counts[r[\"status\"]] = counts.get(r[\"status\"], 0) + 1\n    counts[\"total\"] = len(results)\n    return counts\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-summary-e2",
+                  "type": "code",
+                  "prompt": "Напиши функцию `pass_rate(counts)` — процент успешных тестов (с точностью до одного знака) от **выполненных**: пропущенные не учитываются. `counts` — словарь как из прошлого задания. Если выполненных нет — `0.0`.",
+                  "starter_code": "def pass_rate(counts):\n    pass\n",
+                  "tests": "def test_values():\n    assert pass_rate({\"passed\": 3, \"failed\": 1, \"broken\": 1, \"skipped\": 1, \"total\": 6}) == 60.0\n    assert pass_rate({\"passed\": 2, \"failed\": 1, \"broken\": 0, \"skipped\": 0, \"total\": 3}) == 66.7\n    assert pass_rate({\"passed\": 0, \"failed\": 0, \"broken\": 0, \"skipped\": 4, \"total\": 4}) == 0.0\n",
+                  "solution": "def pass_rate(counts):\n    executed = counts[\"passed\"] + counts[\"failed\"] + counts[\"broken\"]\n    if executed == 0:\n        return 0.0\n    return round(counts[\"passed\"] * 100 / executed, 1)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-summary-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `load_results(folder)` — прочитать все файлы `*-result.json` в папке (модулем `glob` или `pathlib`) и вернуть список словарей. Проверка сама создаст папку с файлами.",
+                  "starter_code": "import json\nfrom pathlib import Path\n\n\ndef load_results(folder):\n    pass\n",
+                  "tests": "import json, os\n\ndef test_values():\n    os.makedirs(\"res\", exist_ok=True)\n    for i, status in enumerate([\"passed\", \"failed\"]):\n        with open(f\"res/{i}-result.json\", \"w\", encoding=\"utf-8\") as f:\n            json.dump({\"name\": f\"t{i}\", \"status\": status}, f)\n    with open(\"res/x-container.json\", \"w\", encoding=\"utf-8\") as f:\n        json.dump({\"children\": []}, f)\n    got = sorted(load_results(\"res\"), key=lambda r: r[\"name\"])\n    assert got == [{\"name\": \"t0\", \"status\": \"passed\"}, {\"name\": \"t1\", \"status\": \"failed\"}], got\n",
+                  "solution": "import json\nfrom pathlib import Path\n\n\ndef load_results(folder):\n    return [json.loads(p.read_text(encoding=\"utf-8\")) for p in Path(folder).glob(\"*-result.json\")]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-summary-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `by_feature(results)` — сгруппировать упавшие (`failed` и `broken`) тесты по метке `feature`: словарь «feature → список имён», тесты без метки — под ключом `\"без feature\"`. Порядок имён — как во входном списке.",
+                  "starter_code": "def by_feature(results):\n    pass\n",
+                  "tests": "def test_values():\n    res = [\n        {\"name\": \"a\", \"status\": \"failed\", \"labels\": [{\"name\": \"feature\", \"value\": \"Корзина\"}]},\n        {\"name\": \"b\", \"status\": \"passed\", \"labels\": [{\"name\": \"feature\", \"value\": \"Корзина\"}]},\n        {\"name\": \"c\", \"status\": \"broken\", \"labels\": []},\n        {\"name\": \"d\", \"status\": \"failed\", \"labels\": [{\"name\": \"feature\", \"value\": \"Корзина\"}]},\n    ]\n    assert by_feature(res) == {\"Корзина\": [\"a\", \"d\"], \"без feature\": [\"c\"]}, by_feature(res)\n",
+                  "solution": "def by_feature(results):\n    groups = {}\n    for r in results:\n        if r[\"status\"] not in (\"failed\", \"broken\"):\n            continue\n        features = [l[\"value\"] for l in r.get(\"labels\", []) if l[\"name\"] == \"feature\"]\n        key = features[0] if features else \"без feature\"\n        groups.setdefault(key, []).append(r[\"name\"])\n    return groups\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-summary-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `duration_sec(result)` — длительность теста в секундах (float, 2 знака) по полям `start` и `stop` результата Allure (миллисекунды). И `total_duration(results)` — сумма по всем тестам (2 знака).",
+                  "starter_code": "def duration_sec(result):\n    pass\n\n\ndef total_duration(results):\n    pass\n",
+                  "tests": "def test_values():\n    r1 = {\"start\": 1709899200000, \"stop\": 1709899201250}\n    r2 = {\"start\": 1709899300000, \"stop\": 1709899300500}\n    assert duration_sec(r1) == 1.25 and total_duration([r1, r2]) == 1.75 and total_duration([]) == 0, (duration_sec(r1), total_duration([r1, r2]))\n",
+                  "solution": "def duration_sec(result):\n    return round((result[\"stop\"] - result[\"start\"]) / 1000, 2)\n\n\ndef total_duration(results):\n    return round(sum(duration_sec(r) for r in results), 2)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-summary-e6",
+                  "type": "command",
+                  "prompt": "Как называется JSON-файл в сгенерированном отчёте с итоговыми цифрами (виджет «Summary»)? Введи путь внутри `allure-report`.",
+                  "code": "",
+                  "expected_output": "widgets/summary.json",
+                  "solution": "widgets/summary.json",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-summary-e7",
+                  "type": "command",
+                  "prompt": "Выведи из `allure-report/widgets/summary.json` количество упавших тестов утилитой `jq` (поле `.statistic.failed`).",
+                  "code": "",
+                  "expected_output": "jq .statistic.failed allure-report/widgets/summary.json\njq '.statistic.failed' allure-report/widgets/summary.json\njq \".statistic.failed\" allure-report/widgets/summary.json\ncat allure-report/widgets/summary.json | jq .statistic.failed\ncat allure-report/widgets/summary.json | jq '.statistic.failed'",
+                  "solution": "jq .statistic.failed allure-report/widgets/summary.json",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-summary-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `quality_gate(counts, min_rate)` — «ворота качества» для CI: вернуть кортеж `(ok, reason)`. Правила по порядку:\n\n- есть `broken` → `(False, \"есть broken: N\")`;\n- процент успешных среди выполненных (без skipped) меньше `min_rate` → `(False, \"pass rate X% < Y%\")` (X — с одним знаком);\n- иначе `(True, \"ok\")`.",
+                  "starter_code": "def quality_gate(counts, min_rate):\n    pass\n",
+                  "tests": "def test_values():\n    assert quality_gate({\"passed\": 9, \"failed\": 1, \"broken\": 0, \"skipped\": 3}, 90) == (True, \"ok\")\n    assert quality_gate({\"passed\": 9, \"failed\": 0, \"broken\": 2, \"skipped\": 0}, 50) == (False, \"есть broken: 2\")\n    assert quality_gate({\"passed\": 8, \"failed\": 2, \"broken\": 0, \"skipped\": 0}, 90) == (False, \"pass rate 80.0% < 90%\")\n",
+                  "solution": "def quality_gate(counts, min_rate):\n    if counts[\"broken\"]:\n        return False, f\"есть broken: {counts['broken']}\"\n    executed = counts[\"passed\"] + counts[\"failed\"] + counts[\"broken\"]\n    rate = round(counts[\"passed\"] * 100 / executed, 1) if executed else 0.0\n    if rate < min_rate:\n        return False, f\"pass rate {rate}% < {min_rate}%\"\n    return True, \"ok\"\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nРезультаты прогона нужны не только в отчёте: скрипт должен решить, пропускать ли релиз, отправить уведомление, посчитать процент успешных. Для этого читают сырые результаты Allure (`*-result.json`) или готовую сводку сгенерированного отчёта.\n\n## Чтение результатов\n\n```python\nimport json\nfrom pathlib import Path\n\nfolder = Path(\"res\")\nfolder.mkdir(exist_ok=True)\nfor i, status in enumerate([\"passed\", \"failed\", \"passed\"]):\n    (folder / f\"{i}-result.json\").write_text(json.dumps({\"name\": f\"t{i}\", \"status\": status}), encoding=\"utf-8\")\n\nresults = [json.loads(p.read_text(encoding=\"utf-8\")) for p in folder.glob(\"*-result.json\")]\ncounts = {}\nfor r in results:\n    counts[r[\"status\"]] = counts.get(r[\"status\"], 0) + 1\nprint(len(results), sorted(counts.items()))\n```\n\n- Каждый `*-result.json` — словарь: `name`, `status`, `statusDetails` (сообщение и трассировка), `steps`, `attachments`, `labels`, `parameters`, `start`, `stop` (время в миллисекундах).\n- Вывод: `3 [('failed', 1), ('passed', 2)]`.\n\n## Процент успешных\n\n```python\ncounts = {\"passed\": 3, \"failed\": 1, \"broken\": 1, \"skipped\": 1}\nexecuted = counts[\"passed\"] + counts[\"failed\"] + counts[\"broken\"]\nprint(round(counts[\"passed\"] * 100 / executed, 1))\n```\n\n- Пропущенные тесты не выполнялись — их не считают в знаменателе.\n- Вывод: `60.0`.\n\n## Сводка готового отчёта\n\n```bash\n$ jq .statistic allure-report/widgets/summary.json\n{\"failed\": 1, \"broken\": 0, \"skipped\": 2, \"passed\": 37, \"unknown\": 0, \"total\": 40}\n```\n\n- В сгенерированном отчёте файл `widgets/summary.json` содержит итоговую статистику и время прогона. Удобнее, чем разбирать все результаты.\n- `jq` — утилита для JSON в терминале.\n\n## Quality gate\n\n- **Ворота качества** — правило, по которому CI решает, можно ли выпускать: «нет broken», «pass rate не ниже 95%», «нет упавших critical». Скрипт считает метрики и завершается с кодом 1, если правило нарушено.\n\n## Итог\n\n- `*-result.json`: `status`, `labels`, `steps`, `start`/`stop`.\n- Pass rate — от выполненных (без skipped).\n- `widgets/summary.json` — готовая статистика.\n- Quality gate — правило + ненулевой код выхода.",
+              "quiz": [
+                {
+                  "q": "Учитываются ли skipped при расчёте pass rate?",
+                  "options": [
+                    "Да, как успешные",
+                    "Да, как упавшие",
+                    "Нет, они не выполнялись",
+                    "Только в Allure"
+                  ],
+                  "answer": 2,
+                  "explain": "Считают от выполненных."
+                },
+                {
+                  "q": "Где в сгенерированном отчёте итоговая статистика?",
+                  "options": [
+                    "index.html",
+                    "widgets/summary.json",
+                    "history/",
+                    "data/tests"
+                  ],
+                  "answer": 1,
+                  "explain": "Поле statistic."
+                },
+                {
+                  "q": "Что делает quality gate в CI?",
+                  "options": [
+                    "Генерирует отчёт",
+                    "Роняет сборку, если метрики хуже порога",
+                    "Перезапускает тесты",
+                    "Шлёт уведомления"
+                  ],
+                  "answer": 1,
+                  "explain": "Ненулевой код выхода."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "alr-m3",
+          "title": "Отчёты в CI и на сервере",
+          "icon": "🚀",
+          "description": "Allure в GitHub Actions и GitLab, сервер отчётов и его API, уведомления, conftest для отчётов",
+          "lessons": [
+            {
+              "slug": "alr-ci",
+              "title": "Allure в CI",
+              "theory": "```bash\n# GitHub Actions\n- run: uv run pytest --alluredir=allure-results\n- uses: actions/upload-artifact@v4\n  if: always()\n  with: {name: allure-results, path: allure-results}\n# GitLab\nartifacts:\n  when: always\n  paths: [allure-results]\n  reports: {junit: report.xml}\n```",
+              "exercises": [
+                {
+                  "slug": "alr-ci-e1",
+                  "type": "command",
+                  "prompt": "Шаг CI должен сохранить папку `allure-results` даже если тесты упали. Какое условие пишут в GitHub Actions у шага загрузки артефакта? Введи выражение в `if:`.",
+                  "code": "",
+                  "expected_output": "always()\n${{ always() }}\n${{always()}}",
+                  "solution": "always()",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-ci-e2",
+                  "type": "command",
+                  "prompt": "Как называется официальное действие GitHub Actions для загрузки артефактов (папок с отчётами)? Введи `владелец/имя@версия` для версии v4.",
+                  "code": "",
+                  "expected_output": "actions/upload-artifact@v4",
+                  "solution": "actions/upload-artifact@v4",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-ci-e3",
+                  "type": "command",
+                  "prompt": "Какая строка в шаге GitLab CI задаёт, что артефакты сохраняются всегда (`when: …`)? Введи значение.",
+                  "code": "",
+                  "expected_output": "always",
+                  "solution": "always",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-ci-e4",
+                  "type": "command",
+                  "prompt": "Сколько шагов в этом job? Введи число.",
+                  "code": "jobs:\n  tests:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: astral-sh/setup-uv@v3\n      - run: uv sync --locked\n      - run: uv run pytest --alluredir=allure-results\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: allure-results\n          path: allure-results\n",
+                  "expected_output": "5",
+                  "solution": "5",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-ci-e5",
+                  "type": "command",
+                  "prompt": "Команда в CI должна упасть (код ≠ 0), если тесты упали, но **всё равно** сгенерировать отчёт следующим шагом. Какой флаг у pytest **не** нужен, чтобы pytest возвращал правильный код? Введи `ничего` — pytest и так вернёт 1 при падениях.",
+                  "code": "",
+                  "expected_output": "ничего",
+                  "solution": "ничего",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-ci-e6",
+                  "type": "command",
+                  "prompt": "Отчёт Allure часто публикуют как статический сайт. Как называется бесплатный хостинг статических страниц GitHub? Введи название.",
+                  "code": "",
+                  "expected_output": "GitHub Pages\ngithub pages\ngh-pages\nPages",
+                  "solution": "GitHub Pages",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-ci-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `ci_steps(use_uv, workers)` — сгенерировать список команд для шага CI: установка зависимостей (`uv sync --locked`, если `use_uv`, иначе `pip install -r requirements.txt`), затем запуск тестов (`uv run pytest` или `pytest`) с `-n <workers>` (если `workers > 1`) и `--alluredir=allure-results`.",
+                  "starter_code": "def ci_steps(use_uv, workers):\n    pass\n",
+                  "tests": "def test_values():\n    assert ci_steps(True, 4) == [\"uv sync --locked\", \"uv run pytest -n 4 --alluredir=allure-results\"], ci_steps(True, 4)\n    assert ci_steps(False, 1) == [\"pip install -r requirements.txt\", \"pytest --alluredir=allure-results\"], ci_steps(False, 1)\n",
+                  "solution": "def ci_steps(use_uv, workers):\n    install = \"uv sync --locked\" if use_uv else \"pip install -r requirements.txt\"\n    run = \"uv run pytest\" if use_uv else \"pytest\"\n    if workers > 1:\n        run += f\" -n {workers}\"\n    return [install, run + \" --alluredir=allure-results\"]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-ci-e8",
+                  "type": "command",
+                  "prompt": "Как в GitHub Actions скачать артефакт `allure-results` из прошлого job в текущий? Введи действие `владелец/имя@v4`.",
+                  "code": "",
+                  "expected_output": "actions/download-artifact@v4",
+                  "solution": "actions/download-artifact@v4",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nАвтотесты по-настоящему работают в **CI**: после каждого push или по расписанию. Отчёт должен сохраняться автоматически и быть доступен по ссылке — иначе упавший ночной прогон никто не разберёт. Подробно CI разберём в отдельной теме, здесь — всё про отчёты.\n\n## GitHub Actions\n\n```bash\njobs:\n  tests:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: astral-sh/setup-uv@v3\n      - run: uv sync --locked\n      - run: uv run pytest --alluredir=allure-results\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: allure-results\n          path: allure-results\n```\n\n- Каждый элемент `steps` — шаг: `uses` — готовое действие, `run` — команда.\n- Если тесты упали, шаг `pytest` вернёт код 1, и следующие шаги по умолчанию **не выполнятся**. `if: always()` заставляет выполнить шаг загрузки в любом случае — без него отчёт об упавшем прогоне потеряется.\n- `upload-artifact` сохраняет папку как артефакт прогона — её можно скачать со страницы запуска. Следующий job скачивает её через `actions/download-artifact@v4` и генерирует отчёт.\n\n## Публикация\n\n- Отчёт — статический сайт. Его публикуют на **GitHub Pages** (ветка `gh-pages`) или **GitLab Pages**, сохраняя папку `history` между запусками — так появляются тренды.\n- Для этого есть готовые действия, например `simple-elf/allure-report-action`, и шаг `peaceiris/actions-gh-pages`.\n\n## GitLab CI\n\n```bash\ntests:\n  image: python:3.12\n  script:\n    - pip install -r requirements.txt\n    - pytest --alluredir=allure-results --junitxml=report.xml\n  artifacts:\n    when: always\n    paths:\n      - allure-results\n    reports:\n      junit: report.xml\n```\n\n- `artifacts: when: always` — сохранить и при падении.\n- `reports: junit` — GitLab покажет результаты тестов прямо в merge request.\n\n## Итог\n\n- `pytest --alluredir` → артефакт `allure-results` с `if: always()` / `when: always`.\n- Отдельный шаг генерирует отчёт; публикация — Pages, история — между запусками.\n- JUnit XML — для встроенного отображения в CI.",
+              "quiz": [
+                {
+                  "q": "Зачем `if: always()` у шага загрузки отчёта?",
+                  "options": [
+                    "Для скорости",
+                    "Чтобы отчёт сохранился и при упавших тестах",
+                    "Чтобы тесты не падали",
+                    "Для истории"
+                  ],
+                  "answer": 1,
+                  "explain": "Иначе после падения шаги пропускаются."
+                },
+                {
+                  "q": "Где удобно публиковать HTML-отчёт Allure бесплатно?",
+                  "options": [
+                    "В README",
+                    "GitHub Pages / GitLab Pages",
+                    "В issue",
+                    "В Docker Hub"
+                  ],
+                  "answer": 1,
+                  "explain": "Это статический сайт."
+                },
+                {
+                  "q": "Что делает `reports: junit` в GitLab CI?",
+                  "options": [
+                    "Генерирует Allure",
+                    "Показывает результаты тестов в merge request",
+                    "Удаляет отчёт",
+                    "Запускает тесты"
+                  ],
+                  "answer": 1,
+                  "explain": "Встроенная поддержка JUnit XML."
+                }
+              ]
+            },
+            {
+              "slug": "alr-server",
+              "title": "Сервер отчётов и его API",
+              "theory": "```bash\ndocker run -d -p 5050:5050 frankescobar/allure-docker-service\nallurectl upload allure-results                # Allure TestOps\n```\n```py\npayload = {\"results\": [{\"file_name\": p.name,\n                        \"content_base64\": base64.b64encode(p.read_bytes()).decode()} for p in files]}\nrequests.post(f\"{base}/allure-docker-service/send-results\", params={\"project_id\": \"api\"}, json=payload, timeout=30)\nrequests.get(f\"{base}/allure-docker-service/generate-report\", params={\"project_id\": \"api\"})\n```",
+              "exercises": [
+                {
+                  "slug": "alr-server-e1",
+                  "type": "command",
+                  "prompt": "Как называется коммерческая система управления тестированием от авторов Allure (хранит историю, тест-кейсы, запуски)? Введи название.",
+                  "code": "",
+                  "expected_output": "Allure TestOps\nTestOps\nallure testops",
+                  "solution": "Allure TestOps",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-server-e2",
+                  "type": "command",
+                  "prompt": "Запусти открытый сервер отчётов Allure в Docker (образ `frankescobar/allure-docker-service`) на порту 5050.",
+                  "code": "",
+                  "expected_output": "docker run -p 5050:5050 frankescobar/allure-docker-service\ndocker run -d -p 5050:5050 frankescobar/allure-docker-service\ndocker run -p 5050:5050 -d frankescobar/allure-docker-service",
+                  "solution": "docker run -p 5050:5050 frankescobar/allure-docker-service",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-server-e3",
+                  "type": "command",
+                  "prompt": "Утилита `allurectl` загружает результаты в Allure TestOps. Как называется её подкоманда для загрузки папки? Введи слово.",
+                  "code": "",
+                  "expected_output": "upload",
+                  "solution": "upload",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-server-e4",
+                  "type": "code",
+                  "prompt": "Сервер отчётов принимает результаты по HTTP. Напиши функцию `build_payload(folder)` — прочитать все файлы в папке `allure-results` и вернуть словарь `{\"results\": [{\"file_name\": имя, \"content_base64\": содержимое в base64}]}` (как у allure-docker-service). Имена — отсортированы.",
+                  "starter_code": "import base64\nfrom pathlib import Path\n\n\ndef build_payload(folder):\n    pass\n",
+                  "tests": "import base64, os\n\ndef test_values():\n    os.makedirs(\"results\", exist_ok=True)\n    with open(\"results/b-result.json\", \"w\", encoding=\"utf-8\") as f:\n        f.write('{\"status\": \"passed\"}')\n    with open(\"results/a.png\", \"wb\") as f:\n        f.write(b\"PNG\")\n    p = build_payload(\"results\")\n    assert [x[\"file_name\"] for x in p[\"results\"]] == [\"a.png\", \"b-result.json\"], p\n    assert base64.b64decode(p[\"results\"][0][\"content_base64\"]) == b\"PNG\", \"Содержимое в base64\"\n",
+                  "solution": "import base64\nfrom pathlib import Path\n\n\ndef build_payload(folder):\n    files = sorted(p for p in Path(folder).iterdir() if p.is_file())\n    return {\"results\": [\n        {\"file_name\": p.name, \"content_base64\": base64.b64encode(p.read_bytes()).decode()}\n        for p in files\n    ]}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-server-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `send_results(base_url, project, payload)` — отправить результаты POST-запросом через `requests` на `{base_url}/allure-docker-service/send-results?project_id={project}` с телом `payload` (JSON). Если ответ не 200 — выбросить `RuntimeError(f\"сервер ответил {код}\")`. Вернуть `response.json()`.\n\nСети в песочнице нет — проверка подменит сервер библиотекой `responses`.",
+                  "starter_code": "import requests\n\n\ndef send_results(base_url, project, payload):\n    pass\n",
+                  "tests": "import json\nimport responses\n\n@responses.activate\ndef test_values():\n    url = \"https://reports.test/allure-docker-service/send-results?project_id=api\"\n    responses.post(url, json={\"meta_data\": {\"message\": \"Results successfully sent\"}}, status=200)\n    got = send_results(\"https://reports.test\", \"api\", {\"results\": []})\n    assert got[\"meta_data\"][\"message\"] == \"Results successfully sent\", got\n    assert json.loads(responses.calls[0].request.body) == {\"results\": []}, \"Тело запроса — payload в JSON\"\n\n@responses.activate\ndef test_error():\n    responses.post(\"https://reports.test/allure-docker-service/send-results?project_id=api\", status=500)\n    try:\n        send_results(\"https://reports.test\", \"api\", {\"results\": []})\n    except RuntimeError as e:\n        assert str(e) == \"сервер ответил 500\", str(e)\n        return\n    assert False, \"Нужен RuntimeError\"\n",
+                  "solution": "import requests\n\n\ndef send_results(base_url, project, payload):\n    response = requests.post(\n        f\"{base_url}/allure-docker-service/send-results\",\n        params={\"project_id\": project},\n        json=payload,\n        timeout=30,\n    )\n    if response.status_code != 200:\n        raise RuntimeError(f\"сервер ответил {response.status_code}\")\n    return response.json()\n",
+                  "hint": "requests.post(url, params={...}, json=payload)",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-server-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `generate_report(base_url, project)` — попросить сервер сгенерировать отчёт GET-запросом на `{base_url}/allure-docker-service/generate-report?project_id={project}` и вернуть ссылку на отчёт из ответа — поле `data.report_url`.",
+                  "starter_code": "import requests\n\n\ndef generate_report(base_url, project):\n    pass\n",
+                  "tests": "import responses\n\n@responses.activate\ndef test_values():\n    responses.get(\"https://reports.test/allure-docker-service/generate-report?project_id=ui\",\n                  json={\"data\": {\"report_url\": \"https://reports.test/projects/ui/reports/5/index.html\"}})\n    assert generate_report(\"https://reports.test\", \"ui\") == \"https://reports.test/projects/ui/reports/5/index.html\"\n",
+                  "solution": "import requests\n\n\ndef generate_report(base_url, project):\n    response = requests.get(\n        f\"{base_url}/allure-docker-service/generate-report\",\n        params={\"project_id\": project},\n        timeout=60,\n    )\n    response.raise_for_status()\n    return response.json()[\"data\"][\"report_url\"]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-server-e7",
+                  "type": "command",
+                  "prompt": "Зачем сервер отчётов, если отчёт можно сгенерировать локально? Введи главное преимущество одним словом: `история`, `скорость` или `цвет`.",
+                  "code": "",
+                  "expected_output": "история",
+                  "solution": "история",
+                  "hint": "Тренды, флаки и сравнение прогонов требуют хранить прошлые результаты.",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-server-e8",
+                  "type": "command",
+                  "prompt": "Отправь результаты на сервер через `curl`: POST JSON-файла `payload.json` на `https://reports.test/allure-docker-service/send-results?project_id=api`.",
+                  "code": "",
+                  "expected_output": "curl -X POST 'https://reports.test/allure-docker-service/send-results?project_id=api' -H 'Content-Type: application/json' -d @payload.json\ncurl -X POST \"https://reports.test/allure-docker-service/send-results?project_id=api\" -H \"Content-Type: application/json\" -d @payload.json\ncurl -X POST -H 'Content-Type: application/json' -d @payload.json 'https://reports.test/allure-docker-service/send-results?project_id=api'\nre:curl .*-d @payload\\.json.*send-results\\?project_id=api.*\nre:curl .*send-results\\?project_id=api.*-d @payload\\.json.*\nre:curl .*--data(-binary)? @payload\\.json.*",
+                  "solution": "curl -X POST 'https://reports.test/allure-docker-service/send-results?project_id=api' -H 'Content-Type: application/json' -d @payload.json",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСтатический отчёт — снимок одного прогона. Когда тестов тысячи, а прогонов — десятки в день, нужен **сервер отчётов**: хранит историю всех запусков, показывает тренды и флаки, объединяет прогоны из разных CI-задач, связывает тесты с тест-кейсами. Результаты отправляют туда из CI через HTTP API.\n\n## Варианты\n\n- **Allure TestOps** — коммерческая платформа от авторов Allure: история, тест-кейсы, ручные и автотесты вместе, аналитика. Результаты загружает утилита `allurectl upload allure-results`.\n- **allure-docker-service** — открытый сервер: принимает результаты по API и генерирует отчёты с историей. Запускается одной командой в Docker.\n- **ReportPortal** — открытая платформа с анализом падений.\n\n## allure-docker-service\n\n```bash\n$ docker run -d -p 5050:5050 frankescobar/allure-docker-service\n```\n\n- Сервер слушает порт 5050. Результаты отправляют POST-запросом, отчёт генерируют GET-запросом.\n\n## Отправка результатов из Python\n\n```py\nimport base64\nimport requests\nfrom pathlib import Path\n\n\ndef build_payload(folder):\n    return {\"results\": [\n        {\"file_name\": p.name, \"content_base64\": base64.b64encode(p.read_bytes()).decode()}\n        for p in sorted(Path(folder).iterdir()) if p.is_file()\n    ]}\n\n\nresponse = requests.post(\n    \"https://reports.test/allure-docker-service/send-results\",\n    params={\"project_id\": \"api\"},\n    json=build_payload(\"allure-results\"),\n    timeout=30,\n)\nresponse.raise_for_status()\n```\n\n- Каждый файл результатов кодируется в **base64** — это способ передать байты (картинки!) внутри JSON.\n- `params` — параметры строки запроса (`?project_id=api`), `json` — тело, `timeout` — не ждать вечно.\n- `raise_for_status()` — исключение, если сервер ответил 4xx/5xx.\n- Затем `GET …/generate-report?project_id=api` — сервер вернёт ссылку на новый отчёт.\n\n## Тестирование такого кода\n\nВ песочнице (и в юнит-тестах) нет сети. HTTP-ответы подменяют библиотекой **responses**:\n\n```py\nimport responses\n\n\n@responses.activate\ndef test_send():\n    responses.post(\"https://reports.test/allure-docker-service/send-results?project_id=api\",\n                   json={\"meta_data\": {\"message\": \"ok\"}})\n    assert send_results(\"https://reports.test\", \"api\", {\"results\": []})[\"meta_data\"][\"message\"] == \"ok\"\n```\n\n- Подробно — в теме «Тестирование API».\n\n## Итог\n\n- Сервер отчётов — история, тренды, флаки, объединение прогонов.\n- Allure TestOps (`allurectl upload`), allure-docker-service, ReportPortal.\n- Отправка: POST с файлами в base64; генерация отчёта — GET.\n- Код с HTTP тестируют через подмену ответов (`responses`).",
+              "quiz": [
+                {
+                  "q": "Главное преимущество сервера отчётов?",
+                  "options": [
+                    "Красивее цвета",
+                    "История, тренды и флаки по всем прогонам",
+                    "Не нужны тесты",
+                    "Быстрее pytest"
+                  ],
+                  "answer": 1,
+                  "explain": "Отчёт одного прогона этого не даёт."
+                },
+                {
+                  "q": "Зачем кодировать файлы в base64 при отправке в JSON?",
+                  "options": [
+                    "Шифрование",
+                    "Чтобы передать байты (картинки) в текстовом JSON",
+                    "Сжатие",
+                    "Так требует pytest"
+                  ],
+                  "answer": 1,
+                  "explain": "JSON не умеет байты."
+                },
+                {
+                  "q": "Чем подменяют HTTP-ответы в тестах без сети?",
+                  "options": [
+                    "time.sleep",
+                    "библиотекой responses",
+                    "allure.attach",
+                    "ничем"
+                  ],
+                  "answer": 1,
+                  "explain": "Подробно — в теме про API."
+                }
+              ]
+            },
+            {
+              "slug": "alr-notify",
+              "title": "Уведомления о результатах",
+              "theory": "```py\ntext = f\"❌ Упало: {f}, сломано: {b} из {total}\\nОтчёт: {url}\"\nrequests.post(f\"https://api.telegram.org/bot{token}/sendMessage\",\n              json={\"chat_id\": chat_id, \"text\": text}, timeout=10)\nrequests.post(slack_webhook, json={\"text\": text, \"blocks\": [...]})\n# токены — ${{ secrets.TELEGRAM_TOKEN }}; уведомлять о падениях\n```",
+              "exercises": [
+                {
+                  "slug": "alr-notify-e1",
+                  "type": "code",
+                  "prompt": "Напиши функцию `format_message(counts, report_url)` — текст уведомления для чата:\n\n```\n✅ Тесты прошли: 10/10\nОтчёт: https://…\n```\n\nЕсли есть упавшие или сломанные — первая строка `❌ Упало: F, сломано: B из T` (T — total).",
+                  "starter_code": "def format_message(counts, report_url):\n    pass\n",
+                  "tests": "def test_values():\n    ok = {\"passed\": 10, \"failed\": 0, \"broken\": 0, \"skipped\": 0, \"total\": 10}\n    assert format_message(ok, \"https://r/1\") == \"✅ Тесты прошли: 10/10\\nОтчёт: https://r/1\", repr(format_message(ok, \"https://r/1\"))\n    bad = {\"passed\": 7, \"failed\": 2, \"broken\": 1, \"skipped\": 0, \"total\": 10}\n    assert format_message(bad, \"https://r/2\") == \"❌ Упало: 2, сломано: 1 из 10\\nОтчёт: https://r/2\", repr(format_message(bad, \"https://r/2\"))\n",
+                  "solution": "def format_message(counts, report_url):\n    if counts[\"failed\"] or counts[\"broken\"]:\n        head = f\"❌ Упало: {counts['failed']}, сломано: {counts['broken']} из {counts['total']}\"\n    else:\n        head = f\"✅ Тесты прошли: {counts['passed']}/{counts['total']}\"\n    return f\"{head}\\nОтчёт: {report_url}\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-notify-e2",
+                  "type": "code",
+                  "prompt": "Напиши функцию `notify_telegram(token, chat_id, text)` — отправить сообщение через Bot API Telegram: POST на `https://api.telegram.org/bot{token}/sendMessage` с JSON `{\"chat_id\": chat_id, \"text\": text}`. Вернуть `True`, если в ответе `\"ok\": true`.",
+                  "starter_code": "import requests\n\n\ndef notify_telegram(token, chat_id, text):\n    pass\n",
+                  "tests": "import json\nimport responses\n\n@responses.activate\ndef test_values():\n    responses.post(\"https://api.telegram.org/botT0KEN/sendMessage\", json={\"ok\": True})\n    assert notify_telegram(\"T0KEN\", 42, \"привет\") is True\n    assert json.loads(responses.calls[0].request.body) == {\"chat_id\": 42, \"text\": \"привет\"}, responses.calls[0].request.body\n",
+                  "solution": "import requests\n\n\ndef notify_telegram(token, chat_id, text):\n    response = requests.post(\n        f\"https://api.telegram.org/bot{token}/sendMessage\",\n        json={\"chat_id\": chat_id, \"text\": text},\n        timeout=10,\n    )\n    return response.json().get(\"ok\") is True\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-notify-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `slack_payload(counts, report_url, failed_names)` — тело для Slack incoming webhook: `{\"text\": заголовок, \"blocks\": [...]}`. Заголовок — как в `format_message` первая строка. Блоки: один `{\"type\": \"section\", \"text\": {\"type\": \"mrkdwn\", \"text\": \"<report_url|Открыть отчёт>\"}}` и, если есть упавшие, второй блок с текстом `\"Упали:\\n• a\\n• b\"` (не больше 5 имён, дальше `\"• …и ещё N\"`).",
+                  "starter_code": "def slack_payload(counts, report_url, failed_names):\n    pass\n",
+                  "tests": "def test_values():\n    ok = slack_payload({\"passed\": 3, \"failed\": 0, \"broken\": 0, \"total\": 3}, \"https://r\", [])\n    assert ok == {\"text\": \"✅ Тесты прошли: 3/3\", \"blocks\": [{\"type\": \"section\", \"text\": {\"type\": \"mrkdwn\", \"text\": \"<https://r|Открыть отчёт>\"}}]}, ok\n    names = [f\"t{i}\" for i in range(7)]\n    bad = slack_payload({\"passed\": 0, \"failed\": 7, \"broken\": 0, \"total\": 7}, \"https://r\", names)\n    assert bad[\"text\"] == \"❌ Упало: 7, сломано: 0 из 7\" and len(bad[\"blocks\"]) == 2, bad\n    assert bad[\"blocks\"][1][\"text\"][\"text\"] == \"Упали:\\n• t0\\n• t1\\n• t2\\n• t3\\n• t4\\n• …и ещё 2\", bad[\"blocks\"][1]\n",
+                  "solution": "def slack_payload(counts, report_url, failed_names):\n    if counts[\"failed\"] or counts[\"broken\"]:\n        title = f\"❌ Упало: {counts['failed']}, сломано: {counts['broken']} из {counts['total']}\"\n    else:\n        title = f\"✅ Тесты прошли: {counts['passed']}/{counts['total']}\"\n    blocks = [{\"type\": \"section\", \"text\": {\"type\": \"mrkdwn\", \"text\": f\"<{report_url}|Открыть отчёт>\"}}]\n    if failed_names:\n        lines = [f\"• {name}\" for name in failed_names[:5]]\n        if len(failed_names) > 5:\n            lines.append(f\"• …и ещё {len(failed_names) - 5}\")\n        blocks.append({\"type\": \"section\", \"text\": {\"type\": \"mrkdwn\", \"text\": \"Упали:\\n\" + \"\\n\".join(lines)}})\n    return {\"text\": title, \"blocks\": blocks}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-notify-e4",
+                  "type": "command",
+                  "prompt": "Где хранить токен бота для уведомлений в GitHub Actions? Введи место: `secrets`, `код` или `README`.",
+                  "code": "",
+                  "expected_output": "secrets",
+                  "solution": "secrets",
+                  "hint": "${{ secrets.TELEGRAM_TOKEN }}",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-notify-e5",
+                  "type": "command",
+                  "prompt": "Как в шаге GitHub Actions обратиться к секрету `TELEGRAM_TOKEN`? Введи выражение.",
+                  "code": "",
+                  "expected_output": "${{ secrets.TELEGRAM_TOKEN }}\n${{secrets.TELEGRAM_TOKEN}}",
+                  "solution": "${{ secrets.TELEGRAM_TOKEN }}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-notify-e6",
+                  "type": "code",
+                  "prompt": "Шаблон сообщения не должен падать, если чего-то нет. Напиши функцию `safe_summary(data)` — `data` — содержимое `widgets/summary.json` (словарь). Вернуть `counts` в формате `{\"passed\", \"failed\", \"broken\", \"skipped\", \"total\"}` из `data[\"statistic\"]`; отсутствующие поля — 0, а если нет `statistic` — все нули.",
+                  "starter_code": "def safe_summary(data):\n    pass\n",
+                  "tests": "def test_values():\n    full = {\"statistic\": {\"passed\": 5, \"failed\": 1, \"broken\": 0, \"skipped\": 2, \"unknown\": 0, \"total\": 8}}\n    assert safe_summary(full) == {\"passed\": 5, \"failed\": 1, \"broken\": 0, \"skipped\": 2, \"total\": 8}\n    assert safe_summary({\"statistic\": {\"passed\": 1, \"total\": 1}}) == {\"passed\": 1, \"failed\": 0, \"broken\": 0, \"skipped\": 0, \"total\": 1}\n    assert safe_summary({}) == {\"passed\": 0, \"failed\": 0, \"broken\": 0, \"skipped\": 0, \"total\": 0}\n",
+                  "solution": "def safe_summary(data):\n    stat = data.get(\"statistic\", {})\n    return {key: stat.get(key, 0) for key in (\"passed\", \"failed\", \"broken\", \"skipped\", \"total\")}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "alr-notify-e7",
+                  "type": "command",
+                  "prompt": "Отправь сообщение `Тесты упали` в Telegram через `curl` (POST на `https://api.telegram.org/bot$TOKEN/sendMessage` с полями формы `chat_id=$CHAT` и `text=Тесты упали`).",
+                  "code": "",
+                  "expected_output": "curl -X POST \"https://api.telegram.org/bot$TOKEN/sendMessage\" -d chat_id=$CHAT -d text=\"Тесты упали\"\ncurl -X POST https://api.telegram.org/bot$TOKEN/sendMessage -d chat_id=$CHAT -d text=\"Тесты упали\"\ncurl \"https://api.telegram.org/bot$TOKEN/sendMessage\" -d chat_id=$CHAT -d text=\"Тесты упали\"\ncurl -X POST \"https://api.telegram.org/bot$TOKEN/sendMessage\" -d chat_id=$CHAT -d 'text=Тесты упали'\nre:curl .*api\\.telegram\\.org/bot\\$TOKEN/sendMessage.*-d .?chat_id=\\$CHAT.*-d .?text=.?Тесты упали.*\nre:curl .*-d .?chat_id=\\$CHAT.*-d .?text=.?Тесты упали.*api\\.telegram\\.org/bot\\$TOKEN/sendMessage.*",
+                  "solution": "curl -X POST \"https://api.telegram.org/bot$TOKEN/sendMessage\" -d chat_id=$CHAT -d text=\"Тесты упали\"",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-notify-e8",
+                  "type": "command",
+                  "prompt": "Уведомления лучше отправлять при каждом прогоне или только при изменении статуса / падении? Введи `при падении` или `всегда`.",
+                  "code": "",
+                  "expected_output": "при падении",
+                  "solution": "при падении",
+                  "hint": "Иначе чат зашумится и уведомления перестанут читать.",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОтчёт никто не откроет, если о нём не знают. Команды отправляют итог прогона в чат: Telegram, Slack, Mattermost — с цифрами и ссылкой на отчёт. Короткое сообщение «❌ Упало 3 из 250, ссылка» экономит часы.\n\n## Текст сообщения\n\n```python\ncounts = {\"passed\": 7, \"failed\": 2, \"broken\": 1, \"skipped\": 0, \"total\": 10}\nreport_url = \"https://reports.test/api/42\"\nif counts[\"failed\"] or counts[\"broken\"]:\n    head = f\"❌ Упало: {counts['failed']}, сломано: {counts['broken']} из {counts['total']}\"\nelse:\n    head = f\"✅ Тесты прошли: {counts['passed']}/{counts['total']}\"\nprint(f\"{head}\\nОтчёт: {report_url}\")\n```\n\n- Первая строка — главное: прошло или нет, сколько упало. Дальше — ссылка.\n- Вывод: `❌ Упало: 2, сломано: 1 из 10`, `Отчёт: https://reports.test/api/42`.\n\n## Telegram\n\n```py\nrequests.post(\n    f\"https://api.telegram.org/bot{token}/sendMessage\",\n    json={\"chat_id\": chat_id, \"text\": text},\n    timeout=10,\n)\n```\n\n- Бот создаётся через @BotFather — он выдаёт токен. `chat_id` — идентификатор чата или группы.\n- Ответ содержит `\"ok\": true` при успехе.\n\n## Slack\n\n```py\nrequests.post(webhook_url, json={\n    \"text\": \"❌ Упало: 2\",\n    \"blocks\": [{\"type\": \"section\", \"text\": {\"type\": \"mrkdwn\", \"text\": \"<https://r|Открыть отчёт>\"}}],\n})\n```\n\n- **Incoming webhook** — секретный URL, на который отправляют JSON. `blocks` — форматированные блоки, `<url|текст>` — ссылка.\n\n## Секреты и шум\n\n- Токены и webhook — только в секретах CI: `${{ secrets.TELEGRAM_TOKEN }}` в GitHub Actions, masked variables в GitLab. Никогда не в коде.\n- Шлите уведомления о падениях и изменениях статуса, а не о каждом зелёном прогоне — иначе их перестанут читать.\n- Список упавших тестов обрезайте: 5 имён и «…и ещё N».\n\n## Итог\n\n- Сообщение: статус и цифры в первой строке, ссылка на отчёт.\n- Telegram — `sendMessage` c токеном бота; Slack — incoming webhook.\n- Токены — в секретах CI; уведомлять о падениях, не о каждом прогоне.",
+              "quiz": [
+                {
+                  "q": "Где хранить токен бота для уведомлений?",
+                  "options": [
+                    "В коде",
+                    "В секретах CI",
+                    "В README",
+                    "В названии ветки"
+                  ],
+                  "answer": 1,
+                  "explain": "${{ secrets.X }}."
+                },
+                {
+                  "q": "Что должно быть в первой строке уведомления?",
+                  "options": [
+                    "Приветствие",
+                    "Итог: прошло или сколько упало",
+                    "Список всех тестов",
+                    "Версия Python"
+                  ],
+                  "answer": 1,
+                  "explain": "Главное — сразу."
+                },
+                {
+                  "q": "Почему не стоит слать уведомление о каждом успешном прогоне?",
+                  "options": [
+                    "Дорого",
+                    "Чат зашумится и уведомления перестанут читать",
+                    "Запрещено",
+                    "Telegram не разрешает"
+                  ],
+                  "answer": 1,
+                  "explain": "Шлите о падениях и изменениях."
+                }
+              ]
+            },
+            {
+              "slug": "alr-practice",
+              "title": "Практика: conftest для отчётов",
+              "theory": "```py\n@pytest.fixture(autouse=True)\ndef labels():\n    allure.dynamic.label(\"owner\", \"qa-team\")\n\n@pytest.hookimpl(hookwrapper=True)\ndef pytest_runtest_makereport(item, call):\n    outcome = yield\n    report = outcome.get_result()\n    if report.when == \"call\" and report.failed:\n        allure.attach(..., name=\"log\", attachment_type=allure.attachment_type.TEXT)\n\ndef pytest_sessionfinish(session, exitstatus):\n    folder = session.config.getoption(\"--alluredir\")\n```",
+              "exercises": [
+                {
+                  "slug": "alr-practice-e1",
+                  "type": "code",
+                  "prompt": "Твой код станет `conftest.py`. Добавь **автоматическую** (`autouse=True`) фикстуру `allure_env`, которая у каждого теста ставит метку-тег `\"stage\"` через `allure.dynamic.tag(\"stage\")`. Проверка создаст тесты и посмотрит метки в отчёте.",
+                  "starter_code": "import allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\nimport os\n\n\n_RUNS = []\n\n\ndef run_conftest_allure(test_code, *args):\n    _RUNS.append(1)\n    folder = f\"ca{len(_RUNS)}\"\n    os.makedirs(folder, exist_ok=True)\n    shutil.copy(\"solution.py\", f\"{folder}/conftest.py\")\n    with open(f\"{folder}/test_generated_{len(_RUNS)}.py\", \"w\", encoding=\"utf-8\") as f:\n        f.write(test_code)\n    for name in [m for m in sys.modules if m == \"conftest\" or m.startswith(\"test_generated\")]:\n        del sys.modules[name]\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", folder, \"--alluredir=ar\", *args])\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return int(code), results\n\ndef test_conftest():\n    code, res = run_conftest_allure(\"def test_a():\\n    assert True\\n\\ndef test_b():\\n    assert True\\n\")\n    assert set(res) == {\"test_a\", \"test_b\"}, list(res)\n    for r in res.values():\n        assert \"stage\" in label(r, \"tag\"), r[\"labels\"]\n",
+                  "solution": "import allure\nimport pytest\n\n\n@pytest.fixture(autouse=True)\ndef allure_env():\n    allure.dynamic.tag(\"stage\")\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-practice-e2",
+                  "type": "code",
+                  "prompt": "Твой код станет `conftest.py`. Напиши хук `pytest_runtest_makereport(item, call)` с декоратором `@pytest.hookimpl(hookwrapper=True)`, который после выполнения теста (`outcome = yield; report = outcome.get_result()`) при `report.when == \"call\"` и `report.failed` прикладывает к Allure текст `f\"упал: {item.name}\"` с именем `\"failure\"`. Так делают скриншоты при падении.",
+                  "starter_code": "import allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\nimport os\n\n\n_RUNS = []\n\n\ndef run_conftest_allure(test_code, *args):\n    _RUNS.append(1)\n    folder = f\"ca{len(_RUNS)}\"\n    os.makedirs(folder, exist_ok=True)\n    shutil.copy(\"solution.py\", f\"{folder}/conftest.py\")\n    with open(f\"{folder}/test_generated_{len(_RUNS)}.py\", \"w\", encoding=\"utf-8\") as f:\n        f.write(test_code)\n    for name in [m for m in sys.modules if m == \"conftest\" or m.startswith(\"test_generated\")]:\n        del sys.modules[name]\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", folder, \"--alluredir=ar\", *args])\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return int(code), results\n\ndef test_conftest():\n    code, res = run_conftest_allure(\"def test_ok():\\n    assert True\\n\\ndef test_bad():\\n    assert 1 == 2\\n\")\n    ok, bad = res.get(\"test_ok\"), res.get(\"test_bad\")\n    assert ok and bad, list(res)\n    assert not [a for a in attachments(ok) if a[\"name\"] == \"failure\"], \"У прошедшего вложения быть не должно\"\n    att = [a for a in attachments(bad) if a[\"name\"] == \"failure\"]\n    assert att, f\"У упавшего теста должно быть вложение failure: {attachments(bad)}\"\n    files = [f for f in os.listdir(\"ar\") if f == att[0][\"source\"]]\n    with open(\"ar/\" + files[0], encoding=\"utf-8\") as f:\n        assert f.read() == \"упал: test_bad\"\n",
+                  "solution": "import allure\nimport pytest\n\n\n@pytest.hookimpl(hookwrapper=True)\ndef pytest_runtest_makereport(item, call):\n    outcome = yield\n    report = outcome.get_result()\n    if report.when == \"call\" and report.failed:\n        allure.attach(f\"упал: {item.name}\", name=\"failure\", attachment_type=allure.attachment_type.TEXT)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "hookwrapper=True: код до yield — до формирования отчёта, после — когда он готов.",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-practice-e3",
+                  "type": "code",
+                  "prompt": "Твой код станет `conftest.py`. Напиши хук `pytest_sessionfinish(session, exitstatus)`, который записывает файл `ar/environment.properties` со строками `Python=3.12` и `Stand=stage` (проверка запускает pytest с `--alluredir=ar`). Папку бери из опции: `session.config.getoption(\"--alluredir\")`.",
+                  "starter_code": "import pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\nimport os\n\n\n_RUNS = []\n\n\ndef run_conftest_allure(test_code, *args):\n    _RUNS.append(1)\n    folder = f\"ca{len(_RUNS)}\"\n    os.makedirs(folder, exist_ok=True)\n    shutil.copy(\"solution.py\", f\"{folder}/conftest.py\")\n    with open(f\"{folder}/test_generated_{len(_RUNS)}.py\", \"w\", encoding=\"utf-8\") as f:\n        f.write(test_code)\n    for name in [m for m in sys.modules if m == \"conftest\" or m.startswith(\"test_generated\")]:\n        del sys.modules[name]\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", folder, \"--alluredir=ar\", *args])\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return int(code), results\n\ndef test_conftest():\n    code, res = run_conftest_allure(\"def test_a():\\n    assert True\\n\")\n    assert os.path.exists(\"ar/environment.properties\"), \"Файл environment.properties не создан\"\n    with open(\"ar/environment.properties\", encoding=\"utf-8\") as f:\n        assert set(f.read().split()) == {\"Python=3.12\", \"Stand=stage\"}, \"Неверное содержимое\"\n",
+                  "solution": "import os\nimport pytest\n\n\ndef pytest_sessionfinish(session, exitstatus):\n    folder = session.config.getoption(\"--alluredir\")\n    if not folder:\n        return\n    os.makedirs(folder, exist_ok=True)\n    with open(os.path.join(folder, \"environment.properties\"), \"w\", encoding=\"utf-8\") as f:\n        f.write(\"Python=3.12\\nStand=stage\\n\")\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-practice-e4",
+                  "type": "code",
+                  "prompt": "Твой код станет `conftest.py`. Сделай фикстуру `api_step` — фабрику: она возвращает функцию `step(name)`, которая возвращает контекстный менеджер `allure.step(f\"API: {name}\")`. Проверка напишет тест, использующий `with api_step(\"GET /users\"):`, и найдёт шаг в отчёте.",
+                  "starter_code": "import allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\nimport os\n\n\n_RUNS = []\n\n\ndef run_conftest_allure(test_code, *args):\n    _RUNS.append(1)\n    folder = f\"ca{len(_RUNS)}\"\n    os.makedirs(folder, exist_ok=True)\n    shutil.copy(\"solution.py\", f\"{folder}/conftest.py\")\n    with open(f\"{folder}/test_generated_{len(_RUNS)}.py\", \"w\", encoding=\"utf-8\") as f:\n        f.write(test_code)\n    for name in [m for m in sys.modules if m == \"conftest\" or m.startswith(\"test_generated\")]:\n        del sys.modules[name]\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", folder, \"--alluredir=ar\", *args])\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return int(code), results\n\ndef test_conftest():\n    code, res = run_conftest_allure(\n        \"def test_users(api_step):\\n    with api_step('GET /users'):\\n        assert True\\n\")\n    r = res.get(\"test_users\")\n    assert r and r[\"status\"] == \"passed\", list(res)\n    assert step_names(r) == [\"API: GET /users\"], step_names(r)\n",
+                  "solution": "import allure\nimport pytest\n\n\n@pytest.fixture\ndef api_step():\n    def step(name):\n        return allure.step(f\"API: {name}\")\n    return step\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "alr-practice-e5",
+                  "type": "command",
+                  "prompt": "Какой хук pytest вызывается один раз **после всего прогона** (удобно записать environment.properties)? Введи имя.",
+                  "code": "",
+                  "expected_output": "pytest_sessionfinish",
+                  "solution": "pytest_sessionfinish",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-practice-e6",
+                  "type": "command",
+                  "prompt": "Какой параметр декоратора `@pytest.hookimpl(...)` позволяет выполнить код до и после стандартной реализации хука через `yield`? Введи `имя=значение`.",
+                  "code": "",
+                  "expected_output": "hookwrapper=True\nwrapper=True",
+                  "solution": "hookwrapper=True",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-practice-e7",
+                  "type": "command",
+                  "prompt": "У отчёта `report` в хуке `pytest_runtest_makereport` какое значение `report.when` соответствует выполнению **самого теста** (а не setup/teardown)?",
+                  "code": "",
+                  "expected_output": "call",
+                  "solution": "call",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "alr-practice-e8",
+                  "type": "code",
+                  "prompt": "Итог темы. Твой код станет `conftest.py`:\n\n- autouse-фикстура `owner` ставит каждому тесту метку `allure.dynamic.label(\"owner\", \"qa-team\")`;\n- хук `pytest_runtest_makereport` (hookwrapper) при падении теста на этапе `call` прикладывает текст лога `\"LOG: \" + item.name` с именем `\"log\"`.",
+                  "starter_code": "import allure\nimport pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport glob, json, shutil\n\n\ndef run_allure(*args, patch=None):\n    # Прогон с --alluredir. Возвращает (код, {имя в отчёте: результат}) — результат как в JSON Allure.\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code, _ = run_pytest(\"--alluredir=ar\", *args, patch=patch)\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return code, results\n\n\ndef label(result, name):\n    return [l[\"value\"] for l in result.get(\"labels\", []) if l[\"name\"] == name]\n\n\ndef step_names(result):\n    names = []\n    def walk(steps, depth):\n        for s in steps:\n            names.append(\"  \" * depth + s[\"name\"])\n            walk(s.get(\"steps\", []), depth + 1)\n    walk(result.get(\"steps\", []), 0)\n    return names\n\n\ndef attachments(result):\n    found = list(result.get(\"attachments\", []))\n    def walk(steps):\n        for s in steps:\n            found.extend(s.get(\"attachments\", []))\n            walk(s.get(\"steps\", []))\n    walk(result.get(\"steps\", []))\n    return found\n\nimport os\n\n\n_RUNS = []\n\n\ndef run_conftest_allure(test_code, *args):\n    _RUNS.append(1)\n    folder = f\"ca{len(_RUNS)}\"\n    os.makedirs(folder, exist_ok=True)\n    shutil.copy(\"solution.py\", f\"{folder}/conftest.py\")\n    with open(f\"{folder}/test_generated_{len(_RUNS)}.py\", \"w\", encoding=\"utf-8\") as f:\n        f.write(test_code)\n    for name in [m for m in sys.modules if m == \"conftest\" or m.startswith(\"test_generated\")]:\n        del sys.modules[name]\n    shutil.rmtree(\"ar\", ignore_errors=True)\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", folder, \"--alluredir=ar\", *args])\n    results = {}\n    for path in glob.glob(\"ar/*-result.json\"):\n        with open(path, encoding=\"utf-8\") as f:\n            r = json.load(f)\n        results[r[\"name\"]] = r\n    return int(code), results\n\ndef test_conftest():\n    code, res = run_conftest_allure(\"def test_ok():\\n    assert True\\n\\ndef test_fail():\\n    assert False\\n\")\n    assert set(res) == {\"test_ok\", \"test_fail\"}, list(res)\n    for r in res.values():\n        assert label(r, \"owner\") == [\"qa-team\"], r[\"labels\"]\n    assert [a[\"name\"] for a in attachments(res[\"test_fail\"])] == [\"log\"], attachments(res[\"test_fail\"])\n    assert attachments(res[\"test_ok\"]) == [], \"У прошедшего теста вложений нет\"\n",
+                  "solution": "import allure\nimport pytest\n\n\n@pytest.fixture(autouse=True)\ndef owner():\n    allure.dynamic.label(\"owner\", \"qa-team\")\n\n\n@pytest.hookimpl(hookwrapper=True)\ndef pytest_runtest_makereport(item, call):\n    outcome = yield\n    report = outcome.get_result()\n    if report.when == \"call\" and report.failed:\n        allure.attach(\"LOG: \" + item.name, name=\"log\", attachment_type=allure.attachment_type.TEXT)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 30
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВ реальном проекте Allure настраивают один раз — в `conftest.py`: общие метки, окружение, скриншоты и логи при падении. Тесты остаются короткими, а каждый отчёт получается полным. Для этого используют **хуки** pytest — функции с особыми именами, которые pytest вызывает в определённые моменты.\n\n## Метки для всех тестов\n\n```py\n# conftest.py\n@pytest.fixture(autouse=True)\ndef owner():\n    allure.dynamic.label(\"owner\", \"qa-team\")\n    allure.dynamic.tag(\"stage\")\n```\n\n- autouse-фикстура выполняется перед каждым тестом, `allure.dynamic.*` добавляет метки текущему тесту.\n\n## Вложение при падении\n\n```py\n@pytest.hookimpl(hookwrapper=True)\ndef pytest_runtest_makereport(item, call):\n    outcome = yield\n    report = outcome.get_result()\n    if report.when == \"call\" and report.failed:\n        allure.attach(collect_logs(item.name), name=\"log\",\n                      attachment_type=allure.attachment_type.TEXT)\n```\n\nЧто здесь происходит:\n\n- `pytest_runtest_makereport` вызывается трижды на тест: для этапов `setup`, `call` (сам тест) и `teardown`.\n- `hookwrapper=True` — наш код оборачивает стандартную реализацию: до `yield` — до неё, после — когда отчёт готов.\n- `outcome.get_result()` — объект отчёта: `.when`, `.passed`, `.failed`, `.skipped`, `.longrepr` (текст ошибки).\n- `item` — сам тест: `item.name`, `item.funcargs` (его фикстуры — например, `page` для скриншота).\n\n## Окружение после прогона\n\n```py\ndef pytest_sessionfinish(session, exitstatus):\n    folder = session.config.getoption(\"--alluredir\")\n    if folder:\n        with open(os.path.join(folder, \"environment.properties\"), \"w\", encoding=\"utf-8\") as f:\n            f.write(f\"Stand={os.environ.get('STAND', 'dev')}\\nPython=3.12\\n\")\n```\n\n- `pytest_sessionfinish` — один раз после всех тестов.\n- `session.config.getoption(\"--alluredir\")` — папка результатов; если флаг не задан — `None`, писать некуда.\n\n## Шаги как фикстура\n\n```py\n@pytest.fixture\ndef api_step():\n    def step(name):\n        return allure.step(f\"API: {name}\")\n    return step\n\n\ndef test_users(api_step):\n    with api_step(\"GET /users\"):\n        ...\n```\n\n- Фабрика шагов с единым префиксом — отчёт выглядит единообразно.\n\n## Итог\n\n- autouse-фикстура + `allure.dynamic.*` — общие метки.\n- `pytest_runtest_makereport` (hookwrapper, `when == \"call\"`, `failed`) — вложения при падении.\n- `pytest_sessionfinish` — environment.properties.\n- Всё это — в `conftest.py`, тесты остаются чистыми.",
+              "quiz": [
+                {
+                  "q": "Сколько раз вызывается `pytest_runtest_makereport` на один тест?",
+                  "options": [
+                    "1",
+                    "2",
+                    "3 (setup, call, teardown)",
+                    "Зависит от шагов"
+                  ],
+                  "answer": 2,
+                  "explain": "Нас обычно интересует call."
+                },
+                {
+                  "q": "Что даёт `hookwrapper=True`?",
+                  "options": [
+                    "Ускорение",
+                    "Код до и после стандартной реализации через yield",
+                    "Параллельность",
+                    "Отключение хука"
+                  ],
+                  "answer": 1,
+                  "explain": "После yield отчёт уже готов."
+                },
+                {
+                  "q": "Какой хук вызывается один раз после всех тестов?",
+                  "options": [
+                    "pytest_runtest_setup",
+                    "pytest_sessionfinish",
+                    "pytest_configure",
+                    "pytest_collection"
+                  ],
+                  "answer": 1,
+                  "explain": "Удобно записать окружение."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

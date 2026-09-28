@@ -60,9 +60,12 @@ def run_pytest(*args, patch=None):
     if os.getcwd() not in sys.path:
         sys.path.insert(0, os.getcwd())
     sys.modules.pop("solution", None)
-    module = importlib.import_module("solution")
-    for name, value in (patch or {}).items():
-        setattr(module, name, value)
+    if patch:
+        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам
+        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).
+        module = importlib.import_module("solution")
+        for name, value in patch.items():
+            setattr(module, name, value)
     collector = _Collect()
     code = pytest.main(["-q", "-p", "no:cacheprovider", "solution.py", *args], plugins=[collector])
     return int(code), collector.outcomes
