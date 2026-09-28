@@ -1,0 +1,1478 @@
+{
+  "topics": [
+    {
+      "slug": "py-sorted",
+      "title": "sorted, filter и map",
+      "icon": "🔢",
+      "color": "#ff9600",
+      "description": "Сортировка с key и по нескольким признакам, filter и map, min/max, reversed, zip, any/all, конвейеры данных",
+      "group": "Python",
+      "modules": [
+        {
+          "slug": "srt-m1",
+          "title": "Сортировка",
+          "icon": "🔢",
+          "description": "sorted и sort, key, несколько признаков, словари и записи",
+          "lessons": [
+            {
+              "slug": "srt-m1-l1",
+              "title": "sorted и list.sort",
+              "theory": "```py\nsorted(nums)             # новый список\nnums.sort()              # на месте, возвращает None!\nnums = nums.sort()       # ОШИБКА: nums станет None\nsorted(x, reverse=True)  # по убыванию\nsorted(\"банан\")          # любая коллекция -> список\nsorted(scores, reverse=True)[:3]   # топ-3\n```",
+              "exercises": [
+                {
+                  "slug": "srt-m1-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "nums = [3, 1, 2]\nresult = sorted(nums)\nprint(result, nums)\nnums.sort()\nprint(nums)\n",
+                  "expected_output": "[1, 2, 3] [3, 1, 2]\n[1, 2, 3]",
+                  "hint": "sorted возвращает новый список, sort меняет исходный.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m1-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Ловушка sort.",
+                  "code": "nums = [3, 1, 2]\nx = nums.sort()\nprint(x, nums)\n",
+                  "expected_output": "None [1, 2, 3]",
+                  "hint": "Методы, меняющие объект на месте, возвращают None.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m1-l1-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "print(sorted(\"банан\"))\nprint(sorted((3, 1, 2), reverse=True))\nprint(sorted([\"b\", \"B\", \"a\", \"A\"]))\n",
+                  "expected_output": "['а', 'а', 'б', 'н', 'н']\n[3, 2, 1]\n['A', 'B', 'a', 'b']",
+                  "hint": "Заглавные буквы идут раньше строчных.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m1-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sorted_copy(nums)` — вернуть отсортированную копию списка, **не меняя** исходный.\n\n```\nsrc = [3, 1, 2]\nsorted_copy(src)   # → [1, 2, 3]\nsrc                # → [3, 1, 2]\n```",
+                  "starter_code": "def sorted_copy(nums):\n    pass\n",
+                  "tests": "def test_values():\n    src = [3, 1, 2]\n    assert sorted_copy(src) == [1, 2, 3] and src == [3, 1, 2], \"Неверный результат или исходный изменён\"\n",
+                  "solution": "def sorted_copy(nums):\n    return sorted(nums)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m1-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sort_in_place(nums)` — отсортировать список **по убыванию на месте**. Функция ничего не возвращает.",
+                  "starter_code": "def sort_in_place(nums):\n    pass\n",
+                  "tests": "def test_values():\n    a = [3, 1, 2]\n    assert sort_in_place(a) is None and a == [3, 2, 1], f\"a = {a}\"\n",
+                  "solution": "def sort_in_place(nums):\n    nums.sort(reverse=True)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m1-l1-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `top3(scores)` — три наибольших числа по убыванию (если чисел меньше — сколько есть).\n\n```\ntop3([50, 90, 70, 80])   # → [90, 80, 70]\n```",
+                  "starter_code": "def top3(scores):\n    pass\n",
+                  "tests": "def test_values():\n    assert [top3([50, 90, 70, 80]), top3([1]), top3([])] == [[90, 80, 70], [1], []], \"Неверный результат\"\n",
+                  "solution": "def top3(scores):\n    return sorted(scores, reverse=True)[:3]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m1-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `median(nums)` — медиана непустого списка: средний элемент отсортированного списка; для чётной длины — среднее двух средних.\n\n```\nmedian([3, 1, 2])      # → 2\nmedian([4, 1, 3, 2])   # → 2.5\n```",
+                  "starter_code": "def median(nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert [median([3, 1, 2]), median([4, 1, 3, 2]), median([5])] == [2, 2.5, 5], \"Неверная медиана\"\n",
+                  "solution": "def median(nums):\n    s = sorted(nums)\n    mid = len(s) // 2\n    if len(s) % 2 == 1:\n        return s[mid]\n    return (s[mid - 1] + s[mid]) / 2\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "srt-m1-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_sorted(nums)` — отсортирован ли список по возрастанию (сравни со `sorted`).",
+                  "starter_code": "def is_sorted(nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert [is_sorted([1, 2, 2]), is_sorted([2, 1]), is_sorted([])] == [True, False, True], \"Неверный результат\"\n",
+                  "solution": "def is_sorted(nums):\n    return nums == sorted(nums)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСортировка нужна постоянно: топ самых медленных тестов, пользователи по имени, версии по возрастанию. В Python два способа сортировать — функция `sorted` и метод списка `sort`. Они похожи, но есть разница, о которую спотыкаются все новички.\n\n## sorted — новый список\n\n```python\nnums = [3, 1, 2]\nresult = sorted(nums)\nprint(result, nums)\nnums.sort()\nprint(nums)\n```\n\n- `sorted(коллекция)` возвращает **новый** отсортированный список; исходная коллекция не меняется.\n- `список.sort()` сортирует **сам список** на месте.\n- Вывод: `[1, 2, 3] [3, 1, 2]`, `[1, 2, 3]`.\n\n## Ловушка: sort возвращает None\n\n```python\nnums = [3, 1, 2]\nx = nums.sort()\nprint(x, nums)\n```\n\n- Методы, меняющие объект на месте, возвращают `None` — это сигнал «я изменил объект, результат смотри в нём».\n- Частая ошибка: `nums = nums.sort()` — после неё в `nums` лежит `None`.\n- Вывод: `None [1, 2, 3]`.\n\n## Что можно сортировать\n\n```python\nprint(sorted(\"банан\"))\nprint(sorted((3, 1, 2), reverse=True))\nprint(sorted([\"b\", \"B\", \"a\", \"A\"]))\n```\n\n- `sorted` принимает **любую** коллекцию (строку, кортеж, множество, ключи словаря) и всегда возвращает **список**. `sort` есть только у списков.\n- `reverse=True` — по убыванию.\n- Строки сравниваются посимвольно по кодам символов: все заглавные латинские буквы идут **раньше** строчных.\n- Вывод: `['а', 'а', 'б', 'н', 'н']`, `[3, 2, 1]`, `['A', 'B', 'a', 'b']`.\n\nСмешивать несравнимые типы нельзя: `sorted([1, \"a\"])` — `TypeError`.\n\n## Приёмы\n\n```python\nscores = [50, 90, 70, 80]\nprint(sorted(scores, reverse=True)[:3])\ns = sorted([4, 1, 3, 2])\nmid = len(s) // 2\nprint((s[mid - 1] + s[mid]) / 2, [1, 2, 2] == sorted([1, 2, 2]))\n```\n\n- Топ-N — сортировка по убыванию и срез.\n- Медиана — середина отсортированного списка.\n- Проверка «отсортирован ли» — сравнить со `sorted`.\n- Вывод: `[90, 80, 70]`, `2.5 True`.\n\n## Итог\n\n- `sorted(x)` — новый список, `x` не меняется; работает с любой коллекцией.\n- `lst.sort()` — на месте, только у списков, возвращает `None`.\n- `reverse=True` — по убыванию.\n- Заглавные буквы раньше строчных; разные типы не сравниваются.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `[3, 1].sort()`?",
+                  "options": [
+                    "`[1, 3]`",
+                    "`None`",
+                    "`[3, 1]`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "sort меняет список на месте."
+                },
+                {
+                  "q": "Что вернёт `sorted((2, 1))`?",
+                  "options": [
+                    "`(1, 2)`",
+                    "`[1, 2]`",
+                    "`None`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "sorted всегда возвращает список."
+                },
+                {
+                  "q": "Что идёт раньше при сортировке: \"B\" или \"a\"?",
+                  "options": [
+                    "\"a\"",
+                    "\"B\"",
+                    "Одинаково",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Заглавные раньше строчных."
+                }
+              ]
+            },
+            {
+              "slug": "srt-m1-l2",
+              "title": "Параметр key",
+              "theory": "```py\nsorted(words, key=len)          # по длине\nsorted(words, key=str.lower)    # без учёта регистра\nsorted(nums, key=abs)           # по модулю\nsorted(words, key=lambda w: w[-1])\nsorted(vs, key=lambda v: [int(p) for p in v.split(\".\")])\nkey=len()                       # ОШИБКА — нужна функция, не вызов\n```",
+              "exercises": [
+                {
+                  "slug": "srt-m1-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "words = [\"banana\", \"Kiwi\", \"apple\", \"fig\"]\nprint(sorted(words))\nprint(sorted(words, key=str.lower))\nprint(sorted(words, key=len))\n",
+                  "expected_output": "['Kiwi', 'apple', 'banana', 'fig']\n['apple', 'banana', 'fig', 'Kiwi']\n['fig', 'Kiwi', 'apple', 'banana']",
+                  "hint": "key — функция, по результату которой сравниваются элементы.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m1-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "nums = [-5, 3, -1, 4]\nprint(sorted(nums, key=abs))\nprint(sorted(nums, key=lambda n: n % 3))\n",
+                  "expected_output": "[-1, 3, 4, -5]\n[3, -5, 4, -1]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m1-l2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? key не меняет элементы.",
+                  "code": "words = [\"b\", \"A\", \"c\"]\nresult = sorted(words, key=str.lower)\nprint(result)\n",
+                  "expected_output": "['A', 'b', 'c']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m1-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `by_length(words)` — слова по возрастанию длины (при равной длине — в исходном порядке).\n\n```\nby_length([\"banana\", \"fig\", \"kiwi\"])   # → [\"fig\", \"kiwi\", \"banana\"]\n```",
+                  "starter_code": "def by_length(words):\n    pass\n",
+                  "tests": "def test_values():\n    assert by_length([\"banana\", \"fig\", \"kiwi\"]) == [\"fig\", \"kiwi\", \"banana\"] and by_length([\"bb\", \"aa\"]) == [\"bb\", \"aa\"], \"Неверный результат\"\n",
+                  "solution": "def by_length(words):\n    return sorted(words, key=len)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m1-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `case_insensitive(words)` — сортировка без учёта регистра.\n\n```\ncase_insensitive([\"b\", \"A\", \"c\"])   # → [\"A\", \"b\", \"c\"]\n```",
+                  "starter_code": "def case_insensitive(words):\n    pass\n",
+                  "tests": "def test_values():\n    assert case_insensitive([\"b\", \"A\", \"c\"]) == [\"A\", \"b\", \"c\"], \"Неверный результат\"\n",
+                  "solution": "def case_insensitive(words):\n    return sorted(words, key=str.lower)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m1-l2-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `closest_to_zero(nums)` — числа, упорядоченные по близости к нулю (по модулю).\n\n```\nclosest_to_zero([-5, 3, -1, 4])   # → [-1, 3, 4, -5]\n```",
+                  "starter_code": "def closest_to_zero(nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert closest_to_zero([-5, 3, -1, 4]) == [-1, 3, 4, -5], \"Неверный результат\"\n",
+                  "solution": "def closest_to_zero(nums):\n    return sorted(nums, key=abs)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m1-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `by_last_char(words)` — сортировка слов по последней букве.\n\n```\nby_last_char([\"abc\", \"xya\", \"mnb\"])   # → [\"xya\", \"mnb\", \"abc\"]\n```",
+                  "starter_code": "def by_last_char(words):\n    pass\n",
+                  "tests": "def test_values():\n    assert by_last_char([\"abc\", \"xya\", \"mnb\"]) == [\"xya\", \"mnb\", \"abc\"], \"Неверный результат\"\n",
+                  "solution": "def by_last_char(words):\n    return sorted(words, key=lambda w: w[-1])\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m1-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sort_versions(versions)` — строки версий `\"X.Y.Z\"` по возрастанию **как чисел**.\n\n```\nsort_versions([\"1.10.0\", \"1.9.2\", \"1.2.10\"])   # → [\"1.2.10\", \"1.9.2\", \"1.10.0\"]\n```",
+                  "starter_code": "def sort_versions(versions):\n    pass\n",
+                  "tests": "def test_values():\n    assert sort_versions([\"1.10.0\", \"1.9.2\", \"1.2.10\"]) == [\"1.2.10\", \"1.9.2\", \"1.10.0\"], \"Неверный порядок\"\n",
+                  "solution": "def sort_versions(versions):\n    return sorted(versions, key=lambda v: [int(p) for p in v.split(\".\")])\n",
+                  "hint": "Ключ — список чисел: списки сравниваются поэлементно.",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЧасто сортировать нужно не «по самому значению», а по какому-то его признаку: слова — по длине или без учёта регистра, числа — по модулю, версии — как числа. Для этого есть параметр **`key`** — функция, которая для каждого элемента вычисляет «ключ сравнения».\n\n## Как работает key\n\n```python\nwords = [\"banana\", \"Kiwi\", \"apple\", \"fig\"]\nprint(sorted(words))\nprint(sorted(words, key=str.lower))\nprint(sorted(words, key=len))\n```\n\n- `key=функция` — Python вызывает её для каждого элемента и сортирует **по результатам**, а в итоговый список кладёт **исходные** элементы.\n- `key=str.lower` — сравнивать в нижнем регистре; `key=len` — по длине.\n- Передаётся **сама функция**, без скобок: `key=len`, а не `key=len()`.\n- Вывод: `['Kiwi', 'apple', 'banana', 'fig']`, `['apple', 'banana', 'fig', 'Kiwi']`, `['fig', 'Kiwi', 'apple', 'banana']`.\n\n## Ключ не меняет элементы\n\n```python\nwords = [\"b\", \"A\", \"c\"]\nprint(sorted(words, key=str.lower))\n```\n\n- Сравнение шло по `\"a\"`, `\"b\"`, `\"c\"`, но в результате — исходное `\"A\"`. Вывод: `['A', 'b', 'c']`.\n\n## lambda как ключ\n\n```python\nnums = [-5, 3, -1, 4]\nprint(sorted(nums, key=abs))\nprint(sorted(nums, key=lambda n: n % 3))\nprint(sorted([\"abc\", \"xya\", \"mnb\"], key=lambda w: w[-1]))\n```\n\n- Когда готовой функции нет, пишут `lambda` (тема «Функции как объекты»): `lambda w: w[-1]` — последняя буква.\n- Остатки от деления на 3: `-5 % 3 = 1`, `3 % 3 = 0`, `-1 % 3 = 2`, `4 % 3 = 1`.\n- Вывод: `[-1, 3, 4, -5]`, `[3, -5, 4, -1]`, `['xya', 'mnb', 'abc']`.\n\n## Версии как числа\n\n```python\nversions = [\"1.10.0\", \"1.9.2\", \"1.2.10\"]\nprint(sorted(versions))\nprint(sorted(versions, key=lambda v: [int(p) for p in v.split(\".\")]))\n```\n\n- Строки сравниваются посимвольно: `\"1.10\"` < `\"1.9\"`, потому что `\"1\"` < `\"9\"`.\n- Ключ — список чисел, списки сравниваются поэлементно.\n- Вывод: `['1.10.0', '1.2.10', '1.9.2']`, `['1.2.10', '1.9.2', '1.10.0']`.\n\n`key` работает и у `list.sort`, `min`, `max` (урок «min и max»).\n\n## Итог\n\n- `key=функция` — сравнивать по результату функции; в результат попадают исходные элементы.\n- Передаётся функция без скобок: `key=len`, `key=str.lower`, `key=abs`.\n- Своё правило — `lambda`.\n- Версии и составные строки — ключ из чисел.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `sorted([\"bb\", \"a\", \"ccc\"], key=len)`?",
+                  "options": [
+                    "`[\"a\", \"bb\", \"ccc\"]`",
+                    "`[\"ccc\", \"bb\", \"a\"]`",
+                    "`[1, 2, 3]`",
+                    "Ошибка"
+                  ],
+                  "answer": 0,
+                  "explain": "Сортировка по длине; элементы исходные."
+                },
+                {
+                  "q": "Как правильно передать ключ?",
+                  "options": [
+                    "`key=len()`",
+                    "`key=len`",
+                    "`key=\"len\"`",
+                    "`key=len(x)`"
+                  ],
+                  "answer": 1,
+                  "explain": "Нужна сама функция."
+                },
+                {
+                  "q": "Почему `sorted([\"1.10\", \"1.9\"])` даёт неверный порядок версий?",
+                  "options": [
+                    "Баг Python",
+                    "Строки сравниваются посимвольно",
+                    "Нужен reverse",
+                    "Порядок верный"
+                  ],
+                  "answer": 1,
+                  "explain": "\"1\" < \"9\"."
+                }
+              ]
+            },
+            {
+              "slug": "srt-m1-l3",
+              "title": "Несколько признаков и стабильность",
+              "theory": "```py\nsorted(people, key=lambda p: (p[1], p[0]))    # возраст, потом имя\nsorted(scores, key=lambda s: (-s[1], s[0]))   # очки ↓, имя ↑\n# строки в обратном порядке — два прохода:\ntmp = sorted(x, key=second_key)\nres = sorted(tmp, key=main_key, reverse=True)\nsorted(results, key=lambda r: ORDER[r[1]])    # свой порядок\n```",
+              "exercises": [
+                {
+                  "slug": "srt-m1-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "people = [(\"Боря\", 30), (\"Аня\", 25), (\"Вика\", 30)]\nprint(sorted(people, key=lambda p: (p[1], p[0])))\nprint(sorted(people, key=lambda p: (-p[1], p[0])))\n",
+                  "expected_output": "[('Аня', 25), ('Боря', 30), ('Вика', 30)]\n[('Боря', 30), ('Вика', 30), ('Аня', 25)]",
+                  "hint": "Ключ-кортеж: сначала первый элемент, при равенстве — второй.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m1-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Стабильность.",
+                  "code": "items = [(\"b\", 1), (\"a\", 2), (\"c\", 1)]\nprint(sorted(items, key=lambda x: x[1]))\n",
+                  "expected_output": "[('b', 1), ('c', 1), ('a', 2)]",
+                  "hint": "При равных ключах элементы сохраняют исходный порядок.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m1-l3-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Сортировка в два прохода.",
+                  "code": "people = [(\"Боря\", 30), (\"Аня\", 25), (\"Вика\", 30)]\nstep1 = sorted(people, key=lambda p: p[0])\nstep2 = sorted(step1, key=lambda p: p[1], reverse=True)\nprint(step2)\n",
+                  "expected_output": "[('Боря', 30), ('Вика', 30), ('Аня', 25)]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m1-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `leaderboard(scores)` — список пар `(имя, очки)`: по очкам по убыванию, при равенстве — по имени по алфавиту. Вернуть имена.\n\n```\nleaderboard([(\"Боря\", 50), (\"Аня\", 80), (\"Вика\", 50)])   # → [\"Аня\", \"Боря\", \"Вика\"]\n```",
+                  "starter_code": "def leaderboard(scores):\n    pass\n",
+                  "tests": "def test_values():\n    assert leaderboard([(\"Боря\", 50), (\"Аня\", 80), (\"Вика\", 50)]) == [\"Аня\", \"Боря\", \"Вика\"], \"Неверный порядок\"\n",
+                  "solution": "def leaderboard(scores):\n    return [name for name, _ in sorted(scores, key=lambda s: (-s[1], s[0]))]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m1-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `by_len_then_alpha(words)` — по длине по возрастанию, при равной длине — по алфавиту.\n\n```\nby_len_then_alpha([\"pear\", \"fig\", \"kiwi\", \"apple\"])   # → [\"fig\", \"kiwi\", \"pear\", \"apple\"]\n```",
+                  "starter_code": "def by_len_then_alpha(words):\n    pass\n",
+                  "tests": "def test_values():\n    assert by_len_then_alpha([\"pear\", \"fig\", \"kiwi\", \"apple\"]) == [\"fig\", \"kiwi\", \"pear\", \"apple\"], \"Неверный порядок\"\n",
+                  "solution": "def by_len_then_alpha(words):\n    return sorted(words, key=lambda w: (len(w), w))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m1-l3-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sort_bugs(bugs)` — баги `(id, severity, created)`: по серьёзности `critical` → `major` → `minor` (словарь рангов), при равной — по дате (строка `\"YYYY-MM-DD\"`) от старых. Вернуть id.\n\n```\nsort_bugs([(1, \"minor\", \"2024-01-01\"), (2, \"critical\", \"2024-03-01\"), (3, \"critical\", \"2024-01-15\")])   # → [3, 2, 1]\n```",
+                  "starter_code": "def sort_bugs(bugs):\n    pass\n",
+                  "tests": "def test_values():\n    assert sort_bugs([(1, \"minor\", \"2024-01-01\"), (2, \"critical\", \"2024-03-01\"), (3, \"critical\", \"2024-01-15\"), (4, \"major\", \"2023-01-01\")]) == [3, 2, 4, 1], \"Неверный порядок\"\n",
+                  "solution": "RANK = {\"critical\": 0, \"major\": 1, \"minor\": 2}\n\ndef sort_bugs(bugs):\n    return [b[0] for b in sorted(bugs, key=lambda b: (RANK[b[1]], b[2]))]\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "srt-m1-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `name_desc_age_asc(people)` — пары `(имя, возраст)`: по имени **по убыванию** (Я→А), при равенстве — по возрасту по возрастанию. Для строк минус не работает — используй **два прохода** стабильной сортировки.\n\n```\nname_desc_age_asc([(\"Аня\", 30), (\"Боря\", 20), (\"Аня\", 25)])   # → [(\"Боря\", 20), (\"Аня\", 25), (\"Аня\", 30)]\n```",
+                  "starter_code": "def name_desc_age_asc(people):\n    pass\n",
+                  "tests": "def test_values():\n    assert name_desc_age_asc([(\"Аня\", 30), (\"Боря\", 20), (\"Аня\", 25)]) == [(\"Боря\", 20), (\"Аня\", 25), (\"Аня\", 30)], \"Неверный порядок\"\n",
+                  "solution": "def name_desc_age_asc(people):\n    by_age = sorted(people, key=lambda p: p[1])\n    return sorted(by_age, key=lambda p: p[0], reverse=True)\n",
+                  "hint": "Сначала сортируй по второстепенному признаку, потом по главному.",
+                  "xp": 20
+                },
+                {
+                  "slug": "srt-m1-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `status_order(results)` — пары `(тест, статус)` так: сначала `fail`, потом `skip`, потом `pass`; внутри группы — исходный порядок (стабильность).\n\n```\nstatus_order([(\"a\", \"pass\"), (\"b\", \"fail\"), (\"c\", \"skip\"), (\"d\", \"fail\")])\n# → [(\"b\", \"fail\"), (\"d\", \"fail\"), (\"c\", \"skip\"), (\"a\", \"pass\")]\n```",
+                  "starter_code": "def status_order(results):\n    pass\n",
+                  "tests": "def test_values():\n    got = status_order([(\"a\", \"pass\"), (\"b\", \"fail\"), (\"c\", \"skip\"), (\"d\", \"fail\")])\n    assert got == [(\"b\", \"fail\"), (\"d\", \"fail\"), (\"c\", \"skip\"), (\"a\", \"pass\")], f\"Получено {got}\"\n",
+                  "solution": "ORDER = {\"fail\": 0, \"skip\": 1, \"pass\": 2}\n\ndef status_order(results):\n    return sorted(results, key=lambda r: ORDER[r[1]])\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n«По очкам по убыванию, при равенстве — по имени» — сортировка по нескольким признакам встречается в любом отчёте. В Python для этого есть два приёма: ключ-**кортеж** и **стабильность** сортировки.\n\n## Ключ-кортеж\n\n```python\npeople = [(\"Боря\", 30), (\"Аня\", 25), (\"Вика\", 30)]\nprint(sorted(people, key=lambda p: (p[1], p[0])))\nprint(sorted(people, key=lambda p: (-p[1], p[0])))\n```\n\n- Кортежи сравниваются поэлементно (тема «Кортежи»): сначала по первому элементу, при равенстве — по второму.\n- `(-p[1], p[0])` — минус разворачивает порядок для **чисел**: возраст по убыванию, имя по возрастанию.\n- Вывод: `[('Аня', 25), ('Боря', 30), ('Вика', 30)]`, `[('Боря', 30), ('Вика', 30), ('Аня', 25)]`.\n\n## Стабильность\n\n```python\nitems = [(\"b\", 1), (\"a\", 2), (\"c\", 1)]\nprint(sorted(items, key=lambda x: x[1]))\n```\n\n- Сортировка в Python **стабильная**: элементы с равными ключами сохраняют исходный порядок. `(\"b\", 1)` был раньше `(\"c\", 1)` — так и остался.\n- Вывод: `[('b', 1), ('c', 1), ('a', 2)]`.\n\n## Сортировка в два прохода\n\nМинус не работает для строк. Если по строковому признаку нужен **обратный** порядок, а по другому — прямой, сортируют дважды: сначала по **второстепенному** признаку, затем по **главному**.\n\n```python\npeople = [(\"Боря\", 30), (\"Аня\", 25), (\"Вика\", 30)]\nstep1 = sorted(people, key=lambda p: p[0])\nstep2 = sorted(step1, key=lambda p: p[1], reverse=True)\nprint(step2)\n```\n\n- Второй проход упорядочил по возрасту, а при равном возрасте стабильность сохранила алфавитный порядок из первого прохода.\n- Вывод: `[('Боря', 30), ('Вика', 30), ('Аня', 25)]`.\n\n## Свой порядок через словарь рангов\n\n```python\nORDER = {\"fail\": 0, \"skip\": 1, \"pass\": 2}\nresults = [(\"a\", \"pass\"), (\"b\", \"fail\"), (\"c\", \"skip\"), (\"d\", \"fail\")]\nprint(sorted(results, key=lambda r: ORDER[r[1]]))\n```\n\n- Когда порядок не алфавитный («сначала упавшие»), ранги задают словарём.\n- Вывод: `[('b', 'fail'), ('d', 'fail'), ('c', 'skip'), ('a', 'pass')]`.\n\n## Итог\n\n- Несколько признаков — ключ-кортеж `(признак1, признак2)`.\n- Обратный порядок для чисел — минус: `(-score, name)`.\n- Сортировка стабильная — равные сохраняют исходный порядок.\n- Обратный порядок для строк — два прохода: сначала второстепенный, потом главный.\n- Нестандартный порядок — словарь рангов.",
+              "quiz": [
+                {
+                  "q": "Что значит «сортировка стабильна»?",
+                  "options": [
+                    "Не падает",
+                    "Равные по ключу элементы сохраняют исходный порядок",
+                    "Всегда по возрастанию",
+                    "Работает с любыми типами"
+                  ],
+                  "answer": 1,
+                  "explain": "Основа сортировки в два прохода."
+                },
+                {
+                  "q": "Как отсортировать очки по убыванию, а имена по алфавиту?",
+                  "options": [
+                    "`key=lambda s: (s[1], s[0])`",
+                    "`key=lambda s: (-s[1], s[0])`",
+                    "`reverse=True`",
+                    "`key=lambda s: (s[0], -s[1])`"
+                  ],
+                  "answer": 1,
+                  "explain": "Минус разворачивает числа."
+                },
+                {
+                  "q": "В каком порядке делать сортировку в два прохода?",
+                  "options": [
+                    "Сначала главный признак",
+                    "Сначала второстепенный, потом главный",
+                    "Порядок не важен",
+                    "Только один проход"
+                  ],
+                  "answer": 1,
+                  "explain": "Последний проход определяет главный порядок."
+                }
+              ]
+            },
+            {
+              "slug": "srt-m1-l4",
+              "title": "Сортировка словарей и записей",
+              "theory": "```py\nsorted(d)                              # ключи\nsorted(d, key=d.get, reverse=True)     # ключи по значениям ↓\nsorted(d.items(), key=lambda p: p[1])  # пары по значению\ndict(sorted(d.items()))\nsorted(users, key=lambda u: u[\"age\"])\nfrom operator import itemgetter\nsorted(rows, key=itemgetter(1)); sorted(users, key=itemgetter(\"age\"))\n```",
+              "exercises": [
+                {
+                  "slug": "srt-m1-l4-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "scores = {\"Боря\": 50, \"Аня\": 80, \"Вика\": 65}\nprint(sorted(scores))\nprint(sorted(scores, key=scores.get, reverse=True))\nprint(sorted(scores.items(), key=lambda p: p[1]))\n",
+                  "expected_output": "['Аня', 'Боря', 'Вика']\n['Аня', 'Вика', 'Боря']\n[('Боря', 50), ('Вика', 65), ('Аня', 80)]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m1-l4-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Список словарей.",
+                  "code": "users = [{\"name\": \"Боря\", \"age\": 30}, {\"name\": \"Аня\", \"age\": 25}]\nprint([u[\"name\"] for u in sorted(users, key=lambda u: u[\"age\"])])\n",
+                  "expected_output": "['Аня', 'Боря']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m1-l4-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? itemgetter.",
+                  "code": "from operator import itemgetter\nrows = [(\"b\", 2), (\"a\", 3), (\"c\", 1)]\nprint(sorted(rows, key=itemgetter(1)))\nusers = [{\"n\": \"x\", \"a\": 2}, {\"n\": \"y\", \"a\": 1}]\nprint(sorted(users, key=itemgetter(\"a\")))\n",
+                  "expected_output": "[('c', 1), ('b', 2), ('a', 3)]\n[{'n': 'y', 'a': 1}, {'n': 'x', 'a': 2}]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m1-l4-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `slowest(times, n)` — имена `n` самых медленных тестов из словаря `{имя: секунды}` по убыванию.\n\n```\nslowest({\"a\": 1.2, \"b\": 3.4, \"c\": 2.0}, 2)   # → [\"b\", \"c\"]\n```",
+                  "starter_code": "def slowest(times, n):\n    pass\n",
+                  "tests": "def test_values():\n    assert slowest({\"a\": 1.2, \"b\": 3.4, \"c\": 2.0}, 2) == [\"b\", \"c\"] and slowest({}, 1) == [], \"Неверный результат\"\n",
+                  "solution": "def slowest(times, n):\n    return sorted(times, key=times.get, reverse=True)[:n]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m1-l4-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sort_by_field(records, field)` — список словарей, отсортированный по значению поля `field`.\n\n```\nsort_by_field([{\"id\": 3}, {\"id\": 1}], \"id\")   # → [{\"id\": 1}, {\"id\": 3}]\n```",
+                  "starter_code": "def sort_by_field(records, field):\n    pass\n",
+                  "tests": "def test_values():\n    assert sort_by_field([{\"id\": 3}, {\"id\": 1}], \"id\") == [{\"id\": 1}, {\"id\": 3}], \"Неверный порядок\"\n",
+                  "solution": "def sort_by_field(records, field):\n    return sorted(records, key=lambda r: r[field])\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m1-l4-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sorted_dict(d)` — новый словарь с ключами по алфавиту.\n\n```\nsorted_dict({\"b\": 1, \"a\": 2})   # → {\"a\": 2, \"b\": 1}   (и порядок ключей a, b)\n```",
+                  "starter_code": "def sorted_dict(d):\n    pass\n",
+                  "tests": "def test_values():\n    got = sorted_dict({\"b\": 1, \"a\": 2, \"c\": 0})\n    assert got == {\"a\": 2, \"b\": 1, \"c\": 0} and list(got) == [\"a\", \"b\", \"c\"], f\"Получено {got}\"\n",
+                  "solution": "def sorted_dict(d):\n    return dict(sorted(d.items()))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m1-l4-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `rank_places(scores)` — словарь «имя → место» (с 1) по убыванию очков (очки различны).\n\n```\nrank_places({\"Боря\": 50, \"Аня\": 80})   # → {\"Аня\": 1, \"Боря\": 2}\n```",
+                  "starter_code": "def rank_places(scores):\n    pass\n",
+                  "tests": "def test_values():\n    assert rank_places({\"Боря\": 50, \"Аня\": 80, \"Вика\": 65}) == {\"Аня\": 1, \"Вика\": 2, \"Боря\": 3}, \"Неверные места\"\n",
+                  "solution": "def rank_places(scores):\n    ordered = sorted(scores, key=scores.get, reverse=True)\n    return {name: i for i, name in enumerate(ordered, start=1)}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m1-l4-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sort_users(users)` — список словарей `name`, `role`, `age`: по роли по алфавиту, внутри роли — по возрасту по убыванию. Вернуть имена.\n\n```\nsort_users([{\"name\": \"a\", \"role\": \"qa\", \"age\": 20}, {\"name\": \"b\", \"role\": \"dev\", \"age\": 30}, {\"name\": \"c\", \"role\": \"qa\", \"age\": 40}])\n# → [\"b\", \"c\", \"a\"]\n```",
+                  "starter_code": "def sort_users(users):\n    pass\n",
+                  "tests": "def test_values():\n    users = [{\"name\": \"a\", \"role\": \"qa\", \"age\": 20}, {\"name\": \"b\", \"role\": \"dev\", \"age\": 30}, {\"name\": \"c\", \"role\": \"qa\", \"age\": 40}]\n    assert sort_users(users) == [\"b\", \"c\", \"a\"], f\"Получено {sort_users(users)}\"\n",
+                  "solution": "def sort_users(users):\n    return [u[\"name\"] for u in sorted(users, key=lambda u: (u[\"role\"], -u[\"age\"]))]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nДанные тестов и API обычно приходят словарями и списками словарей. Их сортируют по значениям, по полям, собирают отсортированные словари и рейтинги.\n\n## Словарь\n\n```python\nscores = {\"Боря\": 50, \"Аня\": 80, \"Вика\": 65}\nprint(sorted(scores))\nprint(sorted(scores, key=scores.get, reverse=True))\nprint(sorted(scores.items(), key=lambda p: p[1]))\n```\n\n- `sorted(d)` — ключи по алфавиту.\n- `key=scores.get` — ключи по значениям (`get` — готовая функция «ключ → значение»).\n- `sorted(d.items(), key=lambda p: p[1])` — пары по значению.\n- Вывод: `['Аня', 'Боря', 'Вика']`, `['Аня', 'Вика', 'Боря']`, `[('Боря', 50), ('Вика', 65), ('Аня', 80)]`.\n\n```python\nd = {\"b\": 1, \"a\": 2}\nprint(dict(sorted(d.items())))\ntimes = {\"a\": 1.2, \"b\": 3.4, \"c\": 2.0}\nprint(sorted(times, key=times.get, reverse=True)[:2])\n```\n\n- `dict(sorted(...))` — словарь с упорядоченными ключами. Топ-N — срез.\n- Вывод: `{'a': 2, 'b': 1}`, `['b', 'c']`.\n\n## Список словарей\n\n```python\nusers = [{\"name\": \"Боря\", \"age\": 30}, {\"name\": \"Аня\", \"age\": 25}]\nprint([u[\"name\"] for u in sorted(users, key=lambda u: u[\"age\"])])\n```\n\n- Ключ достаёт поле. Вывод: `['Аня', 'Боря']`.\n\n## operator.itemgetter\n\n```python\nfrom operator import itemgetter\nrows = [(\"b\", 2), (\"a\", 3), (\"c\", 1)]\nprint(sorted(rows, key=itemgetter(1)))\nusers = [{\"n\": \"x\", \"a\": 2}, {\"n\": \"y\", \"a\": 1}]\nprint(sorted(users, key=itemgetter(\"a\")))\n```\n\n- `itemgetter(1)` — готовая функция «взять элемент `[1]`», то же, что `lambda r: r[1]`, только короче и чуть быстрее. `itemgetter(\"a\")` — поле словаря.\n- `itemgetter(1, 0)` вернёт кортеж — ключ по нескольким полям.\n- Вывод: `[('c', 1), ('b', 2), ('a', 3)]`, `[{'n': 'y', 'a': 1}, {'n': 'x', 'a': 2}]`.\n\n## Несколько полей\n\n```python\nusers = [{\"name\": \"a\", \"role\": \"qa\", \"age\": 20}, {\"name\": \"b\", \"role\": \"dev\", \"age\": 30}, {\"name\": \"c\", \"role\": \"qa\", \"age\": 40}]\nprint([u[\"name\"] for u in sorted(users, key=lambda u: (u[\"role\"], -u[\"age\"]))])\n```\n\n- По роли по алфавиту, внутри роли — по возрасту по убыванию. Вывод: `['b', 'c', 'a']`.\n\n## Рейтинг\n\n```python\nscores = {\"Боря\": 50, \"Аня\": 80, \"Вика\": 65}\nordered = sorted(scores, key=scores.get, reverse=True)\nprint({name: place for place, name in enumerate(ordered, start=1)})\n```\n\nВывод: `{'Аня': 1, 'Вика': 2, 'Боря': 3}`.\n\n## Итог\n\n- `sorted(d, key=d.get)` — ключи по значениям; `sorted(d.items(), key=...)` — пары.\n- `dict(sorted(d.items()))` — упорядоченный словарь.\n- Список словарей — `key=lambda r: r[\"поле\"]` или `itemgetter(\"поле\")`.\n- Несколько полей — ключ-кортеж.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `sorted({\"b\": 1, \"a\": 2}, key={\"b\": 1, \"a\": 2}.get)`?",
+                  "options": [
+                    "`[\"a\", \"b\"]`",
+                    "`[\"b\", \"a\"]`",
+                    "`[1, 2]`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Ключи по значениям: b(1), a(2)."
+                },
+                {
+                  "q": "Что делает `itemgetter(\"age\")`?",
+                  "options": [
+                    "Удаляет поле",
+                    "Функция, возвращающая значение поля age",
+                    "Сортирует",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "То же, что lambda u: u[\"age\"]."
+                },
+                {
+                  "q": "Как получить словарь с ключами по алфавиту?",
+                  "options": [
+                    "`sorted(d)`",
+                    "`dict(sorted(d.items()))`",
+                    "`d.sort()`",
+                    "`sorted(d.values())`"
+                  ],
+                  "answer": 1,
+                  "explain": "sorted(d) даст только список ключей."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "srt-m2",
+          "title": "filter и map",
+          "icon": "🧪",
+          "description": "Фильтрация и преобразование функциями, сравнение с включениями, ленивость",
+          "lessons": [
+            {
+              "slug": "srt-m2-l1",
+              "title": "filter: оставить подходящие",
+              "theory": "```py\nlist(filter(is_even, nums))\nlist(filter(lambda s: len(s) > 2, words))\nlist(filter(None, values))        # убрать 0, \"\", None, [], False\nlist(filter(str.isdigit, items))  # метод как функция\n```",
+              "exercises": [
+                {
+                  "slug": "srt-m2-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def is_even(n):\n    return n % 2 == 0\n\nprint(list(filter(is_even, [1, 2, 3, 4])))\nprint(list(filter(lambda s: len(s) > 2, [\"a\", \"api\", \"ui\", \"test\"])))\n",
+                  "expected_output": "[2, 4]\n['api', 'test']",
+                  "hint": "filter(функция, коллекция) оставляет элементы, для которых функция вернула истину.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m2-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? filter с None.",
+                  "code": "values = [0, 1, \"\", \"a\", None, [], [0], False]\nprint(list(filter(None, values)))\n",
+                  "expected_output": "[1, 'a', [0]]",
+                  "hint": "None вместо функции — оставить «истинные» значения.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m2-l1-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "f = filter(str.isdigit, [\"12\", \"x\", \"7\"])\nprint(type(f).__name__)\nprint(list(f))\n",
+                  "expected_output": "filter\n['12', '7']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m2-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `positives(nums)` — положительные числа через `filter` (результат — список).\n\n```\npositives([3, -1, 0, 5])   # → [3, 5]\n```",
+                  "starter_code": "def positives(nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert positives([3, -1, 0, 5]) == [3, 5] and positives([]) == [], \"Неверный результат\"\n\ndef test_filter():\n    assert \"filter(\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй filter\"\n",
+                  "solution": "def positives(nums):\n    return list(filter(lambda n: n > 0, nums))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `non_empty(strings)` — убрать пустые строки, используя `filter(None, ...)`.\n\n```\nnon_empty([\"a\", \"\", \"b\", \"\"])   # → [\"a\", \"b\"]\n```",
+                  "starter_code": "def non_empty(strings):\n    pass\n",
+                  "tests": "def test_values():\n    assert non_empty([\"a\", \"\", \"b\", \"\"]) == [\"a\", \"b\"] and non_empty([]) == [], \"Неверный результат\"\n\ndef test_filter_none():\n    assert \"filter(None\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй filter(None, ...)\"\n",
+                  "solution": "def non_empty(strings):\n    return list(filter(None, strings))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l1-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `digits_only(items)` — строки, состоящие только из цифр. Передай в `filter` метод `str.isdigit`.\n\n```\ndigits_only([\"12\", \"x1\", \"7\"])   # → [\"12\", \"7\"]\n```",
+                  "starter_code": "def digits_only(items):\n    pass\n",
+                  "tests": "def test_values():\n    assert digits_only([\"12\", \"x1\", \"7\", \"\"]) == [\"12\", \"7\"], \"Неверный результат\"\n",
+                  "solution": "def digits_only(items):\n    return list(filter(str.isdigit, items))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `failed(results)` — словари результатов со статусом `\"fail\"` через `filter`.\n\n```\nfailed([{\"n\": \"a\", \"status\": \"pass\"}, {\"n\": \"b\", \"status\": \"fail\"}])   # → [{\"n\": \"b\", \"status\": \"fail\"}]\n```",
+                  "starter_code": "def failed(results):\n    pass\n",
+                  "tests": "def test_values():\n    res = [{\"n\": \"a\", \"status\": \"pass\"}, {\"n\": \"b\", \"status\": \"fail\"}]\n    assert failed(res) == [res[1]] and failed([]) == [], \"Неверный результат\"\n",
+                  "solution": "def failed(results):\n    return list(filter(lambda r: r[\"status\"] == \"fail\", results))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `valid_emails(emails)` — адреса, прошедшие проверку своей функцией `is_valid(email)`: есть ровно один `@`, и после него есть точка.\n\n```\nvalid_emails([\"a@x.ru\", \"bad\", \"c@@x.ru\", \"d@x\"])   # → [\"a@x.ru\"]\n```",
+                  "starter_code": "def is_valid(email):\n    pass\n\ndef valid_emails(emails):\n    pass\n",
+                  "tests": "def test_values():\n    assert valid_emails([\"a@x.ru\", \"bad\", \"c@@x.ru\", \"d@x\"]) == [\"a@x.ru\"], \"Неверный результат\"\n    assert is_valid(\"q@w.e\") is True, \"is_valid должна вернуть True для корректного адреса\"\n",
+                  "solution": "def is_valid(email):\n    return email.count(\"@\") == 1 and \".\" in email.split(\"@\")[1]\n\ndef valid_emails(emails):\n    return list(filter(is_valid, emails))\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`filter` — встроенная функция, которая отбирает элементы коллекции по функции-проверке. Это «функциональный» способ записать фильтр: особенно удобно, когда функция-проверка уже есть — `str.isdigit`, `is_valid`, `bool`.\n\n## Как работает filter\n\n```python\ndef is_even(n):\n    return n % 2 == 0\n\nprint(list(filter(is_even, [1, 2, 3, 4])))\nprint(list(filter(lambda s: len(s) > 2, [\"a\", \"api\", \"ui\", \"test\"])))\n```\n\n- `filter(функция, коллекция)` — для каждого элемента вызывает функцию и оставляет те, где результат **истинный**.\n- Функция передаётся **без скобок** (сама функция, не её результат).\n- `filter` возвращает не список, а ленивый объект (урок «Ленивость») — поэтому оборачиваем в `list(...)`.\n- Вывод: `[2, 4]`, `['api', 'test']`.\n\n## filter(None, ...)\n\n```python\nvalues = [0, 1, \"\", \"a\", None, [], [0], False]\nprint(list(filter(None, values)))\n```\n\n- `None` вместо функции — оставить **истинные** значения: убрать `0`, `\"\"`, `None`, `[]`, `False`.\n- `[0]` — непустой список, он истинный.\n- Вывод: `[1, 'a', [0]]`.\n\n## Готовые функции-проверки\n\n```python\nprint(list(filter(str.isdigit, [\"12\", \"x\", \"7\", \"\"])))\n```\n\n- Метод строки `str.isdigit` можно передать как функцию: он будет вызван как `str.isdigit(элемент)`. Пустая строка — не цифры.\n- Вывод: `['12', '7']`.\n\n```python\ndef is_valid(email):\n    return email.count(\"@\") == 1 and \".\" in email.split(\"@\")[1]\n\nprint(list(filter(is_valid, [\"a@x.ru\", \"bad\", \"c@@x.ru\", \"d@x\"])))\n```\n\n- Сложную проверку выносят в функцию с понятным именем — `filter(is_valid, ...)` читается как предложение.\n- Вывод: `['a@x.ru']`.\n\n## Итог\n\n- `filter(f, коллекция)` — элементы, для которых `f(x)` истинно.\n- Функция — без скобок; результат — ленивый объект, для списка — `list(...)`.\n- `filter(None, x)` — убрать ложные значения.\n- Удобно с готовыми функциями: `str.isdigit`, `is_valid`.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `list(filter(None, [0, 1, \"\", \"x\"]))`?",
+                  "options": [
+                    "`[0, \"\"]`",
+                    "`[1, \"x\"]`",
+                    "`[0, 1, \"\", \"x\"]`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Остаются истинные."
+                },
+                {
+                  "q": "Что возвращает `filter(...)` сам по себе?",
+                  "options": [
+                    "Список",
+                    "Ленивый объект-итератор",
+                    "Кортеж",
+                    "None"
+                  ],
+                  "answer": 1,
+                  "explain": "Для списка — list(...)."
+                },
+                {
+                  "q": "Как передать проверку в filter?",
+                  "options": [
+                    "`filter(is_valid(), items)`",
+                    "`filter(is_valid, items)`",
+                    "`filter(items, is_valid)`",
+                    "`filter(\"is_valid\", items)`"
+                  ],
+                  "answer": 1,
+                  "explain": "Функция первым аргументом, без скобок."
+                }
+              ]
+            },
+            {
+              "slug": "srt-m2-l2",
+              "title": "map: преобразовать каждый",
+              "theory": "```py\nlist(map(int, [\"1\", \"2\"]))          # [1, 2]\nlist(map(str.upper, words))\nlist(map(pow, [2, 3], [3, 2]))      # попарно: [8, 9]\nw, h = map(int, \"3 4\".split())      # распаковка\nsum(map(len, words))\n```",
+              "exercises": [
+                {
+                  "slug": "srt-m2-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "print(list(map(str.upper, [\"api\", \"ui\"])))\nprint(list(map(int, \"1 2 3\".split())))\nprint(list(map(lambda x: x * 10, range(3))))\n",
+                  "expected_output": "['API', 'UI']\n[1, 2, 3]\n[0, 10, 20]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m2-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Несколько коллекций.",
+                  "code": "print(list(map(pow, [2, 3, 4], [3, 2])))\nprint(list(map(lambda a, b: a + b, [1, 2], [10, 20])))\n",
+                  "expected_output": "[8, 9]\n[11, 22]",
+                  "hint": "map с двумя коллекциями берёт элементы попарно и останавливается на короткой.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m2-l2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "a, b = map(int, \"3 4\".split())\nprint(a * b)\nprint(sum(map(len, [\"ab\", \"cde\"])))\n",
+                  "expected_output": "12\n5",
+                  "hint": "Результат map можно сразу распаковать.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m2-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `to_ints(strings)` — список чисел из списка строк через `map`.\n\n```\nto_ints([\"1\", \"20\", \"-3\"])   # → [1, 20, -3]\n```",
+                  "starter_code": "def to_ints(strings):\n    pass\n",
+                  "tests": "def test_values():\n    assert to_ints([\"1\", \"20\", \"-3\"]) == [1, 20, -3] and to_ints([]) == [], \"Неверный результат\"\n\ndef test_map():\n    assert \"map(\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй map\"\n",
+                  "solution": "def to_ints(strings):\n    return list(map(int, strings))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_pair(text)` — строку `\"ширина высота\"` превратить в два числа и вернуть их произведение. Используй распаковку результата `map`.\n\n```\nparse_pair(\"3 4\")   # → 12\n```",
+                  "starter_code": "def parse_pair(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert parse_pair(\"3 4\") == 12 and parse_pair(\" 10 2 \") == 20, \"Неверный результат\"\n",
+                  "solution": "def parse_pair(text):\n    w, h = map(int, text.split())\n    return w * h\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l2-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `total_chars(words)` — суммарная длина слов через `sum` и `map(len, ...)`.\n\n```\ntotal_chars([\"ab\", \"cde\"])   # → 5\n```",
+                  "starter_code": "def total_chars(words):\n    pass\n",
+                  "tests": "def test_values():\n    assert total_chars([\"ab\", \"cde\"]) == 5 and total_chars([]) == 0, \"Неверный результат\"\n",
+                  "solution": "def total_chars(words):\n    return sum(map(len, words))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `line_totals(prices, qtys)` — попарные произведения через `map` с двумя коллекциями.\n\n```\nline_totals([100, 50], [2, 3])   # → [200, 150]\n```",
+                  "starter_code": "def line_totals(prices, qtys):\n    pass\n",
+                  "tests": "def test_values():\n    assert line_totals([100, 50], [2, 3]) == [200, 150] and line_totals([1], []) == [], \"Неверный результат\"\n",
+                  "solution": "def line_totals(prices, qtys):\n    return list(map(lambda p, q: p * q, prices, qtys))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `normalize_all(emails)` — к каждому адресу применить свою функцию `normalize(email)` (убрать пробелы по краям, нижний регистр) через `map`.",
+                  "starter_code": "def normalize(email):\n    pass\n\ndef normalize_all(emails):\n    pass\n",
+                  "tests": "def test_values():\n    assert normalize_all([\" A@x.ru \", \"B@Y.io\"]) == [\"a@x.ru\", \"b@y.io\"] and normalize_all([]) == [], \"Неверный результат\"\n",
+                  "solution": "def normalize(email):\n    return email.strip().lower()\n\ndef normalize_all(emails):\n    return list(map(normalize, emails))\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`map` применяет функцию к каждому элементу: превратить строки в числа, привести к верхнему регистру, посчитать длины. Особенно удобен с готовыми функциями — `int`, `str`, `len`, `str.strip` — и для разбора ввода вида `\"3 4\"`.\n\n## Как работает map\n\n```python\nprint(list(map(str.upper, [\"api\", \"ui\"])))\nprint(list(map(int, \"1 2 3\".split())))\nprint(list(map(lambda x: x * 10, range(3))))\n```\n\n- `map(функция, коллекция)` — результаты вызова функции для каждого элемента.\n- Как и `filter`, возвращает ленивый объект — для списка `list(...)`.\n- Вывод: `['API', 'UI']`, `[1, 2, 3]`, `[0, 10, 20]`.\n\n## Несколько коллекций\n\n```python\nprint(list(map(pow, [2, 3, 4], [3, 2])))\nprint(list(map(lambda a, b: a + b, [1, 2], [10, 20])))\n```\n\n- С несколькими коллекциями функция получает по элементу из каждой — попарно, как `zip`.\n- Останавливается на **самой короткой** коллекции: `4` без пары отброшено.\n- Вывод: `[8, 9]`, `[11, 22]`.\n\n## Распаковка и сразу в функцию\n\n```python\na, b = map(int, \"3 4\".split())\nprint(a * b)\nprint(sum(map(len, [\"ab\", \"cde\"])))\n```\n\n- Результат `map` можно распаковать — классика разбора ввода: `w, h = map(int, input().split())`.\n- `sum(map(...))` — сумма без промежуточного списка.\n- Вывод: `12`, `5`.\n\n## Своя функция\n\n```python\ndef normalize(email):\n    return email.strip().lower()\n\nprint(list(map(normalize, [\" A@x.ru \", \"B@Y.io\"])))\n```\n\nВывод: `['a@x.ru', 'b@y.io']`.\n\n## Итог\n\n- `map(f, коллекция)` — `f(x)` для каждого элемента; ленивый объект.\n- Несколько коллекций — попарно, до самой короткой.\n- `a, b = map(int, text.split())` — разбор чисел.\n- Удобен с готовыми функциями: `int`, `str`, `len`, `str.strip`.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `list(map(len, [\"a\", \"bb\"]))`?",
+                  "options": [
+                    "`[\"a\", \"bb\"]`",
+                    "`[1, 2]`",
+                    "`3`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "len для каждого."
+                },
+                {
+                  "q": "Сколько элементов в `list(map(lambda a, b: a + b, [1, 2, 3], [1]))`?",
+                  "options": [
+                    "3",
+                    "1",
+                    "0",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "До самой короткой коллекции."
+                },
+                {
+                  "q": "Что сделает `a, b = map(int, \"5 6\".split())`?",
+                  "options": [
+                    "Ошибка",
+                    "a = 5, b = 6",
+                    "a = \"5\", b = \"6\"",
+                    "a = [5, 6]"
+                  ],
+                  "answer": 1,
+                  "explain": "Распаковка результата map."
+                }
+              ]
+            },
+            {
+              "slug": "srt-m2-l3",
+              "title": "filter и map против включений",
+              "theory": "```py\nlist(map(str.strip, lines))               # готовая функция — map хорош\n[x * x for x in nums if x % 2]            # фильтр + преобразование — включение\nlist(map(lambda x: x * x, filter(lambda x: x % 2, nums)))   # то же, но хуже читается\n```",
+              "exercises": [
+                {
+                  "slug": "srt-m2-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Одно и то же тремя способами.",
+                  "code": "nums = [1, 2, 3, 4, 5]\na = list(map(lambda x: x * x, filter(lambda x: x % 2, nums)))\nb = [x * x for x in nums if x % 2]\nc = []\nfor x in nums:\n    if x % 2:\n        c.append(x * x)\nprint(a, a == b == c)\n",
+                  "expected_output": "[1, 9, 25] True",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m2-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "words = [\" a \", \"B\", \" c\"]\nprint(list(map(str.strip, words)))\nprint([w.strip() for w in words])\n",
+                  "expected_output": "['a', 'B', 'c']\n['a', 'B', 'c']",
+                  "hint": "Готовая функция — map читается хорошо; иначе нагляднее включение.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m2-l3-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "print(list(map(str, range(3))), [str(i) for i in range(3)])\n",
+                  "expected_output": "['0', '1', '2'] ['0', '1', '2']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m2-l3-e4",
+                  "type": "code",
+                  "prompt": "Перепиши функцию из заготовки **списковым включением** (без `map` и `filter`), сохранив результат.",
+                  "starter_code": "def squares_of_odds(nums):\n    return list(map(lambda x: x * x, filter(lambda x: x % 2, nums)))\n",
+                  "tests": "def test_values():\n    assert squares_of_odds([1, 2, 3, 4, 5]) == [1, 9, 25] and squares_of_odds([]) == [], \"Результат изменился\"\n\ndef test_comprehension():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"map(\" not in src and \"filter(\" not in src, \"Используй включение\"\n",
+                  "solution": "def squares_of_odds(nums):\n    return [x * x for x in nums if x % 2]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l3-e5",
+                  "type": "code",
+                  "prompt": "Перепиши функцию из заготовки через `map` и `filter` (без включений и циклов).",
+                  "starter_code": "def upper_long(words):\n    return [w.upper() for w in words if len(w) > 2]\n",
+                  "tests": "import re\n\ndef test_values():\n    assert upper_long([\"a\", \"api\", \"test\"]) == [\"API\", \"TEST\"] and upper_long([]) == [], \"Результат изменился\"\n\ndef test_map_filter():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"map(\" in src and \"filter(\" in src and not re.search(r\"\\bfor\\b\", src), \"Используй map и filter без for\"\n",
+                  "solution": "def upper_long(words):\n    return list(map(str.upper, filter(lambda w: len(w) > 2, words)))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l3-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `stripped(lines)` — убрать пробелы по краям каждой строки. Когда функция уже готова (`str.strip`), `map` особенно лаконичен.",
+                  "starter_code": "def stripped(lines):\n    pass\n",
+                  "tests": "def test_values():\n    assert stripped([\" a \", \"b \"]) == [\"a\", \"b\"] and stripped([]) == [], \"Неверный результат\"\n",
+                  "solution": "def stripped(lines):\n    return list(map(str.strip, lines))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `prices_with_tax(prices)` — цены с налогом 20%, округлённые до 2 знаков. Выбери сам: `map` или включение.\n\n```\nprices_with_tax([100, 9.99])   # → [120.0, 11.99]\n```",
+                  "starter_code": "def prices_with_tax(prices):\n    pass\n",
+                  "tests": "def test_values():\n    assert prices_with_tax([100, 9.99]) == [120.0, 11.99] and prices_with_tax([]) == [], \"Неверный результат\"\n",
+                  "solution": "def prices_with_tax(prices):\n    return [round(p * 1.2, 2) for p in prices]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `ids_of_active(users)` — id активных пользователей (`\"active\": True`). Выбери подходящий инструмент.\n\n```\nids_of_active([{\"id\": 1, \"active\": True}, {\"id\": 2, \"active\": False}])   # → [1]\n```",
+                  "starter_code": "def ids_of_active(users):\n    pass\n",
+                  "tests": "def test_values():\n    assert ids_of_active([{\"id\": 1, \"active\": True}, {\"id\": 2, \"active\": False}, {\"id\": 3, \"active\": True}]) == [1, 3], \"Неверный результат\"\n",
+                  "solution": "def ids_of_active(users):\n    return [u[\"id\"] for u in users if u[\"active\"]]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`filter`/`map` и списковые включения решают одни и те же задачи. Python-сообщество обычно предпочитает включения, но `map` с готовой функцией бывает короче. Разберёмся, что выбирать.\n\n## Одно и то же тремя способами\n\n```python\nnums = [1, 2, 3, 4, 5]\na = list(map(lambda x: x * x, filter(lambda x: x % 2, nums)))\nb = [x * x for x in nums if x % 2]\nc = []\nfor x in nums:\n    if x % 2:\n        c.append(x * x)\nprint(a, a == b == c)\n```\n\n- Вложенные `map(lambda..., filter(lambda...))` читаются изнутри наружу и с трудом.\n- Включение читается слева направо: «x² для x из nums, если x нечётно».\n- Вывод: `[1, 9, 25] True`.\n\n## Когда map лучше\n\n```python\nwords = [\" a \", \"B\", \" c\"]\nprint(list(map(str.strip, words)))\nprint([w.strip() for w in words])\nprint(list(map(str, range(3))), [str(i) for i in range(3)])\n```\n\n- Если функция **уже есть** (`str.strip`, `int`, `str`, своя `normalize`), `map(f, items)` лаконичен и понятен.\n- Если нужна `lambda` — включение почти всегда нагляднее.\n- Вывод: дважды `['a', 'B', 'c']`, затем `['0', '1', '2'] ['0', '1', '2']`.\n\n## Ориентиры\n\n- Готовая функция, одно действие — `map(f, x)` или `filter(f, x)`.\n- Нужна `lambda` — лучше включение.\n- Фильтр **и** преобразование — включение `[f(x) for x in items if cond(x)]`.\n- Результат нужен как список — включение (не нужен `list(...)`).\n- Результат идёт в `sum`/`max`/`join` — генератор или `map`: промежуточный список не нужен.\n\n## Итог\n\n- `map`/`filter` и включения взаимозаменяемы.\n- `map(готовая_функция, x)` — коротко и ясно.\n- С `lambda` и комбинацией фильтр+преобразование — включение читается лучше.",
+              "quiz": [
+                {
+                  "q": "Какой вариант обычно читабельнее для «квадраты нечётных»?",
+                  "options": [
+                    "`list(map(lambda x: x*x, filter(lambda x: x%2, nums)))`",
+                    "`[x * x for x in nums if x % 2]`",
+                    "Одинаково",
+                    "Цикл while"
+                  ],
+                  "answer": 1,
+                  "explain": "Включение читается слева направо."
+                },
+                {
+                  "q": "Когда `map` удобнее включения?",
+                  "options": [
+                    "Когда нужна lambda",
+                    "Когда функция уже готова: map(int, parts)",
+                    "Никогда",
+                    "Всегда"
+                  ],
+                  "answer": 1,
+                  "explain": "Готовая функция — лаконично."
+                },
+                {
+                  "q": "Что вернёт `list(map(str, [1, 2]))`?",
+                  "options": [
+                    "`[1, 2]`",
+                    "`['1', '2']`",
+                    "`\"12\"`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "str для каждого."
+                }
+              ]
+            },
+            {
+              "slug": "srt-m2-l4",
+              "title": "Ленивость: итераторы filter и map",
+              "theory": "```py\nm = map(f, items)          # итератор, не список\nlist(m); list(m)           # второй раз — []!\nresult = list(map(f, items))   # нужно много раз — список\nnext(m)                    # следующее значение\nnext(filter(cond, items), None)   # первый подходящий\nit = iter(x); next(it)     # StopIteration в конце\n```",
+              "exercises": [
+                {
+                  "slug": "srt-m2-l4-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "m = map(str.upper, [\"a\", \"b\"])\nprint(type(m).__name__, isinstance(m, list))\nprint(list(m))\n",
+                  "expected_output": "map False\n['A', 'B']",
+                  "hint": "map возвращает объект-итератор, а не список.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m2-l4-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Итератор расходуется.",
+                  "code": "m = map(lambda x: x * 2, [1, 2, 3])\nprint(list(m))\nprint(list(m))\n",
+                  "expected_output": "[2, 4, 6]\n[]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m2-l4-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? next и ленивость.",
+                  "code": "calls = []\n\ndef double(x):\n    calls.append(x)\n    return x * 2\n\nm = map(double, [1, 2, 3])\nprint(next(m), calls)\nprint(next(m), calls)\n",
+                  "expected_output": "2 [1]\n4 [1, 2]",
+                  "hint": "Функция вызывается только тогда, когда значение запросили.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m2-l4-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `first_valid(items)` — первое целое число из строк (строки из цифр), или `None`. Используй `next` с `filter` и значением по умолчанию — лишние элементы не будут проверяться.\n\n```\nfirst_valid([\"x\", \"12\", \"7\"])   # → 12\n```",
+                  "starter_code": "def first_valid(items):\n    pass\n",
+                  "tests": "def test_values():\n    assert [first_valid([\"x\", \"12\", \"7\"]), first_valid([\"x\"]), first_valid([])] == [12, None, None], \"Неверный результат\"\n",
+                  "solution": "def first_valid(items):\n    found = next(filter(str.isdigit, items), None)\n    return int(found) if found is not None else None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l4-e5",
+                  "type": "code",
+                  "prompt": "Функция `stats(nums)` из заготовки возвращает `(0, 0)` вместо суммы и количества положительных: итератор `filter` израсходовался на первом использовании. Исправь, превратив результат в список.\n\n```\nstats([3, -1, 5])   # → (8, 2)\n```",
+                  "starter_code": "def stats(nums):\n    pos = filter(lambda n: n > 0, nums)\n    total = sum(pos)\n    count = len(list(pos))\n    return total, count\n",
+                  "tests": "def test_values():\n    assert stats([3, -1, 5]) == (8, 2) and stats([]) == (0, 0), \"Неверный результат\"\n",
+                  "solution": "def stats(nums):\n    pos = list(filter(lambda n: n > 0, nums))\n    return sum(pos), len(pos)\n",
+                  "hint": "Итератор можно пройти только один раз. list(...) сохранит значения.",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l4-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `calls_needed(items)` — сколько раз будет вызвана проверка `is_bad`, если искать **первый** плохой элемент через `next(filter(is_bad, items), None)`. Считай вызовы внутри `is_bad`.\n\n```\ncalls_needed([1, 2, -3, 4, -5])   # → 3   (плохой — отрицательный)\n```",
+                  "starter_code": "def calls_needed(items):\n    pass\n",
+                  "tests": "def test_values():\n    assert [calls_needed([1, 2, -3, 4, -5]), calls_needed([1, 2]), calls_needed([-1])] == [3, 2, 1], \"Неверный подсчёт\"\n",
+                  "solution": "def calls_needed(items):\n    calls = 0\n    def is_bad(x):\n        nonlocal calls\n        calls += 1\n        return x < 0\n    next(filter(is_bad, items), None)\n    return calls\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "srt-m2-l4-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `pipeline(lines)` — ленивая цепочка: очистить строки (`strip`), убрать пустые, превратить в `int`; вернуть **сумму**. Не создавай промежуточных списков — передавай итераторы друг другу.\n\n```\npipeline([\" 1 \", \"\", \"2\", \"  \"])   # → 3\n```",
+                  "starter_code": "def pipeline(lines):\n    pass\n",
+                  "tests": "def test_values():\n    assert pipeline([\" 1 \", \"\", \"2\", \"  \"]) == 3 and pipeline([]) == 0, \"Неверная сумма\"\n",
+                  "solution": "def pipeline(lines):\n    cleaned = map(str.strip, lines)\n    non_empty = filter(None, cleaned)\n    numbers = map(int, non_empty)\n    return sum(numbers)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m2-l4-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `take(iterable, n)` — первые `n` элементов любого итерируемого объекта (в том числе бесконечного итератора) списком. Используй `next` в цикле; если элементы кончились раньше — вернуть сколько есть.\n\n```\ntake(map(lambda x: x * x, range(10)), 3)   # → [0, 1, 4]\n```",
+                  "starter_code": "def take(iterable, n):\n    pass\n",
+                  "tests": "import itertools\n\ndef test_values():\n    assert take(map(lambda x: x * x, range(10)), 3) == [0, 1, 4] and take([1, 2], 5) == [1, 2], \"Неверный результат\"\n    assert take(itertools.count(), 3) == [0, 1, 2], \"Должно работать с бесконечным итератором\"\n",
+                  "solution": "def take(iterable, n):\n    it = iter(iterable)\n    result = []\n    for _ in range(n):\n        try:\n            result.append(next(it))\n        except StopIteration:\n            break\n    return result\n",
+                  "hint": "iter(x) — получить итератор; next бросает StopIteration, когда элементы кончились.",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`map` и `filter` возвращают не списки, а **итераторы** — ленивые объекты, которые вычисляют значения по одному, только когда их запросили. Это экономит память и время, но у итератора есть свойство, о которое спотыкаются: он **расходуется** за один проход.\n\n## Итератор, а не список\n\n```python\nm = map(str.upper, [\"a\", \"b\"])\nprint(type(m).__name__, isinstance(m, list))\nprint(list(m))\n```\n\n- `print(m)` показал бы лишь описание объекта, а не значения. Чтобы получить значения — `list(m)`, цикл, `sum`, `join`…\n- Вывод: `map False`, `['A', 'B']`.\n\n## Итератор расходуется\n\n```python\nm = map(lambda x: x * 2, [1, 2, 3])\nprint(list(m))\nprint(list(m))\n```\n\n- Первый `list` забрал все значения; второй получил пустоту.\n- Нужен несколько раз — сохрани **список**: `result = list(map(...))`.\n- Вывод: `[2, 4, 6]`, `[]`.\n\nТипичный баг:\n\n```python\nnums = [3, -1, 5]\npos = filter(lambda n: n > 0, nums)\nprint(sum(pos), len(list(pos)))\n```\n\n- `sum` израсходовал итератор, и `len` получил пустой список. Вывод: `8 0`.\n\n## Ленивость: вычисление по запросу\n\n```python\ncalls = []\n\ndef double(x):\n    calls.append(x)\n    return x * 2\n\nm = map(double, [1, 2, 3])\nprint(next(m), calls)\nprint(next(m), calls)\n```\n\n- `next(итератор)` — получить **следующее** значение. Функция вызывается только в этот момент.\n- Вывод: `2 [1]`, `4 [1, 2]` — третий элемент ещё не обработан.\n\n## Первый подходящий без лишней работы\n\n```python\nitems = [\"x\", \"12\", \"7\"]\nprint(next(filter(str.isdigit, items), None))\n```\n\n- `next(итератор, умолчание)` — первый элемент или умолчание, если итератор пуст. Проверка остановится на первом совпадении — остальные не проверяются.\n- Вывод: `12`.\n\n## Конвейер итераторов\n\n```python\nlines = [\" 1 \", \"\", \"2\", \"  \"]\ncleaned = map(str.strip, lines)\nnon_empty = filter(None, cleaned)\nnumbers = map(int, non_empty)\nprint(sum(numbers))\n```\n\n- Каждый шаг передаёт итератор следующему; значения проходят через всю цепочку **по одному**, промежуточных списков нет.\n- Вывод: `3`.\n\n## iter и StopIteration\n\n```python\nit = iter([1, 2])\nprint(next(it), next(it))\ntry:\n    next(it)\nexcept StopIteration:\n    print(\"элементы кончились\")\n```\n\n- `iter(коллекция)` — получить итератор из любой коллекции.\n- Когда элементы кончаются, `next` выбрасывает `StopIteration` (с умолчанием — возвращает его). Подробнее — тема «Генераторы».\n- Вывод: `1 2`, `элементы кончились`.\n\n## Итог\n\n- `map`/`filter` возвращают итераторы — ленивые и одноразовые.\n- Нужны значения несколько раз — `list(...)`.\n- `next(it)` — следующее значение; `next(it, умолчание)` — без ошибки.\n- Конвейер итераторов обрабатывает данные по одному, без промежуточных списков.",
+              "quiz": [
+                {
+                  "q": "Что выведет второй `list(m)` для `m = map(str, [1, 2])`?",
+                  "options": [
+                    "`['1', '2']`",
+                    "`[]`",
+                    "Ошибка",
+                    "`None`"
+                  ],
+                  "answer": 1,
+                  "explain": "Итератор расходуется."
+                },
+                {
+                  "q": "Что вернёт `next(filter(lambda x: x > 5, [1, 2]), \"нет\")`?",
+                  "options": [
+                    "Ошибка",
+                    "`\"нет\"`",
+                    "`None`",
+                    "`[]`"
+                  ],
+                  "answer": 1,
+                  "explain": "Значение по умолчанию."
+                },
+                {
+                  "q": "Когда `map` вызывает функцию?",
+                  "options": [
+                    "Сразу для всех элементов",
+                    "Когда значение запрашивают",
+                    "Никогда",
+                    "При создании списка из map заранее"
+                  ],
+                  "answer": 1,
+                  "explain": "Ленивость."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "srt-m3",
+          "title": "Другие помощники",
+          "icon": "🧰",
+          "description": "min/max с key, reversed, enumerate, zip, any/all и конвейеры данных",
+          "lessons": [
+            {
+              "slug": "srt-m3-l1",
+              "title": "min и max с key и default",
+              "theory": "```py\nmax(words, key=len)                  # самое длинное\nmin(products, key=lambda p: p[\"price\"])\nmax(scores, key=scores.get)          # ключ с max значением\nmin(nums, key=lambda n: abs(n - t))  # ближайшее к t\nmax([], default=0)                   # без ValueError\n```",
+              "exercises": [
+                {
+                  "slug": "srt-m3-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "words = [\"banana\", \"fig\", \"kiwi\"]\nprint(min(words), max(words))\nprint(min(words, key=len), max(words, key=len))\n",
+                  "expected_output": "banana kiwi\nfig banana",
+                  "hint": "Без key строки сравниваются по алфавиту.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m3-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Пустая коллекция.",
+                  "code": "print(max([], default=0), min([], default=None))\ntry:\n    max([])\nexcept ValueError:\n    print(\"ValueError: пустая последовательность\")\n",
+                  "expected_output": "0 None\nValueError: пустая последовательность",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m3-l1-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Равные ключи.",
+                  "code": "users = [(\"Аня\", 30), (\"Боря\", 30), (\"Вика\", 25)]\nprint(max(users, key=lambda u: u[1]))\nprint(min(users, key=lambda u: u[1])[0])\n",
+                  "expected_output": "('Аня', 30)\nВика",
+                  "hint": "При равенстве max и min возвращают первый.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m3-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `longest(words)` — самое длинное слово (первое при равенстве); пустой список — `\"\"`.",
+                  "starter_code": "def longest(words):\n    pass\n",
+                  "tests": "def test_values():\n    assert [longest([\"banana\", \"fig\", \"apples\"]), longest([])] == [\"banana\", \"\"], \"Неверный результат\"\n",
+                  "solution": "def longest(words):\n    return max(words, key=len, default=\"\")\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m3-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `cheapest(products)` — название самого дешёвого товара из списка словарей `name`, `price`; пустой — `None`.",
+                  "starter_code": "def cheapest(products):\n    pass\n",
+                  "tests": "def test_values():\n    assert cheapest([{\"name\": \"a\", \"price\": 30}, {\"name\": \"b\", \"price\": 10}]) == \"b\" and cheapest([]) is None, \"Неверный результат\"\n",
+                  "solution": "def cheapest(products):\n    best = min(products, key=lambda p: p[\"price\"], default=None)\n    return best[\"name\"] if best else None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m3-l1-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `top_scorer(scores)` — имя с наибольшим числом очков из словаря `{имя: очки}`.\n\n```\ntop_scorer({\"Аня\": 80, \"Боря\": 95})   # → \"Боря\"\n```",
+                  "starter_code": "def top_scorer(scores):\n    pass\n",
+                  "tests": "def test_values():\n    assert top_scorer({\"Аня\": 80, \"Боря\": 95, \"Вика\": 70}) == \"Боря\", \"Неверный результат\"\n",
+                  "solution": "def top_scorer(scores):\n    return max(scores, key=scores.get)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m3-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `closest(nums, target)` — число из списка, ближайшее к `target` (при равенстве — первое).\n\n```\nclosest([1, 5, 9], 6)   # → 5\n```",
+                  "starter_code": "def closest(nums, target):\n    pass\n",
+                  "tests": "def test_values():\n    assert [closest([1, 5, 9], 6), closest([1, 5, 9], 7), closest([10], 0)] == [5, 5, 10], \"Неверный результат\"\n",
+                  "solution": "def closest(nums, target):\n    return min(nums, key=lambda n: abs(n - target))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m3-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `range_of(nums)` — разница между максимумом и минимумом; для пустого списка — `0`. Используй `default`.",
+                  "starter_code": "def range_of(nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert [range_of([3, 9, 1]), range_of([]), range_of([5])] == [8, 0, 0], \"Неверный результат\"\n",
+                  "solution": "def range_of(nums):\n    return max(nums, default=0) - min(nums, default=0)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`min` и `max` находят наименьший и наибольший элемент, и у них есть тот же параметр `key`, что у `sorted`: самое длинное слово, самый дешёвый товар, число, ближайшее к цели. Сортировать весь список ради одного элемента не нужно.\n\n## Без key и с key\n\n```python\nwords = [\"banana\", \"fig\", \"kiwi\"]\nprint(min(words), max(words))\nprint(min(words, key=len), max(words, key=len))\n```\n\n- Без `key` строки сравниваются по алфавиту.\n- С `key=len` — по длине; возвращается сам элемент.\n- Вывод: `banana kiwi`, `fig banana`.\n\n## Равные ключи\n\n```python\nusers = [(\"Аня\", 30), (\"Боря\", 30), (\"Вика\", 25)]\nprint(max(users, key=lambda u: u[1]))\nprint(min(users, key=lambda u: u[1])[0])\n```\n\n- При равенстве `max` и `min` возвращают **первый** такой элемент.\n- Вывод: `('Аня', 30)`, `Вика`.\n\n## Пустая коллекция и default\n\n```python\nprint(max([], default=0), min([], default=None))\ntry:\n    max([])\nexcept ValueError:\n    print(\"ValueError: пустая последовательность\")\n```\n\n- `max([])` — `ValueError`. Параметр `default` задаёт результат для пустой коллекции.\n- Вывод: `0 None`, `ValueError: пустая последовательность`.\n\n## Типичные задачи\n\n```python\nscores = {\"Аня\": 80, \"Боря\": 95}\nprint(max(scores, key=scores.get))\nproducts = [{\"name\": \"a\", \"price\": 30}, {\"name\": \"b\", \"price\": 10}]\nprint(min(products, key=lambda p: p[\"price\"])[\"name\"])\nprint(min([1, 5, 9], key=lambda n: abs(n - 6)))\nnums = [3, 9, 1]\nprint(max(nums, default=0) - min(nums, default=0))\n```\n\n- Лучший по словарю; самый дешёвый товар; ближайшее к 6; размах значений.\n- Вывод: `Боря`, `b`, `5`, `8`.\n\nМожно передать и несколько аргументов: `max(3, 9, 2)` → `9`.\n\n## Итог\n\n- `min`/`max` с `key` — лучший элемент по признаку; сортировка не нужна.\n- При равенстве — первый.\n- Пустая коллекция — `ValueError`; `default=` — значение по умолчанию.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `max([\"aa\", \"b\", \"cc\"], key=len)`?",
+                  "options": [
+                    "`\"cc\"`",
+                    "`\"aa\"`",
+                    "`2`",
+                    "`\"b\"`"
+                  ],
+                  "answer": 1,
+                  "explain": "При равенстве — первый."
+                },
+                {
+                  "q": "Что будет при `min([])`?",
+                  "options": [
+                    "None",
+                    "`ValueError`",
+                    "0",
+                    "`[]`"
+                  ],
+                  "answer": 1,
+                  "explain": "Используй default."
+                },
+                {
+                  "q": "Как найти число из `nums`, ближайшее к 10?",
+                  "options": [
+                    "`min(nums)`",
+                    "`min(nums, key=lambda n: abs(n - 10))`",
+                    "`max(nums, key=10)`",
+                    "`sorted(nums)[10]`"
+                  ],
+                  "answer": 1,
+                  "explain": "Ключ — расстояние до цели."
+                }
+              ]
+            },
+            {
+              "slug": "srt-m3-l2",
+              "title": "reversed, enumerate и zip",
+              "theory": "```py\nlist(reversed(items))              # исходник не меняется\nnames, ages = zip(*pairs)          # обратный zip\nzip(a, b, strict=True)             # ValueError при разной длине\nenumerate(zip(e, a), start=1)\ndict(zip(keys, values))\n```",
+              "exercises": [
+                {
+                  "slug": "srt-m3-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "items = [\"a\", \"b\", \"c\"]\nprint(list(reversed(items)), items)\nfor i, x in enumerate(reversed(items), start=1):\n    print(i, x)\n",
+                  "expected_output": "['c', 'b', 'a'] ['a', 'b', 'c']\n1 c\n2 b\n3 a",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m3-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? zip и распаковка.",
+                  "code": "names = [\"Аня\", \"Боря\"]\nages = [25, 30]\npairs = list(zip(names, ages))\nprint(pairs)\nn, a = zip(*pairs)\nprint(n, a)\n",
+                  "expected_output": "[('Аня', 25), ('Боря', 30)]\n('Аня', 'Боря') (25, 30)",
+                  "hint": "zip(*pairs) — «обратный» zip: разложить пары обратно.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m3-l2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Разная длина.",
+                  "code": "print(list(zip([1, 2, 3], \"ab\")))\ntry:\n    list(zip([1, 2, 3], \"ab\", strict=True))\nexcept ValueError:\n    print(\"strict: разная длина\")\n",
+                  "expected_output": "[(1, 'a'), (2, 'b')]\nstrict: разная длина",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m3-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `last_n_reversed(items, n)` — последние `n` элементов в обратном порядке (самый последний — первым). Используй `reversed`.\n\n```\nlast_n_reversed([\"a\", \"b\", \"c\", \"d\"], 2)   # → [\"d\", \"c\"]\n```",
+                  "starter_code": "def last_n_reversed(items, n):\n    pass\n",
+                  "tests": "def test_values():\n    assert [last_n_reversed([\"a\", \"b\", \"c\", \"d\"], 2), last_n_reversed([\"a\"], 5), last_n_reversed([], 1)] == [[\"d\", \"c\"], [\"a\"], []], \"Неверный результат\"\n",
+                  "solution": "def last_n_reversed(items, n):\n    return list(reversed(items))[:n]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m3-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `to_dict(keys, values)` — словарь из двух списков через `zip`.",
+                  "starter_code": "def to_dict(keys, values):\n    pass\n",
+                  "tests": "def test_values():\n    assert to_dict([\"a\", \"b\"], [1, 2]) == {\"a\": 1, \"b\": 2} and to_dict([], []) == {}, \"Неверный словарь\"\n",
+                  "solution": "def to_dict(keys, values):\n    return dict(zip(keys, values))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m3-l2-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `unzip(pairs)` — из списка пар вернуть два списка: первые элементы и вторые. Для пустого — `([], [])`.\n\n```\nunzip([(\"a\", 1), (\"b\", 2)])   # → ([\"a\", \"b\"], [1, 2])\n```",
+                  "starter_code": "def unzip(pairs):\n    pass\n",
+                  "tests": "def test_values():\n    assert unzip([(\"a\", 1), (\"b\", 2)]) == ([\"a\", \"b\"], [1, 2]) and unzip([]) == ([], []), \"Неверный результат\"\n",
+                  "solution": "def unzip(pairs):\n    if not pairs:\n        return [], []\n    first, second = zip(*pairs)\n    return list(first), list(second)\n",
+                  "hint": "zip(*pairs) раскладывает пары обратно; для пустого списка распаковка не сработает.",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m3-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `diffs(expected, actual)` — строки `\"#<номер с 1>: <e> != <a>\"` для несовпадающих позиций. Если длины списков разные — выбросить `ValueError` (используй `zip(..., strict=True)`).",
+                  "starter_code": "def diffs(expected, actual):\n    pass\n",
+                  "tests": "def test_values():\n    assert diffs([1, 2, 3], [1, 5, 3]) == [\"#2: 2 != 5\"] and diffs([], []) == [], \"Неверный результат\"\n\ndef test_strict():\n    try:\n        diffs([1], [1, 2])\n    except ValueError:\n        return\n    assert False, \"Разная длина — ValueError\"\n",
+                  "solution": "def diffs(expected, actual):\n    return [f\"#{i}: {e} != {a}\" for i, (e, a) in enumerate(zip(expected, actual, strict=True), start=1) if e != a]\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "srt-m3-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `numbered_report(results)` — для списка пар `(имя, статус)` строки `\"<N>. <имя>: <статус>\"`, нумерация с 1.",
+                  "starter_code": "def numbered_report(results):\n    pass\n",
+                  "tests": "def test_values():\n    assert numbered_report([(\"login\", \"pass\"), (\"pay\", \"fail\")]) == [\"1. login: pass\", \"2. pay: fail\"], \"Неверный отчёт\"\n",
+                  "solution": "def numbered_report(results):\n    return [f\"{i}. {name}: {status}\" for i, (name, status) in enumerate(results, start=1)]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`reversed`, `enumerate` и `zip` — три помощника перебора, которые встречались в темах про циклы. Здесь — их тонкости: `reversed` не создаёт список, `zip` умеет «распаковываться обратно» и проверять одинаковую длину.\n\n## reversed\n\n```python\nitems = [\"a\", \"b\", \"c\"]\nprint(list(reversed(items)), items)\nfor i, x in enumerate(reversed(items), start=1):\n    print(i, x)\n```\n\n- `reversed(коллекция)` — итератор в обратном порядке; исходный список не меняется (в отличие от `list.reverse()`).\n- Срез к `reversed` применить нельзя — сначала `list(...)`.\n- Вывод: `['c', 'b', 'a'] ['a', 'b', 'c']`, затем `1 c`, `2 b`, `3 a`.\n\n## zip и «обратный» zip\n\n```python\nnames = [\"Аня\", \"Боря\"]\nages = [25, 30]\npairs = list(zip(names, ages))\nprint(pairs)\nn, a = zip(*pairs)\nprint(n, a)\n```\n\n- `zip(a, b)` — пары элементов.\n- `zip(*pairs)` — звёздочка раскладывает список пар в отдельные аргументы, и `zip` собирает первые элементы вместе, вторые вместе. Это «распаковка» — транспонирование.\n- Результаты `zip` — кортежи. Для пустого списка распаковать в две переменные не получится — проверяй заранее.\n- Вывод: `[('Аня', 25), ('Боря', 30)]`, `('Аня', 'Боря') (25, 30)`.\n\n## Разная длина и strict\n\n```python\nprint(list(zip([1, 2, 3], \"ab\")))\ntry:\n    list(zip([1, 2, 3], \"ab\", strict=True))\nexcept ValueError:\n    print(\"strict: разная длина\")\n```\n\n- По умолчанию `zip` молча останавливается на самой короткой коллекции — лишнее теряется.\n- `strict=True` (Python 3.10+) — выбросить `ValueError`, если длины разные. Для тестов это полезно: сравнение ожидаемого и фактического не пропустит недостающие элементы.\n- Вывод: `[(1, 'a'), (2, 'b')]`, `strict: разная длина`.\n\n## Всё вместе\n\n```python\nexpected = [1, 2, 3]\nactual = [1, 5, 3]\nprint([f\"#{i}: {e} != {a}\" for i, (e, a) in enumerate(zip(expected, actual, strict=True), start=1) if e != a])\nprint(dict(zip([\"a\", \"b\"], [1, 2])))\n```\n\n- Нумерованные различия и словарь из двух списков.\n- Вывод: `['#2: 2 != 5']`, `{'a': 1, 'b': 2}`.\n\n## Итог\n\n- `reversed(x)` — обратный итератор, исходник не меняется.\n- `zip(*pairs)` — разложить пары обратно.\n- `zip` обрезает по короткой коллекции; `strict=True` — ошибка при разной длине.\n- `enumerate(zip(...), start=1)` — номер и пара сразу.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `list(zip(*[(1, \"a\"), (2, \"b\")]))`?",
+                  "options": [
+                    "`[(1, \"a\"), (2, \"b\")]`",
+                    "`[(1, 2), (\"a\", \"b\")]`",
+                    "`[1, 2, \"a\", \"b\"]`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Обратный zip."
+                },
+                {
+                  "q": "Что делает `strict=True` у zip?",
+                  "options": [
+                    "Сортирует",
+                    "Выбрасывает ValueError при разной длине",
+                    "Убирает None",
+                    "Ничего"
+                  ],
+                  "answer": 1,
+                  "explain": "Python 3.10+."
+                },
+                {
+                  "q": "Меняет ли `reversed(lst)` сам список?",
+                  "options": [
+                    "Да",
+                    "Нет",
+                    "Только для строк",
+                    "Только при list()"
+                  ],
+                  "answer": 1,
+                  "explain": "Это итератор."
+                }
+              ]
+            },
+            {
+              "slug": "srt-m3-l3",
+              "title": "any, all и подсчёты с условием",
+              "theory": "```py\nany(c >= 500 for c in codes)       # хоть один\nall(r == \"pass\" for r in results)  # все\nany([]) is False; all([]) is True\nsum(r == \"pass\" for r in results)  # сколько\n```",
+              "exercises": [
+                {
+                  "slug": "srt-m3-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "codes = [200, 201, 404]\nprint(any(c >= 400 for c in codes), all(c < 500 for c in codes))\nprint(any([]), all([]))\n",
+                  "expected_output": "True True\nFalse True",
+                  "hint": "any пустого — False, all пустого — True.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m3-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "print(any([0, \"\", None]), any([0, \"x\"]), all([1, \"a\", [0]]), all([1, []]))\n",
+                  "expected_output": "False True True False",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m3-l3-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Подсчёт True.",
+                  "code": "results = [\"pass\", \"fail\", \"pass\"]\nprint(sum(r == \"pass\" for r in results))\nprint(sum(1 for r in results if r == \"fail\"))\n",
+                  "expected_output": "2\n1",
+                  "hint": "True считается как 1, False — как 0.",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m3-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `all_passed(results)` — все ли статусы равны `\"pass\"`.",
+                  "starter_code": "def all_passed(results):\n    pass\n",
+                  "tests": "def test_values():\n    assert [all_passed([\"pass\", \"pass\"]), all_passed([\"pass\", \"fail\"]), all_passed([])] == [True, False, True], \"Неверный результат\"\n",
+                  "solution": "def all_passed(results):\n    return all(r == \"pass\" for r in results)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m3-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `has_server_error(codes)` — есть ли хоть один код `5xx`.",
+                  "starter_code": "def has_server_error(codes):\n    pass\n",
+                  "tests": "def test_values():\n    assert [has_server_error([200, 503]), has_server_error([404]), has_server_error([])] == [True, False, False], \"Неверный результат\"\n",
+                  "solution": "def has_server_error(codes):\n    return any(500 <= c < 600 for c in codes)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m3-l3-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `count_passed(results)` — количество `\"pass\"` через `sum` с логическими значениями.",
+                  "starter_code": "def count_passed(results):\n    pass\n",
+                  "tests": "def test_values():\n    assert [count_passed([\"pass\", \"fail\", \"pass\"]), count_passed([])] == [2, 0], \"Неверный подсчёт\"\n",
+                  "solution": "def count_passed(results):\n    return sum(r == \"pass\" for r in results)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m3-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `strong_password(p)` — пароль длиной не меньше 8, в котором есть хоть одна цифра, хоть одна заглавная и хоть одна строчная буква.",
+                  "starter_code": "def strong_password(p):\n    pass\n",
+                  "tests": "def test_values():\n    got = [strong_password(\"Secret123\"), strong_password(\"secret123\"), strong_password(\"SECRET123\"), strong_password(\"Secretxx\"), strong_password(\"Ab1\")]\n    assert got == [True, False, False, False, False], f\"Получено {got}\"\n",
+                  "solution": "def strong_password(p):\n    return (len(p) >= 8\n            and any(ch.isdigit() for ch in p)\n            and any(ch.isupper() for ch in p)\n            and any(ch.islower() for ch in p))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m3-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `response_valid(items)` — у **всех** объектов списка есть поле `\"id\"` и оно — положительное целое (не `bool`).",
+                  "starter_code": "def response_valid(items):\n    pass\n",
+                  "tests": "def test_values():\n    got = [response_valid([{\"id\": 1}, {\"id\": 2}]), response_valid([{\"id\": 0}]), response_valid([{\"x\": 1}]), response_valid([{\"id\": True}]), response_valid([])]\n    assert got == [True, False, False, False, True], f\"Получено {got}\"\n",
+                  "solution": "def response_valid(items):\n    return all(isinstance(i.get(\"id\"), int) and not isinstance(i.get(\"id\"), bool) and i[\"id\"] > 0 for i in items)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`any` и `all` отвечают на вопросы «есть ли хоть один?» и «все ли?», а `sum` с логическими значениями считает, «сколько подходит». Это основа проверок в тестах: все ли ответы 2xx, есть ли ошибка сервера, сколько тестов прошло.\n\n## any и all\n\n```python\ncodes = [200, 201, 404]\nprint(any(c >= 400 for c in codes), all(c < 500 for c in codes))\nprint(any([]), all([]))\n```\n\n- `any(...)` — `True`, если хотя бы один элемент истинный; останавливается на первом.\n- `all(...)` — `True`, если все истинные; останавливается на первом ложном.\n- Для пустой коллекции: `any` — `False` (нет ни одного), `all` — `True` (нет ни одного опровержения).\n- Вывод: `True True`, `False True`.\n\n## Истинность элементов\n\n```python\nprint(any([0, \"\", None]), any([0, \"x\"]), all([1, \"a\", [0]]), all([1, []]))\n```\n\n- Без генератора проверяется истинность самих значений: `0`, `\"\"`, `None`, `[]` — ложны.\n- Вывод: `False True True False`.\n\n## Подсчёт через sum\n\n```python\nresults = [\"pass\", \"fail\", \"pass\"]\nprint(sum(r == \"pass\" for r in results))\nprint(sum(1 for r in results if r == \"fail\"))\n```\n\n- `True` в арифметике — `1`, `False` — `0`, поэтому сумма логических значений — количество истинных.\n- Второй вариант: складывать единицы для подходящих.\n- Вывод: `2`, `1`.\n\n## Составные проверки\n\n```python\np = \"Secret123\"\nprint(len(p) >= 8 and any(ch.isdigit() for ch in p) and any(ch.isupper() for ch in p) and any(ch.islower() for ch in p))\nitems = [{\"id\": 1}, {\"id\": True}]\nprint(all(isinstance(i.get(\"id\"), int) and not isinstance(i.get(\"id\"), bool) for i in items))\n```\n\n- Надёжный пароль: несколько `any` через `and`.\n- Проверка ответа API: у всех объектов `id` — целое, но не `bool` (`True` — подтип `int`).\n- Вывод: `True`, `False`.\n\n## Итог\n\n- `any` — хоть один; `all` — все; оба останавливаются досрочно.\n- `any([])` — `False`, `all([])` — `True`.\n- `sum(условие for x in ...)` — количество подходящих.\n- Сложные правила — комбинация `any`/`all` через `and`.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `all([])`?",
+                  "options": [
+                    "`False`",
+                    "`True`",
+                    "Ошибка",
+                    "`None`"
+                  ],
+                  "answer": 1,
+                  "explain": "Нет опровержений."
+                },
+                {
+                  "q": "Что вернёт `sum(x > 0 for x in [1, -2, 3])`?",
+                  "options": [
+                    "`2`",
+                    "`4`",
+                    "`True`",
+                    "Ошибка"
+                  ],
+                  "answer": 0,
+                  "explain": "True считается как 1."
+                },
+                {
+                  "q": "Что вернёт `any([0, \"\", None])`?",
+                  "options": [
+                    "`True`",
+                    "`False`",
+                    "`None`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Все значения ложны."
+                }
+              ]
+            },
+            {
+              "slug": "srt-m3-l4",
+              "title": "Практика: конвейер обработки данных",
+              "theory": "```py\nclean = [int(p) for p in map(str.strip, raw) if p.isdigit()]\nsorted(filter(cond, rows), key=lambda r: r[1])\nmax(set(errors), key=errors.count)\nsorted(unique, key=lambda e: (-errors.count(e), e))\n{\"passed\": sum(...), \"all_green\": all(...)}\n```",
+              "exercises": [
+                {
+                  "slug": "srt-m3-l4-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "log = [\"INFO start\", \"ERROR db\", \"WARN slow\", \"ERROR api\", \"ERROR db\"]\nerrors = [line.split()[1] for line in log if line.startswith(\"ERROR\")]\nprint(sorted(set(errors)), max(set(errors), key=errors.count))\n",
+                  "expected_output": "['api', 'db'] db",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m3-l4-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "results = [(\"login\", 1.2, \"pass\"), (\"pay\", 3.4, \"fail\"), (\"cart\", 0.5, \"pass\")]\npassed = filter(lambda r: r[2] == \"pass\", results)\nnames = map(lambda r: r[0], sorted(passed, key=lambda r: r[1]))\nprint(list(names))\n",
+                  "expected_output": "['cart', 'login']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m3-l4-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "prices = [\"100\", \" 250 \", \"\", \"x\", \"40\"]\nclean = [int(p) for p in map(str.strip, prices) if p.isdigit()]\nprint(clean, sum(clean), max(clean, default=0))\n",
+                  "expected_output": "[100, 250, 40] 390 250",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "srt-m3-l4-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `top_errors(log, n)` — `n` самых частых текстов ошибок из строк `\"LEVEL текст\"` (только уровень `ERROR`), по убыванию частоты; при равной частоте — по алфавиту.\n\n```\ntop_errors([\"ERROR db\", \"ERROR api\", \"ERROR db\", \"INFO x\"], 2)   # → [\"db\", \"api\"]\n```",
+                  "starter_code": "def top_errors(log, n):\n    pass\n",
+                  "tests": "def test_values():\n    log = [\"ERROR db\", \"ERROR api\", \"ERROR db\", \"INFO x\", \"ERROR cache\"]\n    assert top_errors(log, 2) == [\"db\", \"api\"] and top_errors([], 3) == [], \"Неверный результат\"\n",
+                  "solution": "def top_errors(log, n):\n    errors = [line.split(\" \", 1)[1] for line in log if line.startswith(\"ERROR \")]\n    unique = set(errors)\n    return sorted(unique, key=lambda e: (-errors.count(e), e))[:n]\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "srt-m3-l4-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `fast_passed(results, limit)` — имена прошедших тестов, которые шли меньше `limit` секунд, отсортированные по времени. `results` — список кортежей `(имя, время, статус)`.",
+                  "starter_code": "def fast_passed(results, limit):\n    pass\n",
+                  "tests": "def test_values():\n    res = [(\"login\", 1.2, \"pass\"), (\"pay\", 0.4, \"fail\"), (\"cart\", 0.5, \"pass\"), (\"x\", 3, \"pass\")]\n    assert fast_passed(res, 2) == [\"cart\", \"login\"] and fast_passed([], 1) == [], \"Неверный результат\"\n",
+                  "solution": "def fast_passed(results, limit):\n    ok = [r for r in results if r[2] == \"pass\" and r[1] < limit]\n    return [r[0] for r in sorted(ok, key=lambda r: r[1])]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m3-l4-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `clean_prices(raw)` — из списка строк оставить только целые числа (после `strip`), вернуть их отсортированный по убыванию список.\n\n```\nclean_prices([\"100\", \" 250 \", \"\", \"x\", \"40\"])   # → [250, 100, 40]\n```",
+                  "starter_code": "def clean_prices(raw):\n    pass\n",
+                  "tests": "def test_values():\n    assert clean_prices([\"100\", \" 250 \", \"\", \"x\", \"40\"]) == [250, 100, 40] and clean_prices([]) == [], \"Неверный результат\"\n",
+                  "solution": "def clean_prices(raw):\n    return sorted((int(p) for p in map(str.strip, raw) if p.isdigit()), reverse=True)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "srt-m3-l4-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `summary(results)` — словарь сводки для списка словарей `name`, `status`, `time`:\n\n- `\"total\"` — количество;\n- `\"passed\"` — количество `pass`;\n- `\"slowest\"` — имя самого долгого (или `None`);\n- `\"all_green\"` — все ли `pass`.",
+                  "starter_code": "def summary(results):\n    pass\n",
+                  "tests": "def test_values():\n    res = [{\"name\": \"a\", \"status\": \"pass\", \"time\": 1}, {\"name\": \"b\", \"status\": \"fail\", \"time\": 3}]\n    assert summary(res) == {\"total\": 2, \"passed\": 1, \"slowest\": \"b\", \"all_green\": False}, f\"Получено {summary(res)}\"\n    assert summary([]) == {\"total\": 0, \"passed\": 0, \"slowest\": None, \"all_green\": True}, \"Пустой прогон\"\n",
+                  "solution": "def summary(results):\n    slowest = max(results, key=lambda r: r[\"time\"], default=None)\n    return {\n        \"total\": len(results),\n        \"passed\": sum(r[\"status\"] == \"pass\" for r in results),\n        \"slowest\": slowest[\"name\"] if slowest else None,\n        \"all_green\": all(r[\"status\"] == \"pass\" for r in results),\n    }\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "srt-m3-l4-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `merge_sorted_names(*groups)` — объединить несколько списков имён, убрать повторы без учёта регистра (оставить вариант, встретившийся первым) и отсортировать без учёта регистра.\n\n```\nmerge_sorted_names([\"bob\", \"Anna\"], [\"anna\", \"Cat\"])   # → [\"Anna\", \"bob\", \"Cat\"]\n```",
+                  "starter_code": "def merge_sorted_names(*groups):\n    pass\n",
+                  "tests": "def test_values():\n    assert merge_sorted_names([\"bob\", \"Anna\"], [\"anna\", \"Cat\"]) == [\"Anna\", \"bob\", \"Cat\"] and merge_sorted_names() == [], \"Неверный результат\"\n",
+                  "solution": "def merge_sorted_names(*groups):\n    seen = {}\n    for group in groups:\n        for name in group:\n            seen.setdefault(name.lower(), name)\n    return sorted(seen.values(), key=str.lower)\n",
+                  "hint": "Словарь «нижний регистр → первый вариант» с setdefault.",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nРеальная обработка данных — это **конвейер**: очистить, отфильтровать, преобразовать, отсортировать, подвести итог. Каждый шаг — один из изученных инструментов. Разберём несколько конвейеров из практики тестировщика.\n\n## Частые ошибки в логе\n\n```python\nlog = [\"INFO start\", \"ERROR db\", \"WARN slow\", \"ERROR api\", \"ERROR db\"]\nerrors = [line.split()[1] for line in log if line.startswith(\"ERROR\")]\nprint(sorted(set(errors)), max(set(errors), key=errors.count))\nprint(sorted(set(errors), key=lambda e: (-errors.count(e), e)))\n```\n\n- Фильтр строк → извлечение текста → различные значения (`set`) → самое частое (`max` с `key=errors.count`) → рейтинг по частоте, при равенстве по алфавиту.\n- Вывод: `['api', 'db'] db`, `['db', 'api']`.\n\n## Быстрые прошедшие тесты\n\n```python\nresults = [(\"login\", 1.2, \"pass\"), (\"pay\", 3.4, \"fail\"), (\"cart\", 0.5, \"pass\")]\npassed = filter(lambda r: r[2] == \"pass\", results)\nnames = map(lambda r: r[0], sorted(passed, key=lambda r: r[1]))\nprint(list(names))\n```\n\n- `filter` → `sorted` (принимает итератор) → `map`. Вывод: `['cart', 'login']`.\n\n## Очистка «грязных» цен\n\n```python\nprices = [\"100\", \" 250 \", \"\", \"x\", \"40\"]\nclean = [int(p) for p in map(str.strip, prices) if p.isdigit()]\nprint(clean, sum(clean), max(clean, default=0), sorted(clean, reverse=True))\n```\n\n- `map(str.strip, ...)` чистит, фильтр оставляет числа, `int` превращает.\n- Вывод: `[100, 250, 40] 390 250 [250, 100, 40]`.\n\n## Сводка прогона\n\n```python\nresults = [{\"name\": \"a\", \"status\": \"pass\", \"time\": 1}, {\"name\": \"b\", \"status\": \"fail\", \"time\": 3}]\nslowest = max(results, key=lambda r: r[\"time\"], default=None)\nprint({\n    \"total\": len(results),\n    \"passed\": sum(r[\"status\"] == \"pass\" for r in results),\n    \"slowest\": slowest[\"name\"] if slowest else None,\n    \"all_green\": all(r[\"status\"] == \"pass\" for r in results),\n})\n```\n\n- Каждое поле сводки — одна строка с подходящим инструментом.\n- Вывод: `{'total': 2, 'passed': 1, 'slowest': 'b', 'all_green': False}`.\n\n## Объединить и упорядочить без учёта регистра\n\n```python\ngroups = [[\"bob\", \"Anna\"], [\"anna\", \"Cat\"]]\nseen = {}\nfor group in groups:\n    for name in group:\n        seen.setdefault(name.lower(), name)\nprint(sorted(seen.values(), key=str.lower))\n```\n\n- Словарь «нормализованный ключ → первый вариант» убирает дубли без учёта регистра; сортировка — тоже без учёта регистра.\n- Вывод: `['Anna', 'bob', 'Cat']`.\n\n## Итог\n\n- Конвейер: очистить (`map`) → отфильтровать (`filter`/включение) → упорядочить (`sorted` с `key`) → подытожить (`sum`, `max`, `all`).\n- Каждый шаг — короткая понятная строка; сложную логику выноси в функции.\n- `sorted`, `sum`, `max` принимают итераторы — промежуточные списки часто не нужны.",
+              "quiz": [
+                {
+                  "q": "Как найти самый частый элемент списка `errors`?",
+                  "options": [
+                    "`max(errors)`",
+                    "`max(set(errors), key=errors.count)`",
+                    "`sorted(errors)[0]`",
+                    "`errors.count()`"
+                  ],
+                  "answer": 1,
+                  "explain": "Ключ — количество вхождений."
+                },
+                {
+                  "q": "Принимает ли `sorted` итератор от `filter`?",
+                  "options": [
+                    "Нет",
+                    "Да",
+                    "Только список",
+                    "Только кортеж"
+                  ],
+                  "answer": 1,
+                  "explain": "sorted работает с любой коллекцией."
+                },
+                {
+                  "q": "Что даст `[int(p) for p in map(str.strip, [\" 5\", \"x\"]) if p.isdigit()]`?",
+                  "options": [
+                    "`[5]`",
+                    "`[\" 5\"]`",
+                    "Ошибка",
+                    "`[5, \"x\"]`"
+                  ],
+                  "answer": 0,
+                  "explain": "Очистка, фильтр, преобразование."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
