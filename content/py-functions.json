@@ -5,19 +5,19 @@
       "title": "Функции",
       "icon": "🧰",
       "color": "#e05ab0",
-      "description": "def, параметры, return, значения по умолчанию, функции как объекты и рекурсия",
+      "description": "def, параметры и аргументы, return, значения по умолчанию, документация, функции как объекты, рекурсия, тесты",
       "group": "Python",
       "modules": [
         {
           "slug": "fn-m1",
           "title": "Основы функций",
           "icon": "🧰",
-          "description": "def, параметры, return",
+          "description": "def и вызов, порядок в программе, параметры, ошибки вызова, return",
           "lessons": [
             {
               "slug": "fn-m1-l1",
               "title": "def и вызов функции",
-              "theory": "# Функция\n\n```\ndef greet(name):\n    return f\"Привет, {name}!\"\n\ngreet(\"Аня\")      # вызов → \"Привет, Аня!\"\n```\n\n- `def` — объявить функцию; тело — с отступом.\n- Функция выполняется **только при вызове** (со скобками).\n- Одну функцию можно вызывать сколько угодно раз.",
+              "theory": "```py\ndef square(x):        # def, имя, параметры, двоеточие\n    return x * x      # тело с отступом\n\nsquare(3)             # вызов -> 9\nsquare(square(2))     # 16 — сначала внутренний\nsquare                # БЕЗ скобок — не вызов, а сама функция\ndef sep():            # без параметров — скобки всё равно нужны\n    return \"-\" * 20\n```\n- `def` ничего не выполняет; тело выполняется при каждом вызове.\n- Имена функций — глаголы: `send_report`, `is_valid`.",
               "exercises": [
                 {
                   "slug": "fn-m1-l1-e1",
@@ -35,6 +35,15 @@
                   "code": "def boom():\n    print(\"бум\")\n\nprint(\"старт\")\nboom\nprint(\"финиш\")\n",
                   "expected_output": "старт\nфиниш",
                   "hint": "Без скобок функция не вызывается — это просто обращение к объекту.",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-m1-l1-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Результат функции — обычное значение.",
+                  "code": "def greet(name):\n    return \"Привет, \" + name\n\nmsg = greet(\"Аня\")\nprint(msg.upper())\nprint(len(greet(\"Bob\")))\n",
+                  "expected_output": "ПРИВЕТ, АНЯ\n11",
+                  "hint": "",
                   "xp": 10
                 },
                 {
@@ -66,49 +75,189 @@
                   "solution": "def celsius_to_fahrenheit(c):\n    return c * 9 / 5 + 32\n",
                   "hint": "",
                   "xp": 15
-                }
-              ],
-              "theory_full": "## Зачем это нужно\n\nФункция — это именованный кусок кода, который можно вызывать много раз. Без функций программы превращаются в длинные простыни с повторами: поменял логику в одном месте — забыл в другом. В автотестах всё построено на функциях: каждый тест — функция, помощники (`login_as`, `create_user`) — функции, Page Object — набор функций-методов.\n\n## Как это работает\n\n```py\ndef имя(параметры):\n    \"\"\"Необязательное описание\"\"\"\n    тело\n    return результат\n```\n\n1. `def` **создаёт** функцию и связывает её с именем. Тело при этом **не выполняется**.\n2. Вызов `имя(аргументы)` выполняет тело.\n3. `return` возвращает значение и сразу завершает функцию.\n\n### Имя без скобок — это не вызов\n\n`boom` — ссылка на функцию-объект, `boom()` — вызов. Забытые скобки — частая причина «почему ничего не происходит».\n\n### Порядок\n\nФункцию нужно объявить **до** того, как её вызовут при выполнении. Внутри одной функции можно вызывать другую, объявленную ниже — главное, чтобы к моменту вызова она уже существовала.\n\n### Имена\n\nГлагол, описывающий действие: `calculate_total`, `is_valid_email`, `create_user`. Функции-проверки часто начинаются с `is_`/`has_`.\n\n## Примеры\n\n### Пример 1. Объявление и вызовы\n\n```python\ndef greet(name):\n    return f\"Привет, {name}!\"\n\nprint(greet(\"Аня\"))\nprint(greet(\"Боря\"))\nmessage = greet(\"Вика\")\nprint(message.upper())\n```\n\n### Пример 2. Тело выполняется только при вызове\n\n```python\ndef setup():\n    print(\"  готовлю тестовые данные\")\n\nprint(\"функция объявлена\")\nsetup()\nprint(setup)          # сам объект функции\n```\n\n### Пример 3. Функции вызывают функции\n\n```python\ndef to_fahrenheit(c):\n    return c * 9 / 5 + 32\n\ndef describe(c):\n    return f\"{c}°C = {to_fahrenheit(c)}°F\"\n\nfor c in [0, 36.6, 100]:\n    print(describe(c))\n```\n\n### Пример 4. Убираем повторы\n\n```python\ndef check(name, expected, actual):\n    mark = \"✅\" if expected == actual else \"❌\"\n    print(f\"{mark} {name}: ожидали {expected}, получили {actual}\")\n\ncheck(\"статус\", 200, 200)\ncheck(\"id\", 1, 999)\n```\n\n## Частые ошибки\n\n**Забыли скобки при вызове** — функция не выполнилась.\n\n**Вызов до объявления** — `NameError`.\n\n**Забыли отступ тела** — `IndentationError`.\n\n## Шпаргалка\n\n```py\ndef area(w, h):\n    return w * h\n\narea(3, 4)      # вызов\narea            # объект функции, не вызов\n```",
-              "quiz": [
-                {
-                  "q": "Когда выполняется тело функции?",
-                  "options": [
-                    "При объявлении через def",
-                    "При каждом вызове со скобками",
-                    "Один раз при запуске программы",
-                    "Никогда без return"
-                  ],
-                  "answer": 1,
-                  "explain": "`def` только создаёт функцию; тело работает при вызове."
                 },
                 {
-                  "q": "Что выведет код?\n```py\ndef f():\n    return 5\nprint(f)\n```",
+                  "slug": "fn-m1-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_even(n)`, которая возвращает `True` для чётного числа и `False` для нечётного.\n\nПримеры:\n```\nis_even(4)   # → True\nis_even(7)   # → False\n```",
+                  "starter_code": "",
+                  "tests": "def test_values():\n    got = [is_even(4), is_even(7), is_even(0), is_even(-3)]\n    assert got == [True, False, True, False], f\"Получено {got}\"\n",
+                  "solution": "def is_even(n):\n    return n % 2 == 0\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-m1-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `full_price(price, qty)` — стоимость `qty` штук товара по цене `price`.\nЗатем **вызови** её для цены 150 и количества 3 и **выведи** результат.\n\nОжидаемый вывод:\n```\n450\n```",
+                  "starter_code": "",
+                  "tests": "def test_function():\n    assert full_price(10, 2) == 20 and full_price(99, 0) == 0, \"Неверная стоимость\"\n\ndef test_output():\n    assert OUTPUT.strip() == \"450\", f\"Напечатано {OUTPUT.strip()!r}\"\n",
+                  "solution": "def full_price(price, qty):\n    return price * qty\n\nprint(full_price(150, 3))\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nФункция — именованный кусок кода, который можно выполнить сколько угодно раз. Функции нужны, чтобы:\n- **не повторяться**: код перевода температуры пишется один раз, а вызывается где угодно;\n- **давать имена действиям**: `is_valid_email(x)` понятнее десяти строк проверок;\n- **разбивать задачу на части**: большую программу собирают из маленьких понятных функций;\n- **тестировать**: функцию легко проверить отдельно — это основа автотестов.\n\nОсновы уже были в теме «Переменные» (урок «Функции в заданиях»). Здесь разберём функции полностью.\n\n## Определение функции\n\n```python\ndef square(x):\n    return x * x\n```\n\n- `def` — ключевое слово «определить функцию».\n- `square` — **имя**. Правила как у переменных: буквы, цифры, `_`, не с цифры. Принято называть функции **глаголами** или вопросами: `calculate_total`, `send_report`, `is_valid`.\n- `(x)` — **параметры** в скобках: имена, под которыми внутри будут доступны переданные данные. Параметров может быть сколько угодно, в том числе ноль — тогда скобки пустые: `def separator():`.\n- `:` — двоеточие открывает **тело**.\n- Тело — строки с **отступом**. Оно заканчивается, когда отступ возвращается на уровень `def`.\n- `return x * x` — вычислить выражение и **вернуть** результат тому, кто вызвал.\n\nОпределение функции **ничего не выполняет** — оно только запоминает функцию под именем `square`.\n\n## Вызов функции\n\n```python\ndef square(x):\n    return x * x\n\nprint(square(3))\nresult = square(-4)\nprint(result, square(square(2)))\n```\n\n- `square(3)` — **вызов**: имя и в скобках **аргумент**. Python подставляет `3` в параметр `x`, выполняет тело и возвращает `9`.\n- Результат вызова — обычное значение: его можно напечатать, сохранить в переменную, передать в другую функцию.\n- `square(square(2))` — сначала внутренний вызов (`4`), потом внешний (`16`).\n- Вывод: `9`, затем `16 16`.\n\n## Функция, которая печатает\n\n```python\ndef hello():\n    print(\"Привет!\")\n\nprint(\"до\")\nhello()\nhello()\nprint(\"после\")\n```\n\n- Функция может не возвращать, а **делать** что-то — например, печатать.\n- Каждый вызов выполняет тело заново: `до`, `Привет!`, `Привет!`, `после`.\n\n## Без скобок — не вызов\n\n```python\ndef boom():\n    print(\"бум\")\n\nprint(\"старт\")\nboom\nprint(boom)\nprint(\"финиш\")\n```\n\n- `boom` без скобок — это **сама функция** как объект, а не её вызов. Строка `boom` ничего не делает.\n- `print(boom)` покажет что-то вроде `<function boom at 0x...>` — описание объекта-функции.\n- Слово `бум` не напечатается ни разу. Частая ошибка — забыть скобки у функции без параметров.\n\n## Результат функции — обычное значение\n\n```python\ndef greet(name):\n    return \"Привет, \" + name\n\nmsg = greet(\"Аня\")\nprint(msg.upper())\nprint(len(greet(\"Bob\")))\n```\n\n- `greet(\"Аня\")` вернула строку — у неё можно вызывать методы: `ПРИВЕТ, АНЯ`.\n- Результат можно сразу передать в другую функцию: `len(...)` → `11`.\n\n## Функция без параметров, но с результатом\n\n```python\ndef separator():\n    return \"-\" * 20\n\nprint(separator())\nprint(separator())\n```\n\n- Скобки обязательны и в определении, и при вызове, даже если параметров нет.\n- Вывод: две строки из 20 дефисов.\n\n## Формула в функции\n\n```python\ndef celsius_to_fahrenheit(c):\n    return c * 9 / 5 + 32\n\ndef is_even(n):\n    return n % 2 == 0\n\nprint(celsius_to_fahrenheit(100), is_even(4), is_even(7))\n```\n\n- Функция возвращает результат формулы или сравнения. Вывод: `212.0 True False`.\n\n## Частые ошибки\n\n**Забыть скобки при вызове.** `hello` вместо `hello()` — ничего не произойдёт.\n\n**Забыть двоеточие или отступ.** `SyntaxError` / `IndentationError`.\n\n**Ждать выполнения от определения.** `def` только запоминает функцию.\n\n**`print` вместо `return`.** Результат будет `None` (подробно — урок «return против print»).\n\n## Итог\n\n- `def имя(параметры):` + тело с отступом — определение; ничего не выполняет.\n- `имя(аргументы)` — вызов; тело выполняется при каждом вызове.\n- Без скобок — это сама функция, а не вызов.\n- Результат вызова — обычное значение: сохранить, напечатать, передать дальше.\n- Функции называют глаголами: `calculate_total`, `is_valid`.",
+              "quiz": [
+                {
+                  "q": "Что произойдёт при выполнении строки `hello` (без скобок), если `hello` — функция?",
                   "options": [
-                    "`5`",
-                    "Объект функции вида `<function f at ...>`",
-                    "`None`",
+                    "Функция вызовется",
+                    "Ничего — это просто ссылка на функцию",
+                    "Ошибка",
+                    "Выведется имя функции"
+                  ],
+                  "answer": 1,
+                  "explain": "Вызов требует скобок."
+                },
+                {
+                  "q": "Что выведет код?\n```py\ndef f(x):\n    return x + 1\nprint(f(f(1)))\n```",
+                  "options": [
+                    "`2`",
+                    "`3`",
+                    "`1`",
                     "Ошибка"
                   ],
                   "answer": 1,
-                  "explain": "Без скобок функция не вызывается."
+                  "explain": "f(1) = 2, f(2) = 3."
                 },
                 {
-                  "q": "Какое имя лучше для функции, проверяющей email?",
+                  "q": "Когда выполняется тело функции?",
                   "options": [
-                    "`email`",
-                    "`is_valid_email`",
-                    "`EmailCheck`",
-                    "`e`"
+                    "При определении def",
+                    "При каждом вызове",
+                    "Один раз при первом вызове",
+                    "Никогда"
                   ],
                   "answer": 1,
-                  "explain": "Функции-проверки удобно называть с `is_`: сразу понятно, что вернётся bool."
+                  "explain": "def только запоминает функцию."
+                }
+              ]
+            },
+            {
+              "slug": "fn-order",
+              "title": "Тело функции и порядок в программе",
+              "theory": "- `def` запоминает функцию, тело выполняется только при **вызове**.\n- Вызов выше `def` → `NameError`. Определения — вверху, вызовы — внизу.\n- Внутри `a()` можно вызвать `b()`, определённую ниже, — если `a()` вызывается после обоих `def`.\n```py\ndef quadruple(x):\n    return double(double(x))   # функция использует функцию\ndef stub():\n    pass                       # или ...  — заглушка, вернёт None\n```",
+              "exercises": [
+                {
+                  "slug": "fn-order-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Функция вызывает другую.",
+                  "code": "def a():\n    print(\"A\")\n    b()\n\ndef b():\n    print(\"B\")\n\na()\nprint(\"конец\")\n",
+                  "expected_output": "A\nB\nконец",
+                  "hint": "К моменту вызова a() обе функции уже определены.",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-order-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Определение ничего не выполняет.",
+                  "code": "def f():\n    print(\"внутри f\")\n\nprint(\"до\")\nx = f\nprint(\"после\")\n",
+                  "expected_output": "до\nпосле",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-order-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Пустые функции.",
+                  "code": "def stub():\n    pass\n\ndef todo():\n    ...\n\nprint(stub(), todo())\n",
+                  "expected_output": "None None",
+                  "hint": "`pass` и `...` — пустое тело; функция без return возвращает None.",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-order-e4",
+                  "type": "code",
+                  "prompt": "Программа падает с `NameError: name 'greet' is not defined`: функцию вызывают **раньше**, чем определили.\nИсправь порядок, чтобы программа вывела:\n```\nПривет, Аня\n```",
+                  "starter_code": "print(greet(\"Аня\"))\n\ndef greet(name):\n    return \"Привет, \" + name\n",
+                  "tests": "def test_output():\n    assert OUTPUT.strip() == \"Привет, Аня\", f\"Напечатано {OUTPUT.strip()!r}\"\n",
+                  "solution": "def greet(name):\n    return \"Привет, \" + name\n\nprint(greet(\"Аня\"))\n",
+                  "hint": "Сначала `def`, потом вызов.",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-order-e5",
+                  "type": "code",
+                  "prompt": "Напиши две функции:\n- `double(x)` — удвоенное число;\n- `quadruple(x)` — учетверённое число, которая **использует** `double` (дважды).\n\nПримеры:\n```\ndouble(3)      # → 6\nquadruple(3)   # → 12\n```",
+                  "starter_code": "",
+                  "tests": "import inspect\n\ndef test_values():\n    assert double(3) == 6 and quadruple(3) == 12 and quadruple(-1) == -4, \"Неверный результат\"\n\ndef test_uses_double():\n    src = inspect.getsource(quadruple)\n    assert \"double(\" in src, \"quadruple должна вызывать double\"\n",
+                  "solution": "def double(x):\n    return x * 2\n\ndef quadruple(x):\n    return double(double(x))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-order-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `banner(text)`, которая **печатает** текст в рамке из звёздочек: `*** текст ***`.\nВозвращать ничего не нужно.\n\nПример: `banner(\"hi\")` печатает\n```\n*** hi ***\n```",
+                  "starter_code": "def banner(text):\n    pass\n",
+                  "tests": "def test_print():\n    assert capture(banner, \"hi\") == \"*** hi ***\\n\", f\"Напечатано {capture(banner, 'hi')!r}\"\n\ndef test_returns_none():\n    assert banner(\"x\") is None, \"Функция только печатает, return не нужен\"\n",
+                  "solution": "def banner(text):\n    print(\"***\", text, \"***\")\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-order-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `say_n_times(text, n)`, которая печатает `text` ровно `n` раз, каждый раз с новой строки.\n\nПример: `say_n_times(\"ура\", 2)` печатает\n```\nура\nура\n```",
+                  "starter_code": "def say_n_times(text, n):\n    pass\n",
+                  "tests": "def test_print():\n    assert capture(say_n_times, \"ура\", 2) == \"ура\\nура\\n\", f\"Напечатано {capture(say_n_times, 'ура', 2)!r}\"\n    assert capture(say_n_times, \"x\", 0) == \"\", \"При n = 0 ничего не печатать\"\n",
+                  "solution": "def say_n_times(text, n):\n    for _ in range(n):\n        print(text)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-order-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `max2(a, b)` — большее из двух чисел (без встроенной `max`),\nи функцию `max3(a, b, c)` — большее из трёх, которая **использует** `max2`.\n\nПримеры:\n```\nmax2(3, 7)       # → 7\nmax3(3, 9, 5)    # → 9\n```",
+                  "starter_code": "",
+                  "tests": "import inspect\n\ndef test_values():\n    assert max2(3, 7) == 7 and max2(7, 3) == 7 and max3(3, 9, 5) == 9 and max3(-1, -5, -3) == -1, \"Неверный максимум\"\n\ndef test_no_builtin():\n    src = inspect.getsource(max2) + inspect.getsource(max3)\n    assert \"max(\" not in src.replace(\"max2(\", \"\").replace(\"max3(\", \"\"), \"Без встроенной max\"\n    assert \"max2(\" in inspect.getsource(max3), \"max3 должна использовать max2\"\n",
+                  "solution": "def max2(a, b):\n    if a > b:\n        return a\n    return b\n\ndef max3(a, b, c):\n    return max2(max2(a, b), c)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПрограмма из нескольких функций работает, только если понимать **когда** что выполняется: где функция определена, где вызвана и почему иногда получается `NameError`. Ещё в этом уроке — пустые функции-заглушки и функции, которые вызывают друг друга.\n\n## Определение и вызов — разные моменты\n\nPython читает программу сверху вниз:\n- встретив `def`, он **запоминает** функцию (тело не выполняет);\n- встретив вызов `f()`, **выполняет** тело.\n\n```python\ndef f():\n    print(\"внутри f\")\n\nprint(\"до\")\nx = f\nprint(\"после\")\n```\n\n- Функция определена, `x = f` — просто второе имя для неё. Вызова нет.\n- Вывод: `до`, `после` — «внутри f» не печатается ни разу.\n\n## Вызывать можно только после определения\n\n```py\nprint(greet(\"Аня\"))      # NameError: name 'greet' is not defined\n\ndef greet(name):\n    return \"Привет, \" + name\n```\n\n- На строке вызова Python ещё не дошёл до `def` — имени `greet` не существует.\n- Правило: **определения функций — выше**, основной код, который их вызывает, — ниже.\n\n## Функция внутри другой функции\n\n```python\ndef a():\n    print(\"A\")\n    b()\n\ndef b():\n    print(\"B\")\n\na()\nprint(\"конец\")\n```\n\n- Внутри `a` вызывается `b`, которая определена **ниже** `a`. Это не ошибка!\n- Важен момент **вызова**: `a()` вызывается в самом низу, когда обе функции уже определены. Python ищет `b` в момент выполнения строки `b()`, а не в момент определения `a`.\n- Вывод: `A`, `B`, `конец`.\n\n## Вспомогательные функции\n\nОдна функция может использовать другую — так большие задачи собирают из маленьких:\n\n```python\ndef double(x):\n    return x * 2\n\ndef quadruple(x):\n    return double(double(x))\n\ndef max2(a, b):\n    if a > b:\n        return a\n    return b\n\ndef max3(a, b, c):\n    return max2(max2(a, b), c)\n\nprint(quadruple(3), max3(3, 9, 5))\n```\n\n- `quadruple` = удвоить дважды; `max3` = максимум из «максимума первых двух» и третьего.\n- Каждая функция маленькая и понятная. Вывод: `12 9`.\n\n## Функции, которые печатают\n\n```python\ndef banner(text):\n    print(\"***\", text, \"***\")\n\ndef say_n_times(text, n):\n    for _ in range(n):\n        print(text)\n\nbanner(\"hi\")\nsay_n_times(\"ура\", 2)\nprint(banner(\"x\"))\n```\n\n- Такие функции **делают действие** (печать), а не вычисляют значение. `return` им не нужен.\n- `for _ in range(n):` — повторить `n` раз; `_` — принятое имя для переменной, которая не нужна.\n- `print(banner(\"x\"))` — сначала функция напечатает `*** x ***`, потом `print` выведет её результат — `None`.\n- Вывод: `*** hi ***`, `ура`, `ура`, `*** x ***`, `None`.\n\n## Пустые функции: pass и ...\n\nТело не может быть пустым. Если функция ещё не написана, ставят заглушку:\n\n```python\ndef stub():\n    pass\n\ndef todo():\n    ...\n\nprint(stub(), todo())\n```\n\n- `pass` — «ничего не делать».\n- `...` (многоточие, объект `Ellipsis`) — тоже допустимое «пустое» тело; его часто ставят, когда код будет дописан позже.\n- Обе функции ничего не возвращают → `None None`.\n\n## Частые ошибки\n\n**Вызов выше определения.** `NameError`.\n\n**Думать, что `def` выполняет тело.** Тело выполняется только при вызове.\n\n**Пустое тело без `pass`.** `IndentationError`.\n\n## Итог\n\n- `def` запоминает функцию; тело выполняется при вызове.\n- Вызывать можно только то, что уже определено к моменту вызова.\n- Внутри функции можно вызывать функции, определённые ниже, — если сам вызов случится позже.\n- Большие задачи собирают из маленьких функций.\n- `pass` или `...` — пустое тело-заглушка.",
+              "quiz": [
+                {
+                  "q": "Что будет при вызове функции выше её определения?",
+                  "options": [
+                    "Всё сработает",
+                    "`NameError`",
+                    "`SyntaxError`",
+                    "Вернётся None"
+                  ],
+                  "answer": 1,
+                  "explain": "К моменту вызова имени ещё не существует."
+                },
+                {
+                  "q": "Можно ли внутри функции `a` вызвать функцию `b`, определённую ниже `a`?",
+                  "options": [
+                    "Нет, никогда",
+                    "Да, если `a` вызывается после определения `b`",
+                    "Только с global",
+                    "Только если b без параметров"
+                  ],
+                  "answer": 1,
+                  "explain": "Имя ищется в момент выполнения вызова."
+                },
+                {
+                  "q": "Что вернёт функция с телом `...`?",
+                  "options": [
+                    "`...`",
+                    "`None`",
+                    "Ошибка",
+                    "`0`"
+                  ],
+                  "answer": 1,
+                  "explain": "Нет return — значит None."
                 }
               ]
             },
             {
               "slug": "fn-m1-l2",
               "title": "Параметры и аргументы",
-              "theory": "# Параметры\n\n```\ndef power(base, exp):      # base, exp — параметры\n    return base ** exp\n\npower(2, 10)               # позиционные аргументы\npower(exp=3, base=5)       # именованные — порядок не важен\npower(2, exp=5)            # смешанно: сначала позиционные\n```\n\nКоличество аргументов должно совпадать с параметрами (иначе `TypeError`).",
+              "theory": "```py\ndef power(base, exp): ...\npower(2, 3)              # позиционные — по порядку (важен!)\npower(exp=3, base=2)     # именованные — по именам\npower(2, exp=3)          # сначала позиционные, потом именованные\ngreet(greeting=\"Привет\", name=\"Аня\")   # защита от путаницы\nf(w + 1, h=2 * 3)        # аргументы вычисляются до вызова\n```",
               "exercises": [
                 {
                   "slug": "fn-m1-l2-e1",
@@ -125,6 +274,15 @@
                   "prompt": "Что выведет программа?",
                   "code": "def describe(name, role):\n    return f\"{name} — {role}\"\n\nprint(describe(\"Аня\", \"QA\"))\nprint(describe(role=\"QA\", name=\"Боря\"))\ntry:\n    describe(\"Вика\")\nexcept TypeError:\n    print(\"не хватает аргумента\")\n",
                   "expected_output": "Аня — QA\nБоря — QA\nне хватает аргумента",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-m1-l2-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Порядок позиционных аргументов.",
+                  "code": "def sub(a, b):\n    return a - b\n\nprint(sub(10, 3), sub(3, 10))\nprint(sub(b=10, a=3))\n",
+                  "expected_output": "7 -7\n-7",
                   "hint": "",
                   "xp": 10
                 },
@@ -157,23 +315,174 @@
                   "solution": "def discount_price(price, percent):\n    return round(price * (1 - percent / 100), 2)\n",
                   "hint": "",
                   "xp": 15
+                },
+                {
+                  "slug": "fn-m1-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `bmi(weight, height)` — индекс массы тела: вес (кг), делённый на квадрат роста (м), округлённый до 1 знака.\n\nПримеры:\n```\nbmi(70, 1.75)              # → 22.9\nbmi(height=1.6, weight=50) # → 19.5\n```",
+                  "starter_code": "def bmi(weight, height):\n    pass\n",
+                  "tests": "def test_values():\n    assert bmi(70, 1.75) == 22.9 and bmi(height=1.6, weight=50) == 19.5, f\"Получено {bmi(70, 1.75)!r}\"\n",
+                  "solution": "def bmi(weight, height):\n    return round(weight / height ** 2, 1)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-m1-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `mix(a, b)`, которая возвращает строку `\"<a>-<b>\"`.\nЗатем вызови её **с именованными аргументами, записанными в порядке `b`, потом `a`**, для `a = \"1\"`, `b = \"2\"` и выведи результат.\n\nОжидаемый вывод:\n```\n1-2\n```",
+                  "starter_code": "",
+                  "tests": "def test_function():\n    assert mix(\"x\", \"y\") == \"x-y\", \"Неверная строка\"\n\ndef test_output():\n    assert OUTPUT.strip() == \"1-2\", f\"Напечатано {OUTPUT.strip()!r}\"\n\ndef test_keywords():\n    src = open(\"solution.py\", encoding=\"utf-8\").read().replace(\" \", \"\")\n    assert 'mix(b=\"2\",a=\"1\")' in src or \"mix(b='2',a='1')\" in src, \"Вызови mix(b=..., a=...)\"\n",
+                  "solution": "def mix(a, b):\n    return f\"{a}-{b}\"\n\nprint(mix(b=\"2\", a=\"1\"))\n",
+                  "hint": "",
+                  "xp": 15
                 }
               ],
-              "theory_full": "## Зачем это нужно\n\nПараметры делают функцию универсальной: одна `create_user(name, role)` создаёт любого пользователя, одна `check_status(expected, actual)` проверяет любой ответ. Важно понимать, как аргументы сопоставляются с параметрами — от этого зависит читаемость вызовов.\n\n## Как это работает\n\n- **Параметры** — имена в объявлении функции: `def f(a, b):`.\n- **Аргументы** — конкретные значения при вызове: `f(1, 2)`.\n\n### Позиционные аргументы\n\nСопоставляются по порядку: первый аргумент — первому параметру. Путаница порядка — логический баг, который Python не заметит.\n\n### Именованные аргументы\n\n`f(b=2, a=1)` — по имени, порядок не важен. Вызов становится самодокументируемым: `create_user(name=\"Аня\", role=\"admin\", active=True)` читается лучше, чем `create_user(\"Аня\", \"admin\", True)`.\n\n### Правила смешивания\n\n- сначала позиционные, потом именованные: `f(1, b=2)` — можно, `f(a=1, 2)` — `SyntaxError`;\n- один параметр нельзя передать дважды: `f(1, a=1)` — `TypeError`;\n- число аргументов должно совпадать (если нет значений по умолчанию) — иначе `TypeError: missing ... required positional argument`.\n\n## Примеры\n\n### Пример 1. Позиционные и именованные\n\n```python\ndef power(base, exp):\n    return base ** exp\n\nprint(power(2, 10))\nprint(power(10, 2))              # порядок важен!\nprint(power(exp=2, base=10))\n```\n\n### Пример 2. Читаемость вызова\n\n```python\ndef create_user(name, role, active):\n    return {\"name\": name, \"role\": role, \"active\": active}\n\nprint(create_user(\"Аня\", \"admin\", True))\nprint(create_user(name=\"Боря\", role=\"qa\", active=False))\n```\n\n### Пример 3. Ошибки вызова\n\n```python\ndef f(a, b):\n    return a + b\n\nfor call in [\"f(1)\", \"f(1, 2, 3)\", \"f(1, a=2)\"]:\n    try:\n        eval(call)\n    except TypeError as e:\n        print(f\"{call:12} -> {e}\")\n```\n\n### Пример 4. Функция-калькулятор цены\n\n```python\ndef final_price(price, discount_percent, tax_percent):\n    after_discount = price * (1 - discount_percent / 100)\n    return round(after_discount * (1 + tax_percent / 100), 2)\n\nprint(final_price(price=1000, discount_percent=10, tax_percent=20))\n```\n\n## Частые ошибки\n\n**Перепутанный порядок позиционных аргументов** — Python не подскажет.\n\n**Позиционный аргумент после именованного** — `SyntaxError`.\n\n**Лишние или недостающие аргументы** — `TypeError`.\n\n## Шпаргалка\n\n```py\ndef f(a, b): ...\nf(1, 2)          # позиционно\nf(b=2, a=1)      # по имени\nf(1, b=2)        # смешанно — сначала позиционные\n```",
+              "theory_full": "## Зачем это нужно\n\nФункция полезна, когда она работает с **разными** данными. Данные в функцию передаются через **параметры** (имена в определении) и **аргументы** (значения при вызове). Есть два способа передать аргумент — по позиции и по имени, и важно понимать, когда какой удобнее.\n\n## Параметры и аргументы\n\n```python\ndef power(base, exp):\n    return base ** exp\n\nprint(power(2, 3))\n```\n\n- **Параметры** — `base` и `exp` в строке `def`: имена-«места» для данных.\n- **Аргументы** — `2` и `3` при вызове: сами значения.\n- При вызове каждый параметр получает свой аргумент: `base = 2`, `exp = 3`. Вывод: `8`.\n\n## Позиционные аргументы\n\n```python\ndef power(base, exp):\n    return base ** exp\n\ndef sub(a, b):\n    return a - b\n\nprint(power(2, 3), power(3, 2))\nprint(sub(10, 3), sub(3, 10))\n```\n\n- Аргументы через запятую раздаются параметрам **по порядку**: первый — первому, второй — второму.\n- Поэтому порядок важен: `power(2, 3)` = 8, а `power(3, 2)` = 9; `sub(10, 3)` = 7, а `sub(3, 10)` = −7.\n\n## Именованные аргументы\n\nАргумент можно передать **по имени** параметра: `имя=значение`. Тогда порядок не важен:\n\n```python\ndef power(base, exp):\n    return base ** exp\n\ndef describe(name, role):\n    return f\"{name} — {role}\"\n\nprint(power(exp=2, base=5))\nprint(describe(role=\"QA\", name=\"Боря\"))\n```\n\n- `power(exp=2, base=5)` — Python раздаёт значения по именам: `base = 5`, `exp = 2` → `25`.\n- Вывод: `25`, `Боря — QA`.\n- Пробелов вокруг `=` в именованном аргументе по стилю Python не ставят: `name=\"Аня\"`.\n\n### Зачем именованные аргументы\n\n- **Понятность**: `connect(timeout=5, retries=3)` читается лучше, чем `connect(5, 3)` — не нужно помнить порядок.\n- **Защита от путаницы**: у `greet(name, greeting)` легко перепутать местами строки — с именами это невозможно.\n\n```python\ndef greet(name, greeting):\n    return f\"{greeting}, {name}!\"\n\nprint(greet(\"Привет\", \"Аня\"))\nprint(greet(greeting=\"Привет\", name=\"Аня\"))\n```\n\n- В первом вызове аргументы перепутаны: `Аня, Привет!`.\n- С именами всё правильно: `Привет, Аня!`.\n\n## Смешанные аргументы\n\nМожно сначала передать позиционные, потом именованные: `format_user(\"Аня\", city=\"Казань\", age=25)`. Наоборот — нельзя (следующий урок).\n\n```python\ndef format_user(name, age, city):\n    return f\"{name}, {age} лет, {city}\"\n\nprint(format_user(\"Аня\", 25, \"Казань\"))\nprint(format_user(city=\"Казань\", name=\"Аня\", age=25))\nprint(format_user(\"Аня\", city=\"Казань\", age=25))\n```\n\n- Все три вызова дают `Аня, 25 лет, Казань`.\n\n## Аргумент — любое выражение\n\n```python\ndef rectangle_area(width, height):\n    return width * height\n\nw = 4\nprint(rectangle_area(w + 1, height=2 * 3))\n```\n\n- Перед вызовом Python вычисляет каждое выражение-аргумент: `w + 1` = 5, `2 * 3` = 6 → `30`.\n\n## Формулы с несколькими параметрами\n\n```python\ndef discount_price(price, percent):\n    return round(price * (1 - percent / 100), 2)\n\ndef bmi(weight, height):\n    return round(weight / height ** 2, 1)\n\nprint(discount_price(1000, 15), discount_price(99.9, 10))\nprint(bmi(70, 1.75), bmi(height=1.6, weight=50))\n```\n\n- Скидка 15% — платим 85%: `850.0`; `89.91`.\n- ИМТ: вес / рост² → `22.9`, `19.5`.\n\n## Частые ошибки\n\n**Перепутанный порядок позиционных аргументов.** Используй имена, если параметров много или они однотипные.\n\n**Опечатка в имени аргумента.** `power(bse=2, exp=3)` → `TypeError: unexpected keyword argument`.\n\n**Пробелы вокруг `=` в вызове.** Работает, но не по стилю.\n\n## Итог\n\n- Параметры — имена в `def`; аргументы — значения при вызове.\n- Позиционные аргументы раздаются по порядку — порядок важен.\n- Именованные `имя=значение` — по именам, порядок не важен.\n- Сначала позиционные, потом именованные.\n- Аргумент — любое выражение, оно вычисляется до вызова.",
               "quiz": [
                 {
-                  "q": "Что вернёт `power(exp=2, base=3)` для `def power(base, exp): return base ** exp`?",
+                  "q": "Что вернёт `power(exp=2, base=5)` для `def power(base, exp): return base ** exp`?",
                   "options": [
-                    "`8`",
-                    "`9`",
-                    "`6`",
+                    "`32`",
+                    "`25`",
+                    "Ошибка",
+                    "`10`"
+                  ],
+                  "answer": 1,
+                  "explain": "Именованные аргументы раздаются по именам."
+                },
+                {
+                  "q": "Что такое параметр?",
+                  "options": [
+                    "Значение при вызове",
+                    "Имя в определении функции",
+                    "Результат функции",
+                    "Тип данных"
+                  ],
+                  "answer": 1,
+                  "explain": "Аргумент — значение, параметр — имя-место для него."
+                },
+                {
+                  "q": "Что вернёт `sub(3, 10)` для `def sub(a, b): return a - b`?",
+                  "options": [
+                    "`7`",
+                    "`-7`",
+                    "`13`",
                     "Ошибка"
                   ],
                   "answer": 1,
-                  "explain": "Именованные аргументы сопоставляются по имени: 3 ** 2 = 9."
+                  "explain": "a = 3, b = 10."
+                }
+              ]
+            },
+            {
+              "slug": "fn-argerr",
+              "title": "Ошибки при вызове и порядок аргументов",
+              "theory": "```py\nf(1)            # missing 1 required positional argument: 'b'\nf(1, 2, 3)      # takes 2 positional arguments but 3 were given\nf(1, a=2)       # got multiple values for argument 'a'\nf(1, c=2)       # got an unexpected keyword argument 'c'\nf(a=1, 2)       # SyntaxError: positional argument follows keyword argument\ndef connect(host, *, timeout=5): ...   # после * — только по имени\ndef clamp(x, low, high, /): ...        # до / — только по позиции\n```",
+              "exercises": [
+                {
+                  "slug": "fn-argerr-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Сколько аргументов передали.",
+                  "code": "def f(a, b):\n    return a + b\n\ntry:\n    f(1)\nexcept TypeError as e:\n    print(e)\ntry:\n    f(1, 2, 3)\nexcept TypeError as e:\n    print(e)\n",
+                  "expected_output": "f() missing 1 required positional argument: 'b'\nf() takes 2 positional arguments but 3 were given",
+                  "hint": "",
+                  "xp": 10
                 },
                 {
-                  "q": "Какой вызов вызовет SyntaxError?",
+                  "slug": "fn-argerr-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Ошибки с именованными аргументами.",
+                  "code": "def f(a, b):\n    return a + b\n\ntry:\n    f(1, a=2)\nexcept TypeError as e:\n    print(e)\ntry:\n    f(1, c=2)\nexcept TypeError as e:\n    print(e)\n",
+                  "expected_output": "f() got multiple values for argument 'a'\nf() got an unexpected keyword argument 'c'",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-argerr-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Параметр только по имени.",
+                  "code": "def connect(host, *, timeout=5):\n    return f\"{host}:{timeout}\"\n\nprint(connect(\"db\"), connect(\"db\", timeout=1))\ntry:\n    connect(\"db\", 1)\nexcept TypeError:\n    print(\"timeout — только по имени\")\n",
+                  "expected_output": "db:5 db:1\ntimeout — только по имени",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-argerr-e4",
+                  "type": "code",
+                  "prompt": "Программа не запускается: `SyntaxError: positional argument follows keyword argument` —\nпозиционный аргумент стоит после именованного. Исправь вызов, чтобы программа вывела `6`.",
+                  "starter_code": "def area(w, h):\n    return w * h\n\nprint(area(w=2, 3))\n",
+                  "tests": "def test_output():\n    assert OUTPUT.strip() == \"6\", f\"Напечатано {OUTPUT.strip()!r}\"\n",
+                  "solution": "def area(w, h):\n    return w * h\n\nprint(area(w=2, h=3))\n",
+                  "hint": "Либо `area(2, 3)`, либо `area(2, h=3)`, либо `area(w=2, h=3)`.",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-argerr-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_user(name, *, admin=False)`, где `admin` можно передать **только по имени**.\nФункция возвращает пару `(name, admin)`.\n\nПримеры:\n```\nmake_user(\"Аня\")               # → (\"Аня\", False)\nmake_user(\"Боря\", admin=True)  # → (\"Боря\", True)\nmake_user(\"Вика\", True)        # TypeError\n```",
+                  "starter_code": "def make_user(name, admin=False):\n    return name, admin\n",
+                  "tests": "def test_values():\n    assert make_user(\"Аня\") == (\"Аня\", False) and make_user(\"Боря\", admin=True) == (\"Боря\", True), \"Неверный результат\"\n\ndef test_keyword_only():\n    try:\n        make_user(\"Вика\", True)\n    except TypeError:\n        return\n    assert False, \"admin должен передаваться только по имени\"\n",
+                  "solution": "def make_user(name, *, admin=False):\n    return name, admin\n",
+                  "hint": "Звёздочка `*` в списке параметров: всё после неё — только по имени.",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-argerr-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `clamp(x, low, high, /)`, где все параметры можно передать **только по позиции** (не по имени).\nФункция зажимает `x` в границы `[low, high]`.\n\nПримеры:\n```\nclamp(15, 0, 10)          # → 10\nclamp(x=15, low=0, high=10)   # TypeError\n```",
+                  "starter_code": "def clamp(x, low, high):\n    return max(low, min(x, high))\n",
+                  "tests": "def test_values():\n    assert clamp(15, 0, 10) == 10 and clamp(-5, 0, 10) == 0 and clamp(5, 0, 10) == 5, \"Неверный результат\"\n\ndef test_positional_only():\n    try:\n        clamp(x=15, low=0, high=10)\n    except TypeError:\n        return\n    assert False, \"Параметры должны быть только позиционными\"\n",
+                  "solution": "def clamp(x, low, high, /):\n    return max(low, min(x, high))\n",
+                  "hint": "Косая черта `/` после параметров: всё до неё — только по позиции.",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-argerr-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `safe_call(func, a, b)`: вызвать `func(a, b)` и вернуть результат, а если вызов\nупал с `TypeError` (неподходящие аргументы) — вернуть строку `\"ошибка вызова\"`.\n\nПримеры:\n```\ndef add(x, y):\n    return x + y\n\nsafe_call(add, 2, 3)     # → 5\nsafe_call(add, 2, \"3\")   # → \"ошибка вызова\"   int + str\nsafe_call(len, 1, 2)     # → \"ошибка вызова\"   len принимает один аргумент\n```",
+                  "starter_code": "def safe_call(func, a, b):\n    pass\n",
+                  "tests": "def test_values():\n    def add(x, y):\n        return x + y\n    got = [safe_call(add, 2, 3), safe_call(add, 2, \"3\"), safe_call(len, 1, 2), safe_call(pow, 2, 3)]\n    assert got == [5, \"ошибка вызова\", \"ошибка вызова\", 8], f\"Получено {got}\"\n",
+                  "solution": "def safe_call(func, a, b):\n    try:\n        return func(a, b)\n    except TypeError:\n        return \"ошибка вызова\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-argerr-e8",
+                  "type": "code",
+                  "prompt": "Функция `greet(name, greeting)` вызывается с аргументами, перепутанными местами, и выводит `\"Аня, Привет!\"`.\nИсправь **вызов** (не функцию), используя именованные аргументы, чтобы программа вывела:\n```\nПривет, Аня!\n```",
+                  "starter_code": "def greet(name, greeting):\n    return f\"{greeting}, {name}!\"\n\nprint(greet(\"Привет\", \"Аня\"))\n",
+                  "tests": "def test_output():\n    assert OUTPUT.strip() == \"Привет, Аня!\", f\"Напечатано {OUTPUT.strip()!r}\"\n\ndef test_function_unchanged():\n    assert greet(\"X\", \"Y\") == \"Y, X!\", \"Функцию менять не нужно — только вызов\"\n",
+                  "solution": "def greet(name, greeting):\n    return f\"{greeting}, {name}!\"\n\nprint(greet(greeting=\"Привет\", name=\"Аня\"))\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЕсли при вызове передать не те аргументы, Python остановится с ошибкой `TypeError`. Сообщения у этих ошибок очень точные — научившись их читать, ты мгновенно найдёшь проблему. А ещё в Python можно **запретить** передавать некоторые аргументы по позиции или по имени — это делает функции надёжнее.\n\n## Не хватает аргумента\n\n```python\ndef f(a, b):\n    return a + b\n\ntry:\n    f(1)\nexcept TypeError as e:\n    print(e)\n```\n\n- `f() missing 1 required positional argument: 'b'` — «не хватает одного обязательного аргумента: `b`».\n- Сообщение называет **функцию** и **имя** недостающего параметра.\n\n## Лишние аргументы\n\n```python\ndef f(a, b):\n    return a + b\n\ntry:\n    f(1, 2, 3)\nexcept TypeError as e:\n    print(e)\n```\n\n- `f() takes 2 positional arguments but 3 were given` — «принимает 2 аргумента, а передано 3».\n\n## Ошибки с именованными аргументами\n\n```python\ndef f(a, b):\n    return a + b\n\ntry:\n    f(1, a=2)\nexcept TypeError as e:\n    print(e)\ntry:\n    f(1, c=2)\nexcept TypeError as e:\n    print(e)\n```\n\n- `f(1, a=2)`: `1` уже ушло в `a` по позиции, а потом `a` передано ещё и по имени → `f() got multiple values for argument 'a'` («несколько значений для `a`»).\n- `f(1, c=2)`: параметра `c` нет → `f() got an unexpected keyword argument 'c'` («неожиданный именованный аргумент»). Частая причина — опечатка в имени.\n\n## Позиционный после именованного — синтаксическая ошибка\n\n```py\narea(w=2, 3)   # SyntaxError: positional argument follows keyword argument\n```\n\n- Сначала идут позиционные аргументы, потом именованные. Наоборот Python даже не запустит программу.\n- Исправления: `area(2, 3)`, `area(2, h=3)` или `area(w=2, h=3)`.\n\n## Параметры «только по имени»: *\n\nЗвёздочка `*` в списке параметров означает: **всё после неё** можно передать **только по имени**.\n\n```python\ndef connect(host, *, timeout=5):\n    return f\"{host}:{timeout}\"\n\nprint(connect(\"db\"))\nprint(connect(\"db\", timeout=1))\ntry:\n    connect(\"db\", 1)\nexcept TypeError as e:\n    print(e)\n```\n\n- `timeout=5` — значение по умолчанию (урок «Значения по умолчанию»): если не передали, будет 5.\n- `connect(\"db\", 1)` запрещён: `connect() takes 1 positional argument but 2 were given`.\n- Зачем: `connect(\"db\", 1)` непонятно, что за единица. Именованный `timeout=1` — самодокументирующийся код.\n\n```python\ndef make_user(name, *, admin=False):\n    return name, admin\n\nprint(make_user(\"Аня\"), make_user(\"Боря\", admin=True))\n```\n\n- `make_user(\"Боря\", True)` было бы ошибкой — а значит, никто случайно не передаст `True` не туда. Вывод: `('Аня', False) ('Боря', True)`.\n\n## Параметры «только по позиции»: /\n\nКосая черта `/` — обратное правило: всё **до** неё можно передать **только по позиции**.\n\n```python\ndef clamp(x, low, high, /):\n    return max(low, min(x, high))\n\nprint(clamp(15, 0, 10))\ntry:\n    clamp(x=15, low=0, high=10)\nexcept TypeError as e:\n    print(\"TypeError\")\n```\n\n- `clamp(x=15, ...)` запрещён. Зачем: имена `x`, `low`, `high` становятся «внутренним делом» функции — их можно переименовать, не сломав чужой код. Так устроены многие встроенные функции: `len(obj=[1])` не работает.\n- Вывод: `10`, `TypeError`.\n\n## Перехватить ошибку вызова\n\n```python\ndef safe_call(func, a, b):\n    try:\n        return func(a, b)\n    except TypeError:\n        return \"ошибка вызова\"\n\ndef add(x, y):\n    return x + y\n\nprint(safe_call(add, 2, 3), safe_call(add, 2, \"3\"), safe_call(len, 1, 2))\n```\n\n- Функцию можно передать как аргумент (подробно — урок «Функции как объекты»).\n- `TypeError` возникает и при неподходящих **типах** (`2 + \"3\"`), и при неправильном **количестве** аргументов (`len(1, 2)`).\n- Вывод: `5 ошибка вызова ошибка вызова`.\n\n## Частые ошибки\n\n**Читать только первую строку сообщения.** Самое важное — последняя строка: там имя функции и параметра.\n\n**Опечатка в имени именованного аргумента.** `unexpected keyword argument`.\n\n**Позиционный после именованного.** `SyntaxError`.\n\n## Итог\n\n- `missing ... argument` — не хватает; `takes N ... but M were given` — лишние.\n- `got multiple values` — аргумент передан дважды; `unexpected keyword argument` — нет такого параметра (опечатка?).\n- Позиционные — строго до именованных, иначе `SyntaxError`.\n- `def f(a, *, b)` — `b` только по имени; `def f(a, b, /)` — `a`, `b` только по позиции.",
+              "quiz": [
+                {
+                  "q": "Что значит ошибка `got an unexpected keyword argument 'nmae'`?",
+                  "options": [
+                    "Не хватает аргумента",
+                    "Такого параметра нет — вероятно, опечатка",
+                    "Неверный тип",
+                    "Слишком много аргументов"
+                  ],
+                  "answer": 1,
+                  "explain": "Передан именованный аргумент с несуществующим именем."
+                },
+                {
+                  "q": "Как вызвать `def f(a, *, b)` правильно?",
+                  "options": [
+                    "`f(1, 2)`",
+                    "`f(1, b=2)`",
+                    "`f(a=1, 2)`",
+                    "`f(b=2, 1)`"
+                  ],
+                  "answer": 1,
+                  "explain": "После * параметры только по имени."
+                },
+                {
+                  "q": "Какой вызов даст `SyntaxError`?",
                   "options": [
                     "`f(1, b=2)`",
                     "`f(a=1, b=2)`",
@@ -182,24 +491,13 @@
                   ],
                   "answer": 2,
                   "explain": "Позиционный аргумент не может идти после именованного."
-                },
-                {
-                  "q": "Что такое параметр?",
-                  "options": [
-                    "Значение при вызове",
-                    "Имя в объявлении функции, которое получит значение",
-                    "Возвращаемое значение",
-                    "Имя функции"
-                  ],
-                  "answer": 1,
-                  "explain": "Параметры объявляются в `def`, аргументы передаются при вызове."
                 }
               ]
             },
             {
               "slug": "fn-m1-l3",
               "title": "return против print, None",
-              "theory": "# return и print — не одно и то же\n\n- `return` — **отдаёт** значение вызывающему коду и завершает функцию.\n- `print` — только **выводит** на экран; результатом не является.\n\n```\ndef f():\n    print(5)      # на экран, но вернёт None\n\nx = f()           # x == None\n```\n\nФункция без `return` (или с пустым `return`) возвращает `None`.",
+              "theory": "```py\ndef shows(x): print(x * 2)    # печатает, возвращает None\ndef gives(x): return x * 2    # возвращает 10, ничего не печатает\ndef f(): return               # None;  pass — тоже None\nfor p in prices:\n    s += p\nreturn s                      # ПОСЛЕ цикла — сумма всех\nfor n in nums:\n    if n < 0:\n        return n              # ВНУТРИ — выход на первом найденном\nreturn None\n```\n- Ветка без `return` → `None`. Код после `return` не выполняется.",
               "exercises": [
                 {
                   "slug": "fn-m1-l3-e1",
@@ -216,6 +514,15 @@
                   "prompt": "Что выведет программа? Код после return не выполняется.",
                   "code": "def check(n):\n    if n < 0:\n        return \"отрицательное\"\n    return \"неотрицательное\"\n    print(\"это не выполнится\")\n\nprint(check(-1), check(3))\n",
                   "expected_output": "отрицательное неотрицательное",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-m1-l3-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Пустой return.",
+                  "code": "def f():\n    return\n\ndef g():\n    pass\n\nprint(f(), g(), f() == g())\n",
+                  "expected_output": "None None True",
                   "hint": "",
                   "xp": 10
                 },
@@ -248,42 +555,182 @@
                   "solution": "def report(passed, failed):\n    if failed == 0:\n        return f\"Все {passed} тестов прошли\"\n    return f\"Прошло: {passed}, упало: {failed}\"\n\nprint(report(10, 0))\n",
                   "hint": "",
                   "xp": 15
+                },
+                {
+                  "slug": "fn-m1-l3-e7",
+                  "type": "code",
+                  "prompt": "Функция `total(prices)` должна вернуть сумму **всех** цен, но возвращает только первую: `return` стоит не на том уровне отступа.\nИсправь.\n\nПример:\n```\ntotal([1, 2, 3])   # → 6\n```",
+                  "starter_code": "def total(prices):\n    s = 0\n    for p in prices:\n        s += p\n        return s\n",
+                  "tests": "def test_values():\n    assert total([1, 2, 3]) == 6 and total([5]) == 5, f\"total([1, 2, 3]) вернула {total([1, 2, 3])!r}\"\n    assert total([]) == 0, \"Для пустого списка — 0, а не None\"\n",
+                  "solution": "def total(prices):\n    s = 0\n    for p in prices:\n        s += p\n    return s\n",
+                  "hint": "`return` внутри цикла завершает функцию на первом шаге. Сдвинь его на уровень `for`.",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-m1-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `doubled(nums)`, которая **возвращает** новый список удвоенных чисел и ничего не печатает.\n\nПример:\n```\ndoubled([1, 2, 3])   # → [2, 4, 6]\n```",
+                  "starter_code": "def doubled(nums):\n    pass\n",
+                  "tests": "def test_values():\n    assert doubled([1, 2, 3]) == [2, 4, 6] and doubled([]) == [], \"Неверный результат\"\n\ndef test_no_print():\n    assert capture(doubled, [1]) == \"\", \"Функция не должна печатать\"\n",
+                  "solution": "def doubled(nums):\n    result = []\n    for n in nums:\n        result.append(n * 2)\n    return result\n",
+                  "hint": "",
+                  "xp": 15
                 }
               ],
-              "theory_full": "## Зачем это нужно\n\nПутаница `return` и `print` — ошибка номер один у начинающих. Функция, которая печатает результат вместо возврата, бесполезна для остального кода: её результат нельзя сохранить, проверить в тесте, передать дальше. Автотесты проверяют именно **возвращаемые** значения.\n\n## Как это работает\n\n### return\n\n- Отдаёт значение туда, где функция была вызвана: `x = f()`.\n- **Сразу завершает** функцию: код после `return` не выполняется.\n- Может стоять в нескольких местах (ранний выход).\n- `return` без значения или отсутствие `return` → функция вернёт `None`.\n\n### print\n\n- Выводит текст для человека.\n- Возвращает `None`.\n- В функциях-вычислениях — только для отладки.\n\n### Правило\n\nФункция либо **вычисляет и возвращает** (как `len`, `sorted`), либо **выполняет действие** (как `print`, запись в файл). Смешивание усложняет тестирование. Печатать результат лучше снаружи: `print(calculate(...))`.\n\n## Примеры\n\n### Пример 1. Разница в действии\n\n```python\ndef shows(x):\n    print(x * 2)\n\ndef gives(x):\n    return x * 2\n\na = shows(5)\nb = gives(5)\nprint(\"a =\", a, \"| b =\", b)\nprint(\"b + 1 =\", b + 1)\n```\n\n### Пример 2. Ранний return\n\n```python\ndef find_first_error(log):\n    for i, line in enumerate(log):\n        if line.startswith(\"ERROR\"):\n            return i, line\n    return None\n\nprint(find_first_error([\"INFO ok\", \"ERROR db\", \"ERROR again\"]))\nprint(find_first_error([\"INFO ok\"]))\n```\n\n### Пример 3. Функция без return\n\n```python\ndef nothing():\n    x = 42\n\nresult = nothing()\nprint(result, result is None)\n```\n\n### Пример 4. Тестируемость\n\n```python\ndef summary(passed, failed):\n    return f\"{passed} passed, {failed} failed\"\n\nassert summary(3, 1) == \"3 passed, 1 failed\"\nprint(\"функцию с return легко проверить assert-ом\")\n```\n\n## Частые ошибки\n\n**`print` вместо `return`** — результат вызова `None`.\n\n**Код после `return`** — никогда не выполнится.\n\n**`return` внутри цикла** там, где нужно обработать все элементы.\n\n## Шпаргалка\n\n```py\ndef f(x):\n    if bad(x):\n        return None        # ранний выход\n    return compute(x)      # результат\n\nprint(f(10))               # печать — снаружи\n```",
+              "theory_full": "## Зачем это нужно\n\nСамая частая ошибка начинающих — путать `print` и `return`. На экране результат выглядит одинаково, но это совершенно разные вещи. Тесты, другие функции и остальная программа видят только то, что функция **вернула**.\n\n## print показывает, return передаёт\n\n```python\ndef shows(x):\n    print(x * 2)\n\ndef gives(x):\n    return x * 2\n\na = shows(5)\nb = gives(5)\nprint(a, b)\n```\n\n- `shows(5)` **печатает** 10 и ничего не возвращает — в `a` попадает `None`.\n- `gives(5)` **возвращает** 10 — в `b` попадает 10, на экране при этом ничего не появляется.\n- Вывод: `10` (это напечатала `shows`), затем `None 10`.\n\n**Правило**: функция, которая что-то **вычисляет**, должна `return`-ить результат. Печатать — задача того, кто её вызвал. Такую функцию можно использовать где угодно: в вычислениях, в других функциях, в тестах.\n\n## None — «ничего»\n\nЕсли функция не выполнила `return` со значением, она возвращает `None`:\n\n```python\ndef f():\n    return\n\ndef g():\n    pass\n\ndef h(x):\n    if x > 0:\n        return \"плюс\"\n\nprint(f(), g(), f() == g())\nprint(h(5), h(-5))\n```\n\n- `return` без значения — тоже `None`.\n- `pass` — тела нет, значит, `None`.\n- `h(-5)`: условие ложно, до `return` дело не дошло — `None`. Это частая ошибка: в одной ветке забыли `return`.\n- Вывод: `None None True`, затем `плюс None`.\n\n## return завершает функцию\n\n```python\ndef check(n):\n    if n < 0:\n        return \"отрицательное\"\n    return \"неотрицательное\"\n    print(\"это не выполнится\")\n\nprint(check(-1), check(3))\n```\n\n- Как только выполнился `return`, функция **сразу заканчивается**. Строки после него недостижимы.\n- Вывод: `отрицательное неотрицательное`.\n\n### return внутри цикла — осторожно\n\n```python\ndef total_bad(prices):\n    s = 0\n    for p in prices:\n        s += p\n        return s\n\ndef total(prices):\n    s = 0\n    for p in prices:\n        s += p\n    return s\n\nprint(total_bad([1, 2, 3]), total([1, 2, 3]), total([]))\n```\n\n- В `total_bad` `return` стоит **внутри** цикла (отступ как у `s += p`) — функция заканчивается на первом элементе: `1`.\n- В `total` `return` на уровне `for` — выполняется **после** цикла: `6`. Для пустого списка цикл не выполнится ни разу, и вернётся `0`.\n\n### Когда return в цикле нужен\n\nИногда выход на первом подходящем элементе — именно то, что нужно:\n\n```python\ndef find_negative(nums):\n    for n in nums:\n        if n < 0:\n            return n\n    return None\n\nprint(find_negative([3, -1, -5]), find_negative([1, 2]))\n```\n\n- Нашли первое отрицательное — сразу вернули. Не нашли — после цикла `None`. Вывод: `-1 None`.\n\n## Функция возвращает строку, программа печатает\n\n```python\ndef report(passed, failed):\n    if failed == 0:\n        return f\"Все {passed} тестов прошли\"\n    return f\"Прошло: {passed}, упало: {failed}\"\n\nprint(report(10, 0))\nprint(report(8, 2).upper())\n```\n\n- Функция формирует строку и **возвращает** её. Что с ней делать — решает вызывающий: напечатать, перевести в верхний регистр, отправить в отчёт.\n- Вывод: `Все 10 тестов прошли`, `ПРОШЛО: 8, УПАЛО: 2`.\n\n## Частые ошибки\n\n**`print` вместо `return`.** Результат — `None`, тест не пройдёт.\n\n**`return` внутри цикла, когда нужен после.** Функция обработает только первый элемент.\n\n**Ветка без `return`.** Функция иногда возвращает `None`.\n\n**Печать внутри вычисляющей функции.** Лишний вывод мешает тестам и другим функциям.\n\n## Итог\n\n- `print` — показать на экране; `return` — передать результат вызывающему коду.\n- Без `return` (или `return` без значения, или `pass`) функция возвращает `None`.\n- `return` сразу завершает функцию; код после — недостижим.\n- `return` в цикле — выход на первом подходящем элементе; итог по всем элементам — `return` после цикла.\n- Вычисляющие функции возвращают, печатает вызывающий код.",
               "quiz": [
                 {
-                  "q": "Что будет в `x` после `x = print(\"hi\")`?",
+                  "q": "Что вернёт функция `def f(x): print(x)` при вызове `f(5)`?",
                   "options": [
-                    "`\"hi\"`",
+                    "`5`",
                     "`None`",
-                    "`True`",
+                    "`\"5\"`",
                     "Ошибка"
                   ],
                   "answer": 1,
-                  "explain": "`print` выводит текст и возвращает `None`."
+                  "explain": "Функция печатает, но ничего не возвращает."
                 },
                 {
-                  "q": "Что вернёт функция без `return`?",
+                  "q": "Что вернёт `total([1, 2, 3])`, если `return s` стоит внутри цикла?",
                   "options": [
-                    "`0`",
+                    "`6`",
+                    "`1`",
                     "`None`",
-                    "Ошибка",
-                    "Последнее вычисленное значение"
+                    "`3`"
                   ],
                   "answer": 1,
-                  "explain": "Отсутствие `return` означает возврат `None`."
+                  "explain": "Функция заканчивается на первом шаге цикла."
                 },
                 {
-                  "q": "Что происходит после выполнения `return` внутри функции?",
+                  "q": "Что вернёт `h(-1)`?\n```py\ndef h(x):\n    if x > 0:\n        return \"плюс\"\n```",
                   "options": [
-                    "Функция продолжает работу",
-                    "Функция сразу завершается",
-                    "Функция перезапускается",
-                    "Выполняется код после return, затем выход"
+                    "`\"минус\"`",
+                    "`None`",
+                    "`False`",
+                    "Ошибка"
                   ],
                   "answer": 1,
-                  "explain": "`return` немедленно завершает функцию."
+                  "explain": "До return не дошло — значит None."
+                }
+              ]
+            },
+            {
+              "slug": "fn-return",
+              "title": "return: ранний выход и несколько return",
+              "theory": "```py\ndef classify(n):\n    if n < 0:\n        return \"минус\"     # ранний выход\n    if n == 0:\n        return \"ноль\"\n    return \"плюс\"\nfor x in items:\n    if cond(x):\n        return x           # нашли — сразу выход\nreturn None                # не нашли — после цикла\nif x is None:\n    return                 # просто прервать (вернёт None)\nreturn n > 0               # не забывай ветку False\n```",
+              "exercises": [
+                {
+                  "slug": "fn-return-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def classify(n):\n    if n < 0:\n        return \"минус\"\n    if n == 0:\n        return \"ноль\"\n    return \"плюс\"\n\nprint(classify(-5), classify(0), classify(7))\n",
+                  "expected_output": "минус ноль плюс",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-return-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? return внутри цикла.",
+                  "code": "def find(items, x):\n    for i, v in enumerate(items):\n        if v == x:\n            return i\n    return -1\n\nprint(find([\"a\", \"b\", \"c\"], \"b\"), find([\"a\"], \"z\"))\n",
+                  "expected_output": "1 -1",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-return-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Пустой return как «выйти».",
+                  "code": "def process(x):\n    if x is None:\n        return\n    print(\"обработка\", x)\n\nprocess(None)\nprocess(5)\nprint(process(1))\n",
+                  "expected_output": "обработка 5\nобработка 1\nNone",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-return-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `first_long_word(words, n)` — первое слово длиннее `n` символов, или `None`, если такого нет.\nВыходи из функции сразу, как только слово найдено.\n\nПримеры:\n```\nfirst_long_word([\"кот\", \"собака\", \"лошадь\"], 4)   # → \"собака\"\nfirst_long_word([\"да\"], 5)                        # → None\n```",
+                  "starter_code": "def first_long_word(words, n):\n    pass\n",
+                  "tests": "def test_values():\n    got = [first_long_word([\"кот\", \"собака\", \"лошадь\"], 4), first_long_word([\"да\"], 5), first_long_word([], 1)]\n    assert got == [\"собака\", None, None], f\"Получено {got}\"\n",
+                  "solution": "def first_long_word(words, n):\n    for w in words:\n        if len(w) > n:\n            return w\n    return None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-return-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `check_age(age)` с **ранними выходами**:\n\n- не целое число (`int`) → `\"ошибка: не число\"`\n- меньше 0 → `\"ошибка: отрицательный\"`\n- больше 150 → `\"ошибка: слишком большой\"`\n- иначе → `\"ok\"`\n\nПримеры:\n```\ncheck_age(\"20\")   # → \"ошибка: не число\"\ncheck_age(-1)     # → \"ошибка: отрицательный\"\ncheck_age(30)     # → \"ok\"\n```",
+                  "starter_code": "def check_age(age):\n    pass\n",
+                  "tests": "def test_values():\n    got = [check_age(\"20\"), check_age(2.5), check_age(-1), check_age(151), check_age(0), check_age(150)]\n    assert got == [\"ошибка: не число\", \"ошибка: не число\", \"ошибка: отрицательный\", \"ошибка: слишком большой\", \"ok\", \"ok\"], f\"Получено {got}\"\n",
+                  "solution": "def check_age(age):\n    if not isinstance(age, int):\n        return \"ошибка: не число\"\n    if age < 0:\n        return \"ошибка: отрицательный\"\n    if age > 150:\n        return \"ошибка: слишком большой\"\n    return \"ok\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-return-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `contains_digit(s)` — есть ли в строке хотя бы одна цифра. Как только нашёл цифру —\nсразу `return True`; если цикл закончился — `False`. Без `any`.\n\nПримеры:\n```\ncontains_digit(\"abc1\")   # → True\ncontains_digit(\"abc\")    # → False\n```",
+                  "starter_code": "def contains_digit(s):\n    pass\n",
+                  "tests": "def test_values():\n    got = [contains_digit(\"abc1\"), contains_digit(\"abc\"), contains_digit(\"\"), contains_digit(\"9\")]\n    assert got == [True, False, False, True], f\"Получено {got}\"\n\ndef test_no_any():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"any(\" not in src, \"Реши циклом с ранним return\"\n",
+                  "solution": "def contains_digit(s):\n    for ch in s:\n        if ch.isdigit():\n            return True\n    return False\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-return-e7",
+                  "type": "code",
+                  "prompt": "Функция `is_positive(n)` иногда возвращает `None` вместо `False`: в одной из веток нет `return`.\nИсправь, чтобы она **всегда** возвращала `True` или `False`.",
+                  "starter_code": "def is_positive(n):\n    if n > 0:\n        return True\n",
+                  "tests": "def test_values():\n    got = [is_positive(5), is_positive(-1), is_positive(0)]\n    assert got == [True, False, False], f\"Получено {got!r}\"\n",
+                  "solution": "def is_positive(n):\n    if n > 0:\n        return True\n    return False\n",
+                  "hint": "Короче всего: `return n > 0`.",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-return-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `safe_divide(a, b)`: если `b == 0` — сразу вернуть `None`, иначе вернуть `a / b`.\n\nПримеры:\n```\nsafe_divide(10, 4)   # → 2.5\nsafe_divide(1, 0)    # → None\n```",
+                  "starter_code": "def safe_divide(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    assert safe_divide(10, 4) == 2.5 and safe_divide(1, 0) is None and safe_divide(0, 5) == 0, \"Неверный результат\"\n",
+                  "solution": "def safe_divide(a, b):\n    if b == 0:\n        return None\n    return a / b\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВ одной функции может быть несколько `return`, и это нормально. Правильно расставленные `return` делают функцию короче и понятнее: особые случаи обрабатываются сразу вверху, поиск заканчивается на первом найденном элементе, а пустой `return` просто прерывает работу. Главное — чтобы функция **всегда** возвращала значение ожидаемого вида.\n\n## Несколько return — выбор результата\n\n```python\ndef classify(n):\n    if n < 0:\n        return \"минус\"\n    if n == 0:\n        return \"ноль\"\n    return \"плюс\"\n\nprint(classify(-5), classify(0), classify(7))\n```\n\n- Каждый `return` завершает функцию, поэтому `elif`/`else` здесь не нужны: до второго `if` дойдут только неотрицательные числа.\n- Вывод: `минус ноль плюс`.\n\n## Ранний выход: сначала особые случаи\n\nПриём **раннего выхода** (guard clause): все «плохие» случаи проверяются в начале и сразу возвращают результат, а основная логика идёт без вложенности.\n\n```python\ndef check_age(age):\n    if not isinstance(age, int):\n        return \"ошибка: не число\"\n    if age < 0:\n        return \"ошибка: отрицательный\"\n    if age > 150:\n        return \"ошибка: слишком большой\"\n    return \"ok\"\n\nprint(check_age(\"20\"), check_age(-1), check_age(30))\n```\n\n- `isinstance(age, int)` — проверка типа (тема «Переменные»); `not` переворачивает результат.\n- Порядок важен: тип проверяется первым — иначе сравнение строки `\"20\" < 0` дало бы `TypeError`.\n- Вывод: `ошибка: не число ошибка: отрицательный ok`.\n\n```python\ndef safe_divide(a, b):\n    if b == 0:\n        return None\n    return a / b\n\nprint(safe_divide(10, 4), safe_divide(1, 0))\n```\n\nВывод: `2.5 None`.\n\n## Поиск: return внутри цикла\n\n```python\ndef find(items, x):\n    for i, v in enumerate(items):\n        if v == x:\n            return i\n    return -1\n\ndef contains_digit(s):\n    for ch in s:\n        if ch.isdigit():\n            return True\n    return False\n\nprint(find([\"a\", \"b\", \"c\"], \"b\"), find([\"a\"], \"z\"))\nprint(contains_digit(\"abc1\"), contains_digit(\"abc\"))\n```\n\n- `enumerate` выдаёт пары «индекс, элемент» (тема «Списки»).\n- Нашли — сразу `return` из середины цикла, остальные элементы не проверяются.\n- Не нашли — цикл дошёл до конца, срабатывает `return` после него.\n- `ch.isdigit()` — метод строки: «это цифра?».\n- Вывод: `1 -1`, `True False`.\n\n```python\ndef first_long_word(words, n):\n    for w in words:\n        if len(w) > n:\n            return w\n    return None\n\nprint(first_long_word([\"кот\", \"собака\", \"лошадь\"], 4))\n```\n\nВывод: `собака` — «лошадь» уже не проверяется.\n\n## Пустой return — просто выйти\n\nЕсли функция ничего не вычисляет, а **делает** действие, `return` без значения прерывает её:\n\n```python\ndef process(x):\n    if x is None:\n        return\n    print(\"обработка\", x)\n\nprocess(None)\nprocess(5)\nprint(process(1))\n```\n\n- Для `None` функция сразу выходит и ничего не печатает.\n- `print(process(1))` — сначала напечатается `обработка 1`, потом результат функции — `None`.\n- Вывод: `обработка 5`, `обработка 1`, `None`.\n\n## Всегда возвращай значение одного вида\n\nЕсли функция должна вернуть `True`/`False`, **каждая** ветка должна это сделать:\n\n```python\ndef is_positive_bad(n):\n    if n > 0:\n        return True\n\ndef is_positive(n):\n    return n > 0\n\nprint(is_positive_bad(5), is_positive_bad(-1))\nprint(is_positive(5), is_positive(-1))\n```\n\n- В `is_positive_bad` для отрицательных `return` не выполняется — результат `None`, а не `False`. В `if` это сработает похоже, но `is_positive_bad(-1) == False` даст `False`, и тест упадёт.\n- Правильно — вернуть результат сравнения. Вывод: `True None`, затем `True False`.\n\nХороший тон: функция возвращает значения одного типа (или `None` как явный признак «нет результата»). Смесь вроде «иногда строку, иногда число» запутывает код, который её вызывает.\n\n## Частые ошибки\n\n**Забытый `return` в одной из веток.** Получается `None`.\n\n**`return` внутри цикла там, где нужен результат по всем элементам.**\n\n**Проверки в неправильном порядке.** Сначала — то, без чего остальные проверки упадут (тип, `None`, пустота).\n\n## Итог\n\n- Несколько `return` — нормально; каждый завершает функцию.\n- Ранний выход: особые случаи — сверху, основная логика — без вложенности.\n- Поиск: `return` внутри цикла при находке, «не найдено» — после цикла.\n- `return` без значения — прервать функцию-действие (вернётся `None`).\n- Каждая ветка должна вернуть значение ожидаемого вида.",
+              "quiz": [
+                {
+                  "q": "Сколько `return` может быть в одной функции?",
+                  "options": [
+                    "Только один",
+                    "Сколько угодно — выполнится первый достигнутый",
+                    "Не больше двух",
+                    "Только в конце"
+                  ],
+                  "answer": 1,
+                  "explain": "Каждый return завершает функцию."
+                },
+                {
+                  "q": "Что вернёт `find([\"a\"], \"z\")`, если «не найдено» обрабатывает `return -1` после цикла?",
+                  "options": [
+                    "`None`",
+                    "`-1`",
+                    "`0`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Цикл прошёл до конца, сработал return после него."
+                },
+                {
+                  "q": "Почему проверку типа ставят первой в `check_age`?",
+                  "options": [
+                    "Так быстрее",
+                    "Иначе сравнение строки с числом упадёт с TypeError",
+                    "Так требует синтаксис",
+                    "Порядок не важен"
+                  ],
+                  "answer": 1,
+                  "explain": "Сначала проверки, без которых остальные не выполнятся."
                 }
               ]
             }
@@ -293,12 +740,12 @@
           "slug": "fn-m2",
           "title": "Параметры по-взрослому",
           "icon": "⚙️",
-          "description": "Значения по умолчанию, несколько результатов, аннотации",
+          "description": "Значения по умолчанию, несколько результатов, документация, композиция",
           "lessons": [
             {
               "slug": "fn-m2-l1",
               "title": "Значения по умолчанию",
-              "theory": "# Параметры со значением по умолчанию\n\n```\ndef connect(host, port=8080, timeout=30):\n    ...\n\nconnect(\"localhost\")                # port=8080, timeout=30\nconnect(\"localhost\", 9000)          # port=9000\nconnect(\"localhost\", timeout=5)     # только timeout\n```\n\n- Параметры по умолчанию идут **после** обязательных.\n- ⚠️ Не используй изменяемое значение по умолчанию (`[]`, `{}`) — оно создаётся **один раз** и общее для всех вызовов. Используй `None`.",
+              "theory": "```py\ndef greet(name, greeting=\"Привет\"): ...   # greeting — необязательный\ngreet(\"Аня\");  greet(\"Аня\", greeting=\"Хай\")\ndef f(a=1, b): ...        # SyntaxError — обязательные первыми\ndef add(item, items=[]):  # ЛОВУШКА: один список на все вызовы\ndef add(item, items=None):\n    if items is None:\n        items = []        # правильно: новый список каждый раз\n```\n- Значение по умолчанию вычисляется **один раз** при `def`.",
               "exercises": [
                 {
                   "slug": "fn-m2-l1-e1",
@@ -316,6 +763,15 @@
                   "code": "def add_item(item, items=[]):\n    items.append(item)\n    return items\n\nprint(add_item(\"a\"))\nprint(add_item(\"b\"))\n",
                   "expected_output": "['a']\n['a', 'b']",
                   "hint": "Список по умолчанию создаётся один раз при объявлении функции и переиспользуется.",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-m2-l1-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Когда вычисляется значение по умолчанию.",
+                  "code": "x = 10\n\ndef f(a=x):\n    return a\n\nx = 20\nprint(f(), f(5))\n",
+                  "expected_output": "10 5",
+                  "hint": "Значение по умолчанию вычисляется один раз — в момент выполнения строки def.",
                   "xp": 10
                 },
                 {
@@ -347,49 +803,69 @@
                   "solution": "def retry_delays(attempts=3, base=1.0, factor=2.0):\n    return [base * factor ** i for i in range(attempts)]\n",
                   "hint": "",
                   "xp": 20
+                },
+                {
+                  "slug": "fn-m2-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `power(base, exp=2)` — `base` в степени `exp`; по умолчанию — квадрат.\n\nПримеры:\n```\npower(5)        # → 25\npower(2, 10)    # → 1024\npower(exp=3, base=2)   # → 8\n```",
+                  "starter_code": "def power(base, exp):\n    return base ** exp\n",
+                  "tests": "def test_values():\n    got = [power(5), power(2, 10), power(exp=3, base=2)]\n    assert got == [25, 1024, 8], f\"Получено {got}\"\n",
+                  "solution": "def power(base, exp=2):\n    return base ** exp\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-m2-l1-e8",
+                  "type": "code",
+                  "prompt": "Программа не запускается: `SyntaxError: parameter without a default follows parameter with a default` —\nпараметр без значения по умолчанию стоит после параметра со значением. Исправь определение, чтобы работали вызовы:\n```\ngreet(\"Аня\")                 # → \"Привет, Аня!\"\ngreet(\"Боря\", \"Здравствуй\")  # → \"Здравствуй, Боря!\"\n```",
+                  "starter_code": "def greet(greeting=\"Привет\", name):\n    return f\"{greeting}, {name}!\"\n",
+                  "tests": "def test_values():\n    assert greet(\"Аня\") == \"Привет, Аня!\" and greet(\"Боря\", \"Здравствуй\") == \"Здравствуй, Боря!\", \"Неверное приветствие\"\n",
+                  "solution": "def greet(name, greeting=\"Привет\"):\n    return f\"{greeting}, {name}!\"\n",
+                  "hint": "Параметры со значениями по умолчанию — после обычных.",
+                  "xp": 15
                 }
               ],
-              "theory_full": "## Зачем это нужно\n\nУ многих функций есть «разумные настройки»: таймаут 30 секунд, порт 8080, браузер Chrome. Значения по умолчанию позволяют не указывать их каждый раз, но переопределять при необходимости. Так устроены почти все библиотеки: `requests.get(url, timeout=...)`, `sorted(xs, reverse=False)`.\n\n## Как это работает\n\n```py\ndef connect(host, port=8080, timeout=30):\n    ...\n```\n\n- Параметры без значения — **обязательные**, со значением — **необязательные**.\n- Необязательные идут **после** обязательных.\n- При вызове часто пропускают средние параметры и задают дальние по имени: `connect(\"db\", timeout=5)`.\n\n### Ловушка изменяемого значения по умолчанию\n\nЗначение по умолчанию вычисляется **один раз** — в момент выполнения `def`, а не при каждом вызове. Для чисел и строк это не проблема (они неизменяемые). Но список или словарь по умолчанию — **один объект на все вызовы**: изменения накапливаются.\n\nПравильный шаблон:\n\n```py\ndef add_item(item, items=None):\n    if items is None:\n        items = []\n    items.append(item)\n    return items\n```\n\n## Примеры\n\n### Пример 1. Пропуск параметров\n\n```python\ndef connect(host, port=8080, timeout=30, secure=False):\n    scheme = \"https\" if secure else \"http\"\n    return f\"{scheme}://{host}:{port} (timeout {timeout}s)\"\n\nprint(connect(\"localhost\"))\nprint(connect(\"api.shop.ru\", 443, secure=True))\nprint(connect(\"db\", timeout=5))\n```\n\n### Пример 2. Ловушка в действии\n\n```python\ndef add_bad(item, items=[]):\n    items.append(item)\n    return items\n\nprint(add_bad(\"a\"))\nprint(add_bad(\"b\"))\nprint(add_bad.__defaults__)      # тот самый общий список\n```\n\n### Пример 3. Правильный вариант\n\n```python\ndef add_good(item, items=None):\n    if items is None:\n        items = []\n    items.append(item)\n    return items\n\nprint(add_good(\"a\"))\nprint(add_good(\"b\"))\nprint(add_good(\"c\", [\"x\"]))\n```\n\n### Пример 4. Экспоненциальные задержки\n\n```python\ndef retry_delays(attempts=3, base=1.0, factor=2.0):\n    return [base * factor ** i for i in range(attempts)]\n\nprint(retry_delays())\nprint(retry_delays(5, base=0.1))\n```\n\n## Частые ошибки\n\n**`def f(a=1, b):`** — `SyntaxError`: обязательный после необязательного.\n\n**`items=[]` / `config={}` по умолчанию** — общий объект между вызовами.\n\n**Значение по умолчанию из вызова функции** — `def log(ts=time.time()):` зафиксирует время объявления, а не вызова.\n\n## Шпаргалка\n\n```py\ndef f(required, optional=10): ...\ndef f(x, items=None):\n    items = [] if items is None else items\nf(1, optional=5)      # переопределить по имени\n```",
+              "theory_full": "## Зачем это нужно\n\nЧасто у параметра есть «обычное» значение, которое нужно почти всегда: округлять до 2 знаков, приветствовать словом «Привет», ждать 5 секунд. Чтобы не передавать его при каждом вызове, параметру задают **значение по умолчанию**. Так устроены многие встроенные функции: `print(..., sep=\" \", end=\"\\n\")`, `round(x, ndigits=None)`, `sorted(..., reverse=False)`.\n\n## Как задать значение по умолчанию\n\n```python\ndef greet(name, greeting=\"Привет\"):\n    return f\"{greeting}, {name}!\"\n\nprint(greet(\"Аня\"))\nprint(greet(\"Боря\", \"Здравствуй\"))\nprint(greet(\"Вика\", greeting=\"Хай\"))\n```\n\n- `greeting=\"Привет\"` в `def` — значение по умолчанию. Такой параметр **необязательный**.\n- Не передали — берётся `\"Привет\"`; передали (по позиции или по имени) — берётся переданное.\n- `name` без значения — **обязательный**: без него будет `TypeError: missing ... argument`.\n- Вывод: `Привет, Аня!`, `Здравствуй, Боря!`, `Хай, Вика!`.\n\n```python\ndef power(base, exp=2):\n    return base ** exp\n\nprint(power(5), power(2, 10), power(base=3))\n```\n\nВывод: `25 1024 9` — без второго аргумента получается квадрат.\n\n## Несколько необязательных параметров\n\n```python\ndef make_line(char=\"-\", length=10, title=\"\"):\n    return title + char * length\n\nprint(make_line())\nprint(make_line(\"=\", 5))\nprint(make_line(title=\"Итог: \", length=3))\n```\n\n- Можно пропустить любые необязательные параметры. Чтобы задать только `length`, не трогая `char`, передаём его **по имени** — это главный повод для именованных аргументов.\n- Вывод: `----------`, `=====`, `Итог: ---`.\n\n## Порядок параметров: обязательные — первыми\n\n```py\ndef f(a=1, b):      # SyntaxError: parameter without a default follows parameter with a default\n    ...\n```\n\n- Параметры без значения по умолчанию должны стоять **до** параметров со значением. Иначе Python не смог бы понять, кому достаётся аргумент в `f(5)`.\n- Правильно: `def f(b, a=1):`.\n\n## Значение по умолчанию вычисляется один раз\n\nВыражение после `=` вычисляется **один раз — в момент выполнения `def`**, а не при каждом вызове:\n\n```python\nrate = 10\n\ndef with_tax(price, percent=rate):\n    return price + price * percent / 100\n\nrate = 20\nprint(with_tax(100))\n```\n\n- В момент `def` `rate` было 10 — это значение и запомнилось. Изменение `rate` потом на функцию не влияет. Вывод: `110.0`.\n\n## Ловушка: изменяемое значение по умолчанию\n\nИз-за этого правила **список** (или словарь) по умолчанию — один и тот же объект на все вызовы:\n\n```python\ndef add_item_bad(item, items=[]):\n    items.append(item)\n    return items\n\nprint(add_item_bad(\"a\"))\nprint(add_item_bad(\"b\"))\n```\n\n- Список `[]` создан один раз при `def`. Первый вызов добавил в него `\"a\"`, второй — `\"b\"` в **тот же** список.\n- Вывод: `['a']`, а затем `['a', 'b']` — хотя ждали `['b']`. Это одна из самых известных ловушек Python.\n\n### Правильный приём: None по умолчанию\n\n```python\ndef add_item(item, items=None):\n    if items is None:\n        items = []\n    items.append(item)\n    return items\n\nprint(add_item(\"a\"))\nprint(add_item(\"b\"))\nprint(add_item(\"c\", [\"x\"]))\n```\n\n- `None` — неизменяемый «маркер»: «список не передали».\n- Внутри, если `items is None`, создаём **новый** пустой список — при каждом вызове свой.\n- `is None` — принятая проверка на `None` (сравнение объекта с самим `None`).\n- Вывод: `['a']`, `['b']`, `['x', 'c']`.\n\nПравило: значения по умолчанию — только **неизменяемые**: числа, строки, `True`/`False`, `None`, кортежи. Для списков, словарей, множеств — `None` и создание внутри.\n\n## Частые ошибки\n\n**Параметр без значения после параметра со значением.** `SyntaxError`.\n\n**Список/словарь по умолчанию.** Накапливается между вызовами.\n\n**Ждать, что значение по умолчанию пересчитывается.** Оно вычисляется один раз при `def`.\n\n## Итог\n\n- `def f(a, b=значение)` — `b` необязательный; не передали — берётся значение по умолчанию.\n- Параметры без значения — первыми.\n- Необязательные удобно передавать по имени: `make_line(length=3)`.\n- Значение по умолчанию вычисляется один раз при `def`.\n- Изменяемое значение по умолчанию — ловушка; используй `None` и создавай объект внутри.",
               "quiz": [
                 {
                   "q": "Что выведет второй вызов?\n```py\ndef f(x, acc=[]):\n    acc.append(x)\n    return acc\nf(1)\nprint(f(2))\n```",
                   "options": [
                     "`[2]`",
                     "`[1, 2]`",
-                    "`[1]`",
+                    "`[]`",
                     "Ошибка"
                   ],
                   "answer": 1,
-                  "explain": "Список по умолчанию общий для всех вызовов — в нём уже лежит 1."
+                  "explain": "Список по умолчанию создаётся один раз и накапливается."
                 },
                 {
-                  "q": "Какое объявление корректно?",
+                  "q": "Какое определение корректно?",
                   "options": [
                     "`def f(a=1, b):`",
-                    "`def f(a, b=1):`",
-                    "`def f(=1, b):`",
-                    "`def f(a=, b=1):`"
+                    "`def f(b, a=1):`",
+                    "`def f(a=1, b, c=2):`",
+                    "Все"
                   ],
                   "answer": 1,
-                  "explain": "Параметры со значением по умолчанию идут после обязательных."
+                  "explain": "Параметры без значения по умолчанию идут первыми."
                 },
                 {
-                  "q": "Как правильно задать список по умолчанию?",
+                  "q": "Когда вычисляется значение по умолчанию?",
                   "options": [
-                    "`items=[]`",
-                    "`items=None` и создать список внутри",
-                    "`items=list`",
-                    "`items=()`"
+                    "При каждом вызове",
+                    "Один раз при выполнении def",
+                    "При первом вызове",
+                    "Никогда"
                   ],
                   "answer": 1,
-                  "explain": "Шаблон с `None` создаёт новый список при каждом вызове."
+                  "explain": "Поэтому изменяемые значения по умолчанию опасны."
                 }
               ]
             },
             {
               "slug": "fn-m2-l2",
               "title": "Несколько возвращаемых значений",
-              "theory": "# return a, b\n\n```\ndef min_max(nums):\n    return min(nums), max(nums)     # на самом деле возвращается кортеж\n\nlo, hi = min_max([3, 1, 4])        # распаковка\n```\n\n- Результат — **кортеж** `(a, b)`.\n- Удобно распаковывать сразу в переменные.\n- Для многих значений лучше вернуть словарь или dataclass — с понятными именами.",
+              "theory": "```py\ndef min_max(nums):\n    return min(nums), max(nums)    # вернёт кортеж (1, 7)\nlow, high = min_max([3, 1, 7])     # распаковка\na, b, c = (1, 2)                   # ValueError: not enough values\nfirst, *rest = (90, 85, 70)        # rest = [85, 70]\n_, surname = \"Анна Иванова\".split()\nx, y = y, x                        # обмен без временной переменной\nq, r = divmod(17, 5)               # 3 2\n```",
               "exercises": [
                 {
                   "slug": "fn-m2-l2-e1",
@@ -406,6 +882,15 @@
                   "prompt": "Что выведет программа?",
                   "code": "def parse(line):\n    name, _, value = line.partition(\"=\")\n    return name.strip(), value.strip()\n\nkey, val = parse(\"timeout = 30\")\nprint(key, val, int(val) * 2)\n",
                   "expected_output": "timeout 30 60",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-m2-l2-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Кортеж можно разобрать по-разному.",
+                  "code": "def f():\n    return 1, 2, 3\n\na, *rest = f()\nprint(a, rest)\nprint(f()[1], len(f()))\n",
+                  "expected_output": "1 [2, 3]\n2 3",
                   "hint": "",
                   "xp": 10
                 },
@@ -438,49 +923,69 @@
                   "solution": "def split_results(results):\n    passed, failed = [], []\n    for name, ok in results:\n        (passed if ok else failed).append(name)\n    return passed, failed\n",
                   "hint": "",
                   "xp": 15
+                },
+                {
+                  "slug": "fn-m2-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `swap(a, b)`, которая возвращает два значения в обратном порядке.\n\nПример:\n```\nx, y = swap(1, 2)   # x == 2, y == 1\n```",
+                  "starter_code": "def swap(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    assert swap(1, 2) == (2, 1) and swap(\"a\", \"b\") == (\"b\", \"a\"), \"Неверный порядок\"\n",
+                  "solution": "def swap(a, b):\n    return b, a\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-m2-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `split_name(full_name)` — вернуть имя и фамилию (два значения) из строки `\"Имя Фамилия\"`.\n\nПример:\n```\nfirst, last = split_name(\"Анна Петрова\")   # first == \"Анна\", last == \"Петрова\"\n```",
+                  "starter_code": "def split_name(full_name):\n    pass\n",
+                  "tests": "def test_values():\n    assert split_name(\"Анна Петрова\") == (\"Анна\", \"Петрова\"), f\"Получено {split_name('Анна Петрова')!r}\"\n",
+                  "solution": "def split_name(full_name):\n    first, last = full_name.split()\n    return first, last\n",
+                  "hint": "",
+                  "xp": 15
                 }
               ],
-              "theory_full": "## Зачем это нужно\n\nФункция часто вычисляет сразу несколько связанных значений: минимум и максимум, частное и остаток, прошедшие и упавшие тесты, статус и тело ответа. В Python их можно вернуть «одним `return`» и сразу разложить по переменным.\n\n## Как это работает\n\n`return a, b` — это на самом деле `return (a, b)`: создаётся **кортеж**. При вызове его удобно распаковать:\n\n```py\nlo, hi = min_max(nums)\n```\n\nИли сохранить целиком и обращаться по индексу: `result[0]` (хуже читается).\n\n### Когда значений много\n\nТри-четыре значения в кортеже — предел понятности: `x[2]` ничего не говорит о смысле. Для большего числа — словарь, `namedtuple` или `dataclass`:\n\n```py\nreturn {\"min\": lo, \"max\": hi, \"avg\": avg}\n```\n\n### Встроенные примеры\n\n`divmod(17, 5)` → `(3, 2)`, `str.partition` → тройка, `dict.items()` → пары.\n\n## Примеры\n\n### Пример 1. Кортеж и распаковка\n\n```python\ndef min_max(nums):\n    return min(nums), max(nums)\n\nr = min_max([3, 1, 4, 1, 5])\nprint(r, type(r).__name__)\nlo, hi = r\nprint(\"диапазон:\", hi - lo)\n```\n\n### Пример 2. Статус и данные\n\n```python\ndef fetch_user(users, uid):\n    for u in users:\n        if u[\"id\"] == uid:\n            return True, u\n    return False, None\n\nusers = [{\"id\": 1, \"name\": \"Аня\"}]\nfor uid in [1, 7]:\n    found, user = fetch_user(users, uid)\n    print(uid, \"->\", user[\"name\"] if found else \"не найден\")\n```\n\n### Пример 3. Разделение на группы\n\n```python\ndef split_results(results):\n    passed, failed = [], []\n    for name, ok in results:\n        (passed if ok else failed).append(name)\n    return passed, failed\n\nok, bad = split_results([(\"login\", True), (\"pay\", False), (\"cart\", True)])\nprint(\"прошли:\", ok, \"| упали:\", bad)\n```\n\n### Пример 4. Когда лучше словарь\n\n```python\ndef summary(times):\n    return {\"count\": len(times), \"min\": min(times), \"max\": max(times),\n            \"avg\": round(sum(times) / len(times), 2)}\n\ns = summary([0.3, 1.2, 0.8])\nprint(s[\"avg\"], s)\n```\n\n## Частые ошибки\n\n**Неверное число переменных при распаковке** — `ValueError`.\n\n**Кортеж из 5+ значений** — теряется смысл; используй словарь/dataclass.\n\n**Разные типы возврата** (`return x` в одной ветке и `return x, y` в другой) — вызывающий код не сможет одинаково обработать результат.\n\n## Шпаргалка\n\n```py\ndef f(): return a, b        # кортеж\nx, y = f()                  # распаковка\nq, r = divmod(17, 5)\nreturn {\"key\": value, ...}  # для многих значений\n```",
+              "theory_full": "## Зачем это нужно\n\nФункция часто вычисляет сразу несколько связанных результатов: минимум и максимум, частное и остаток, имя и фамилию. В Python функция может вернуть их все сразу — через запятую. На самом деле она возвращает **кортеж**, а вызывающий код удобно раскладывает его по переменным.\n\n## return через запятую\n\n```python\ndef min_max(nums):\n    return min(nums), max(nums)\n\nresult = min_max([3, 1, 7])\nprint(result, type(result).__name__)\nlow, high = min_max([3, 1, 7])\nprint(low, high)\n```\n\n- `return min(nums), max(nums)` — возвращается **один** объект: кортеж `(1, 7)`. Скобки у кортежа необязательны, запятая — главное.\n- `type(result).__name__` — имя типа: `tuple`.\n- `low, high = ...` — **распаковка**: первый элемент кортежа в `low`, второй — в `high`.\n- Вывод: `(1, 7) tuple`, затем `1 7`.\n\nВстроенная `divmod` работает так же:\n\n```python\nq, r = divmod(17, 5)\nprint(q, r)\n```\n\n- `divmod(a, b)` возвращает `(a // b, a % b)`. Вывод: `3 2`.\n\n## Число переменных должно совпасть\n\n```python\ndef pair():\n    return 1, 2\n\ntry:\n    a, b, c = pair()\nexcept ValueError as e:\n    print(e)\n```\n\n- Слева три имени, а значений два → `ValueError: not enough values to unpack (expected 3, got 2)`. Если переменных меньше, чем значений: `too many values to unpack`.\n\n## Звёздочка: «остальное»\n\n```python\ndef scores():\n    return 90, 85, 70, 60\n\nfirst, *rest = scores()\n*others, last = scores()\nprint(first, rest)\nprint(others, last)\n```\n\n- `*rest` собирает **все оставшиеся** значения в **список**.\n- Звёздочка может стоять где угодно, но только у одной переменной.\n- Вывод: `90 [85, 70, 60]`, `[90, 85, 70] 60`.\n\n## Ненужное значение — в _\n\n```python\ndef split_name(full):\n    first, last = full.split()\n    return first, last\n\n_, surname = split_name(\"Анна Иванова\")\nprint(surname)\n```\n\n- `full.split()` режет строку по пробелам → список из двух слов, который тут же распаковывается.\n- `_` — принятое имя для значения, которое не нужно. Вывод: `Иванова`.\n\n## Обмен значений\n\n```python\ndef swap(a, b):\n    return b, a\n\nx, y = swap(1, 2)\nprint(x, y)\nx, y = y, x\nprint(x, y)\n```\n\n- `x, y = y, x` — справа сначала собирается кортеж `(y, x)`, потом он раскладывается влево. Временная переменная не нужна.\n- Вывод: `2 1`, `1 2`.\n\n## Можно вернуть и список, и словарь\n\n```python\ndef stats(nums):\n    return {\"min\": min(nums), \"max\": max(nums), \"avg\": sum(nums) / len(nums)}\n\ns = stats([2, 4, 6])\nprint(s[\"avg\"], s[\"max\"])\n```\n\n- Когда результатов много, словарь понятнее: у значений есть имена. Вывод: `4.0 6`.\n\n## Частые ошибки\n\n**Несовпадение количества при распаковке.** `ValueError`.\n\n**Ждать, что вернутся «две штуки».** Вернулся один кортеж — `result[0]`, `result[1]` тоже работают.\n\n**Несколько `return` подряд.** `return a` и `return b` на отдельных строках — второй никогда не выполнится. Нужно `return a, b`.\n\n## Итог\n\n- `return a, b` возвращает кортеж `(a, b)`.\n- `x, y = f()` — распаковка; число переменных должно совпадать.\n- `first, *rest = f()` — звёздочка собирает остальное в список.\n- `_` — для ненужных значений.\n- Для многих именованных результатов удобнее словарь.",
               "quiz": [
                 {
-                  "q": "Какой тип у результата `return 1, 2`?",
+                  "q": "Что вернёт `def f(): return 1, 2`?",
                   "options": [
-                    "`list`",
-                    "`tuple`",
-                    "`dict`",
-                    "Два отдельных значения"
+                    "Число 1",
+                    "Кортеж `(1, 2)`",
+                    "Список `[1, 2]`",
+                    "Ошибка"
                   ],
                   "answer": 1,
-                  "explain": "Запятые создают кортеж."
+                  "explain": "Запятая создаёт кортеж."
                 },
                 {
-                  "q": "Что будет при `a, b = f()`, если `f` возвращает `(1, 2, 3)`?",
+                  "q": "Что будет в `rest` после `a, *rest = (1, 2, 3)`?",
+                  "options": [
+                    "`(2, 3)`",
+                    "`[2, 3]`",
+                    "`3`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Звёздочка собирает остаток в список."
+                },
+                {
+                  "q": "Что даст `a, b = (1, 2, 3)`?",
                   "options": [
                     "a=1, b=2",
-                    "`ValueError`",
                     "a=1, b=(2, 3)",
-                    "a=(1, 2), b=3"
+                    "`ValueError`",
+                    "a=1, b=3"
                   ],
-                  "answer": 1,
-                  "explain": "Число переменных должно совпадать с числом элементов."
-                },
-                {
-                  "q": "Что лучше вернуть, если значений шесть?",
-                  "options": [
-                    "Кортеж из шести",
-                    "Словарь или dataclass с понятными именами полей",
-                    "Шесть отдельных return",
-                    "Строку"
-                  ],
-                  "answer": 1,
-                  "explain": "Именованные поля понятнее индексов."
+                  "answer": 2,
+                  "explain": "Значений больше, чем переменных."
                 }
               ]
             },
             {
               "slug": "fn-m2-l3",
               "title": "Docstring и аннотации типов",
-              "theory": "# Документация функции\n\n```\ndef discount(price: float, percent: int = 0) -> float:\n    \"\"\"Вернуть цену со скидкой в процентах.\"\"\"\n    return price * (1 - percent / 100)\n```\n\n- **Docstring** — строка сразу после `def`; видна в `help()` и в IDE.\n- **Аннотации** (`price: float`, `-> float`) — подсказки о типах для людей и инструментов. Python их **не проверяет** при выполнении.",
+              "theory": "```py\ndef area(w: float, h: float) -> float:\n    \"\"\"Вернуть площадь прямоугольника.\"\"\"   # docstring — первой строкой\n    return w * h\narea.__doc__             # текст docstring\narea.__annotations__     # {'w': float, 'h': float, 'return': float}\ndef f(nums: list[int], name: str | None = None) -> None: ...\n```\n- Аннотации **не проверяются**: `double(\"ab\")` вернёт `'abab'`.",
               "exercises": [
                 {
                   "slug": "fn-m2-l3-e1",
@@ -497,6 +1002,15 @@
                   "prompt": "Что выведет программа?",
                   "code": "def f(items: list[str], limit: int | None = None) -> list[str]:\n    return items[:limit]\n\nprint(f([\"a\", \"b\", \"c\"]))\nprint(f([\"a\", \"b\", \"c\"], 2))\n",
                   "expected_output": "['a', 'b', 'c']\n['a', 'b']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-m2-l3-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Аннотации ничего не проверяют.",
+                  "code": "def f(x: int) -> str:\n    return x * 2\n\nprint(f(3), f(\"ab\"))\nprint(f.__annotations__[\"return\"].__name__)\n",
+                  "expected_output": "6 abab\nstr",
                   "hint": "",
                   "xp": 10
                 },
@@ -529,42 +1043,182 @@
                   "solution": "def typed_call(func, *args):\n    names = func.__code__.co_varnames[:func.__code__.co_argcount]\n    for name, value in zip(names, args):\n        expected = func.__annotations__.get(name)\n        if expected is not None and not isinstance(value, expected):\n            raise TypeError(f\"{name}: ожидался {expected.__name__}, получен {type(value).__name__}\")\n    return func(*args)\n",
                   "hint": "",
                   "xp": 25
+                },
+                {
+                  "slug": "fn-m2-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `average` с аннотациями и docstring:\n\n- параметр `nums: list[float]`, результат `-> float`;\n- docstring — непустой;\n- возвращает среднее, округлённое до 2 знаков.\n\nПример:\n```\naverage([1, 2, 4])   # → 2.33\n```",
+                  "starter_code": "def average(nums):\n    return round(sum(nums) / len(nums), 2)\n",
+                  "tests": "def test_values():\n    assert average([1, 2, 4]) == 2.33 and average([5.0]) == 5.0, \"Неверное среднее\"\n\ndef test_docs():\n    assert average.__doc__ and average.__doc__.strip(), \"Добавь docstring\"\n    ann = average.__annotations__\n    assert ann.get(\"return\") is float and \"nums\" in ann, f\"Нужны аннотации nums и -> float, сейчас {ann}\"\n",
+                  "solution": "def average(nums: list[float]) -> float:\n    \"\"\"Среднее арифметическое, округлённое до 2 знаков.\"\"\"\n    return round(sum(nums) / len(nums), 2)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-m2-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `repeat_word(word: str, times: int = 1) -> str` — слово, повторённое `times` раз через пробел.\nАннотации обязательны.\n\nПримеры:\n```\nrepeat_word(\"ура\")       # → \"ура\"\nrepeat_word(\"ура\", 3)    # → \"ура ура ура\"\n```",
+                  "starter_code": "def repeat_word(word, times=1):\n    pass\n",
+                  "tests": "def test_values():\n    assert repeat_word(\"ура\") == \"ура\" and repeat_word(\"ура\", 3) == \"ура ура ура\", \"Неверный результат\"\n\ndef test_annotations():\n    ann = repeat_word.__annotations__\n    assert ann.get(\"word\") is str and ann.get(\"times\") is int and ann.get(\"return\") is str, f\"Сейчас {ann}\"\n",
+                  "solution": "def repeat_word(word: str, times: int = 1) -> str:\n    return \" \".join([word] * times)\n",
+                  "hint": "",
+                  "xp": 15
                 }
               ],
-              "theory_full": "## Зачем это нужно\n\nКод читают гораздо чаще, чем пишут. Docstring объясняет, **что** делает функция, а аннотации типов — **что** она принимает и возвращает. IDE показывает их в подсказках, инструменты вроде mypy находят ошибки типов до запуска, а коллеги понимают твои хелперы для тестов без чтения тела функции.\n\n## Как это работает\n\n### Docstring\n\nСтроковый литерал первой строкой тела функции:\n\n```py\ndef create_user(name, role=\"qa\"):\n    \"\"\"Создать тестового пользователя через API.\n\n    Возвращает словарь с полями id, name, role.\n    \"\"\"\n```\n\nДоступен как `func.__doc__` и через `help(func)`. Первая строка — краткое описание, дальше — подробности.\n\n### Аннотации типов\n\n```py\ndef discount(price: float, percent: int = 0) -> float:\n```\n\n- `имя: тип` — ожидаемый тип параметра;\n- `-> тип` — тип результата;\n- сложные типы: `list[str]`, `dict[str, int]`, `int | None` (или `Optional[int]`), `tuple[int, int]`.\n\n**Python их не проверяет** при выполнении — это подсказки. Хранятся в `func.__annotations__`. Проверяют их внешние инструменты (mypy, pyright) и IDE; библиотеки вроде pydantic и FastAPI используют аннотации для валидации данных.\n\n## Примеры\n\n### Пример 1. Документация доступна из кода\n\n```python\ndef discount(price: float, percent: int = 0) -> float:\n    \"\"\"Вернуть цену со скидкой.\n\n    percent — размер скидки в процентах (0–100).\n    \"\"\"\n    return round(price * (1 - percent / 100), 2)\n\nprint(discount.__doc__.splitlines()[0])\nprint(discount.__annotations__)\nprint(discount(1000, 15))\n```\n\n### Пример 2. Аннотации не проверяются\n\n```python\ndef double(x: int) -> int:\n    return x * 2\n\nprint(double(21))\nprint(double(\"ха\"))       # Python не возражает\n```\n\n### Пример 3. Сложные типы\n\n```python\ndef group_by_status(results: list[tuple[str, bool]]) -> dict[str, list[str]]:\n    \"\"\"Разложить имена тестов по статусу.\"\"\"\n    groups: dict[str, list[str]] = {\"passed\": [], \"failed\": []}\n    for name, ok in results:\n        groups[\"passed\" if ok else \"failed\"].append(name)\n    return groups\n\nprint(group_by_status([(\"login\", True), (\"pay\", False)]))\n```\n\n### Пример 4. Опциональные значения\n\n```python\ndef find(items: list[str], prefix: str) -> str | None:\n    \"\"\"Первый элемент с префиксом или None.\"\"\"\n    for item in items:\n        if item.startswith(prefix):\n            return item\n    return None\n\nprint(find([\"test_login\", \"test_pay\"], \"test_p\"), find([], \"x\"))\n```\n\n## Частые ошибки\n\n**Надежда, что аннотации защитят от неверных типов** — без внешних инструментов они ничего не проверяют.\n\n**Docstring не первой строкой** — тогда это просто строка, а `__doc__` будет `None`.\n\n**Устаревшая документация** — хуже её отсутствия: обновляй вместе с кодом.\n\n## Шпаргалка\n\n```py\ndef f(x: int, items: list[str] | None = None) -> dict[str, int]:\n    \"\"\"Кратко, что делает функция.\"\"\"\nf.__doc__, f.__annotations__, help(f)\n```",
+              "theory_full": "## Зачем это нужно\n\nФункцию пишут один раз, а читают много раз — ты сам через месяц, коллеги, редактор кода. **Docstring** объясняет, что функция делает, а **аннотации типов** показывают, какие данные она ждёт и что возвращает. Редакторы подсказывают по ним, а инструменты вроде mypy находят ошибки ещё до запуска.\n\n## Docstring — строка документации\n\n```python\ndef area(w, h):\n    \"\"\"Вернуть площадь прямоугольника со сторонами w и h.\"\"\"\n    return w * h\n\nprint(area(2, 3))\nprint(area.__doc__)\n```\n\n- Строка в тройных кавычках **первой строкой тела** — это docstring. Она не выполняется как код, а сохраняется в атрибуте функции `__doc__`.\n- `help(area)` в интерактивном Python показывает именно её.\n- Вывод: `6`, затем текст docstring.\n- Принято: начинать с глагола («Вернуть…», «Посчитать…»), описывать **что** делает функция, а не **как**.\n\nДлинный docstring — несколько строк:\n\n```py\ndef discount(price, percent):\n    \"\"\"Посчитать цену со скидкой.\n\n    price — исходная цена, percent — скидка в процентах (0–100).\n    Возвращает цену, округлённую до 2 знаков.\n    \"\"\"\n```\n\nЕсли строка стоит не первой в теле — это уже не docstring:\n\n```python\ndef f():\n    x = 1\n    \"\"\"не docstring\"\"\"\n    return x\n\nprint(f.__doc__)\n```\n\nВывод: `None`.\n\n## Аннотации типов\n\n```python\ndef greet(name: str, times: int = 1) -> str:\n    return (\"Привет, \" + name + \"! \") * times\n\nprint(greet(\"Аня\", 2))\nprint(greet.__annotations__)\n```\n\n- `name: str` — «параметр `name` — строка».\n- `times: int = 1` — аннотация **и** значение по умолчанию (вокруг `=` здесь ставят пробелы).\n- `-> str` перед двоеточием — тип **возвращаемого** значения.\n- Аннотации хранятся в словаре `__annotations__`: `{'name': <class 'str'>, 'times': <class 'int'>, 'return': <class 'str'>}`.\n\n## Аннотации ничего не проверяют\n\n```python\ndef double(x: int) -> int:\n    return x * 2\n\nprint(double(\"ab\"))\n```\n\n- Python **не проверяет** типы при запуске: строка спокойно передана вместо числа, результат `abab`.\n- Аннотации — подсказка для людей и инструментов (редактор, mypy), а не защита. Если проверка нужна — пиши её сама: `isinstance`.\n\n## Составные типы\n\n```python\ndef average(nums: list[float]) -> float:\n    return sum(nums) / len(nums)\n\ndef find_user(users: dict[int, str], uid: int) -> str | None:\n    return users.get(uid)\n\nprint(average([1, 2, 3]))\nprint(find_user({1: \"Аня\"}, 1), find_user({1: \"Аня\"}, 2))\n```\n\n- `list[float]` — список чисел; `dict[int, str]` — словарь «число → строка»; `tuple[int, int]` — пара чисел.\n- `str | None` — «строка или `None`» (Python 3.10+). В старом коде то же пишут `Optional[str]` из модуля `typing`.\n- `users.get(uid)` — значение по ключу или `None`, если ключа нет (тема «Словари»).\n- Функция без `return` аннотируется `-> None`.\n- Вывод: `2.0`, `Аня None`.\n\n## Частые ошибки\n\n**Думать, что аннотации что-то проверяют.** Не проверяют.\n\n**Docstring не первой строкой.** Тогда это просто строка, `__doc__` будет `None`.\n\n**Описывать в docstring очевидное.** «Функция принимает x» — бесполезно; пиши, что она делает и что возвращает.\n\n## Итог\n\n- Docstring — строка в тройных кавычках первой строкой тела; доступна через `__doc__` и `help()`.\n- `param: тип`, `param: тип = значение`, `-> тип` — аннотации; хранятся в `__annotations__`.\n- Аннотации не проверяются при выполнении.\n- `list[int]`, `dict[str, int]`, `tuple[int, int]`, `str | None` — составные типы.",
               "quiz": [
                 {
-                  "q": "Что произойдёт при вызове `def f(x: int): return x` как `f(\"текст\")`?",
+                  "q": "Что будет при вызове `double(\"ab\")` для `def double(x: int) -> int: return x * 2`?",
                   "options": [
-                    "TypeError",
-                    "Вернётся `\"текст\"` — аннотации не проверяются",
-                    "Вернётся 0",
-                    "SyntaxError"
+                    "`TypeError`",
+                    "`\"abab\"`",
+                    "`None`",
+                    "Предупреждение"
                   ],
                   "answer": 1,
-                  "explain": "Аннотации — подсказки; Python их не проверяет при выполнении."
+                  "explain": "Аннотации не проверяются при выполнении."
                 },
                 {
-                  "q": "Где должна стоять строка документации функции?",
+                  "q": "Где хранится docstring функции `f`?",
                   "options": [
-                    "Перед def",
-                    "Первой строкой тела функции",
-                    "В конце функции",
-                    "Где угодно"
+                    "`f.__name__`",
+                    "`f.__doc__`",
+                    "`f.__annotations__`",
+                    "Нигде"
                   ],
                   "answer": 1,
-                  "explain": "Только строка первой строкой тела становится `__doc__`."
+                  "explain": "__doc__ — строка документации."
                 },
                 {
-                  "q": "Как аннотировать параметр, который может быть строкой или None?",
+                  "q": "Что означает `-> str | None`?",
                   "options": [
-                    "`x: str or None`",
-                    "`x: str | None`",
-                    "`x: str, None`",
-                    "`x: (str, None)`"
+                    "Функция принимает строку",
+                    "Функция возвращает строку или None",
+                    "Функция ничего не возвращает",
+                    "Ошибка синтаксиса"
                   ],
                   "answer": 1,
-                  "explain": "`str | None` (или `Optional[str]`) — объединение типов."
+                  "explain": "После -> указывают тип результата."
+                }
+              ]
+            },
+            {
+              "slug": "fn-compose",
+              "title": "Функции из функций",
+              "theory": "```py\ninc(double(5))                       # изнутри наружу: 11\ndef price_with_tax(p):\n    return p + tax(p)                # поручить расчёт другой функции\ndef is_strong(p):\n    return long_enough(p) and has_digit(p) and has_upper(p)\nany(ch.isdigit() for ch in p)        # есть ли хоть одна цифра\navg = average(nums)                  # посчитать один раз\n[n for n in nums if n > avg]\n```",
+              "exercises": [
+                {
+                  "slug": "fn-compose-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Вызов внутри вызова.",
+                  "code": "def add1(x):\n    return x + 1\n\ndef double(x):\n    return x * 2\n\nprint(double(add1(3)), add1(double(3)))\n",
+                  "expected_output": "8 7",
+                  "hint": "Сначала вычисляется внутренний вызов.",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-compose-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Вспомогательная функция.",
+                  "code": "def normalize(s):\n    return s.strip().lower()\n\ndef same(a, b):\n    return normalize(a) == normalize(b)\n\nprint(same(\"  Аня\", \"аня\"), same(\"a\", \"b\"))\n",
+                  "expected_output": "True False",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-compose-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Порядок определений.",
+                  "code": "def outer():\n    return inner() * 2\n\ndef inner():\n    return 21\n\nprint(outer())\n",
+                  "expected_output": "42",
+                  "hint": "Важен момент вызова: к вызову outer() функция inner уже определена.",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-compose-e4",
+                  "type": "code",
+                  "prompt": "Напиши две функции:\n- `tax(price)` — налог 20% от цены, округлённый до 2 знаков;\n- `price_with_tax(price)` — цена плюс налог, **используя** `tax`.\n\nПримеры:\n```\ntax(100)              # → 20.0\nprice_with_tax(100)   # → 120.0\n```",
+                  "starter_code": "",
+                  "tests": "import inspect\n\ndef test_values():\n    assert tax(100) == 20.0 and tax(9.99) == 2.0 and price_with_tax(100) == 120.0, \"Неверный расчёт\"\n\ndef test_uses_tax():\n    assert \"tax(\" in inspect.getsource(price_with_tax).replace(\"price_with_tax(\", \"\"), \"price_with_tax должна вызывать tax\"\n",
+                  "solution": "def tax(price):\n    return round(price * 0.2, 2)\n\ndef price_with_tax(price):\n    return price + tax(price)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-compose-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_strong_password(p)`, собранную из трёх проверок — их тоже напиши:\n\n- `long_enough(p)` — длина не меньше 8;\n- `has_digit(p)` — есть цифра;\n- `has_upper(p)` — есть заглавная буква (`ch.isupper()`).\n\n`is_strong_password` возвращает `True`, только если прошли **все три**.",
+                  "starter_code": "",
+                  "tests": "def test_parts():\n    assert long_enough(\"12345678\") and not long_enough(\"123\"), \"long_enough\"\n    assert has_digit(\"a1\") and not has_digit(\"ab\"), \"has_digit\"\n    assert has_upper(\"aB\") and not has_upper(\"ab\"), \"has_upper\"\n\ndef test_strong():\n    got = [is_strong_password(p) for p in (\"Abcdefg1\", \"abcdefg1\", \"Abcdefgh\", \"Ab1\")]\n    assert got == [True, False, False, False], f\"Получено {got}\"\n",
+                  "solution": "def long_enough(p):\n    return len(p) >= 8\n\ndef has_digit(p):\n    for ch in p:\n        if ch.isdigit():\n            return True\n    return False\n\ndef has_upper(p):\n    for ch in p:\n        if ch.isupper():\n            return True\n    return False\n\ndef is_strong_password(p):\n    return long_enough(p) and has_digit(p) and has_upper(p)\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "fn-compose-e6",
+                  "type": "code",
+                  "prompt": "Напиши две функции:\n- `format_money(x)` — сумма с двумя знаками после точки и `\" руб.\"`: `99.5` → `\"99.50 руб.\"`;\n- `receipt_line(name, price)` — строка чека `\"<name>: <сумма>\"`, **используя** `format_money`.\n\nПример:\n```\nreceipt_line(\"Кофе\", 150)   # → \"Кофе: 150.00 руб.\"\n```",
+                  "starter_code": "",
+                  "tests": "import inspect\n\ndef test_values():\n    assert format_money(99.5) == \"99.50 руб.\" and receipt_line(\"Кофе\", 150) == \"Кофе: 150.00 руб.\", \"Неверный формат\"\n\ndef test_uses_helper():\n    assert \"format_money(\" in inspect.getsource(receipt_line), \"receipt_line должна вызывать format_money\"\n",
+                  "solution": "def format_money(x):\n    return f\"{x:.2f} руб.\"\n\ndef receipt_line(name, price):\n    return f\"{name}: {format_money(price)}\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-compose-e7",
+                  "type": "code",
+                  "prompt": "Напиши две функции:\n- `average(nums)` — среднее;\n- `above_average(nums)` — список чисел **больше среднего**, в исходном порядке, **используя** `average`.\n\nПример:\n```\nabove_average([1, 5, 3, 9])   # → [5, 9]   (среднее 4.5)\n```",
+                  "starter_code": "",
+                  "tests": "def test_values():\n    assert average([1, 5, 3, 9]) == 4.5 and above_average([1, 5, 3, 9]) == [5, 9] and above_average([2, 2]) == [], \"Неверный результат\"\n",
+                  "solution": "def average(nums):\n    return sum(nums) / len(nums)\n\ndef above_average(nums):\n    avg = average(nums)\n    result = []\n    for n in nums:\n        if n > avg:\n            result.append(n)\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-compose-e8",
+                  "type": "code",
+                  "prompt": "Напиши две функции:\n- `clean_words(text)` — список слов текста в нижнем регистре, без знаков `.`, `,`, `!` и `?`;\n- `word_count(text, word)` — сколько раз слово встречается в тексте, **используя** `clean_words`\n  (регистр и знаки препинания не мешают).\n\nПример:\n```\nclean_words(\"Кот, кот! И пёс.\")   # → [\"кот\", \"кот\", \"и\", \"пёс\"]\nword_count(\"Кот, кот! И пёс.\", \"кот\")   # → 2\n```",
+                  "starter_code": "",
+                  "tests": "def test_values():\n    assert clean_words(\"Кот, кот! И пёс.\") == [\"кот\", \"кот\", \"и\", \"пёс\"], f\"Получено {clean_words('Кот, кот! И пёс.')}\"\n    assert word_count(\"Кот, кот! И пёс.\", \"кот\") == 2 and word_count(\"\", \"x\") == 0, \"Неверный подсчёт\"\n",
+                  "solution": "def clean_words(text):\n    for mark in \".,!?\":\n        text = text.replace(mark, \"\")\n    return text.lower().split()\n\ndef word_count(text, word):\n    return clean_words(text).count(word)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nХорошая программа — это не одна огромная функция, а много маленьких, каждая из которых делает **одно дело**. Большие функции собирают из маленьких, как конструктор. Такой код легче читать, проверять и менять: исправил расчёт налога в одном месте — и он исправился везде.\n\n## Вызов внутри вызова\n\n```python\ndef double(x):\n    return x * 2\n\ndef inc(x):\n    return x + 1\n\nprint(inc(double(5)))\nprint(double(inc(5)))\n```\n\n- Вложенные вызовы выполняются **изнутри наружу**: `double(5)` = 10, потом `inc(10)` = 11.\n- Порядок важен: `double(inc(5))` = `double(6)` = 12.\n\n## Функция использует функцию\n\n```python\ndef tax(price, rate=20):\n    return price * rate / 100\n\ndef price_with_tax(price):\n    return price + tax(price)\n\nprint(tax(1000), price_with_tax(1000))\n```\n\n- `price_with_tax` не считает налог сама — она **поручает** это `tax`. Если ставка изменится, править нужно только `tax`.\n- Вывод: `200.0 1200.0`.\n\n## Разбить проверку на части\n\n```python\ndef long_enough(p):\n    return len(p) >= 8\n\ndef has_digit(p):\n    return any(ch.isdigit() for ch in p)\n\ndef has_upper(p):\n    return any(ch.isupper() for ch in p)\n\ndef is_strong_password(p):\n    return long_enough(p) and has_digit(p) and has_upper(p)\n\nprint(is_strong_password(\"Secret123\"), is_strong_password(\"secret123\"))\n```\n\n- Каждая проверка — отдельная маленькая функция с понятным именем.\n- `any(ch.isdigit() for ch in p)` — «есть ли **хоть один** символ-цифра». Внутри `any(...)` — выражение-генератор: для каждого `ch` в `p` вычисляется `ch.isdigit()`; `any` вернёт `True` на первом `True`.\n- `is_strong_password` читается как обычное предложение: «достаточно длинный, и есть цифра, и есть заглавная».\n- Вывод: `True False` — во втором пароле нет заглавной.\n\n## Форматирование отдельно от расчёта\n\n```python\ndef format_money(x):\n    return f\"{x:.2f} ₽\"\n\ndef receipt_line(name, qty, price):\n    return f\"{name} x{qty} = {format_money(qty * price)}\"\n\nprint(receipt_line(\"Кофе\", 2, 150))\nprint(receipt_line(\"Чай\", 3, 99.5))\n```\n\n- `:.2f` — два знака после точки.\n- Формат денег описан один раз; если захотим писать «руб.» — поменяем одну функцию.\n- Вывод: `Кофе x2 = 300.00 ₽`, `Чай x3 = 298.50 ₽`.\n\n## Функция передаёт результат другой\n\n```python\ndef clean_words(text):\n    return [w.strip(\".,!?\").lower() for w in text.split()]\n\ndef word_count(text):\n    return len(clean_words(text))\n\ndef average(nums):\n    return sum(nums) / len(nums)\n\ndef above_average(nums):\n    avg = average(nums)\n    return [n for n in nums if n > avg]\n\nprint(clean_words(\"Привет, мир! Мир?\"))\nprint(word_count(\"Раз, два, три.\"), above_average([1, 5, 9, 3]))\n```\n\n- `[w.strip(\".,!?\").lower() for w in text.split()]` — **списковое включение**: для каждого слова `w` убрать по краям знаки препинания и перевести в нижний регистр; результаты собираются в новый список.\n- `[n for n in nums if n > avg]` — включение с фильтром: берутся только числа больше среднего.\n- `average` вызывается **один раз** и сохраняется в `avg` — не нужно пересчитывать для каждого элемента.\n- Вывод: `['привет', 'мир', 'мир']`, `3 [5, 9]`.\n\n## Как понять, что пора выделить функцию\n\n- Один и тот же код повторяется в двух местах.\n- Кусок кода можно назвать одной фразой («посчитать налог», «проверить пароль»).\n- Функция стала длиннее одного экрана.\n- Хочется написать комментарий «здесь мы считаем…» — лучше сделать функцию с таким именем.\n\n## Итог\n\n- Вложенные вызовы выполняются изнутри наружу.\n- Большие функции собирают из маленьких, каждая делает одно дело.\n- Общую логику (налог, формат денег) выносят в одну функцию — менять её в одном месте.\n- Результат функции сохраняют в переменную, если он нужен несколько раз.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `double(inc(5))`, если `double` удваивает, а `inc` прибавляет 1?",
+                  "options": [
+                    "`11`",
+                    "`12`",
+                    "`10`",
+                    "`6`"
+                  ],
+                  "answer": 1,
+                  "explain": "Сначала inc(5) = 6, затем double(6) = 12."
+                },
+                {
+                  "q": "Что вернёт `any(ch.isdigit() for ch in \"abc\")`?",
+                  "options": [
+                    "`True`",
+                    "`False`",
+                    "`None`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Ни одной цифры нет."
+                },
+                {
+                  "q": "Главная польза выделения `tax()` в отдельную функцию:",
+                  "options": [
+                    "Код работает быстрее",
+                    "Правило расчёта меняется в одном месте",
+                    "Так требует Python",
+                    "Меньше памяти"
+                  ],
+                  "answer": 1,
+                  "explain": "Одна ответственность — одно место для изменений."
                 }
               ]
             }
@@ -574,12 +1228,12 @@
           "slug": "fn-m3",
           "title": "Функции глубже",
           "icon": "🚀",
-          "description": "Функции как объекты, рекурсия и чистые функции",
+          "description": "Функции как объекты, рекурсия, чистые функции и тесты",
           "lessons": [
             {
               "slug": "fn-m3-l1",
               "title": "Функции как объекты",
-              "theory": "# Функция — тоже значение\n\n```\ndef shout(s):\n    return s.upper()\n\nf = shout            # без скобок — сама функция\nf(\"hi\")              # \"HI\"\n\ndef apply(func, value):\n    return func(value)\n\napply(len, \"abc\")    # 3\n```\n\nФункции можно класть в переменные, списки, словари и передавать в другие функции.",
+              "theory": "```py\nyell = shout                      # второе имя, не вызов\nsteps = [inc, double]             # функции в списке\ndef apply_twice(func, x):\n    return func(func(x))          # функция как аргумент\nsorted(words, key=len)            # key — функция\nsquare = lambda x: x * x          # одно выражение, return не пишут\nops = {\"+\": add, \"*\": lambda a, b: a * b}\nops[\"+\"](2, 3)                    # достать и вызвать\n```",
               "exercises": [
                 {
                   "slug": "fn-m3-l1-e1",
@@ -596,6 +1250,15 @@
                   "prompt": "Что выведет программа?",
                   "code": "def apply_all(funcs, value):\n    return [f(value) for f in funcs]\n\nprint(apply_all([len, str.upper, str.title], \"codeQuest\"))\n",
                   "expected_output": "[9, 'CODEQUEST', 'Codequest']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-m3-l1-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Функции в списке.",
+                  "code": "ops = [str.upper, str.lower, len]\nfor f in ops:\n    print(f.__name__, f(\"Аня\"))\n",
+                  "expected_output": "upper АНЯ\nlower аня\nlen 3",
                   "hint": "",
                   "xp": 10
                 },
@@ -628,49 +1291,69 @@
                   "solution": "def run_checks(value, checks):\n    return [check.__name__ for check in checks if not check(value)]\n",
                   "hint": "",
                   "xp": 15
+                },
+                {
+                  "slug": "fn-m3-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `apply_to_all(func, items)` — новый список: `func`, применённая к каждому элементу.\n\nПримеры:\n```\napply_to_all(len, [\"a\", \"bcd\"])        # → [1, 3]\napply_to_all(str.upper, [\"qa\", \"dev\"]) # → [\"QA\", \"DEV\"]\n```",
+                  "starter_code": "def apply_to_all(func, items):\n    pass\n",
+                  "tests": "def test_values():\n    assert apply_to_all(len, [\"a\", \"bcd\"]) == [1, 3] and apply_to_all(str.upper, [\"qa\", \"dev\"]) == [\"QA\", \"DEV\"], \"Неверный результат\"\n    assert apply_to_all(abs, []) == [], \"Пустой — пустой\"\n",
+                  "solution": "def apply_to_all(func, items):\n    result = []\n    for x in items:\n        result.append(func(x))\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-m3-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `get_tool(name)`, которая по названию возвращает **саму функцию** (не результат вызова):\n`\"len\"` → `len`, `\"upper\"` → `str.upper`, `\"abs\"` → `abs`; для неизвестного имени — `None`.\nИспользуй словарь.\n\nПримеры:\n```\nget_tool(\"len\")(\"abc\")    # → 3\nget_tool(\"upper\")(\"hi\")   # → \"HI\"\nget_tool(\"xxx\")           # → None\n```",
+                  "starter_code": "def get_tool(name):\n    pass\n",
+                  "tests": "def test_values():\n    assert get_tool(\"len\") is len and get_tool(\"upper\") is str.upper and get_tool(\"abs\") is abs, \"Верни саму функцию\"\n    assert get_tool(\"len\")(\"abc\") == 3 and get_tool(\"xxx\") is None, \"Неверный результат\"\n",
+                  "solution": "TOOLS = {\"len\": len, \"upper\": str.upper, \"abs\": abs}\n\ndef get_tool(name):\n    return TOOLS.get(name)\n",
+                  "hint": "",
+                  "xp": 15
                 }
               ],
-              "theory_full": "## Зачем это нужно\n\nВ Python функции — «граждане первого класса»: их можно хранить в переменных и структурах данных, передавать в другие функции и возвращать из них. На этом построены `sorted(key=...)`, `map`, `filter`, обработчики событий, декораторы, фикстуры pytest, наборы проверок. Это один из самых мощных приёмов языка.\n\n## Как это работает\n\n- Имя функции без скобок — ссылка на объект функции: `f = shout`.\n- Вызвать можно через любую ссылку: `f(\"hi\")`.\n- Функцию можно передать аргументом: `apply(len, \"abc\")` — это называют **callback** (функция обратного вызова).\n- Функции можно хранить в словаре — получается «таблица диспетчеризации» вместо длинного `if/elif`.\n- У функции есть атрибуты: `__name__`, `__doc__`, `__annotations__`.\n\n### Функции высшего порядка\n\nФункция, которая принимает или возвращает другую функцию: `sorted`, `map`, `filter`, `max(key=...)` — всё это они. Скоро ты напишешь свои — декораторы.\n\n## Примеры\n\n### Пример 1. Функция в переменной и в аргументе\n\n```python\ndef shout(s):\n    return s.upper() + \"!\"\n\ndef whisper(s):\n    return s.lower() + \"...\"\n\ndef speak(style, text):\n    return style(text)\n\nprint(speak(shout, \"Тест прошёл\"))\nprint(speak(whisper, \"Тест прошёл\"))\n```\n\n### Пример 2. Словарь функций вместо if/elif\n\n```python\nhandlers = {\n    \"json\": lambda data: f\"JSON с {len(data)} полями\",\n    \"text\": lambda data: f\"текст длиной {len(data)}\",\n}\n\nfor kind, payload in [(\"json\", {\"a\": 1, \"b\": 2}), (\"text\", \"hello\")]:\n    print(handlers[kind](payload))\n```\n\n### Пример 3. Набор проверок\n\n```python\ndef not_empty(s): return s != \"\"\ndef has_digit(s): return any(c.isdigit() for c in s)\ndef long_enough(s): return len(s) >= 8\n\nCHECKS = [not_empty, has_digit, long_enough]\nfor password in [\"\", \"abc\", \"abcdefg1\"]:\n    failed = [c.__name__ for c in CHECKS if not c(password)]\n    print(repr(password), \"->\", failed or \"ok\")\n```\n\n### Пример 4. key — это тоже callback\n\n```python\ntests = [(\"login\", 1.2), (\"pay\", 3.4), (\"cart\", 0.5)]\ndef by_time(t):\n    return t[1]\nprint(sorted(tests, key=by_time))\nprint(max(tests, key=by_time)[0])\n```\n\n## Частые ошибки\n\n**Передали результат вместо функции** — `sorted(xs, key=len())` или `apply(shout(\"x\"), ...)`.\n\n**Длинный `if/elif` по строковым командам** — часто заменяется словарём функций.\n\n**Лямбда там, где нужна понятная именованная функция** — именованную проще отлаживать и переиспользовать.\n\n## Шпаргалка\n\n```py\nf = func                  # ссылка, не вызов\ndef apply(fn, x): return fn(x)\nOPS = {\"+\": add, \"-\": sub}; OPS[op](a, b)\nsorted(xs, key=fn); max(xs, key=fn)\nfn.__name__\n```",
+              "theory_full": "## Зачем это нужно\n\nВ Python функция — такой же **объект**, как число или строка. Её можно положить в переменную, в список, в словарь, передать в другую функцию. На этом построено очень многое: `sorted(key=...)`, обработчики кнопок, плагины, фикстуры и параметризация в pytest, декораторы.\n\n## Функцию можно присвоить переменной\n\n```python\ndef shout(text):\n    return text.upper() + \"!\"\n\nyell = shout\nprint(yell(\"привет\"))\nprint(yell is shout, yell.__name__)\n```\n\n- `yell = shout` — **без скобок**: не вызов, а второе имя для той же функции.\n- `yell(\"привет\")` вызывает ту же функцию: `ПРИВЕТ!`.\n- `is` — «тот же самый объект?» → `True`. `__name__` — имя, данное в `def`: `shout`.\n\n## Функции в списке\n\n```python\ndef inc(x):\n    return x + 1\n\ndef double(x):\n    return x * 2\n\nsteps = [inc, double, inc]\nvalue = 3\nfor step in steps:\n    value = step(value)\nprint(value)\n```\n\n- В списке лежат сами функции. Цикл по очереди применяет каждую.\n- `3` → inc → `4` → double → `8` → inc → `9`.\n\n## Передать функцию в функцию\n\n```python\ndef apply_twice(func, x):\n    return func(func(x))\n\ndef inc(x):\n    return x + 1\n\nprint(apply_twice(inc, 5))\nprint(apply_twice(str.upper, \"ok\"))\n```\n\n- Параметр `func` получает функцию, внутри её вызывают как обычно — `func(x)`.\n- `str.upper` — метод строки, взятый как функция: `str.upper(\"ok\")` то же, что `\"ok\".upper()`.\n- Вывод: `7`, `OK`.\n\nВстроенные функции тоже принимают функции:\n\n```python\nwords = [\"banana\", \"Kiwi\", \"apple\"]\nprint(sorted(words, key=len))\nprint(sorted(words, key=str.lower))\nprint(max(words, key=len))\n```\n\n- `key=len` — сравнивать не сами слова, а их длины.\n- `key=str.lower` — сравнивать без учёта регистра.\n- Вывод: `['Kiwi', 'apple', 'banana']`, `['apple', 'banana', 'Kiwi']`, `banana`.\n\n## lambda — функция в одну строку\n\nКогда функция нужна только чтобы передать её куда-то, её пишут прямо на месте через `lambda`:\n\n```python\nsquare = lambda x: x * x\nprint(square(4))\n\npairs = [(\"Аня\", 30), (\"Боря\", 25)]\nprint(sorted(pairs, key=lambda p: p[1]))\nprint(list(map(lambda x: x * 10, [1, 2, 3])))\n```\n\n- `lambda x: x * x` — функция без имени: параметры до двоеточия, **одно выражение** после — оно и возвращается (слово `return` не пишется).\n- `key=lambda p: p[1]` — сортировать пары по второму элементу (возрасту).\n- `map(f, список)` применяет `f` к каждому элементу; `list(...)` собирает результат.\n- Вывод: `16`, `[('Боря', 25), ('Аня', 30)]`, `[10, 20, 30]`.\n- Внутри `lambda` нельзя писать `if`-блоки, циклы, несколько строк. Если логика сложнее — обычный `def`. (Подробнее — отдельная тема «lambda».)\n\n## Словарь функций вместо цепочки if\n\n```python\ndef add(a, b):\n    return a + b\n\nops = {\n    \"+\": add,\n    \"-\": lambda a, b: a - b,\n    \"*\": lambda a, b: a * b,\n}\n\ndef calculate(a, op, b):\n    if op not in ops:\n        return None\n    return ops[op](a, b)\n\nprint(calculate(6, \"+\", 2), calculate(6, \"*\", 2), calculate(6, \"%\", 2))\n```\n\n- Значения словаря — функции. `ops[op]` достаёт функцию, `(a, b)` сразу её вызывает.\n- Добавить операцию — одна строка в словаре, без нового `elif`.\n- Вывод: `8 12 None`.\n\n## Функция возвращает функцию\n\n```python\ndef make_multiplier(n):\n    def multiply(x):\n        return x * n\n    return multiply\n\ntriple = make_multiplier(3)\nprint(triple(5), make_multiplier(10)(2))\n```\n\n- Внутри `make_multiplier` определена функция `multiply`, и она **возвращается** (без скобок!).\n- Вложенная функция помнит `n` из внешней — это называется **замыкание** (подробно — тема «Область видимости»).\n- `make_multiplier(10)(2)` — первые скобки создают функцию, вторые её вызывают.\n- Вывод: `15 20`.\n\n## Частые ошибки\n\n**Передать результат вместо функции.** `apply_twice(inc(), 5)` — `inc()` вызовется сразу (и упадёт без аргумента). Нужно `apply_twice(inc, 5)`.\n\n**`key=len()` вместо `key=len`.** Ключу нужна функция, а не результат.\n\n**Сложная логика в `lambda`.** Нечитаемо — пиши `def`.\n\n## Итог\n\n- Функция — объект: её присваивают, кладут в список/словарь, передают и возвращают.\n- Без скобок — функция, со скобками — её вызов.\n- `sorted`, `max`, `min` принимают `key=функция`.\n- `lambda параметры: выражение` — короткая безымянная функция.\n- Словарь функций заменяет длинную цепочку `if/elif`.",
               "quiz": [
                 {
-                  "q": "Что передаётся в `sorted(words, key=len)`?",
+                  "q": "Что вернёт `apply_twice(lambda x: x * 3, 2)` для `def apply_twice(f, x): return f(f(x))`?",
                   "options": [
-                    "Результат вызова len",
-                    "Сама функция len",
-                    "Длина списка",
-                    "Строка \"len\""
+                    "`6`",
+                    "`18`",
+                    "`12`",
+                    "Ошибка"
                   ],
                   "answer": 1,
-                  "explain": "В `key` передают функцию без скобок; sorted вызывает её сам."
+                  "explain": "2 * 3 = 6, 6 * 3 = 18."
                 },
                 {
-                  "q": "Что вернёт `(lambda f: f(\"ab\"))(str.upper)`?",
+                  "q": "Как правильно передать `len` в `sorted`?",
                   "options": [
-                    "`\"ab\"`",
-                    "`\"AB\"`",
-                    "Ошибка",
-                    "`str.upper`"
+                    "`key=len()`",
+                    "`key=len`",
+                    "`key=\"len\"`",
+                    "`key=len(x)`"
                   ],
                   "answer": 1,
-                  "explain": "Функция `str.upper` передана как аргумент и вызвана внутри."
+                  "explain": "Нужна сама функция, без скобок."
                 },
                 {
-                  "q": "Чем хорош словарь функций вместо длинного if/elif?",
+                  "q": "Что можно написать после двоеточия в `lambda`?",
                   "options": [
-                    "Работает только в Python 3.12",
-                    "Добавить вариант — одна строка в словаре; выбор действия — одна операция",
-                    "Он быстрее компилируется",
-                    "Ничем"
+                    "Несколько строк",
+                    "Одно выражение",
+                    "Цикл for",
+                    "return x"
                   ],
                   "answer": 1,
-                  "explain": "Логика выбора становится данными, код короче и расширяемее."
+                  "explain": "lambda возвращает значение одного выражения."
                 }
               ]
             },
             {
               "slug": "fn-m3-l2",
               "title": "Рекурсия",
-              "theory": "# Функция вызывает сама себя\n\n```\ndef factorial(n):\n    if n <= 1:            # базовый случай — остановка\n        return 1\n    return n * factorial(n - 1)   # шаг к базовому случаю\n```\n\n- Обязателен **базовый случай**, иначе бесконечная рекурсия (`RecursionError`).\n- Каждый вызов должен **приближать** к базовому случаю.\n- Хорошо подходит для вложенных структур: деревья, вложенные списки, JSON.",
+              "theory": "```py\ndef factorial(n):\n    if n <= 1:                     # базовый случай\n        return 1\n    return n * factorial(n - 1)    # шаг к базе (не забудь return)\n\ndef deep_sum(data):                # вложенные списки\n    total = 0\n    for item in data:\n        total += deep_sum(item) if isinstance(item, list) else item\n    return total\n```\n- Код до вызова — по пути вглубь, после — на обратном пути.",
               "exercises": [
                 {
                   "slug": "fn-m3-l2-e1",
@@ -688,6 +1371,15 @@
                   "code": "def depth(item):\n    if not isinstance(item, list):\n        return 0\n    return 1 + max((depth(x) for x in item), default=0)\n\nprint(depth(5), depth([]), depth([1, [2, [3]]]))\n",
                   "expected_output": "0 1 3",
                   "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-m3-l2-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "def s(n):\n    if n == 0:\n        return 0\n    return n + s(n - 1)\n\nprint(s(4), s(0))\n",
+                  "expected_output": "10 0",
+                  "hint": "s(4) = 4 + s(3) = 4 + 3 + s(2)…",
                   "xp": 10
                 },
                 {
@@ -719,49 +1411,189 @@
                   "solution": "def find_keys(data, key):\n    found = []\n    if isinstance(data, dict):\n        if key in data:\n            found.append(data[key])\n        for value in data.values():\n            found.extend(find_keys(value, key))\n    elif isinstance(data, list):\n        for item in data:\n            found.extend(find_keys(item, key))\n    return found\n",
                   "hint": "",
                   "xp": 25
+                },
+                {
+                  "slug": "fn-m3-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши **рекурсивную** функцию `power(base, exp)` — `base` в степени `exp` (`exp >= 0`) без `**`, `pow` и циклов.\n\nПримеры:\n```\npower(2, 10)   # → 1024\npower(5, 0)    # → 1\n```",
+                  "starter_code": "def power(base, exp):\n    pass\n",
+                  "tests": "def test_values():\n    assert [power(2, 10), power(5, 0), power(3, 3)] == [1024, 1, 27], \"Неверная степень\"\n\ndef test_recursive():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"**\" not in src and \"pow(\" not in src and \"for \" not in src and \"while \" not in src, \"Реши рекурсией\"\n",
+                  "solution": "def power(base, exp):\n    if exp == 0:\n        return 1\n    return base * power(base, exp - 1)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-m3-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши **рекурсивную** функцию `countdown_list(n)` — список чисел от `n` до 1 (без циклов).\n\nПримеры:\n```\ncountdown_list(3)   # → [3, 2, 1]\ncountdown_list(0)   # → []\n```",
+                  "starter_code": "def countdown_list(n):\n    pass\n",
+                  "tests": "def test_values():\n    assert countdown_list(3) == [3, 2, 1] and countdown_list(0) == [] and countdown_list(1) == [1], \"Неверный список\"\n\ndef test_recursive():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"for \" not in src and \"while \" not in src and \"range(\" not in src, \"Реши рекурсией\"\n",
+                  "solution": "def countdown_list(n):\n    if n == 0:\n        return []\n    return [n] + countdown_list(n - 1)\n",
+                  "hint": "",
+                  "xp": 15
                 }
               ],
-              "theory_full": "## Зачем это нужно\n\nНекоторые задачи естественно описываются через «ту же задачу поменьше»: сумма вложенного списка = сумма элементов, где вложенный список — снова такая же задача. Рекурсия незаменима для **древовидных данных**: вложенный JSON, дерево папок, DOM-страницы, меню с подменю. В тестировании API это типично: найти все поля `id` в ответе любой вложенности.\n\n## Как это работает\n\nРекурсивная функция состоит из двух частей:\n\n1. **Базовый случай** — простая ситуация, где ответ известен без рекурсии (`n <= 1`, пустой список, «не список»).\n2. **Рекурсивный шаг** — свести задачу к меньшей и вызвать себя.\n\nКаждый вызов получает собственные локальные переменные и ждёт, пока вернётся вложенный. Цепочка вызовов хранится в **стеке**; у Python ограничение глубины (~1000), дальше — `RecursionError`.\n\n### Рекурсия или цикл?\n\n- Для линейных задач (факториал, сумма списка) цикл обычно проще и быстрее.\n- Для вложенных структур рекурсия гораздо понятнее.\n\n## Примеры\n\n### Пример 1. Раскрутка вызовов\n\n```python\ndef factorial(n, indent=\"\"):\n    print(f\"{indent}factorial({n})\")\n    if n <= 1:\n        return 1\n    result = n * factorial(n - 1, indent + \"  \")\n    print(f\"{indent}= {result}\")\n    return result\n\nfactorial(4)\n```\n\n### Пример 2. Вложенные списки\n\n```python\ndef flatten(data):\n    result = []\n    for item in data:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n\nprint(flatten([1, [2, [3, [4, []]]], 5]))\n```\n\n### Пример 3. Все id в JSON-ответе\n\n```python\ndef find_keys(data, key):\n    found = []\n    if isinstance(data, dict):\n        if key in data:\n            found.append(data[key])\n        for value in data.values():\n            found.extend(find_keys(value, key))\n    elif isinstance(data, list):\n        for item in data:\n            found.extend(find_keys(item, key))\n    return found\n\nresp = {\"id\": 1, \"items\": [{\"id\": 2, \"tags\": [{\"id\": 9}]}, {\"meta\": {\"id\": 3}}]}\nprint(find_keys(resp, \"id\"))\n```\n\n### Пример 4. Предел глубины\n\n```python\nimport sys\n\ndef infinite(n):\n    return infinite(n + 1)          # нет базового случая!\n\ntry:\n    infinite(0)\nexcept RecursionError as e:\n    print(\"RecursionError:\", e)\nprint(\"предел:\", sys.getrecursionlimit())\n```\n\n## Частые ошибки\n\n**Нет базового случая** или шаг не приближает к нему — `RecursionError`.\n\n**Результат рекурсивного вызова не используется** — забыли `return` или `+=`.\n\n**Рекурсия для очень глубоких линейных данных** — упрёшься в предел; нужен цикл.\n\n## Шпаргалка\n\n```py\ndef solve(x):\n    if простой_случай(x):\n        return ответ\n    return объединить(solve(меньше(x)))\n\nisinstance(item, list) / dict — признак вложенности\n```",
+              "theory_full": "## Зачем это нужно\n\n**Рекурсия** — когда функция вызывает **саму себя**. Она естественно подходит для данных, которые вложены сами в себя: папки в папках, списки в списках, JSON-ответы API со вложенными объектами, деревья комментариев. Там, где неизвестно, насколько глубока вложенность, обычный цикл справляется плохо, а рекурсия — легко.\n\n## Два обязательных элемента\n\nЛюбая рекурсивная функция состоит из:\n1. **Базового случая** — условия, при котором функция отвечает сразу, без нового вызова себя.\n2. **Рекурсивного шага** — вызова себя с **более простыми** данными, которые приближают к базовому случаю.\n\n```python\ndef countdown(n):\n    if n == 0:\n        print(\"Старт!\")\n        return\n    print(n)\n    countdown(n - 1)\n\ncountdown(3)\n```\n\n- Базовый случай: `n == 0` — печатаем «Старт!» и выходим.\n- Шаг: печатаем `n` и вызываем себя с `n - 1` — каждый раз ближе к нулю.\n- Вывод: `3`, `2`, `1`, `Старт!`.\n\n## Факториал: как считаются вызовы\n\nФакториал `n! = 1 · 2 · … · n`, и `n! = n · (n-1)!`:\n\n```python\ndef factorial(n):\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)\n\nprint(factorial(4), factorial(1))\n```\n\nКак это выполняется — вызовы «уходят вглубь», а потом результаты «возвращаются наверх»:\n\n- `factorial(4)` ждёт `4 * factorial(3)`\n- `factorial(3)` ждёт `3 * factorial(2)`\n- `factorial(2)` ждёт `2 * factorial(1)`\n- `factorial(1)` — базовый случай → `1`\n- обратно: `2 * 1 = 2` → `3 * 2 = 6` → `4 * 6 = 24`\n\nВывод: `24 1`. Каждый незавершённый вызов хранит **свои** `n` — они не мешают друг другу.\n\n## Порядок печати: до и после вызова\n\n```python\ndef show(n):\n    if n == 0:\n        return\n    print(\"вниз\", n)\n    show(n - 1)\n    print(\"вверх\", n)\n\nshow(2)\n```\n\n- Код **до** рекурсивного вызова выполняется по дороге вглубь, код **после** — на обратном пути.\n- Вывод: `вниз 2`, `вниз 1`, `вверх 1`, `вверх 2`.\n\n## Рекурсия по вложенным данным\n\nВот где рекурсия действительно нужна — список со списками неизвестной глубины:\n\n```python\ndef deep_sum(data):\n    total = 0\n    for item in data:\n        if isinstance(item, list):\n            total += deep_sum(item)\n        else:\n            total += item\n    return total\n\nprint(deep_sum([1, [2, 3], [4, [5, [6]]]]))\n```\n\n- Для каждого элемента: если это список — считаем его сумму **той же функцией**; если число — просто прибавляем.\n- Базовый случай здесь неявный: список без вложенных списков обрабатывается без новых вызовов.\n- Вывод: `21`.\n\n```python\ndef depth(data):\n    if not isinstance(data, list):\n        return 0\n    if not data:\n        return 1\n    return 1 + max(depth(x) for x in data)\n\nprint(depth(5), depth([]), depth([1, [2, [3]]]))\n```\n\n- Не список — глубина 0; пустой список — 1; иначе 1 + максимальная глубина среди элементов.\n- Вывод: `0 1 3`.\n\nТак же обходят вложенные словари (например, собрать все ключи из JSON):\n\n```python\ndef find_keys(d):\n    keys = []\n    for k, v in d.items():\n        keys.append(k)\n        if isinstance(v, dict):\n            keys += find_keys(v)\n    return keys\n\nprint(find_keys({\"user\": {\"name\": \"Аня\", \"address\": {\"city\": \"Казань\"}}, \"id\": 1}))\n```\n\n- `d.items()` — пары «ключ, значение» (тема «Словари»).\n- Вывод: `['user', 'name', 'address', 'city', 'id']`.\n\n## Рекурсия, возвращающая список\n\n```python\ndef countdown_list(n):\n    if n == 0:\n        return []\n    return [n] + countdown_list(n - 1)\n\nprint(countdown_list(4))\n```\n\n- `[n] + ...` — склеить список из одного элемента с результатом для `n - 1`. Вывод: `[4, 3, 2, 1]`.\n\n## Частые ошибки\n\n**Нет базового случая** — функция вызывает себя бесконечно → `RecursionError` (следующий урок).\n\n**Шаг не приближает к базе.** `f(n)` вызывает `f(n)` или `f(n + 1)` при базе `n == 0`.\n\n**Забыть `return` перед рекурсивным вызовом.** `n * factorial(n - 1)` без `return` — функция вернёт `None`.\n\n## Итог\n\n- Рекурсия — функция вызывает саму себя.\n- Нужны базовый случай (ответ сразу) и шаг к нему (более простые данные).\n- Каждый вызов хранит свои переменные; результаты собираются на обратном пути.\n- Код до вызова — по пути вглубь, после — на обратном пути.\n- Главное применение — вложенные структуры неизвестной глубины.",
               "quiz": [
                 {
                   "q": "Что обязательно должно быть в рекурсивной функции?",
                   "options": [
-                    "Цикл for",
-                    "Базовый случай, на котором рекурсия останавливается",
+                    "Цикл",
+                    "Базовый случай и шаг к нему",
                     "Глобальная переменная",
-                    "Декоратор"
+                    "Два параметра"
                   ],
                   "answer": 1,
-                  "explain": "Без базового случая вызовы продолжаются до RecursionError."
+                  "explain": "Без базового случая рекурсия бесконечна."
                 },
                 {
-                  "q": "Что вернёт `f(3)` для `def f(n): return 0 if n == 0 else n + f(n - 1)`?",
+                  "q": "Что вернёт `f(3)`?\n```py\ndef f(n):\n    if n == 0:\n        return 0\n    return n + f(n - 1)\n```",
                   "options": [
                     "`3`",
                     "`6`",
                     "`0`",
-                    "`RecursionError`"
+                    "Ошибка"
                   ],
                   "answer": 1,
                   "explain": "3 + 2 + 1 + 0 = 6."
                 },
                 {
-                  "q": "Для какой задачи рекурсия подходит лучше всего?",
+                  "q": "Где рекурсия удобнее цикла?",
                   "options": [
-                    "Сумма чисел от 1 до 10",
-                    "Обход вложенного JSON произвольной глубины",
-                    "Вывод строки на экран",
-                    "Сортировка из двух элементов"
+                    "Сумма списка чисел",
+                    "Обход вложенных структур неизвестной глубины",
+                    "Печать чисел от 1 до 10",
+                    "Везде"
                   ],
                   "answer": 1,
-                  "explain": "Рекурсия естественна для древовидных, вложенных структур."
+                  "explain": "Для вложенных данных рекурсия естественна."
+                }
+              ]
+            },
+            {
+              "slug": "fn-recur2",
+              "title": "Рекурсия: глубина, ошибки и цикл вместо рекурсии",
+              "theory": "```py\ndef forever(n): return forever(n + 1)   # RecursionError\nimport sys; sys.getrecursionlimit()     # ~1000\ndef fib(n):                             # 2 вызова на шаг — очень медленно\n    return n if n < 2 else fib(n - 1) + fib(n - 2)\ndef fib_fast(n):                        # цикл — n шагов\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n```\n- Линейные данные — цикл; вложенные — рекурсия.",
+              "exercises": [
+                {
+                  "slug": "fn-recur2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Рекурсия без выхода.",
+                  "code": "def bad(n):\n    return bad(n - 1)\n\ntry:\n    bad(5)\nexcept RecursionError:\n    print(\"слишком глубоко\")\n",
+                  "expected_output": "слишком глубоко",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-recur2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Числа Фибоначчи.",
+                  "code": "def fib(n):\n    if n < 2:\n        return n\n    return fib(n - 1) + fib(n - 2)\n\nprint([fib(i) for i in range(8)])\n",
+                  "expected_output": "[0, 1, 1, 2, 3, 5, 8, 13]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-recur2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Лимит глубины.",
+                  "code": "import sys\nprint(sys.getrecursionlimit() >= 1000)\n",
+                  "expected_output": "True",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-recur2-e4",
+                  "type": "code",
+                  "prompt": "Напиши **рекурсивную** функцию `reverse_str(s)` — строка в обратном порядке, без `[::-1]`, `reversed` и циклов.\n\nИдея: разворот строки — это разворот «всего, кроме первого символа», плюс первый символ.\n\nПримеры:\n```\nreverse_str(\"abc\")   # → \"cba\"\nreverse_str(\"\")      # → \"\"\n```",
+                  "starter_code": "def reverse_str(s):\n    pass\n",
+                  "tests": "def test_values():\n    assert reverse_str(\"abc\") == \"cba\" and reverse_str(\"\") == \"\" and reverse_str(\"a\") == \"a\", \"Неверный разворот\"\n\ndef test_recursive():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"[::-1]\" not in src and \"reversed\" not in src and \"for \" not in src and \"while \" not in src, \"Реши рекурсией\"\n",
+                  "solution": "def reverse_str(s):\n    if s == \"\":\n        return \"\"\n    return reverse_str(s[1:]) + s[0]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-recur2-e5",
+                  "type": "code",
+                  "prompt": "Напиши **рекурсивную** функцию `sum_digits(n)` — сумма цифр неотрицательного целого числа, без циклов и строк.\n\nПримеры:\n```\nsum_digits(2024)   # → 8\nsum_digits(7)      # → 7\n```\nПодсказка: последняя цифра — `n % 10`, число без неё — `n // 10`.",
+                  "starter_code": "def sum_digits(n):\n    pass\n",
+                  "tests": "def test_values():\n    assert [sum_digits(2024), sum_digits(7), sum_digits(0), sum_digits(999)] == [8, 7, 0, 27], \"Неверная сумма\"\n\ndef test_recursive():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"for \" not in src and \"while \" not in src and \"str(\" not in src, \"Реши рекурсией, без строк\"\n",
+                  "solution": "def sum_digits(n):\n    if n < 10:\n        return n\n    return n % 10 + sum_digits(n // 10)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-recur2-e6",
+                  "type": "code",
+                  "prompt": "Рекурсивный `fib(n)` очень медленный: для `fib(40)` он делает сотни миллионов вызовов.\nНапиши функцию `fib_fast(n)` **циклом** — чтобы `fib_fast(80)` считалось мгновенно.\n\nПримеры:\n```\nfib_fast(0)    # → 0\nfib_fast(10)   # → 55\nfib_fast(80)   # → 23416728348467685\n```",
+                  "starter_code": "def fib_fast(n):\n    if n < 2:\n        return n\n    return fib_fast(n - 1) + fib_fast(n - 2)\n",
+                  "tests": "def test_values():\n    assert [fib_fast(i) for i in range(10)] == [0, 1, 1, 2, 3, 5, 8, 13, 21, 34], \"Неверные числа\"\n\ndef test_fast():\n    assert fib_fast(80) == 23416728348467685, \"fib_fast(80) неверно\"\n",
+                  "solution": "def fib_fast(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "fn-recur2-e7",
+                  "type": "code",
+                  "prompt": "Напиши **рекурсивную** функцию `is_pal(s)` — палиндром ли строка (с учётом регистра), без `[::-1]` и циклов.\n\nИдея: строка — палиндром, если первый и последний символы равны **и** середина — тоже палиндром.\n\nПримеры:\n```\nis_pal(\"шалаш\")   # → True\nis_pal(\"abca\")    # → False\nis_pal(\"\")        # → True\n```",
+                  "starter_code": "def is_pal(s):\n    pass\n",
+                  "tests": "def test_values():\n    got = [is_pal(\"шалаш\"), is_pal(\"abca\"), is_pal(\"\"), is_pal(\"a\"), is_pal(\"abba\")]\n    assert got == [True, False, True, True, True], f\"Получено {got}\"\n\ndef test_recursive():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"[::-1]\" not in src and \"for \" not in src and \"while \" not in src, \"Реши рекурсией\"\n",
+                  "solution": "def is_pal(s):\n    if len(s) < 2:\n        return True\n    if s[0] != s[-1]:\n        return False\n    return is_pal(s[1:-1])\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-recur2-e8",
+                  "type": "code",
+                  "prompt": "Напиши **рекурсивную** функцию `flatten(items)` — сделать плоский список из списков любой вложенности.\n\nПримеры:\n```\nflatten([1, [2, [3, [4]]], 5])   # → [1, 2, 3, 4, 5]\nflatten([])                      # → []\n```",
+                  "starter_code": "def flatten(items):\n    pass\n",
+                  "tests": "def test_values():\n    assert flatten([1, [2, [3, [4]]], 5]) == [1, 2, 3, 4, 5] and flatten([]) == [] and flatten([[], [[]]]) == [], \"Неверный результат\"\n",
+                  "solution": "def flatten(items):\n    result = []\n    for x in items:\n        if isinstance(x, list):\n            result.extend(flatten(x))\n        else:\n            result.append(x)\n    return result\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nУ рекурсии есть цена: у каждого вызова есть своя память, и глубина вызовов ограничена. Кроме того, неаккуратная рекурсия может быть **очень** медленной. Нужно знать, когда рекурсия падает, почему, и как переписать её циклом.\n\n## RecursionError — слишком глубоко\n\n```python\ndef forever(n):\n    return forever(n + 1)\n\ntry:\n    forever(0)\nexcept RecursionError as e:\n    print(type(e).__name__)\n```\n\n- Базового случая нет — вызовы накапливаются, пока Python не остановит их.\n- Ошибка: `RecursionError: maximum recursion depth exceeded`. Вывод: `RecursionError`.\n\n## Лимит глубины\n\n```python\nimport sys\nprint(sys.getrecursionlimit())\n```\n\n- По умолчанию лимит около **1000** вызовов (вывод: `1000`).\n- Значит, даже **правильная** рекурсия упадёт на больших данных: `factorial(5000)` → `RecursionError`.\n- Лимит можно поднять через `sys.setrecursionlimit`, но это плохая идея — лучше переписать функцию циклом.\n\n## Наивный Фибоначчи: экспоненциально медленно\n\nЧисла Фибоначчи: 0, 1, 1, 2, 3, 5, 8… — каждое равно сумме двух предыдущих.\n\n```python\ncalls = 0\n\ndef fib(n):\n    global calls\n    calls += 1\n    if n < 2:\n        return n\n    return fib(n - 1) + fib(n - 2)\n\nprint(fib(20), calls)\n```\n\n- Код короткий, но каждый вызов порождает **два** новых, и одни и те же значения считаются снова и снова: `fib(18)` вычисляется из `fib(20)` и из `fib(19)`…\n- `global calls` позволяет функции менять внешнюю переменную-счётчик (подробно — урок «Чистые функции» и тема «Область видимости»).\n- Вывод: `6765 21891` — почти 22 тысячи вызовов для 20-го числа. `fib(40)` будет считаться минуты.\n\n## Цикл вместо рекурсии\n\n```python\ndef fib_fast(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n\nprint(fib_fast(20), fib_fast(80))\n```\n\n- Держим только два последних числа и сдвигаем их: `a, b = b, a + b`.\n- `n` шагов вместо десятков тысяч вызовов. Вывод: `6765 23416728348467685`.\n\n```python\ndef factorial_loop(n):\n    result = 1\n    for i in range(2, n + 1):\n        result *= i\n    return result\n\nprint(factorial_loop(5), len(str(factorial_loop(1500))))\n```\n\n- Цикл не упирается в лимит глубины: 1500! (глубже лимита рекурсии) считается без проблем — в нём 4115 цифр.\n\nПравило: если данные **линейные** (число, строка, плоский список) — обычно лучше цикл. Рекурсия хороша для **вложенных** структур (деревья, JSON), где глубина небольшая.\n\n## Рекурсия по строкам и числам\n\nДля тренировки рекурсивного мышления полезны простые задачи:\n\n```python\ndef reverse_str(s):\n    if len(s) <= 1:\n        return s\n    return reverse_str(s[1:]) + s[0]\n\ndef sum_digits(n):\n    if n < 10:\n        return n\n    return n % 10 + sum_digits(n // 10)\n\ndef is_pal(s):\n    if len(s) <= 1:\n        return True\n    if s[0] != s[-1]:\n        return False\n    return is_pal(s[1:-1])\n\nprint(reverse_str(\"abc\"), sum_digits(1234), is_pal(\"level\"), is_pal(\"ab\"))\n```\n\n- `reverse_str`: перевернуть «хвост» `s[1:]` и приставить первую букву в конец.\n- `sum_digits`: последняя цифра `n % 10` + сумма цифр остального `n // 10`.\n- `is_pal`: края совпадают → проверить середину `s[1:-1]`.\n- Вывод: `cba 10 True False`.\n\n## Рекурсивное «сплющивание»\n\n```python\ndef flatten(data):\n    result = []\n    for item in data:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n\nprint(flatten([1, [2, [3, [4]], 5]]))\n```\n\n- Вложенный список сплющивается той же функцией, и его элементы добавляются через `extend`.\n- Вывод: `[1, 2, 3, 4, 5]`.\n\n## Итог\n\n- Без базового случая (или при слишком глубоких данных) — `RecursionError`.\n- Лимит глубины по умолчанию ~1000 (`sys.getrecursionlimit()`).\n- Рекурсия, вызывающая себя дважды, может быть экспоненциально медленной (наивный `fib`).\n- Для линейных данных цикл надёжнее и быстрее; рекурсия — для вложенных структур.",
+              "quiz": [
+                {
+                  "q": "Какая ошибка возникнет при бесконечной рекурсии?",
+                  "options": [
+                    "`MemoryError`",
+                    "`RecursionError`",
+                    "`StackOverflow`",
+                    "Программа зависнет навсегда"
+                  ],
+                  "answer": 1,
+                  "explain": "Python останавливает вызовы на лимите глубины."
+                },
+                {
+                  "q": "Почему наивный рекурсивный `fib(40)` очень медленный?",
+                  "options": [
+                    "Python медленный",
+                    "Одни и те же значения пересчитываются огромное число раз",
+                    "Из-за global",
+                    "Из-за лимита глубины"
+                  ],
+                  "answer": 1,
+                  "explain": "Каждый вызов порождает два новых."
+                },
+                {
+                  "q": "Что вернёт `sum_digits(305)` (рекурсивная сумма цифр)?",
+                  "options": [
+                    "`35`",
+                    "`8`",
+                    "`305`",
+                    "`5`"
+                  ],
+                  "answer": 1,
+                  "explain": "3 + 0 + 5 = 8."
                 }
               ]
             },
             {
               "slug": "fn-m3-l3",
               "title": "Чистые функции и побочные эффекты",
-              "theory": "# Чистая функция\n\n- Результат зависит **только от аргументов**.\n- **Не меняет** ничего снаружи (глобальные переменные, аргументы, файлы).\n\n```\ndef total(prices):             # чистая\n    return sum(prices)\n\ndef add_bad(items, x):         # грязная: меняет аргумент\n    items.append(x)\n```\n\nЧистые функции легко тестировать и безопасно переиспользовать.",
+              "theory": "```py\ndef apply_discount(p, pct):          # чистая: только аргументы -> return\n    return round(p * (1 - pct / 100), 2)\ncounter = 0\ndef increment():\n    global counter                   # побочный эффект — меняет внешнее\n    counter += 1\ndef add_good(items, x):\n    items.append(x)                  # меняет ИСХОДНЫЙ список\ndef with_item(items, x):\n    return items + [x]               # новый список, исходный цел\n```\n- Логика — в чистых функциях, печать/запись — отдельно.",
               "exercises": [
                 {
                   "slug": "fn-m3-l3-e1",
@@ -779,6 +1611,15 @@
                   "code": "counter = 0\n\ndef next_id():\n    global counter\n    counter += 1\n    return counter\n\nprint(next_id(), next_id(), next_id())\nprint(counter)\n",
                   "expected_output": "1 2 3\n3",
                   "hint": "Функция с global зависит от внешнего состояния — одинаковый вызов даёт разные результаты.",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-m3-l3-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Чистая версия.",
+                  "code": "def add_good(items, x):\n    return items + [x]\n\ndata = [1]\nresult = add_good(data, 2)\nprint(data, result, data is result)\n",
+                  "expected_output": "[1] [1, 2] False",
+                  "hint": "",
                   "xp": 10
                 },
                 {
@@ -810,42 +1651,182 @@
                   "solution": "def build_report(results):\n    return \"\\n\".join(f\"{'✅' if ok else '❌'} {name}\" for name, ok in results)\n\ndef print_report(results):\n    print(build_report(results))\n",
                   "hint": "",
                   "xp": 20
+                },
+                {
+                  "slug": "fn-m3-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши **чистую** функцию `with_bonus(scores, bonus)` — новый список, где к каждому баллу прибавлен `bonus`.\nИсходный список не менять.\n\nПример:\n```\ndata = [50, 70]\nwith_bonus(data, 5)   # → [55, 75], data == [50, 70]\n```",
+                  "starter_code": "def with_bonus(scores, bonus):\n    pass\n",
+                  "tests": "def test_values():\n    data = [50, 70]\n    assert with_bonus(data, 5) == [55, 75] and data == [50, 70], f\"data={data}\"\n",
+                  "solution": "def with_bonus(scores, bonus):\n    result = []\n    for s in scores:\n        result.append(s + bonus)\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-m3-l3-e8",
+                  "type": "code",
+                  "prompt": "Функция `next_counter()` берёт значение из глобальной переменной и меняет её — её результат зависит от истории вызовов.\nПерепиши её **чистой**: `next_counter(current)` получает текущее значение и возвращает следующее. Без `global`.\n\nПример:\n```\nnext_counter(0)   # → 1\nnext_counter(41)  # → 42\n```",
+                  "starter_code": "counter = 0\n\ndef next_counter():\n    global counter\n    counter += 1\n    return counter\n",
+                  "tests": "import inspect\n\ndef test_values():\n    assert next_counter(0) == 1 and next_counter(41) == 42 and next_counter(0) == 1, \"Одинаковый вызов — одинаковый результат\"\n\ndef test_no_global():\n    assert \"global\" not in inspect.getsource(next_counter), \"Без global\"\n",
+                  "solution": "def next_counter(current):\n    return current + 1\n",
+                  "hint": "",
+                  "xp": 15
                 }
               ],
-              "theory_full": "## Зачем это нужно\n\nФункции бывают двух видов: те, что просто **вычисляют** результат по аргументам, и те, что **меняют мир**: пишут в файл, отправляют запрос, изменяют переданный список или глобальную переменную. Первые (чистые) предсказуемы и легко тестируются. Вторые необходимы, но их лучше держать отдельно и в меньшинстве. Это один из главных принципов тестируемого кода.\n\n## Как это работает\n\n### Чистая функция\n\n1. Результат зависит **только** от аргументов: одинаковый вход → одинаковый выход.\n2. Нет **побочных эффектов**: ничего не меняется снаружи.\n\n`len`, `sorted`, `abs`, `str.upper` — чистые.\n\n### Побочные эффекты\n\n- изменение аргументов (`items.append`, `d[\"k\"] = ...`);\n- изменение глобальных переменных (`global`);\n- ввод/вывод: `print`, файлы, сеть, база данных;\n- зависимость от времени, случайности, окружения.\n\n### Приём: «функциональное ядро, императивная оболочка»\n\nЛогику выносим в чистые функции (их легко проверить `assert`-ом), а побочные действия — в тонкий слой вокруг них. В тестах это даёт возможность проверять логику без базы и сети.\n\n### Зависимости — через параметры\n\nВместо глобальной переменной — параметр (со значением по умолчанию). Вместо создания клиента API внутри функции — передача клиента аргументом (dependency injection).\n\n## Примеры\n\n### Пример 1. Грязная и чистая версии\n\n```python\ndef add_dirty(items, x):\n    items.append(x)\n    return items\n\ndef add_pure(items, x):\n    return items + [x]\n\ndata = [1]\nadd_pure(data, 2)\nprint(\"после pure:\", data)\nadd_dirty(data, 2)\nprint(\"после dirty:\", data)\n```\n\n### Пример 2. Скрытая зависимость от глобального состояния\n\n```python\nTAX = 20\n\ndef price_with_tax(price):\n    return price * (1 + TAX / 100)\n\nprint(price_with_tax(100))\nTAX = 0                          # кто-то поменял «где-то далеко»\nprint(price_with_tax(100))       # тот же вызов — другой результат\n\ndef price_with_tax_pure(price, tax=20):\n    return price * (1 + tax / 100)\nprint(price_with_tax_pure(100), price_with_tax_pure(100, tax=0))\n```\n\n### Пример 3. Разделяем логику и вывод\n\n```python\ndef build_report(results):\n    return \"\\n\".join(f\"{'✅' if ok else '❌'} {name}\" for name, ok in results)\n\ndef print_report(results):\n    print(build_report(results))\n\nresults = [(\"login\", True), (\"pay\", False)]\nassert build_report(results) == \"✅ login\\n❌ pay\"     # логику легко проверить\nprint_report(results)\n```\n\n## Частые ошибки\n\n**Функция тихо меняет переданный список** — вызывающий код не ожидает этого.\n\n**`global` ради удобства** — порядок вызовов начинает влиять на результат.\n\n**Логика перемешана с `print`/запросами** — её невозможно протестировать без реального окружения.\n\n## Шпаргалка\n\n```py\ndef pure(x, config=DEFAULT):   # всё нужное — в параметрах\n    return new_value           # новый объект, без изменений снаружи\n\ndef action(...):               # побочные эффекты — отдельно\n    print(pure(...))\n```",
+              "theory_full": "## Зачем это нужно\n\nОдни функции только **вычисляют** результат из аргументов. Другие вдобавок **меняют мир**: печатают, пишут в файл, меняют глобальную переменную или переданный список. Первые называются **чистыми**, вторые — функциями с **побочными эффектами**. Чистые функции легко проверять тестами и нельзя «сломать» извне, поэтому хорошая программа старается держать логику в чистых функциях.\n\n## Чистая функция\n\nЧистая функция:\n1. при одних и тех же аргументах **всегда** возвращает одно и то же;\n2. **ничего не меняет** снаружи: не печатает, не трогает глобальные переменные и переданные объекты.\n\n```python\ndef apply_discount(price, percent):\n    return round(price * (1 - percent / 100), 2)\n\nprint(apply_discount(1000, 10), apply_discount(1000, 10))\n```\n\n- Всё, что нужно, приходит через параметры; всё, что получено, уходит через `return`. Вывод: `900.0 900.0`.\n\n## Побочный эффект: глобальная переменная\n\n```python\ncounter = 0\n\ndef increment():\n    global counter\n    counter += 1\n    return counter\n\nprint(increment(), increment(), counter)\n```\n\n- Без `global` строка `counter += 1` внутри функции дала бы ошибку `UnboundLocalError`: присваивание делает имя локальным (подробно — тема «Область видимости»).\n- `global counter` разрешает функции **менять** внешнюю переменную.\n- Одинаковые вызовы дают **разные** результаты: `1 2 2`. Результат зависит от истории вызовов — такое трудно тестировать и отлаживать.\n\nЧистая альтернатива — передать текущее значение и вернуть новое:\n\n```python\ndef next_counter(current):\n    return current + 1\n\ncounter = 0\ncounter = next_counter(counter)\ncounter = next_counter(counter)\nprint(counter)\n```\n\n- Всё изменение состояния видно в одном месте — там, где присваивают результат. Вывод: `2`.\n\n## Побочный эффект: изменение переданного списка\n\nСписок передаётся в функцию **не копией**, а тем же самым объектом. Значит, функция может его изменить:\n\n```python\ndef add_good(items, x):\n    items.append(x)\n\ndef with_item(items, x):\n    return items + [x]\n\ncart = [\"хлеб\"]\nadd_good(cart, \"молоко\")\nprint(cart)\nnew_cart = with_item(cart, \"сыр\")\nprint(cart, new_cart)\n```\n\n- `add_good` меняет **исходный** список: `cart` стал `['хлеб', 'молоко']`.\n- `with_item` создаёт **новый** список через `+` и не трогает исходный.\n- Вывод: `['хлеб', 'молоко']`, затем `['хлеб', 'молоко'] ['хлеб', 'молоко', 'сыр']`.\n\nКогда функция меняет переданный объект, принято, чтобы она возвращала `None` — как `list.sort()` и `list.append()`. Это сигнал: «я изменила объект на месте».\n\n```python\ndef normalize(words):\n    return [w.strip().lower() for w in words]\n\nraw = [\" Аня\", \"БОРЯ \"]\nprint(normalize(raw), raw)\n```\n\n- Чистая версия: исходный список не изменился. Вывод: `['аня', 'боря'] [' Аня', 'БОРЯ ']`.\n\n## Разделяй вычисление и вывод\n\n```python\ndef build_report(results):\n    passed = sum(1 for r in results if r)\n    return f\"{passed}/{len(results)} прошло\"\n\ndef print_report(results):\n    print(build_report(results))\n\nprint_report([True, False, True])\nprint(build_report([]) == \"0/0 прошло\")\n```\n\n- `build_report` — чистая: её легко проверить тестом (`== \"0/0 прошло\"`).\n- `print_report` — тонкая «обёртка» с побочным эффектом (печать).\n- `sum(1 for r in results if r)` — посчитать `True`: для каждого истинного `r` прибавить 1.\n- Вывод: `2/3 прошло`, `True`.\n\n## Побочные эффекты не зло\n\nБез них программа была бы бесполезна: печать, сохранение в базу, отправка запроса — всё это побочные эффекты. Правило в другом: **держи их на краях** программы, а логику (расчёты, проверки, форматирование) — в чистых функциях.\n\n## Итог\n\n- Чистая функция: результат зависит только от аргументов, снаружи ничего не меняется.\n- `global` позволяет менять внешнюю переменную — но делает функцию непредсказуемой; лучше передать и вернуть.\n- Список передаётся тем же объектом — `append` внутри функции меняет исходный список.\n- Чтобы не менять исходник — верни новый объект (`items + [x]`, списковое включение).\n- Вычисление — в чистой функции, печать — отдельно.",
               "quiz": [
+                {
+                  "q": "Что будет в `a` после кода?\n```py\ndef f(lst):\n    lst.append(1)\na = []\nf(a)\n```",
+                  "options": [
+                    "`[]`",
+                    "`[1]`",
+                    "`None`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Список передаётся тем же объектом."
+                },
                 {
                   "q": "Какая функция чистая?",
                   "options": [
-                    "`def f(xs): xs.sort(); return xs`",
-                    "`def f(xs): return sorted(xs)`",
-                    "`def f(): return time.time()`",
-                    "`def f(x): print(x)`"
+                    "Печатает результат",
+                    "Меняет глобальную переменную",
+                    "Возвращает результат только из аргументов",
+                    "Добавляет в переданный список"
                   ],
-                  "answer": 1,
-                  "explain": "`sorted` создаёт новый список и не меняет аргумент; результат зависит только от входа."
+                  "answer": 2,
+                  "explain": "Никаких изменений снаружи."
                 },
                 {
-                  "q": "Почему функции с `global` трудно тестировать?",
+                  "q": "Что даст `counter += 1` в функции без `global counter`, если `counter` — глобальная?",
                   "options": [
-                    "Они медленные",
-                    "Результат зависит от внешнего состояния, которое может поменять любой код",
-                    "global запрещён в тестах",
-                    "Они не возвращают значения"
+                    "Увеличит глобальную",
+                    "`UnboundLocalError`",
+                    "Создаст новую переменную = 1",
+                    "Ничего"
                   ],
                   "answer": 1,
-                  "explain": "Одинаковый вызов может дать разные результаты."
+                  "explain": "Присваивание делает имя локальным, а читать его ещё нечего."
+                }
+              ]
+            },
+            {
+              "slug": "fn-testing",
+              "title": "Функции и тесты",
+              "theory": "```py\nassert add(2, 3) == 5                         # верно — тишина\nassert square(3) == 10, \"ожидали 10\"          # неверно — AssertionError\nassert (x == 1, \"msg\")                        # ОШИБКА: кортеж всегда истинен\nf\"{actual!r} != {expected!r}\"                 # '5' != 5 — видно типы\ndef test_absolute():                          # тест — функция test_*\n    assert absolute(-3) == 3\n    assert absolute(0) == 0                   # границы!\n```\n- Проверяй и `True`, и `False`, и граничные случаи.",
+              "exercises": [
+                {
+                  "slug": "fn-testing-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? assert, который прошёл.",
+                  "code": "def add(a, b):\n    return a + b\n\nassert add(2, 2) == 4\nassert add(-1, 1) == 0\nprint(\"тесты прошли\")\n",
+                  "expected_output": "тесты прошли",
+                  "hint": "",
+                  "xp": 10
                 },
                 {
-                  "q": "Как сделать зависимость функции явной?",
+                  "slug": "fn-testing-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? assert, который упал.",
+                  "code": "try:\n    assert 1 + 1 == 3, \"математика сломалась\"\nexcept AssertionError as e:\n    print(\"упал:\", e)\n",
+                  "expected_output": "упал: математика сломалась",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-testing-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Тестовая функция.",
+                  "code": "def test_upper():\n    assert \"ab\".upper() == \"AB\"\n\ntest_upper()\nprint(test_upper.__name__, \"ok\")\n",
+                  "expected_output": "test_upper ok",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "fn-testing-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `test_absolute()` — тест встроенной функции `abs` из **трёх** проверок через `assert`:\nположительное число, отрицательное число и ноль. Функция ничего не возвращает; если всё верно — не падает.",
+                  "starter_code": "def test_absolute():\n    pass\n",
+                  "tests": "import inspect\n\ndef test_runs():\n    test_absolute()\n\ndef test_has_asserts():\n    src = inspect.getsource(test_absolute)\n    assert src.count(\"assert\") >= 3 and \"abs(\" in src, \"Нужны три assert с abs\"\n",
+                  "solution": "def test_absolute():\n    assert abs(5) == 5\n    assert abs(-5) == 5\n    assert abs(0) == 0\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-testing-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `assert_equal(actual, expected)`: если значения не равны — бросить `AssertionError`\nс сообщением `\"<actual!r> != <expected!r>\"`, иначе ничего не делать.\n\nПримеры:\n```\nassert_equal(2 + 2, 4)       # ничего\nassert_equal(\"a\", \"b\")       # AssertionError: 'a' != 'b'\n```",
+                  "starter_code": "def assert_equal(actual, expected):\n    pass\n",
+                  "tests": "def test_equal():\n    assert assert_equal(4, 4) is None, \"Для равных значений — ничего\"\n\ndef test_not_equal():\n    try:\n        assert_equal(\"a\", \"b\")\n    except AssertionError as e:\n        assert str(e) == \"'a' != 'b'\", f\"Сообщение {str(e)!r}\"\n        return\n    assert False, \"Для разных значений — AssertionError\"\n",
+                  "solution": "def assert_equal(actual, expected):\n    assert actual == expected, f\"{actual!r} != {expected!r}\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-testing-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `check(func, cases)` — маленький тест-раннер. `cases` — список пар `(аргумент, ожидаемый_результат)`.\nВызови `func(аргумент)` для каждой пары и верни список **аргументов**, на которых результат не совпал.\n\nПример:\n```\ncheck(abs, [(5, 5), (-3, 3), (-2, 5)])   # → [-2]\n```",
+                  "starter_code": "def check(func, cases):\n    pass\n",
+                  "tests": "def test_values():\n    assert check(abs, [(5, 5), (-3, 3), (-2, 5)]) == [-2] and check(len, [(\"ab\", 2)]) == [] and check(abs, []) == [], \"Неверный результат\"\n",
+                  "solution": "def check(func, cases):\n    failed = []\n    for arg, expected in cases:\n        if func(arg) != expected:\n            failed.append(arg)\n    return failed\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-testing-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `count_passed(tests)`: `tests` — список тестовых функций без параметров.\nЗапусти каждую; тест **прошёл**, если не бросил `AssertionError`. Верни количество прошедших.\n\nПример:\n```\ndef t_ok():\n    assert True\ndef t_bad():\n    assert False\n\ncount_passed([t_ok, t_bad, t_ok])   # → 2\n```",
+                  "starter_code": "def count_passed(tests):\n    pass\n",
+                  "tests": "def test_values():\n    def t_ok():\n        assert True\n    def t_bad():\n        assert False, \"упал\"\n    assert count_passed([t_ok, t_bad, t_ok]) == 2 and count_passed([]) == 0, \"Неверный подсчёт\"\n",
+                  "solution": "def count_passed(tests):\n    passed = 0\n    for test in tests:\n        try:\n            test()\n            passed += 1\n        except AssertionError:\n            pass\n    return passed\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "fn-testing-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_even(n)` **и** тест к ней `test_is_even()` с несколькими `assert`: чётное, нечётное, ноль и\nотрицательное число. Тест должен **проходить** для правильной `is_even` и **падать**, если `is_even` сломать.",
+                  "starter_code": "def is_even(n):\n    pass\n\ndef test_is_even():\n    pass\n",
+                  "tests": "def test_function():\n    assert [is_even(4), is_even(7), is_even(0), is_even(-2)] == [True, False, True, True], \"is_even неверна\"\n\ndef test_your_test_passes():\n    test_is_even()\n\ndef test_your_test_catches_bugs():\n    g = test_is_even.__globals__\n    original = g[\"is_even\"]\n    for broken in (lambda n: True, lambda n: False, lambda n: n % 2 == 1):\n        g[\"is_even\"] = broken\n        try:\n            test_is_even()\n        except AssertionError:\n            continue\n        finally:\n            g[\"is_even\"] = original\n        assert False, \"test_is_even не заметил сломанную is_even — добавь проверок\"\n",
+                  "solution": "def is_even(n):\n    return n % 2 == 0\n\ndef test_is_even():\n    assert is_even(4)\n    assert not is_even(7)\n    assert is_even(0)\n    assert is_even(-2)\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nФункция — идеальная единица для тестирования: дал аргументы — проверил результат. Именно так устроено автотестирование: pytest и подобные инструменты запускают функции-тесты, внутри которых стоят проверки `assert`. Этот урок — мост от функций к профессии QA: ты научишься писать проверки и тесты, которые ловят сломанный код.\n\n## assert — проверка\n\n```python\ndef add(a, b):\n    return a + b\n\nassert add(2, 3) == 5\nprint(\"проверка пройдена\")\ntry:\n    assert add(2, 2) == 5\nexcept AssertionError:\n    print(\"AssertionError\")\n```\n\n- `assert условие` — «утверждаю, что это верно». Если условие истинно — ничего не происходит, программа идёт дальше.\n- Если ложно — возникает `AssertionError`, и программа останавливается (если ошибку не перехватить).\n- Вывод: `проверка пройдена`, `AssertionError`.\n\n## Сообщение в assert\n\n```python\ndef square(x):\n    return x * x\n\ntry:\n    assert square(3) == 10, f\"ожидали 10, получили {square(3)}\"\nexcept AssertionError as e:\n    print(e)\n```\n\n- После запятой — сообщение, которое покажется при провале. Хорошее сообщение говорит, **что ожидали** и **что получили**.\n- Вывод: `ожидали 10, получили 9`.\n- `assert` — не функция: скобки вокруг условия ставить **нельзя**. `assert (x == 1, \"msg\")` — это проверка непустого кортежа, она всегда проходит.\n\n### !r в сообщении\n\n```python\ndef assert_equal(actual, expected):\n    assert actual == expected, f\"{actual!r} != {expected!r}\"\n\ntry:\n    assert_equal(\"5\", 5)\nexcept AssertionError as e:\n    print(e)\n```\n\n- `!r` в f-строке показывает значение как в коде (`repr`): строки — в кавычках. Без `!r` сообщение было бы `5 != 5` — непонятно, в чём разница.\n- Вывод: `'5' != 5`.\n\n## Тест — функция с проверками\n\n```python\ndef absolute(x):\n    return -x if x < 0 else x\n\ndef test_absolute():\n    assert absolute(5) == 5\n    assert absolute(-3) == 3\n    assert absolute(0) == 0\n\ntest_absolute()\nprint(\"все проверки прошли\")\n```\n\n- `-x if x < 0 else x` — условное выражение: `-x`, если `x < 0`, иначе `x`.\n- Тест — обычная функция с именем на `test_`, внутри — несколько `assert`. pytest находит такие функции сам и запускает.\n- Проверяй **разные случаи**: обычный, отрицательный, граничный (0).\n\n## Мини-«pytest» своими руками\n\n```python\ndef is_even(n):\n    return n % 2 == 0\n\ndef test_even():\n    assert is_even(4)\n\ndef test_odd():\n    assert not is_even(7)\n\ndef test_broken():\n    assert is_even(3), \"3 не чётное\"\n\ndef run(tests):\n    passed = 0\n    for test in tests:\n        try:\n            test()\n            print(\"PASS\", test.__name__)\n            passed += 1\n        except AssertionError as e:\n            print(\"FAIL\", test.__name__, \"-\", e)\n    return passed\n\nprint(run([test_even, test_odd, test_broken]), \"из 3\")\n```\n\n- Тесты — функции, поэтому их можно сложить в список (урок «Функции как объекты»).\n- `run` вызывает каждый тест в `try`: не упал — PASS, `AssertionError` — FAIL с сообщением.\n- `test.__name__` — имя функции-теста.\n- Вывод: `PASS test_even`, `PASS test_odd`, `FAIL test_broken - 3 не чётное`, `2 из 3`.\n\n## Хороший тест ловит сломанный код\n\nТест бесполезен, если проходит и для неправильной реализации:\n\n```python\ndef test_is_even_weak(f):\n    assert f(4) == True\n\ndef test_is_even(f):\n    assert f(4) is True\n    assert f(7) is False\n    assert f(0) is True\n    assert f(-2) is True\n\nbroken = lambda n: True\ntry:\n    test_is_even_weak(broken)\n    print(\"слабый тест пропустил баг\")\n    test_is_even(broken)\nexcept AssertionError:\n    print(\"хороший тест поймал баг\")\n```\n\n- `broken` всегда отвечает `True`. Слабый тест проверяет только чётное число — и пропускает баг.\n- Хороший тест проверяет и «да», и «нет», и граничные случаи (0, отрицательные). `is True` — строгая проверка, что вернулось именно `True`, а не, скажем, `1`.\n- Вывод: `слабый тест пропустил баг`, `хороший тест поймал баг`.\n\nЧто проверять в тесте функции:\n- обычный случай;\n- **противоположный** ответ (и `True`, и `False`);\n- **границы**: 0, пустая строка/список, один элемент, отрицательные;\n- **тип** результата, если он важен.\n\n## Частые ошибки\n\n**Скобки вокруг assert.** `assert (cond, \"msg\")` всегда проходит.\n\n**Тест без проверок.** Функция-тест без `assert` пройдёт всегда.\n\n**Проверять только один случай.** Сломанная реализация пройдёт.\n\n## Итог\n\n- `assert условие, \"сообщение\"` — ничего не делает, если верно; `AssertionError`, если нет.\n- Сообщение: что ожидали и что получили; `!r` показывает типы наглядно.\n- Тест — функция `test_...` с несколькими `assert`.\n- Хороший тест проверяет разные ответы и граничные случаи и ловит сломанный код.",
+              "quiz": [
+                {
+                  "q": "Что делает `assert x > 0`, если `x = 5`?",
                   "options": [
-                    "Использовать global",
-                    "Передать её параметром",
-                    "Прочитать из файла внутри функции",
-                    "Никак"
+                    "Печатает True",
+                    "Ничего",
+                    "AssertionError",
+                    "Возвращает True"
                   ],
                   "answer": 1,
-                  "explain": "Параметр (или аргумент по умолчанию) делает зависимость видимой и подменяемой в тестах."
+                  "explain": "Истинное условие — программа идёт дальше."
+                },
+                {
+                  "q": "Почему `assert (1 == 2, \"ошибка\")` не падает?",
+                  "options": [
+                    "Из-за сообщения",
+                    "Проверяется непустой кортеж — он истинен",
+                    "assert отключён",
+                    "Падает"
+                  ],
+                  "answer": 1,
+                  "explain": "Скобки превращают условие и сообщение в кортеж."
+                },
+                {
+                  "q": "Какой тест лучше ловит сломанную `is_even`, всегда возвращающую True?",
+                  "options": [
+                    "`assert is_even(4)`",
+                    "`assert is_even(4) and not is_even(7)`",
+                    "`assert is_even(0)`",
+                    "`assert is_even(2)`"
+                  ],
+                  "answer": 1,
+                  "explain": "Нужно проверить и ответ False."
                 }
               ]
             }
