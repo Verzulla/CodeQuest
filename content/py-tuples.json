@@ -5,19 +5,19 @@
       "title": "Кортежи",
       "icon": "📎",
       "color": "#ff86d0",
-      "description": "Неизменяемые последовательности, распаковка, ключи словаря и namedtuple",
+      "description": "Неизменяемые последовательности, распаковка, преобразования, ключи словаря, сортировка, namedtuple",
       "group": "Python",
       "modules": [
         {
           "slug": "tpl-m1",
           "title": "Основы кортежей",
           "icon": "📎",
-          "description": "Создание, доступ и распаковка",
+          "description": "Создание, доступ, упаковка и распаковка",
           "lessons": [
             {
               "slug": "tpl-m1-l1",
               "title": "Создание и неизменяемость",
-              "theory": "# Кортеж (tuple)\n\n```\npoint = (3, 4)\nrgb = 255, 0, 128        # скобки необязательны\nsingle = (42,)           # один элемент — нужна запятая!\nempty = ()\n```\n\n- Как список, но **неизменяемый**: нельзя менять, добавлять, удалять элементы.\n- `(42)` — это просто число в скобках, кортеж — `(42,)`.\n- `tuple(iterable)` — из любой коллекции.",
+              "theory": "```py\npoint = (3, 4)\nsingle = (\"only\",)      # один элемент — С ЗАПЯТОЙ\nnot_tuple = (42)        # просто число\nc = 1, 2, 3             # кортеж и без скобок\ntuple(\"abc\")            # ('a', 'b', 'c')\npoint[0] = 10           # TypeError — неизменяем\npoint = (10, point[1])  # новый кортеж — можно\nt + (item,)             # «добавить» = создать новый\n```",
               "exercises": [
                 {
                   "slug": "tpl-m1-l1-e1",
@@ -34,6 +34,15 @@
                   "prompt": "Что выведет программа?",
                   "code": "point = (3, 4)\ntry:\n    point[0] = 10\nexcept TypeError:\n    print(\"кортеж нельзя изменить\")\npoint = (10, point[1])\nprint(point)\n",
                   "expected_output": "кортеж нельзя изменить\n(10, 4)",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-m1-l1-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "empty = ()\none = (\"a\",)\nnot_tuple = (\"a\")\nprint(len(empty), len(one), type(not_tuple).__name__)\nprint(tuple([1, 2]), tuple(range(3)))\n",
+                  "expected_output": "0 1 str\n(1, 2) (0, 1, 2)",
                   "hint": "",
                   "xp": 10
                 },
@@ -66,49 +75,69 @@
                   "solution": "def freeze(items):\n    return tuple(items)\n",
                   "hint": "",
                   "xp": 15
-                }
-              ],
-              "theory_full": "## Зачем это нужно\n\nКортеж — неизменяемая последовательность. Он нужен, когда набор значений по смыслу — **одно целое**, которое не должно меняться: координаты точки, цвет RGB, пара «ключ-значение», запись из базы данных, версия `(1, 10, 0)`. Неизменяемость защищает от случайных изменений и позволяет использовать кортеж как ключ словаря.\n\n## Как это работает\n\n### Создание\n\n```py\npoint = (3, 4)\npoint = 3, 4            # то же — кортеж создаёт ЗАПЯТАЯ\nsingle = (42,)          # один элемент — запятая обязательна\nempty = ()\nletters = tuple(\"abc\")  # из итерируемого\n```\n\n`(42)` — просто число в скобках, как в `(2 + 3) * 4`.\n\n### Неизменяемость\n\n- `t[0] = x` → `TypeError`;\n- нет методов `append`, `remove`, `sort`;\n- «изменить» можно, только создав **новый** кортеж: `t = (x, t[1])`, `t + (5,)`.\n\n### Что можно\n\nВсё, что не меняет кортеж: индексы, срезы, `len`, `in`, перебор, `+` и `*` (создают новый), `count`, `index`, сравнение.\n\n## Примеры\n\n### Пример 1. Запятая решает\n\n```python\nfor value in [(42), (42,), (), 1, 2]:\n    print(repr(value), type(value).__name__)\nt = 1, 2\nprint(t, type(t).__name__)\n```\n\nОбрати внимание на последний пример в списке: `1, 2` внутри скобок списка — это просто два элемента списка.\n\n### Пример 2. «Изменение» через новый кортеж\n\n```python\npoint = (3, 4)\ntry:\n    point[0] = 10\nexcept TypeError as e:\n    print(\"TypeError:\", e)\npoint = (10,) + point[1:]\nprint(point)\n```\n\n### Пример 3. Из списка и обратно\n\n```python\ndata = [1, 2, 3]\nfrozen = tuple(data)\ndata.append(4)\nprint(frozen, data, list(frozen))\n```\n\n## Частые ошибки\n\n**`(x)` вместо `(x,)`** для одного элемента.\n\n**Попытка `append`/`sort` у кортежа** — таких методов нет.\n\n**Лишняя запятая в конце строки** — `result = compute(),` превращает результат в кортеж.\n\n## Шпаргалка\n\n```py\nt = (1, 2)   t = 1, 2   (x,)   ()   tuple(xs)\nt[0]  t[1:]  len(t)  x in t  t + (3,)\nt[0] = 5     # TypeError\n```",
-              "quiz": [
-                {
-                  "q": "Какой тип у `(5)`?",
-                  "options": [
-                    "`tuple`",
-                    "`int`",
-                    "`list`",
-                    "Ошибка"
-                  ],
-                  "answer": 1,
-                  "explain": "Скобки без запятой — просто группировка; кортеж — `(5,)`."
                 },
                 {
-                  "q": "Что произойдёт при `t = (1, 2); t.append(3)`?",
+                  "slug": "tpl-m1-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `ordered_pair(a, b)` — вернуть кортеж из двух чисел: сначала меньшее, потом большее.\n\n```\nordered_pair(5, 2)   # → (2, 5)\nordered_pair(1, 1)   # → (1, 1)\n```",
+                  "starter_code": "def ordered_pair(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    assert ordered_pair(5, 2) == (2, 5) and ordered_pair(1, 1) == (1, 1) and ordered_pair(-1, 3) == (-1, 3), \"Неверная пара\"\n    assert isinstance(ordered_pair(1, 2), tuple), \"Верни кортеж\"\n",
+                  "solution": "def ordered_pair(a, b):\n    if a <= b:\n        return (a, b)\n    return (b, a)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-m1-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `add_item(t, item)` — вернуть **новый** кортеж: элементы `t` и в конце `item`. Исходный кортеж не меняется (он и не может).\n\nОсторожно: кортеж из одного элемента пишется с запятой — `(item,)`.\n\n```\nadd_item((1, 2), 3)    # → (1, 2, 3)\nadd_item((), \"a\")      # → (\"a\",)\n```",
+                  "starter_code": "def add_item(t, item):\n    pass\n",
+                  "tests": "def test_values():\n    src = (1, 2)\n    assert add_item(src, 3) == (1, 2, 3) and src == (1, 2), \"Неверный результат\"\n    assert add_item((), \"a\") == (\"a\",) and add_item((\"x\",), (5, 6)) == (\"x\", (5, 6)), \"Элемент добавляется целиком\"\n",
+                  "solution": "def add_item(t, item):\n    return t + (item,)\n",
+                  "hint": "Кортежи склеиваются через +, но складывать можно только кортеж с кортежем: (item,).",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n**Кортеж** (tuple) — упорядоченная коллекция, как список, но **неизменяемая**: после создания в нём нельзя ничего добавить, удалить или заменить. Это не ограничение, а гарантия: координаты точки, дата, цвет RGB, настройки, версия `(1, 10, 3)` — данные, которые не должны случайно поменяться. Кортежи уже встречались: функция `return a, b` возвращает кортеж, `enumerate` и `zip` выдают кортежи.\n\n## Как создать кортеж\n\n```python\npoint = (3, 4)\ncolors = (\"red\", \"green\", \"blue\")\nmixed = (1, \"два\", 3.0, True)\nprint(point, colors[1], len(mixed))\n```\n\n- Элементы через запятую в круглых скобках. Типы могут быть любыми и разными.\n- Доступ по индексу и `len` — как у списка. Вывод: `(3, 4) green 4`.\n\n## Кортеж создаёт запятая, а не скобки\n\n```python\na = (42)\nb = (42,)\nc = 1, 2, 3\nprint(type(a).__name__, type(b).__name__, type(c).__name__)\nprint(len(c), tuple(\"abc\"))\n```\n\n- `(42)` — просто число в скобках (как в `(2 + 3) * 4`).\n- `(42,)` — кортеж из **одного** элемента: запятая обязательна.\n- `1, 2, 3` — кортеж и без скобок. Скобки нужны только для читаемости и там, где без них запятая значила бы другое (например, в аргументах функции).\n- `tuple(коллекция)` — кортеж из любой коллекции: строки, списка, `range`.\n- Вывод: `int tuple tuple`, `3 ('a', 'b', 'c')`.\n\n```python\nempty = ()\none = (\"a\",)\nnot_tuple = (\"a\")\nprint(len(empty), len(one), type(not_tuple).__name__)\nprint(tuple([1, 2]), tuple(range(3)))\n```\n\n- `()` — пустой кортеж. Вывод: `0 1 str`, `(1, 2) (0, 1, 2)`.\n\n## Неизменяемость\n\n```python\npoint = (3, 4)\ntry:\n    point[0] = 10\nexcept TypeError:\n    print(\"кортеж нельзя изменить\")\npoint = (10, point[1])\nprint(point)\n```\n\n- Присваивание элементу — `TypeError: 'tuple' object does not support item assignment`.\n- У кортежа нет методов `append`, `remove`, `sort` и других, меняющих содержимое.\n- Но **переменную** можно переприсвоить новому кортежу: `point = (10, 4)`. Старый кортеж не изменился — просто имя теперь указывает на другой.\n- Вывод: `кортеж нельзя изменить`, `(10, 4)`.\n\n## «Изменить» — значит создать новый\n\n```python\ndef move(point, dx, dy):\n    x, y = point\n    return (x + dx, y + dy)\n\ndef add_item(t, item):\n    return t + (item,)\n\nprint(move((3, 4), 1, -2), add_item((1, 2), 3))\n```\n\n- `x, y = point` — распаковка (урок «Упаковка и распаковка»).\n- `t + (item,)` — склейка двух кортежей даёт **новый**. Складывать кортеж можно только с кортежем, поэтому `(item,)`.\n- Вывод: `(4, 2) (1, 2, 3)`.\n\n## tuple() делает независимую копию\n\n```python\ndata = [1, 2]\nfrozen = tuple(data)\ndata.append(3)\nprint(frozen, data)\n```\n\n- `tuple(список)` копирует элементы в новый кортеж; дальнейшие изменения списка на него не влияют.\n- Вывод: `(1, 2) [1, 2, 3]`.\n\n## Итог\n\n- Кортеж — упорядоченная **неизменяемая** коллекция: `(1, 2, 3)`.\n- Кортеж создаёт запятая: `(42,)` — кортеж, `(42)` — число; `()` — пустой.\n- `tuple(коллекция)` — кортеж из строки, списка, `range`.\n- Элементы нельзя заменить, добавить или удалить — только создать новый кортеж.\n- Переменную можно переприсвоить другому кортежу.",
+              "quiz": [
+                {
+                  "q": "Что такое `(5)`?",
                   "options": [
-                    "t станет (1, 2, 3)",
-                    "`AttributeError`: у кортежа нет append",
-                    "Вернётся новый кортеж",
+                    "Кортеж из одного элемента",
+                    "Число 5",
+                    "Ошибка",
+                    "Пустой кортеж"
+                  ],
+                  "answer": 1,
+                  "explain": "Кортеж создаёт запятая: (5,)."
+                },
+                {
+                  "q": "Что будет при `t = (1, 2); t[0] = 9`?",
+                  "options": [
+                    "t станет (9, 2)",
+                    "`TypeError`",
+                    "`IndexError`",
                     "Ничего"
                   ],
                   "answer": 1,
-                  "explain": "Кортеж неизменяемый, методов изменения у него нет."
+                  "explain": "Кортеж неизменяем."
                 },
                 {
-                  "q": "Какой тип у `x` после `x = 1, 2, 3`?",
+                  "q": "Как «добавить» элемент 3 к кортежу `t = (1, 2)`?",
                   "options": [
-                    "`list`",
-                    "`tuple`",
-                    "`int`",
-                    "`set`"
+                    "`t.append(3)`",
+                    "`t = t + (3,)`",
+                    "`t[2] = 3`",
+                    "`t += 3`"
                   ],
                   "answer": 1,
-                  "explain": "Кортеж создаёт запятая, скобки необязательны."
+                  "explain": "Создать новый кортеж склейкой."
                 }
               ]
             },
             {
               "slug": "tpl-m1-l2",
               "title": "Доступ, срезы, count и index",
-              "theory": "# Работа с кортежем\n\n```\nt = (\"a\", \"b\", \"c\", \"b\")\nt[0], t[-1]      # \"a\", \"b\"\nt[1:3]           # (\"b\", \"c\") — срез тоже кортеж\nt.count(\"b\")     # 2\nt.index(\"c\")     # 2\n\"a\" in t         # True\n```\n\n`+` и `*` создают **новый** кортеж: `(1, 2) + (3,)`.",
+              "theory": "```py\nt = (10, 20, 30, 20)\nt[1], t[-1], t[1:3]      # 20 20 (20, 30)\nt.count(20), t.index(30) # 2 2\nt.index(7)               # ValueError — проверяй `7 in t`\nlen(t), min(t), sum(t)\nt + (5,), t * 2          # новые кортежи\n```",
               "exercises": [
                 {
                   "slug": "tpl-m1-l2-e1",
@@ -125,6 +154,15 @@
                   "prompt": "Что выведет программа?",
                   "code": "a = (1, 2)\nb = a + (3,)\nc = a * 2\nprint(a, b, c)\nprint(a is b)\n",
                   "expected_output": "(1, 2) (1, 2, 3) (1, 2, 1, 2)\nFalse",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-m1-l2-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "t = (5, 3, 8, 3)\nprint(len(t), min(t), max(t), sum(t))\nprint(t[::-1], t[::2])\ntry:\n    t.index(7)\nexcept ValueError:\n    print(\"7 нет в кортеже\")\n",
+                  "expected_output": "4 3 8 19\n(3, 8, 3, 5) (5, 8)\n7 нет в кортеже",
                   "hint": "",
                   "xp": 10
                 },
@@ -157,49 +195,69 @@
                   "solution": "def version_str(version):\n    return \".\".join(str(p) for p in version)\n\ndef bump_minor(version):\n    major, minor, _ = version\n    return (major, minor + 1, 0)\n",
                   "hint": "",
                   "xp": 15
+                },
+                {
+                  "slug": "tpl-m1-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `first_and_last(t)` — кортеж из первого и последнего элементов. Для пустого кортежа — `None`.\n\n```\nfirst_and_last((3, 7, 1))   # → (3, 1)\nfirst_and_last((\"x\",))      # → (\"x\", \"x\")\nfirst_and_last(())          # → None\n```",
+                  "starter_code": "def first_and_last(t):\n    pass\n",
+                  "tests": "def test_values():\n    assert first_and_last((3, 7, 1)) == (3, 1) and first_and_last((\"x\",)) == (\"x\", \"x\") and first_and_last(()) is None, \"Неверный результат\"\n",
+                  "solution": "def first_and_last(t):\n    if not t:\n        return None\n    return (t[0], t[-1])\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-m1-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `safe_index(t, value)` — индекс первого вхождения `value` или `-1`. Метод `index` падает с `ValueError`, если элемента нет, поэтому сначала проверь `in`.\n\n```\nsafe_index((\"a\", \"b\", \"a\"), \"a\")   # → 0\nsafe_index((1, 2), 5)              # → -1\n```",
+                  "starter_code": "def safe_index(t, value):\n    pass\n",
+                  "tests": "def test_values():\n    assert safe_index((\"a\", \"b\", \"a\"), \"a\") == 0 and safe_index((1, 2), 5) == -1 and safe_index((), 1) == -1, \"Неверный индекс\"\n",
+                  "solution": "def safe_index(t, value):\n    if value in t:\n        return t.index(value)\n    return -1\n",
+                  "hint": "",
+                  "xp": 15
                 }
               ],
-              "theory_full": "## Зачем это нужно\n\nКортежи читают так же, как списки: индексы, срезы, поиск. Разница только в том, что их нельзя менять. Уверенно работая с кортежами, ты сможешь разбирать записи из БД, пары из `dict.items()`, координаты, версии.\n\n## Как это работает\n\nДоступно всё, что не изменяет кортеж:\n\n- индексы `t[i]`, отрицательные индексы;\n- срезы `t[a:b]` — результат тоже **кортеж**;\n- `len(t)`, `x in t`, перебор `for`;\n- `t.count(x)` — сколько раз встречается;\n- `t.index(x)` — индекс первого вхождения (`ValueError`, если нет);\n- `min`, `max`, `sum`, `sorted(t)` (вернёт **список**);\n- `t1 + t2`, `t * 3` — новые кортежи.\n\n### Кортежи и строки форматирования\n\nКортеж удобно превращать в строку: `\".\".join(map(str, version))`.\n\n## Примеры\n\n### Пример 1. Доступ и поиск\n\n```python\nrecord = (\"login\", \"pass\", 1.25, \"chrome\")\nname, status = record[0], record[1]\nprint(name, status, record[-1], record[1:3])\nprint(record.index(\"pass\"), \"chrome\" in record)\n```\n\n### Пример 2. Операции создают новые кортежи\n\n```python\nbase = (\"GET\", \"/users\")\nwith_version = base + (\"v2\",)\nrepeated = (\"-\",) * 5\nprint(base, with_version, repeated)\nprint(sorted((3, 1, 2)), type(sorted((3, 1, 2))).__name__)\n```\n\n### Пример 3. Версии\n\n```python\nv = (1, 10, 3)\nprint(\".\".join(map(str, v)))\nmajor, minor, patch = v\nprint((major, minor + 1, 0))\nprint((1, 10, 3) > (1, 9, 99))\n```\n\n### Пример 4. Цвет\n\n```python\ncolor = (255, 0, 128)\nprint(\"#\" + \"\".join(f\"{c:02x}\" for c in color))\n```\n\n## Частые ошибки\n\n**`t.index(x)` без проверки** — `ValueError`.\n\n**Ожидание кортежа от `sorted`** — возвращается список.\n\n**`t + 5`** — нельзя сложить кортеж с числом; нужно `t + (5,)`.\n\n## Шпаргалка\n\n```py\nt[i]  t[a:b]  t.count(x)  t.index(x)  x in t\nt + (x,)   t * n   sorted(t) → list\n\".\".join(map(str, t))\n```",
+              "theory_full": "## Зачем это нужно\n\nВсё, что можно делать со списком **без изменения** — индексы, срезы, `len`, `in`, перебор, `min`/`max`/`sum`, — работает и с кортежем. У кортежа всего два собственных метода: `count` и `index`.\n\n## Индексы и срезы\n\n```python\nt = (10, 20, 30, 20)\nprint(t[1], t[-1], t[1:3])\nprint(t.count(20), t.index(30), 40 in t)\n```\n\n- Индексы с нуля и отрицательные — как у списков и строк (тема «Индексы и слайсы»).\n- Срез кортежа — **новый кортеж**: `(20, 30)`.\n- `t.count(x)` — сколько раз встречается `x`; `t.index(x)` — индекс **первого** вхождения.\n- Вывод: `20 20 (20, 30)`, `2 2 False`.\n\n```python\nt = (5, 3, 8, 3)\nprint(len(t), min(t), max(t), sum(t))\nprint(t[::-1], t[::2])\ntry:\n    t.index(7)\nexcept ValueError:\n    print(\"7 нет в кортеже\")\n```\n\n- Встроенные функции работают с любыми коллекциями.\n- `index` для отсутствующего элемента падает с `ValueError` — проверяй `in` заранее.\n- Вывод: `4 3 8 19`, `(3, 8, 3, 5) (5, 8)`, `7 нет в кортеже`.\n\n## + и * создают новые кортежи\n\n```python\na = (1, 2)\nb = a + (3,)\nc = a * 2\nprint(a, b, c)\nprint(a is b)\n```\n\n- `+` склеивает, `*` повторяет. `a` не меняется. `is` — «тот же объект?».\n- Вывод: `(1, 2) (1, 2, 3) (1, 2, 1, 2)`, `False`.\n\n## Распаковка по позициям\n\n```python\ncolor = (255, 0, 128)\nr, g, b = color\nprint(f\"#{r:02x}{g:02x}{b:02x}\")\n```\n\n- `:02x` — число в шестнадцатеричном виде (`x`), минимум 2 знака, дополняя нулями (`02`).\n- Вывод: `#ff0080`.\n\n## Самый частый элемент\n\n```python\nt = (\"pass\", \"fail\", \"pass\", \"skip\")\nprint(max(t, key=t.count))\n```\n\n- `key=t.count` — сравнивать элементы по количеству вхождений. При равенстве `max` берёт первый. Вывод: `pass`.\n\n## Версии\n\n```python\nversion = (1, 10, 3)\nprint(\".\".join(str(p) for p in version))\nmajor, minor, _ = version\nprint((major, minor + 1, 0))\n```\n\n- `join` склеивает строки — числа сначала превращаем через `str`.\n- Вывод: `1.10.3`, `(1, 11, 0)`.\n\n## Итог\n\n- Индексы, срезы, `len`, `in`, `min`/`max`/`sum`, перебор — как у списков.\n- Срез, `+`, `*` возвращают **новый** кортеж.\n- Методы: `count(x)` и `index(x)`; `index` для отсутствующего — `ValueError`.",
               "quiz": [
                 {
-                  "q": "Какой тип у результата `(1, 2, 3)[0:2]`?",
+                  "q": "Что вернёт `(1, 2, 3)[1:]`?",
                   "options": [
-                    "`list`",
-                    "`tuple`",
-                    "`int`",
-                    "`range`"
+                    "`[2, 3]`",
+                    "`(2, 3)`",
+                    "`2`",
+                    "Ошибка"
                   ],
                   "answer": 1,
-                  "explain": "Срез кортежа — тоже кортеж."
+                  "explain": "Срез кортежа — кортеж."
                 },
                 {
-                  "q": "Что вернёт `(1, 2) + (3,)`?",
+                  "q": "Что даст `(1, 2).index(5)`?",
                   "options": [
-                    "`(1, 2, 3)`",
-                    "`(1, 2, (3,))`",
-                    "Ошибка",
-                    "`[1, 2, 3]`"
+                    "`-1`",
+                    "`None`",
+                    "`ValueError`",
+                    "`0`"
                   ],
-                  "answer": 0,
-                  "explain": "Сложение кортежей создаёт новый кортеж."
+                  "answer": 2,
+                  "explain": "Элемента нет."
                 },
                 {
-                  "q": "Какой тип вернёт `sorted((3, 1, 2))`?",
+                  "q": "Какие методы есть у кортежа?",
                   "options": [
-                    "`tuple`",
-                    "`list`",
-                    "`set`",
-                    "`None`"
+                    "append и remove",
+                    "count и index",
+                    "sort и reverse",
+                    "Никаких"
                   ],
                   "answer": 1,
-                  "explain": "`sorted` всегда возвращает список."
+                  "explain": "Только не меняющие содержимое."
                 }
               ]
             },
             {
               "slug": "tpl-m1-l3",
               "title": "Упаковка и распаковка",
-              "theory": "# Распаковка\n\n```\npoint = (3, 4)\nx, y = point                 # распаковка\nfirst, *rest = (1, 2, 3)     # first=1, rest=[2, 3]\na, b = b, a                  # обмен: упаковка + распаковка\nfor name, status in results: # распаковка в цикле\n```\n\nФункция, возвращающая `a, b`, на самом деле возвращает кортеж.",
+              "theory": "```py\ndata = 10, 20          # упаковка -> (10, 20)\nx, y = data            # распаковка\na, b = b, a            # обмен\nfor name, ok in results: ...\nfirst, *rest = (1, 2, 3)   # rest = [2, 3] — СПИСОК\nname, surname = split_full_name(s)   # результат функции\n```",
               "exercises": [
                 {
                   "slug": "tpl-m1-l3-e1",
@@ -216,6 +274,15 @@
                   "prompt": "Что выведет программа?",
                   "code": "results = [(\"login\", True), (\"pay\", False)]\nfor name, ok in results:\n    print(name, \"✅\" if ok else \"❌\")\na, b = 1, 2\na, b = b, a\nprint(a, b)\n",
                   "expected_output": "login ✅\npay ❌\n2 1",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-m1-l3-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Упаковка без скобок.",
+                  "code": "data = 10, 20\nprint(type(data).__name__)\nx, y = data\nx, y = y, x\nprint(x, y)\n",
+                  "expected_output": "tuple\n20 10",
                   "hint": "",
                   "xp": 10
                 },
@@ -248,42 +315,182 @@
                   "solution": "def rotate(t):\n    if not t:\n        return ()\n    first, *rest = t\n    return (*rest, first)\n",
                   "hint": "",
                   "xp": 15
+                },
+                {
+                  "slug": "tpl-m1-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `swap_pairs(pairs)` — список пар, в каждой из которых элементы поменяны местами. Распаковывай пары прямо в цикле.\n\n```\nswap_pairs([(1, \"a\"), (2, \"b\")])   # → [(\"a\", 1), (\"b\", 2)]\n```",
+                  "starter_code": "def swap_pairs(pairs):\n    pass\n",
+                  "tests": "def test_values():\n    assert swap_pairs([(1, \"a\"), (2, \"b\")]) == [(\"a\", 1), (\"b\", 2)] and swap_pairs([]) == [], \"Неверный результат\"\n",
+                  "solution": "def swap_pairs(pairs):\n    result = []\n    for a, b in pairs:\n        result.append((b, a))\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-m1-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `split_full_name(full)` — кортеж `(имя, остальное)`: первое слово — имя, все остальные слова через пробел — вторая часть. Используй `first, *rest = ...`.\n\n```\nsplit_full_name(\"Анна Мария Иванова\")   # → (\"Анна\", \"Мария Иванова\")\nsplit_full_name(\"Боря\")                 # → (\"Боря\", \"\")\n```",
+                  "starter_code": "def split_full_name(full):\n    pass\n",
+                  "tests": "def test_values():\n    got = [split_full_name(\"Анна Мария Иванова\"), split_full_name(\"Боря\"), split_full_name(\"Иван Петров\")]\n    assert got == [(\"Анна\", \"Мария Иванова\"), (\"Боря\", \"\"), (\"Иван\", \"Петров\")], f\"Получено {got}\"\n",
+                  "solution": "def split_full_name(full):\n    first, *rest = full.split()\n    return (first, \" \".join(rest))\n",
+                  "hint": "",
+                  "xp": 15
                 }
               ],
-              "theory_full": "## Зачем это нужно\n\nРаспаковка — главная причина, по которой кортежи так удобны. Функция возвращает несколько значений, цикл перебирает пары `(ключ, значение)`, строка CSV раскладывается на поля — и всё это одной строкой, без индексов `[0]`, `[1]`.\n\n## Как это работает\n\n### Упаковка\n\nНесколько значений через запятую автоматически упаковываются в кортеж: `t = 1, 2, 3`, `return a, b`.\n\n### Распаковка\n\n`x, y = (3, 4)` — число переменных должно совпадать с длиной (иначе `ValueError`).\n\nЗвёздочка собирает «остаток» в **список**:\n- `first, *rest = t`\n- `*init, last = t`\n- `a, *_, z = t`\n\n### Обмен значений\n\n`a, b = b, a` — справа упаковывается кортеж `(b, a)`, потом распаковывается в `a` и `b`.\n\n### Распаковка в циклах\n\n`for name, status in results:`, `for i, (k, v) in enumerate(d.items()):`.\n\n### Распаковка при сборке\n\n`(*rest, first)`, `[*a, *b]`, вызов `f(*args)`.\n\n## Примеры\n\n### Пример 1. Функция возвращает кортеж\n\n```python\ndef min_max(nums):\n    return min(nums), max(nums)\n\nresult = min_max([3, 1, 4])\nlo, hi = result\nprint(result, lo, hi, type(result).__name__)\n```\n\n### Пример 2. Звёздочка\n\n```python\nrecord = (\"login\", \"pass\", 1.2, \"smoke\", \"auth\")\nname, status, time, *tags = record\nprint(name, status, time, tags)\nhead, *_, tail = \"Python\"\nprint(head, tail)\n```\n\n### Пример 3. Цикл по парам\n\n```python\nprices = {\"чай\": 300, \"кофе\": 500}\nfor item, price in prices.items():\n    print(f\"{item}: {price} руб.\")\nfor i, (item, price) in enumerate(prices.items(), start=1):\n    print(i, item, price)\n```\n\n### Пример 4. Сдвиг и обмен\n\n```python\nqueue = (\"a\", \"b\", \"c\")\nfirst, *rest = queue\nprint((*rest, first))\nx, y = 1, 2\nx, y = y, x\nprint(x, y)\n```\n\n## Частые ошибки\n\n**Несовпадение количества переменных** — `ValueError`.\n\n**Ожидание кортежа в `*rest`** — там всегда список.\n\n**Две звёздочки** в одной распаковке — `SyntaxError`.\n\n## Шпаргалка\n\n```py\na, b = pair\nfirst, *rest = t\na, b = b, a\nfor k, v in d.items(): ...\n(*rest, first)\n```",
+              "theory_full": "## Зачем это нужно\n\n**Упаковка** — собрать несколько значений в кортеж одной строкой. **Распаковка** — разложить кортеж по отдельным переменным. Это одна из самых «питоновских» возможностей: обмен значений без временной переменной, несколько результатов функции, перебор пар в цикле.\n\n## Упаковка\n\n```python\ndata = 10, 20\nprint(type(data).__name__, data)\n```\n\n- Значения через запятую автоматически упаковываются в кортеж. Вывод: `tuple (10, 20)`.\n\n## Распаковка\n\n```python\npoint = (3, 4, 5)\nx, y, z = point\nprint(x + y + z)\n```\n\n- Слева столько имён, сколько элементов справа; каждый элемент уходит в свою переменную. Вывод: `12`.\n- Распаковывать можно любую коллекцию: `a, b, c = \"xyz\"`, `first, second = [1, 2]`.\n\n## Обмен значений\n\n```python\na, b = 1, 2\na, b = b, a\nprint(a, b)\n```\n\n- Справа сначала **упаковывается** кортеж `(2, 1)`, потом **распаковывается** в `a, b`. Временная переменная не нужна.\n- Вывод: `2 1`.\n\n## Распаковка в цикле\n\n```python\nresults = [(\"login\", True), (\"pay\", False)]\nfor name, ok in results:\n    print(name, \"✅\" if ok else \"❌\")\n```\n\n- Каждый элемент списка — кортеж, который распаковывается в `name, ok` прямо в заголовке цикла.\n- `\"✅\" if ok else \"❌\"` — условное выражение. Вывод: `login ✅`, `pay ❌`.\n\n## Звёздочка: собрать остаток\n\n```python\npoint = (3, 4, 5)\nfirst, *rest = point\nprint(first, rest)\nname, status, time, *tags = (\"login\", \"pass\", 1.2, \"smoke\", \"auth\")\nprint(name, tags)\n```\n\n- `*rest` собирает все «лишние» элементы в **список** (даже если распаковываем кортеж).\n- Если лишних нет, `rest` — пустой список.\n- Вывод: `3 [4, 5]`, `login ['smoke', 'auth']`.\n\n## Распаковка результата функции\n\n```python\ndef split_full_name(full):\n    first, *rest = full.split()\n    return first, \" \".join(rest)\n\nname, surname = split_full_name(\"Анна Мария Иванова\")\nprint(name, \"|\", surname)\n```\n\n- `return a, b` возвращает кортеж, который сразу распаковывается при вызове.\n- Вывод: `Анна | Мария Иванова`.\n\n## Сдвиг с помощью звёздочки\n\n```python\nt = (1, 2, 3, 4)\nfirst, *rest = t\nprint((*rest, first))\n```\n\n- `(*rest, first)` — новый кортеж: элементы `rest` и в конце `first`. Звёздочка внутри скобок **распаковывает** коллекцию (следующий урок). Вывод: `(2, 3, 4, 1)`.\n\n## Итог\n\n- `t = a, b` — упаковка; `a, b = t` — распаковка.\n- Количество имён должно совпадать с количеством элементов (иначе — звёздочка).\n- `a, b = b, a` — обмен без временной переменной.\n- `for x, y in пары:` — распаковка в цикле.\n- `first, *rest = t` — остаток собирается в список.",
               "quiz": [
                 {
-                  "q": "Что будет в `rest` после `first, *rest = (1, 2, 3)`?",
+                  "q": "Что будет в `rest` после `a, *rest = (1, 2, 3)`?",
                   "options": [
                     "`(2, 3)`",
                     "`[2, 3]`",
-                    "`2`",
+                    "`3`",
                     "Ошибка"
                   ],
                   "answer": 1,
-                  "explain": "Переменная со звёздочкой всегда получает список."
+                  "explain": "Звёздочка собирает в список."
                 },
                 {
-                  "q": "Что возвращает функция с `return a, b`?",
+                  "q": "Как обменять значения `a` и `b`?",
                   "options": [
-                    "Два отдельных значения",
-                    "Кортеж `(a, b)`",
+                    "`a = b; b = a`",
+                    "`a, b = b, a`",
+                    "`swap(a, b)`",
+                    "`a <-> b`"
+                  ],
+                  "answer": 1,
+                  "explain": "Упаковка и распаковка за одну строку."
+                },
+                {
+                  "q": "Что такое `data` после `data = 1, 2`?",
+                  "options": [
                     "Список",
-                    "Только a"
+                    "Кортеж",
+                    "Число 1",
+                    "Ошибка"
                   ],
                   "answer": 1,
-                  "explain": "Запятая упаковывает значения в кортеж."
+                  "explain": "Упаковка создаёт кортеж."
+                }
+              ]
+            },
+            {
+              "slug": "tpl-unpack2",
+              "title": "Распаковка: тонкости",
+              "theory": "```py\nname, (age, city) = (\"Аня\", (25, \"Казань\"))   # вложенная\nfor label, (x, y) in points: ...\nfirst, *mid, last = (1, 2, 3, 4)   # mid = [2, 3]\na, b = (1, 2, 3)                   # ValueError: too many values\narea(*size)                        # = area(3, 4)\n(*a, *b), [*\"ab\", *a]              # склеить\n_, second, _ = t;  head, *_ = t    # пропустить\n```",
+              "exercises": [
+                {
+                  "slug": "tpl-unpack2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Вложенная распаковка.",
+                  "code": "record = (\"Аня\", (25, \"Казань\"))\nname, (age, city) = record\nprint(name, age, city)\n",
+                  "expected_output": "Аня 25 Казань",
+                  "hint": "",
+                  "xp": 10
                 },
                 {
-                  "q": "Что произойдёт при `x, y = (1, 2, 3)`?",
+                  "slug": "tpl-unpack2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "first, *middle, last = (1, 2, 3, 4, 5)\nprint(first, middle, last)\n*head, tail = (1,)\nprint(head, tail)\ntry:\n    a, b = (1, 2, 3)\nexcept ValueError:\n    print(\"ValueError: лишние значения\")\n",
+                  "expected_output": "1 [2, 3, 4] 5\n[] 1\nValueError: лишние значения",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-unpack2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Звёздочка в вызове и в литералах.",
+                  "code": "def area(w, h):\n    return w * h\n\nsize = (3, 4)\nprint(area(*size))\nmerged = (*size, 5)\nprint(merged, [*\"ab\", *size])\n",
+                  "expected_output": "12\n(3, 4, 5) ['a', 'b', 3, 4]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-unpack2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `describe_point(record)` — `record` имеет вид `(\"A\", (1, 2))`: имя точки и пара координат. Распакуй **вложенно** в одну строку и верни `\"A: x=1, y=2\"`.",
+                  "starter_code": "def describe_point(record):\n    pass\n",
+                  "tests": "def test_values():\n    assert describe_point((\"A\", (1, 2))) == \"A: x=1, y=2\" and describe_point((\"B\", (-5, 0))) == \"B: x=-5, y=0\", \"Неверная строка\"\n",
+                  "solution": "def describe_point(record):\n    name, (x, y) = record\n    return f\"{name}: x={x}, y={y}\"\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-unpack2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `middle(t)` — список элементов кортежа без первого и последнего. Используй распаковку `first, *mid, last`. Если элементов меньше двух — `[]`.\n\n```\nmiddle((1, 2, 3, 4))   # → [2, 3]\nmiddle((1, 2))         # → []\nmiddle((1,))           # → []\n```",
+                  "starter_code": "def middle(t):\n    pass\n",
+                  "tests": "def test_values():\n    got = [middle((1, 2, 3, 4)), middle((1, 2)), middle((1,)), middle(())]\n    assert got == [[2, 3], [], [], []], f\"Получено {got}\"\n",
+                  "solution": "def middle(t):\n    if len(t) < 2:\n        return []\n    first, *mid, last = t\n    return mid\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-unpack2-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `call_with(func, args)` — вызвать `func`, передав элементы кортежа `args` как отдельные аргументы (`*args` при вызове), и вернуть результат.\n\n```\ncall_with(max, (3, 9, 2))      # → 9\ncall_with(pow, (2, 10))        # → 1024\n```",
+                  "starter_code": "def call_with(func, args):\n    pass\n",
+                  "tests": "def test_values():\n    assert call_with(max, (3, 9, 2)) == 9 and call_with(pow, (2, 10)) == 1024 and call_with(len, (\"abc\",)) == 3, \"Неверный вызов\"\n",
+                  "solution": "def call_with(func, args):\n    return func(*args)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-unpack2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `head_tail(t)` — пара `(первый_элемент, кортеж_остальных)`. Звёздочка при распаковке даёт **список** — преврати его в кортеж. Для пустого — `(None, ())`.\n\n```\nhead_tail((1, 2, 3))   # → (1, (2, 3))\nhead_tail(())          # → (None, ())\n```",
+                  "starter_code": "def head_tail(t):\n    pass\n",
+                  "tests": "def test_values():\n    got = [head_tail((1, 2, 3)), head_tail(()), head_tail((\"a\",))]\n    assert got == [(1, (2, 3)), (None, ()), (\"a\", ())], f\"Получено {got}\"\n    assert isinstance(head_tail((1, 2))[1], tuple), \"Остаток — кортеж\"\n",
+                  "solution": "def head_tail(t):\n    if not t:\n        return (None, ())\n    first, *rest = t\n    return (first, tuple(rest))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-unpack2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `concat(a, b, c)` — склеить три кортежа в один с помощью распаковки внутри литерала: `(*a, *b, *c)`.\n\n```\nconcat((1,), (2, 3), ())   # → (1, 2, 3)\n```",
+                  "starter_code": "def concat(a, b, c):\n    pass\n",
+                  "tests": "def test_values():\n    assert concat((1,), (2, 3), ()) == (1, 2, 3) and concat((), (), ()) == (), \"Неверный результат\"\n\ndef test_star():\n    assert \"*a\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй распаковку (*a, *b, *c)\"\n",
+                  "solution": "def concat(a, b, c):\n    return (*a, *b, *c)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nРаспаковка умеет больше, чем `x, y = point`: разбирать **вложенные** структуры одной строкой, брать середину, раскладывать кортеж в аргументы функции и склеивать коллекции. И у неё есть свои ошибки, которые стоит узнавать по сообщению.\n\n## Вложенная распаковка\n\n```python\nrecord = (\"Аня\", (25, \"Казань\"))\nname, (age, city) = record\nprint(name, age, city)\n```\n\n- Слева повторяем **форму** данных: второй элемент — пара, поэтому `(age, city)` в скобках.\n- Вывод: `Аня 25 Казань`.\n\nОсобенно удобно в циклах:\n\n```python\npoints = [(\"A\", (1, 2)), (\"B\", (3, 4))]\nfor label, (x, y) in points:\n    print(label, x + y)\nfor i, (a, b) in enumerate([(1, 2), (3, 4)]):\n    print(i, a * b)\n```\n\nВывод: `A 3`, `B 7`, `0 2`, `1 12`.\n\n## Звёздочка в любом месте\n\n```python\nfirst, *middle, last = (1, 2, 3, 4, 5)\nprint(first, middle, last)\n*head, tail = (1,)\nprint(head, tail)\n```\n\n- `*` может стоять в начале, в середине или в конце, но только **одна** на распаковку.\n- Звёздочка может получить пустой список. Вывод: `1 [2, 3, 4] 5`, `[] 1`.\n\n## Ошибки распаковки\n\n```python\ntry:\n    a, b = (1, 2, 3)\nexcept ValueError as e:\n    print(e)\ntry:\n    a, b, c = (1, 2)\nexcept ValueError as e:\n    print(e)\n```\n\n- Лишние значения: `too many values to unpack` («слишком много значений»).\n- Не хватает: `not enough values to unpack (expected 3, got 2)`.\n- Обе — `ValueError`. Лечение — поправить число имён или добавить звёздочку.\n\n## Звёздочка при вызове: раскладываем в аргументы\n\n```python\ndef area(w, h):\n    return w * h\n\nsize = (3, 4)\nprint(area(*size))\nprint(max(*[3, 9, 2]))\n```\n\n- `area(*size)` — то же, что `area(3, 4)`: элементы кортежа передаются как **отдельные** аргументы.\n- Вывод: `12`, `9`.\n\n## Звёздочка в литералах: склеиваем\n\n```python\na, b = (1, 2), [3, 4]\nprint((*a, *b), [*\"ab\", *a], (*a, 5))\n```\n\n- `*коллекция` внутри `(...)`, `[...]` раскладывает её элементы на место звёздочки. Можно смешивать любые коллекции.\n- Вывод: `(1, 2, 3, 4) ['a', 'b', 1, 2] (1, 2, 5)`.\n\n## _ для ненужного\n\n```python\n_, second, _ = (\"a\", \"b\", \"c\")\nname, *_ = (\"login\", \"pass\", 1.2)\nprint(second, name)\n```\n\n- `_` — принятое имя для «не нужно». `*_` — «остальное не нужно». Вывод: `b login`.\n\n## Итог\n\n- Вложенная распаковка повторяет форму данных: `name, (x, y) = ...`.\n- Одна звёздочка в любом месте; она всегда даёт список, возможно пустой.\n- Неверное число значений — `ValueError` (too many / not enough).\n- `f(*t)` — раскладывает кортеж в аргументы; `(*a, *b)` — склеивает коллекции.\n- `_` и `*_` — пропустить ненужное.",
+              "quiz": [
+                {
+                  "q": "Что будет в `b` после `a, (b, c) = (1, (2, 3))`?",
                   "options": [
-                    "x=1, y=2",
-                    "`ValueError`",
-                    "x=1, y=(2, 3)",
-                    "x=(1, 2), y=3"
+                    "`(2, 3)`",
+                    "`2`",
+                    "`3`",
+                    "Ошибка"
                   ],
                   "answer": 1,
-                  "explain": "Количество переменных не совпадает с длиной."
+                  "explain": "Вложенная распаковка повторяет форму данных."
+                },
+                {
+                  "q": "Что делает `f(*(2, 3))`?",
+                  "options": [
+                    "Передаёт один аргумент-кортеж",
+                    "Вызывает f(2, 3)",
+                    "Ошибка",
+                    "Умножает"
+                  ],
+                  "answer": 1,
+                  "explain": "Звёздочка раскладывает кортеж в аргументы."
+                },
+                {
+                  "q": "Какая ошибка при `a, b = (1, 2, 3)`?",
+                  "options": [
+                    "`TypeError`",
+                    "`IndexError`",
+                    "`ValueError`",
+                    "Нет ошибки"
+                  ],
+                  "answer": 2,
+                  "explain": "too many values to unpack."
                 }
               ]
             }
@@ -293,12 +500,12 @@
           "slug": "tpl-m2",
           "title": "Кортежи в деле",
           "icon": "🧷",
-          "description": "Когда кортеж, а когда список; ключи словаря; сортировка",
+          "description": "Кортеж или список, преобразования, ключи словаря, сортировка",
           "lessons": [
             {
               "slug": "tpl-m2-l1",
               "title": "Кортеж или список?",
-              "theory": "# Как выбрать\n\n- **Кортеж** — фиксированная запись, где позиция имеет смысл: `(x, y)`, `(имя, возраст)`, `(r, g, b)`. Разнородные данные.\n- **Список** — однородная коллекция, которая меняется: список тестов, пользователей, логов.\n\nКортеж: неизменяемый, может быть ключом словаря, чуть быстрее и легче.\nСписок: `append`, `remove`, `sort` и т. д.",
+              "theory": "```py\nusers = [(\"Аня\", 25), (\"Боря\", 30)]   # список (меняется) кортежей (записи)\nDAYS = (\"пн\", \"вт\", ...)              # константа — кортеж\nlst = list(t); lst.append(4); t = tuple(lst)   # «изменить» кортеж\nrecords = list(zip(names, ages))      # список кортежей\n```\n- Список — однородное и меняющееся; кортеж — запись, где позиция = смысл.",
               "exercises": [
                 {
                   "slug": "tpl-m2-l1-e1",
@@ -316,6 +523,15 @@
                   "code": "users = [(\"Аня\", 25), (\"Боря\", 30)]\nusers.append((\"Вика\", 22))\nfor name, age in users:\n    print(name, age)\n",
                   "expected_output": "Аня 25\nБоря 30\nВика 22",
                   "hint": "Типичная связка: список (меняется) из кортежей (фиксированные записи).",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-m2-l1-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Временно превратить в список.",
+                  "code": "t = (1, 2, 3)\nlst = list(t)\nlst.append(4)\nt2 = tuple(lst)\nprint(t, lst, t2)\n",
+                  "expected_output": "(1, 2, 3) [1, 2, 3, 4] (1, 2, 3, 4)",
+                  "hint": "",
                   "xp": 10
                 },
                 {
@@ -347,49 +563,189 @@
                   "solution": "def constants():\n    return (\"GET\", \"POST\", \"PUT\", \"PATCH\", \"DELETE\")\n\ndef is_allowed(method):\n    return method.upper() in constants()\n",
                   "hint": "",
                   "xp": 15
+                },
+                {
+                  "slug": "tpl-m2-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `to_tuple_rows(rows)` — превратить список списков в список **кортежей** (строки таблицы «заморожены»).\n\n```\nto_tuple_rows([[1, \"a\"], [2, \"b\"]])   # → [(1, \"a\"), (2, \"b\")]\n```",
+                  "starter_code": "def to_tuple_rows(rows):\n    pass\n",
+                  "tests": "def test_values():\n    got = to_tuple_rows([[1, \"a\"], [2, \"b\"]])\n    assert got == [(1, \"a\"), (2, \"b\")] and all(isinstance(r, tuple) for r in got) and to_tuple_rows([]) == [], f\"Получено {got}\"\n",
+                  "solution": "def to_tuple_rows(rows):\n    return [tuple(r) for r in rows]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-m2-l1-e8",
+                  "type": "code",
+                  "prompt": "Объяви константу-кортеж `DAYS = (\"пн\", \"вт\", \"ср\", \"чт\", \"пт\", \"сб\", \"вс\")` и функцию `weekday_name(n)` — название дня по номеру от 0 до 6; для других номеров — `None`.\n\n```\nweekday_name(0)   # → \"пн\"\nweekday_name(6)   # → \"вс\"\nweekday_name(7)   # → None\n```",
+                  "starter_code": "def weekday_name(n):\n    pass\n",
+                  "tests": "def test_values():\n    assert [weekday_name(0), weekday_name(6), weekday_name(7), weekday_name(-1)] == [\"пн\", \"вс\", None, None], \"Неверный день\"\n\ndef test_const():\n    assert isinstance(DAYS, tuple) and len(DAYS) == 7, \"DAYS — кортеж из 7 дней\"\n",
+                  "solution": "DAYS = (\"пн\", \"вт\", \"ср\", \"чт\", \"пт\", \"сб\", \"вс\")\n\ndef weekday_name(n):\n    if 0 <= n < len(DAYS):\n        return DAYS[n]\n    return None\n",
+                  "hint": "Отрицательный индекс в Python допустим, поэтому -1 нужно отсечь проверкой.",
+                  "xp": 15
                 }
               ],
-              "theory_full": "## Зачем это нужно\n\nНовички часто используют списки для всего подряд. Но выбор между кортежем и списком — это способ выразить **смысл** данных: «это фиксированная запись» или «это коллекция, которая будет меняться». Правильный выбор защищает от багов и делает код понятнее.\n\n## Как это работает\n\n### Кортеж — запись\n\n- Позиция имеет значение: `(x, y)`, `(host, port)`, `(имя, возраст, email)`.\n- Элементы часто **разных** типов.\n- Размер фиксирован.\n- Неизменяемость: нельзя случайно испортить.\n- **Хешируемый** (если внутри только неизменяемые элементы) — можно использовать как ключ словаря или элемент множества.\n\n### Список — коллекция\n\n- Однородные элементы: все тесты, все пользователи.\n- Размер меняется: `append`, `remove`.\n- Порядок можно менять: `sort`, `reverse`.\n\n### Типичная комбинация\n\n**Список кортежей** — таблица: строки добавляются, но каждая строка фиксирована. `dict.items()`, `zip`, `enumerate`, результаты SQL-запросов — всё это кортежи.\n\n### Производительность\n\nКортежи занимают чуть меньше памяти и быстрее создаются, но это вторично — главное смысл.\n\n## Примеры\n\n### Пример 1. Таблица: список кортежей\n\n```python\nruns = [(\"login\", \"pass\", 1.2), (\"pay\", \"fail\", 3.4)]\nruns.append((\"cart\", \"pass\", 0.8))\nfor name, status, sec in sorted(runs, key=lambda r: r[2], reverse=True):\n    print(f\"{name:6} {status:5} {sec}\")\n```\n\n### Пример 2. Настройки-константы\n\n```python\nALLOWED_METHODS = (\"GET\", \"POST\", \"PUT\", \"PATCH\", \"DELETE\")\nSUPPORTED_BROWSERS = (\"chrome\", \"firefox\", \"webkit\")\nprint(\"PATCH\" in ALLOWED_METHODS, len(SUPPORTED_BROWSERS))\n```\n\n### Пример 3. Кортежи из встроенных функций\n\n```python\nnames = [\"Аня\", \"Боря\"]\nages = [25, 30]\nprint(list(zip(names, ages)))\nprint(list(enumerate(names)))\nprint(list({\"a\": 1}.items()))\n```\n\n## Частые ошибки\n\n**Список для фиксированной записи** — `user = [\"Аня\", 25]`: кто-то сделает `user.append(...)`, и формат сломается.\n\n**Кортеж для коллекции, которую нужно пополнять** — придётся каждый раз пересоздавать.\n\n**Кортеж с одним элементом без запятой.**\n\n## Шпаргалка\n\n```text\nкортеж: фиксированная запись, разнородные поля, ключ словаря, константы\nсписок: однородная изменяемая коллекция\nсписок кортежей = таблица\n```",
+              "theory_full": "## Зачем это нужно\n\nКортеж и список очень похожи. Когда же что выбирать? Правило простое, и его придерживаются все опытные Python-разработчики: **список** — для однородной коллекции, которая меняется; **кортеж** — для фиксированной записи, где у каждой позиции свой смысл.\n\n## Правило выбора\n\n**Список**:\n- элементы одного рода: список пользователей, цен, строк лога;\n- количество меняется: добавляем, удаляем, сортируем на месте.\n\n**Кортеж**:\n- фиксированная «запись»: `(имя, возраст)`, `(x, y)`, `(r, g, b)`, `(год, месяц, день)` — позиция определяет смысл;\n- данные не должны меняться: константы, настройки;\n- нужен ключ словаря или элемент множества (урок «Кортежи как ключи»).\n\nТипичная связка — **список кортежей**: список меняется, а каждая запись фиксирована:\n\n```python\nusers = [(\"Аня\", 25), (\"Боря\", 30)]\nusers.append((\"Вика\", 22))\nfor name, age in users:\n    print(name, age)\n```\n\nВывод: `Аня 25`, `Боря 30`, `Вика 22`.\n\n## Кортеж легче и не имеет методов изменения\n\n```python\nimport sys\nas_list = [1, 2, 3]\nas_tuple = (1, 2, 3)\nprint(sys.getsizeof(as_list) > sys.getsizeof(as_tuple))\nprint(hasattr(as_list, \"append\"), hasattr(as_tuple, \"append\"))\n```\n\n- `sys.getsizeof` — размер объекта в байтах: кортеж занимает меньше памяти (ему не нужен запас под рост).\n- `hasattr(объект, \"имя\")` — есть ли атрибут. У кортежа нет `append`.\n- Вывод: `True`, `True False`.\n\n## Константы — кортежем\n\n```python\nHTTP_METHODS = (\"GET\", \"POST\", \"PUT\", \"PATCH\", \"DELETE\")\nDAYS = (\"пн\", \"вт\", \"ср\", \"чт\", \"пт\", \"сб\", \"вс\")\n\ndef is_allowed(method):\n    return method.upper() in HTTP_METHODS\n\nprint(is_allowed(\"get\"), DAYS[6])\n```\n\n- Набор, который не должен меняться, храни кортежем: случайный `HTTP_METHODS.append(...)` вызовет ошибку, а не тихую порчу данных.\n- Вывод: `True вс`.\n\n## Превращения туда и обратно\n\n```python\nt = (1, 2, 3)\nlst = list(t)\nlst.append(4)\nt2 = tuple(lst)\nprint(t, lst, t2)\n```\n\n- Нужно поменять кортеж — `list(t)`, меняем, `tuple(...)` обратно. Исходный кортеж остаётся прежним.\n- Вывод: `(1, 2, 3) [1, 2, 3, 4] (1, 2, 3, 4)`.\n\n## Списки кортежей из zip\n\n```python\nnames = [\"Аня\", \"Боря\"]\nages = [25, 30]\nrecords = list(zip(names, ages))\nprint(records)\nname, _ = max(records, key=lambda r: r[1])\nprint(name)\n```\n\n- `zip` выдаёт кортежи — сразу получаем список записей.\n- Вывод: `[('Аня', 25), ('Боря', 30)]`, `Боря`.\n\n## Итог\n\n- Список — однородная изменяемая коллекция; кортеж — фиксированная запись или неизменяемый набор.\n- Типичная структура — список кортежей.\n- Константы-наборы — кортежами.\n- Кортеж легче и защищён от изменений; `list(t)` / `tuple(lst)` — превращения.",
               "quiz": [
                 {
-                  "q": "Что лучше подходит для координат точки (x, y)?",
+                  "q": "Что лучше хранить кортежем?",
                   "options": [
-                    "Список",
-                    "Кортеж",
-                    "Словарь",
-                    "Строка"
+                    "Корзину покупок",
+                    "Координаты точки (x, y)",
+                    "Лог сообщений",
+                    "Очередь задач"
                   ],
                   "answer": 1,
-                  "explain": "Фиксированная запись, где позиция имеет смысл."
+                  "explain": "Фиксированная запись."
                 },
                 {
-                  "q": "Что лучше подходит для набора тестов, который пополняется во время работы?",
+                  "q": "Есть ли у кортежа метод `append`?",
                   "options": [
-                    "Кортеж",
-                    "Список",
-                    "Строка",
-                    "Число"
+                    "Да",
+                    "Нет",
+                    "Только у пустого",
+                    "Только в Python 3.12"
                   ],
                   "answer": 1,
-                  "explain": "Изменяемая однородная коллекция — список."
+                  "explain": "Кортеж неизменяем."
                 },
                 {
-                  "q": "Какие элементы возвращает `dict.items()`?",
+                  "q": "Как добавить элемент «в кортеж» `t`?",
                   "options": [
-                    "Списки",
-                    "Кортежи (ключ, значение)",
-                    "Строки",
-                    "Словари"
+                    "`t.append(x)`",
+                    "Через list(t), затем tuple(...) или t + (x,)",
+                    "`t[len(t)] = x`",
+                    "Никак и никогда"
                   ],
                   "answer": 1,
-                  "explain": "Каждый элемент — пара-кортеж."
+                  "explain": "Создаётся новый кортеж."
+                }
+              ]
+            },
+            {
+              "slug": "tpl-convert",
+              "title": "Кортежи и другие коллекции",
+              "theory": "```py\ntuple(\"abc\")               # ('a', 'b', 'c');  \"\".join(t) — обратно\ntuple(sorted(t))           # sorted даёт СПИСОК\ntuple(reversed(t))\n[1, 2] == (1, 2)           # False!\ntuple(d), tuple(d.items()) # ключи / пары\ndict([(\"x\", 1)])           # из пар\ntuple(dict.fromkeys(t))    # уникальные с порядком\n```",
+              "exercises": [
+                {
+                  "slug": "tpl-convert-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "t = tuple(\"hello\")\nprint(t)\nprint(\"\".join(t), list(t)[:2], set(t) == {\"h\", \"e\", \"l\", \"o\"})\n",
+                  "expected_output": "('h', 'e', 'l', 'l', 'o')\nhello ['h', 'e'] True",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-convert-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? sorted возвращает список.",
+                  "code": "t = (3, 1, 2)\ns = sorted(t)\nprint(s, type(s).__name__, tuple(s))\nprint(tuple(reversed(t)))\n",
+                  "expected_output": "[1, 2, 3] list (1, 2, 3)\n(2, 1, 3)",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-convert-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Кортежи и словари.",
+                  "code": "d = {\"a\": 1, \"b\": 2}\nprint(tuple(d), tuple(d.items()))\nprint(dict([(\"x\", 1), (\"y\", 2)]))\n",
+                  "expected_output": "('a', 'b') (('a', 1), ('b', 2))\n{'x': 1, 'y': 2}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-convert-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sorted_tuple(t)` — отсортированная версия кортежа, **тоже кортеж** (`sorted` возвращает список!).\n\n```\nsorted_tuple((3, 1, 2))   # → (1, 2, 3)\n```",
+                  "starter_code": "def sorted_tuple(t):\n    pass\n",
+                  "tests": "def test_values():\n    got = sorted_tuple((3, 1, 2))\n    assert got == (1, 2, 3) and isinstance(got, tuple) and sorted_tuple(()) == (), f\"Получено {got!r}\"\n",
+                  "solution": "def sorted_tuple(t):\n    return tuple(sorted(t))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-convert-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `unique_tuple(t)` — кортеж без повторов, **в порядке первого появления**. (`set` порядок не сохраняет.)\n\n```\nunique_tuple((3, 1, 3, 2, 1))   # → (3, 1, 2)\n```",
+                  "starter_code": "def unique_tuple(t):\n    pass\n",
+                  "tests": "def test_values():\n    assert unique_tuple((3, 1, 3, 2, 1)) == (3, 1, 2) and unique_tuple(()) == () and unique_tuple((\"a\", \"a\")) == (\"a\",), \"Неверный результат\"\n",
+                  "solution": "def unique_tuple(t):\n    result = []\n    for x in t:\n        if x not in result:\n            result.append(x)\n    return tuple(result)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-convert-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `dict_to_pairs(d)` — кортеж пар `(ключ, значение)`, отсортированный по ключу.\n\n```\ndict_to_pairs({\"b\": 2, \"a\": 1})   # → ((\"a\", 1), (\"b\", 2))\n```",
+                  "starter_code": "def dict_to_pairs(d):\n    pass\n",
+                  "tests": "def test_values():\n    assert dict_to_pairs({\"b\": 2, \"a\": 1}) == ((\"a\", 1), (\"b\", 2)) and dict_to_pairs({}) == (), \"Неверный результат\"\n",
+                  "solution": "def dict_to_pairs(d):\n    return tuple(sorted(d.items()))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-convert-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `word_tuple(text)` — кортеж слов строки в нижнем регистре.\n\n```\nword_tuple(\"Hello big World\")   # → (\"hello\", \"big\", \"world\")\n```",
+                  "starter_code": "def word_tuple(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert word_tuple(\"Hello big World\") == (\"hello\", \"big\", \"world\") and word_tuple(\"\") == (), \"Неверный результат\"\n",
+                  "solution": "def word_tuple(text):\n    return tuple(text.lower().split())\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-convert-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `pairs_to_dict(pairs)` — словарь из последовательности пар `(ключ, значение)`. Если ключ повторяется, побеждает **последнее** значение.\n\n```\npairs_to_dict([(\"a\", 1), (\"b\", 2), (\"a\", 3)])   # → {\"a\": 3, \"b\": 2}\n```",
+                  "starter_code": "def pairs_to_dict(pairs):\n    pass\n",
+                  "tests": "def test_values():\n    assert pairs_to_dict([(\"a\", 1), (\"b\", 2), (\"a\", 3)]) == {\"a\": 3, \"b\": 2} and pairs_to_dict(()) == {}, \"Неверный словарь\"\n",
+                  "solution": "def pairs_to_dict(pairs):\n    return dict(pairs)\n",
+                  "hint": "dict(...) умеет строить словарь из пар.",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nДанные постоянно переходят из одной коллекции в другую: строку — в кортеж символов, словарь — в кортеж пар, отсортированный список — обратно в кортеж. Важно знать, какую коллекцию возвращает каждая операция, — иначе сравнение `== (1, 2, 3)` внезапно даст `False`.\n\n## Из строки и в строку\n\n```python\nt = tuple(\"hello\")\nprint(t)\nprint(\"\".join(t), list(t)[:2], set(t) == {\"h\", \"e\", \"l\", \"o\"})\n```\n\n- `tuple(строка)` — кортеж символов.\n- `\"\".join(t)` — обратно в строку (элементы должны быть строками).\n- `set(t)` — множество: без повторов и без порядка.\n- Вывод: `('h', 'e', 'l', 'l', 'o')`, `hello ['h', 'e'] True`.\n\nСлова строки:\n\n```python\nprint(tuple(\"Hello big World\".lower().split()))\n```\n\nВывод: `('hello', 'big', 'world')`.\n\n## sorted и reversed не возвращают кортеж\n\n```python\nt = (3, 1, 2)\ns = sorted(t)\nprint(s, type(s).__name__, tuple(s))\nprint(tuple(reversed(t)))\n```\n\n- `sorted(что угодно)` всегда возвращает **список**. Нужен кортеж — оберни в `tuple(...)`.\n- `reversed(t)` возвращает особый объект-«перебиратель»; `tuple(...)` превращает его в кортеж.\n- Вывод: `[1, 2, 3] list (1, 2, 3)`, `(2, 1, 3)`.\n\n```python\nprint(sorted((3, 1, 2)) == (1, 2, 3), tuple(sorted((3, 1, 2))) == (1, 2, 3))\n```\n\n- Список и кортеж **никогда не равны**, даже с одинаковыми элементами. Вывод: `False True`.\n\n## Кортежи и словари\n\n```python\nd = {\"a\": 1, \"b\": 2}\nprint(tuple(d), tuple(d.items()))\nprint(dict([(\"x\", 1), (\"y\", 2)]))\n```\n\n- `tuple(словарь)` — кортеж **ключей**.\n- `d.items()` — пары `(ключ, значение)`; `tuple(...)` — кортеж пар.\n- `dict(пары)` — словарь из последовательности пар; при повторе ключа побеждает последнее значение.\n- Вывод: `('a', 'b') (('a', 1), ('b', 2))`, `{'x': 1, 'y': 2}`.\n\nОтсортированные пары словаря:\n\n```python\nprint(tuple(sorted({\"b\": 2, \"a\": 1}.items())))\n```\n\nВывод: `(('a', 1), ('b', 2))` — пары сортируются по первому элементу, ключу.\n\n## Уникальные с сохранением порядка\n\n```python\nt = (3, 1, 3, 2, 1)\nprint(tuple(set(t)) == (3, 1, 2))\nresult = []\nfor x in t:\n    if x not in result:\n        result.append(x)\nprint(tuple(result), tuple(dict.fromkeys(t)))\n```\n\n- `set` убирает повторы, но **порядок не гарантирует**.\n- Сохранить порядок: цикл с проверкой `not in` или `dict.fromkeys(t)` — ключи словаря уникальны и помнят порядок вставки.\n- Вывод: `False`, `(3, 1, 2) (3, 1, 2)`.\n\n## Итог\n\n- `tuple(x)` превращает любую коллекцию в кортеж: строку, список, `range`, ключи словаря, `reversed`, `set`.\n- `sorted` возвращает список; `reversed` — перебиратель. Для кортежа — `tuple(...)`.\n- Список и кортеж с одинаковыми элементами не равны.\n- `tuple(d.items())` — кортеж пар; `dict(пары)` — обратно.\n- Уникальные с порядком — цикл или `dict.fromkeys`.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `sorted((3, 1, 2))`?",
+                  "options": [
+                    "`(1, 2, 3)`",
+                    "`[1, 2, 3]`",
+                    "`None`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "sorted всегда возвращает список."
+                },
+                {
+                  "q": "Чему равно `[1, 2] == (1, 2)`?",
+                  "options": [
+                    "`True`",
+                    "`False`",
+                    "Ошибка",
+                    "`None`"
+                  ],
+                  "answer": 1,
+                  "explain": "Список и кортеж не равны."
+                },
+                {
+                  "q": "Что даст `tuple({\"a\": 1, \"b\": 2})`?",
+                  "options": [
+                    "`(1, 2)`",
+                    "`(\"a\", \"b\")`",
+                    "`((\"a\", 1), (\"b\", 2))`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Перебор словаря даёт ключи."
                 }
               ]
             },
             {
               "slug": "tpl-m2-l2",
               "title": "Кортежи как ключи словаря",
-              "theory": "# Хешируемость\n\nКортеж из неизменяемых элементов можно сделать **ключом словаря** или элементом множества:\n\n```\ngrid = {(0, 0): \"старт\", (2, 3): \"клад\"}\ngrid[(2, 3)]                 # \"клад\"\nresults = {(\"chrome\", 1920): \"pass\"}\n```\n\nСписок ключом быть не может: `{[1, 2]: \"x\"}` → `TypeError: unhashable type: 'list'`.",
+              "theory": "```py\ngrid = {(0, 0): \"старт\", (2, 3): \"клад\"}\ngrid[(2, 3)];  grid[2, 3]          # одно и то же\n{[1, 2]: \"x\"}                      # TypeError: unhashable type: 'list'\ncounts[pair] = counts.get(pair, 0) + 1\nseen.add(tuple(p))                 # список -> кортеж\ncells.get((r, c), \".\")\n```",
               "exercises": [
                 {
                   "slug": "tpl-m2-l2-e1",
@@ -407,6 +763,15 @@
                   "code": "results = {}\nfor browser in [\"chrome\", \"firefox\"]:\n    for size in [1920, 375]:\n        results[(browser, size)] = \"pass\"\nresults[(\"firefox\", 375)] = \"fail\"\nprint(len(results), results[(\"firefox\", 375)])\n",
                   "expected_output": "4 fail",
                   "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-m2-l2-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "seats = {}\nseats[(1, \"A\")] = \"Аня\"\nseats[1, \"B\"] = \"Боря\"\nprint(seats)\nprint(seats.get((2, \"A\"), \"свободно\"))\n",
+                  "expected_output": "{(1, 'A'): 'Аня', (1, 'B'): 'Боря'}\nсвободно",
+                  "hint": "seats[1, \"B\"] — то же, что seats[(1, \"B\")]: кортеж создаёт запятая.",
                   "xp": 10
                 },
                 {
@@ -438,49 +803,69 @@
                   "solution": "def unique_points(points):\n    seen = set()\n    result = []\n    for p in points:\n        key = tuple(p)\n        if key not in seen:\n            seen.add(key)\n            result.append(key)\n    return result\n",
                   "hint": "",
                   "xp": 20
-                }
-              ],
-              "theory_full": "## Зачем это нужно\n\nЧасто ключ поиска — не одно значение, а комбинация: результаты по паре (браузер, разрешение), ячейка игрового поля (x, y), счётчик действий по паре (пользователь, действие). Кортеж идеально подходит на роль составного ключа словаря или элемента множества — список так не умеет.\n\n## Как это работает\n\n### Хешируемость\n\nКлючи словаря и элементы множества должны быть **хешируемыми**: у объекта есть неизменный хеш (`hash(obj)`), по которому Python быстро находит его.\n\n- Неизменяемые встроенные типы хешируемы: `int`, `str`, `float`, `bool`, `None`, `tuple` (если все элементы хешируемы), `frozenset`.\n- Изменяемые — нет: `list`, `dict`, `set`. Иначе после изменения объект «потерялся» бы в словаре.\n\n`(1, [2])` — не хешируемый: внутри список.\n\n### Составные ключи\n\n```py\nresults[(\"chrome\", 1920)] = \"pass\"\nresults[\"chrome\", 1920] = \"pass\"       # скобки можно опустить\n```\n\n### Список → кортеж\n\nЧтобы положить список в множество или сделать ключом — `tuple(lst)`.\n\n## Примеры\n\n### Пример 1. Игровое поле\n\n```python\nboard = {(0, 0): \"X\", (1, 1): \"O\", (2, 2): \"X\"}\nfor y in range(3):\n    print(\" \".join(board.get((x, y), \".\") for x in range(3)))\n```\n\n### Пример 2. Матрица результатов\n\n```python\nresults = {}\nruns = [(\"chrome\", 1920, \"pass\"), (\"chrome\", 375, \"fail\"), (\"firefox\", 1920, \"pass\")]\nfor browser, size, status in runs:\n    results[browser, size] = status\nfailed = [key for key, st in results.items() if st == \"fail\"]\nprint(results)\nprint(\"упали:\", failed)\n```\n\n### Пример 3. Что хешируется, а что нет\n\n```python\nfor value in [(1, 2), \"abc\", 42, (1, [2]), [1, 2], {\"a\": 1}]:\n    try:\n        hash(value)\n        print(repr(value), \"— можно ключом\")\n    except TypeError:\n        print(repr(value), \"— нельзя\")\n```\n\n### Пример 4. Уникальные пары\n\n```python\npairs = [[\"anna\", \"login\"], [\"bob\", \"login\"], [\"anna\", \"login\"]]\nunique = {tuple(p) for p in pairs}\nprint(unique)\n```\n\n## Частые ошибки\n\n**Список как ключ** — `TypeError: unhashable type: 'list'`.\n\n**Кортеж со списком внутри как ключ** — тоже нехешируемый.\n\n**Порядок элементов важен** — `(\"a\", 1)` и `(1, \"a\")` — разные ключи.\n\n## Шпаргалка\n\n```py\nd[(x, y)] = v;  d[x, y] = v\ntuple(lst)            # сделать хешируемым\nhash(obj)             # проверить хешируемость\nset of tuples         # уникальные комбинации\n```",
-              "quiz": [
-                {
-                  "q": "Можно ли использовать `(\"chrome\", 1920)` как ключ словаря?",
-                  "options": [
-                    "Нет",
-                    "Да, кортеж из неизменяемых элементов хешируем",
-                    "Только строку",
-                    "Только если отсортировать"
-                  ],
-                  "answer": 1,
-                  "explain": "Кортеж неизменяемый и хешируемый."
                 },
                 {
-                  "q": "Почему список нельзя сделать ключом словаря?",
+                  "slug": "tpl-m2-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `neighbors(cell)` — список четырёх соседних клеток для клетки-кортежа `(row, col)`: сверху, снизу, слева, справа — именно в этом порядке.\n\n```\nneighbors((1, 1))   # → [(0, 1), (2, 1), (1, 0), (1, 2)]\n```",
+                  "starter_code": "def neighbors(cell):\n    pass\n",
+                  "tests": "def test_values():\n    assert neighbors((1, 1)) == [(0, 1), (2, 1), (1, 0), (1, 2)] and neighbors((0, 0)) == [(-1, 0), (1, 0), (0, -1), (0, 1)], \"Неверные соседи\"\n",
+                  "solution": "def neighbors(cell):\n    r, c = cell\n    return [(r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-m2-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `render(cells, rows, cols)` — `cells` это словарь `{(row, col): символ}`. Верни список строк поля размером `rows × cols`, где пустые клетки — точки.\n\n```\nrender({(0, 1): \"#\", (1, 0): \"@\"}, 2, 3)   # → [\".#.\", \"@..\"]\n```",
+                  "starter_code": "def render(cells, rows, cols):\n    pass\n",
+                  "tests": "def test_values():\n    assert render({(0, 1): \"#\", (1, 0): \"@\"}, 2, 3) == [\".#.\", \"@..\"] and render({}, 1, 2) == [\"..\"], \"Неверное поле\"\n",
+                  "solution": "def render(cells, rows, cols):\n    lines = []\n    for r in range(rows):\n        line = \"\"\n        for c in range(cols):\n            line += cells.get((r, c), \".\")\n        lines.append(line)\n    return lines\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКлючом словаря (и элементом множества) может быть только **хешируемый** объект — такой, чьё значение не меняется. Списки не подходят, а кортежи — да. Поэтому кортеж — стандартный способ сделать **составной ключ**: координата `(строка, столбец)`, пара `(браузер, размер экрана)`, `(пользователь, действие)`.\n\n## Кортеж как ключ\n\n```python\ngrid = {(0, 0): \"старт\", (2, 3): \"клад\"}\nprint(grid[(2, 3)])\nprint((1, 1) in grid)\ntry:\n    d = {[1, 2]: \"x\"}\nexcept TypeError as e:\n    print(\"список нельзя:\", \"unhashable\" in str(e))\n```\n\n- `grid[(2, 3)]` — значение по ключу-кортежу. Вывод: `клад`, `False`.\n- Список как ключ — `TypeError: unhashable type: 'list'` («нехешируемый тип»). Вывод: `список нельзя: True`.\n\n**Хеш** — число, которое Python вычисляет по значению объекта, чтобы мгновенно находить ключ в словаре. Если бы объект мог измениться, его хеш «устарел» бы, и словарь потерял бы ключ. Поэтому изменяемые объекты хешировать запрещено.\n\n## Скобки можно опустить\n\n```python\nseats = {}\nseats[(1, \"A\")] = \"Аня\"\nseats[1, \"B\"] = \"Боря\"\nprint(seats)\nprint(seats.get((2, \"A\"), \"свободно\"))\n```\n\n- `seats[1, \"B\"]` — запятая внутри квадратных скобок создаёт кортеж, это тот же ключ `(1, \"B\")`.\n- `get(ключ, по_умолчанию)` — значение или запасной вариант. Вывод: словарь с двумя местами, `свободно`.\n\n## Тестовая матрица\n\n```python\nresults = {}\nfor browser in [\"chrome\", \"firefox\"]:\n    for size in [1920, 375]:\n        results[(browser, size)] = \"pass\"\nresults[(\"firefox\", 375)] = \"fail\"\nprint(len(results), results[(\"firefox\", 375)])\n```\n\n- Каждая комбинация — свой ключ. Вывод: `4 fail`.\n\nПостроить такой словарь можно и включением:\n\n```python\nruns = [(\"chrome\", 1920, \"pass\"), (\"firefox\", 375, \"fail\")]\nprint({(b, s): status for b, s, status in runs})\n```\n\nВывод: `{('chrome', 1920): 'pass', ('firefox', 375): 'fail'}`.\n\n## Подсчёт пар\n\n```python\nevents = [(\"anna\", \"login\"), (\"bob\", \"login\"), (\"anna\", \"login\")]\ncounts = {}\nfor pair in events:\n    counts[pair] = counts.get(pair, 0) + 1\nprint(counts)\n```\n\nВывод: `{('anna', 'login'): 2, ('bob', 'login'): 1}`.\n\n## Список → кортеж, чтобы положить в множество\n\n```python\npoints = [[1, 2], [3, 4], [1, 2]]\nseen = set()\nunique = []\nfor p in points:\n    key = tuple(p)\n    if key not in seen:\n        seen.add(key)\n        unique.append(key)\nprint(unique)\n```\n\n- Список нельзя положить в `set`, поэтому превращаем в кортеж.\n- Вывод: `[(1, 2), (3, 4)]`.\n\n## Клетки поля\n\n```python\ncells = {(0, 1): \"#\", (1, 0): \"@\"}\nfor r in range(2):\n    print(\"\".join(cells.get((r, c), \".\") for c in range(3)))\n```\n\n- Словарь с ключами `(строка, столбец)` удобен для «разреженного» поля: хранятся только занятые клетки.\n- Вывод: `.#.`, `@..`.\n\n## Итог\n\n- Ключи словаря и элементы множества должны быть хешируемыми — кортеж подходит, список нет.\n- Составной ключ — кортеж: `d[(browser, size)]` или `d[browser, size]`.\n- Список → `tuple(lst)`, чтобы использовать как ключ или положить в `set`.\n- `unhashable type: 'list'` — признак, что в ключ попал список.",
+              "quiz": [
+                {
+                  "q": "Что будет при `d = {[1, 2]: \"x\"}`?",
                   "options": [
-                    "Он слишком большой",
-                    "Он изменяемый и поэтому нехешируемый",
-                    "Ключи должны быть строками",
+                    "Словарь создастся",
+                    "`TypeError: unhashable type`",
+                    "`KeyError`",
+                    "Ключ станет кортежем"
+                  ],
+                  "answer": 1,
+                  "explain": "Список нехешируемый."
+                },
+                {
+                  "q": "Какой ключ создаёт `d[1, \"A\"] = 5`?",
+                  "options": [
+                    "Два ключа",
+                    "Кортеж (1, \"A\")",
+                    "Ошибка",
+                    "Строку \"1A\""
+                  ],
+                  "answer": 1,
+                  "explain": "Запятая создаёт кортеж."
+                },
+                {
+                  "q": "Почему изменяемые объекты нельзя использовать как ключи?",
+                  "options": [
+                    "Они медленные",
+                    "Их хеш мог бы устареть после изменения",
+                    "Так решили случайно",
                     "Можно"
                   ],
                   "answer": 1,
-                  "explain": "Изменение объекта сломало бы поиск по хешу."
-                },
-                {
-                  "q": "Хешируем ли кортеж `(1, [2, 3])`?",
-                  "options": [
-                    "Да",
-                    "Нет, внутри список",
-                    "Только в Python 3.12",
-                    "Зависит от длины"
-                  ],
-                  "answer": 1,
-                  "explain": "Кортеж хешируем, только если все элементы хешируемы."
+                  "explain": "Словарь потерял бы ключ."
                 }
               ]
             },
             {
               "slug": "tpl-m2-l3",
               "title": "Сравнение и сортировка кортежей",
-              "theory": "# Поэлементное сравнение\n\n```\n(1, 9) < (1, 10)      # True: первые равны, сравниваем вторые\n(2, 0) > (1, 99)      # True: решает первый элемент\n```\n\nПоэтому кортеж — идеальный **ключ сортировки** по нескольким признакам:\n\n```\nsorted(users, key=lambda u: (u[\"age\"], u[\"name\"]))\nsorted(scores, key=lambda s: (-s[1], s[0]))    # очки ↓, имя ↑\n```",
+              "theory": "```py\n(1, 9) < (1, 10)        # True — поэлементно\n(1, 2) < (1, 2, 0)      # True — префикс меньше\nsorted(pairs)           # по 1-му, потом по 2-му\nkey=lambda v: tuple(int(p) for p in v.split(\".\"))   # версии\nkey=lambda s: (-s[1], s[0])   # очки ↓, имя ↑\n```",
               "exercises": [
                 {
                   "slug": "tpl-m2-l3-e1",
@@ -498,6 +883,15 @@
                   "code": "versions = [\"1.10.0\", \"1.9.2\", \"1.2.10\"]\nprint(sorted(versions))\nprint(sorted(versions, key=lambda v: tuple(int(p) for p in v.split(\".\"))))\n",
                   "expected_output": "['1.10.0', '1.2.10', '1.9.2']\n['1.2.10', '1.9.2', '1.10.0']",
                   "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-m2-l3-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "people = [(\"Боря\", 30), (\"Аня\", 30), (\"Вика\", 25)]\nprint(sorted(people))\nprint(sorted(people, key=lambda p: p[1]))\nprint(max(people, key=lambda p: p[1]))\n",
+                  "expected_output": "[('Аня', 30), ('Боря', 30), ('Вика', 25)]\n[('Вика', 25), ('Боря', 30), ('Аня', 30)]\n('Боря', 30)",
+                  "hint": "Сортировка устойчивая: при равном ключе сохраняется исходный порядок.",
                   "xp": 10
                 },
                 {
@@ -529,9 +923,29 @@
                   "solution": "RANK = {\"critical\": 0, \"major\": 1, \"minor\": 2}\n\ndef sort_bugs(bugs):\n    ordered = sorted(bugs, key=lambda b: (RANK[b[1]], b[2]))\n    return [bug_id for bug_id, _, _ in ordered]\n",
                   "hint": "",
                   "xp": 20
+                },
+                {
+                  "slug": "tpl-m2-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `compare_versions(a, b)` — сравнить две версии-кортежа: `-1`, если `a` меньше, `1`, если больше, `0`, если равны. Используй сравнение кортежей.\n\n```\ncompare_versions((1, 2, 0), (1, 10, 0))   # → -1\ncompare_versions((2, 0), (1, 99))         # → 1\n```",
+                  "starter_code": "def compare_versions(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    got = [compare_versions((1, 2, 0), (1, 10, 0)), compare_versions((2, 0), (1, 99)), compare_versions((1, 0), (1, 0))]\n    assert got == [-1, 1, 0], f\"Получено {got}\"\n",
+                  "solution": "def compare_versions(a, b):\n    if a < b:\n        return -1\n    if a > b:\n        return 1\n    return 0\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-m2-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `sort_by_date(events)` — события заданы как `(название, (год, месяц, день))`. Верни названия в хронологическом порядке.\n\n```\nsort_by_date([(\"релиз\", (2024, 5, 1)), (\"старт\", (2024, 1, 15)), (\"демо\", (2024, 1, 3))])\n# → [\"демо\", \"старт\", \"релиз\"]\n```",
+                  "starter_code": "def sort_by_date(events):\n    pass\n",
+                  "tests": "def test_values():\n    got = sort_by_date([(\"релиз\", (2024, 5, 1)), (\"старт\", (2024, 1, 15)), (\"демо\", (2024, 1, 3))])\n    assert got == [\"демо\", \"старт\", \"релиз\"], f\"Получено {got}\"\n",
+                  "solution": "def sort_by_date(events):\n    ordered = sorted(events, key=lambda e: e[1])\n    return [title for title, _ in ordered]\n",
+                  "hint": "Даты-кортежи (год, месяц, день) сравниваются правильно сами по себе.",
+                  "xp": 15
                 }
               ],
-              "theory_full": "## Зачем это нужно\n\nСортировать по нескольким признакам приходится постоянно: баги — по серьёзности, потом по дате; таблица лидеров — по очкам, потом по имени; версии — по мажору, минору и патчу. Кортежи сравниваются поэлементно, поэтому ключ сортировки в виде кортежа решает эти задачи одной строкой.\n\n## Как это работает\n\n### Лексикографическое сравнение\n\n1. Сравниваются первые элементы. Если они разные — результат определён.\n2. Если равны — сравниваются вторые, и так далее.\n3. Если один кортеж — начало другого, короткий меньше: `(1, 2) < (1, 2, 0)`.\n\nТак же сравниваются строки (посимвольно) и списки.\n\n### Ключ-кортеж\n\n```py\nsorted(items, key=lambda x: (признак1, признак2, ...))\n```\n\n- Числовой признак **по убыванию** — со знаком минус: `-x.score`.\n- Для строк минус не работает; если нужно «строка по убыванию, число по возрастанию» — две стабильные сортировки или `reverse` для всего и минус для числа.\n- Нечисловой порядок (серьёзность `critical > major > minor`) — через словарь рангов: `RANK[x.severity]`.\n\n## Примеры\n\n### Пример 1. Правила сравнения\n\n```python\npairs = [((1, 9), (1, 10)), ((2, 0), (1, 99)), ((1, 2), (1, 2, 0)), ((\"b\", 1), (\"a\", 9))]\nfor a, b in pairs:\n    print(a, \"<\", b, \"->\", a < b)\n```\n\n### Пример 2. Версии\n\n```python\nversions = [\"1.10.0\", \"1.9.2\", \"2.0.0\", \"1.2.10\"]\nas_tuple = lambda v: tuple(map(int, v.split(\".\")))\nprint(sorted(versions))\nprint(sorted(versions, key=as_tuple))\nprint(max(versions, key=as_tuple))\n```\n\n### Пример 3. Баги по серьёзности и дате\n\n```python\nRANK = {\"critical\": 0, \"major\": 1, \"minor\": 2}\nbugs = [(1, \"minor\", \"2024-01-01\"), (2, \"critical\", \"2024-03-01\"),\n        (3, \"major\", \"2024-02-01\"), (4, \"critical\", \"2024-01-15\")]\nfor bug in sorted(bugs, key=lambda b: (RANK[b[1]], b[2])):\n    print(bug)\n```\n\n### Пример 4. Убывание по числу, возрастание по имени\n\n```python\nscores = [(\"Боря\", 50), (\"Аня\", 80), (\"Вика\", 50)]\nprint(sorted(scores, key=lambda s: (-s[1], s[0])))\n```\n\n## Частые ошибки\n\n**Сортировка версий строками** — `\"1.10\"` окажется раньше `\"1.9\"`.\n\n**Минус для строк** — `-\"abc\"` даёт `TypeError`.\n\n**Сравнение кортежей с элементами разных типов** — `(1, \"a\") < (1, 2)` → `TypeError`.\n\n## Шпаргалка\n\n```py\n(a1, a2) < (b1, b2)                  # поэлементно\nkey=lambda x: (x.p1, x.p2)           # несколько признаков\nkey=lambda x: (-x.score, x.name)     # число ↓, строка ↑\nkey=lambda x: (RANK[x.level], x.date)\n```",
+              "theory_full": "## Зачем это нужно\n\nКортежи сравниваются **поэлементно**, слева направо, как слова в словаре. Это делает их идеальным **ключом сортировки**: «сначала по очкам, потом по имени», версии `(1, 10, 0)` против `(1, 9, 2)`, даты `(год, месяц, день)`.\n\n## Как сравниваются кортежи\n\n```python\nprint((1, 9) < (1, 10), (2, 0) > (1, 99), (1, 2) == (1, 2))\nprint((1, 2) < (1, 2, 0))\n```\n\n- Сравниваются первые элементы; если равны — вторые; и так далее.\n- `(1, 9) < (1, 10)`: первые равны, `9 < 10` → `True`.\n- `(2, 0) > (1, 99)`: уже по первому `2 > 1` → `True`, дальше не смотрим.\n- Если один кортеж — начало другого, короткий меньше: `(1, 2) < (1, 2, 0)`.\n- Вывод: `True True True`, `True`.\n\n## Сортировка списка кортежей\n\n```python\nprint(sorted([(2, \"b\"), (1, \"z\"), (2, \"a\")]))\n```\n\n- Сначала по первому элементу, при равенстве — по второму. Вывод: `[(1, 'z'), (2, 'a'), (2, 'b')]`.\n\n```python\npeople = [(\"Боря\", 30), (\"Аня\", 30), (\"Вика\", 25)]\nprint(sorted(people))\nprint(sorted(people, key=lambda p: p[1]))\nprint(max(people, key=lambda p: p[1]))\n```\n\n- Без `key` — по имени. С `key=lambda p: p[1]` — по возрасту.\n- Сортировка в Python **устойчивая**: при равных ключах сохраняется исходный порядок (Боря раньше Ани).\n- `max` при равенстве берёт первый. Вывод: три строки — по имени, по возрасту, `('Боря', 30)`.\n\n## Версии: строки против кортежей\n\n```python\nversions = [\"1.10.0\", \"1.9.2\", \"1.2.10\"]\nprint(sorted(versions))\nprint(sorted(versions, key=lambda v: tuple(int(p) for p in v.split(\".\"))))\n```\n\n- Строки сравниваются посимвольно: `\"1.10\"` < `\"1.9\"`, потому что `\"1\"` < `\"9\"`. Неправильно!\n- Ключ-кортеж из чисел `(1, 10, 0)` сравнивается правильно.\n- Вывод: `['1.10.0', '1.2.10', '1.9.2']`, затем `['1.2.10', '1.9.2', '1.10.0']`.\n\n## Несколько критериев сразу\n\n```python\nscores = [(\"Боря\", 50), (\"Аня\", 80), (\"Вика\", 50)]\nordered = sorted(scores, key=lambda s: (-s[1], s[0]))\nprint([name for name, _ in ordered])\n```\n\n- Ключ — кортеж `(-очки, имя)`: минус разворачивает порядок для чисел (больше очков — раньше), имя — по алфавиту при равенстве.\n- Вывод: `['Аня', 'Боря', 'Вика']`.\n\nСо словарём рангов:\n\n```python\nRANK = {\"critical\": 0, \"major\": 1, \"minor\": 2}\nbugs = [(1, \"minor\", \"2024-01-01\"), (2, \"critical\", \"2024-03-01\"), (4, \"critical\", \"2024-01-15\")]\nprint([b[0] for b in sorted(bugs, key=lambda b: (RANK[b[1]], b[2]))])\n```\n\n- Строковые даты `\"ГГГГ-ММ-ДД\"` сортируются правильно как строки — формат специально так устроен.\n- Вывод: `[4, 2, 1]`.\n\n## Сравнить две версии\n\n```python\ndef compare_versions(a, b):\n    if a < b:\n        return -1\n    if a > b:\n        return 1\n    return 0\n\nprint(compare_versions((1, 2, 0), (1, 10, 0)), compare_versions((2, 0), (1, 99)))\n```\n\nВывод: `-1 1`.\n\n## Итог\n\n- Кортежи сравниваются поэлементно слева направо; короткий префикс меньше.\n- Список кортежей сортируется по первому элементу, затем по второму…\n- Ключ-кортеж — сортировка по нескольким критериям; `-x` для обратного порядка чисел.\n- Версии — сравнивай как кортежи чисел, не как строки.\n- Сортировка устойчивая: равные элементы сохраняют порядок.",
               "quiz": [
                 {
                   "q": "Что вернёт `(1, 10) < (1, 9)`?",
@@ -542,29 +956,29 @@
                     "`None`"
                   ],
                   "answer": 1,
-                  "explain": "Первые равны, сравниваются вторые: 10 < 9 — ложь."
+                  "explain": "Вторые элементы: 10 > 9."
                 },
                 {
-                  "q": "Как отсортировать пары `(имя, очки)` по очкам по убыванию, а при равенстве по имени?",
+                  "q": "Почему `sorted([\"1.10\", \"1.9\"])` даёт неправильный порядок версий?",
                   "options": [
-                    "`key=lambda s: (s[1], s[0]), reverse=True`",
-                    "`key=lambda s: (-s[1], s[0])`",
-                    "`key=lambda s: s[0]`",
-                    "`reverse=True`"
+                    "Ошибка sorted",
+                    "Строки сравниваются посимвольно",
+                    "Нужно reverse=True",
+                    "Порядок правильный"
                   ],
                   "answer": 1,
-                  "explain": "Минус разворачивает только числовой признак."
+                  "explain": "\"1\" < \"9\"."
                 },
                 {
-                  "q": "Что вернёт `(1, 2) < (1, 2, 0)`?",
+                  "q": "Какой ключ отсортирует по очкам по убыванию, при равенстве — по имени?",
                   "options": [
-                    "`True`",
-                    "`False`",
-                    "Ошибка",
-                    "Зависит от версии"
+                    "`(s[1], s[0])`",
+                    "`(-s[1], s[0])`",
+                    "`(s[0], -s[1])`",
+                    "`-s`"
                   ],
-                  "answer": 0,
-                  "explain": "Короткий кортеж, являющийся началом длинного, меньше."
+                  "answer": 1,
+                  "explain": "Минус разворачивает порядок чисел."
                 }
               ]
             }
@@ -574,12 +988,12 @@
           "slug": "tpl-m3",
           "title": "Продвинутые кортежи",
           "icon": "🏷️",
-          "description": "namedtuple, кортежи из функций и подвох с изменяемым содержимым",
+          "description": "namedtuple, кортежи из функций, изменяемое внутри, неизменяемость на практике",
           "lessons": [
             {
               "slug": "tpl-m3-l1",
               "title": "namedtuple",
-              "theory": "# Кортеж с именами полей\n\n```\nfrom collections import namedtuple\n\nPoint = namedtuple(\"Point\", [\"x\", \"y\"])\np = Point(3, 4)\np.x, p.y          # 3, 4 — по имени\np[0]              # 3   — и по индексу\np._replace(x=10)  # новый Point(x=10, y=4)\np._asdict()       # {\"x\": 3, \"y\": 4}\n```\n\nНеизменяемый, как обычный кортеж, но читается гораздо понятнее.",
+              "theory": "```py\nfrom collections import namedtuple\nPoint = namedtuple(\"Point\", [\"x\", \"y\"])     # или \"x y\"\np = Point(3, 4);  p.x;  p[0];  x, y = p\np._replace(x=10)          # новая запись\np._asdict()               # {'x': 3, 'y': 4}\nProduct = namedtuple(\"Product\", \"name price qty\", defaults=[1])\n```",
               "exercises": [
                 {
                   "slug": "tpl-m3-l1-e1",
@@ -596,6 +1010,15 @@
                   "prompt": "Что выведет программа?",
                   "code": "from collections import namedtuple\nTestResult = namedtuple(\"TestResult\", \"name status duration\")\nr = TestResult(\"login\", \"pass\", 1.2)\nr2 = r._replace(status=\"fail\")\nprint(r.status, r2.status)\nprint(r._asdict())\n",
                   "expected_output": "pass fail\n{'name': 'login', 'status': 'pass', 'duration': 1.2}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-m3-l1-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "from collections import namedtuple\nPoint = namedtuple(\"Point\", \"x y\")\np = Point(x=1, y=2)\nx, y = p\nprint(x, y, p._fields)\nprint(Point._make([5, 6]))\n",
+                  "expected_output": "1 2 ('x', 'y')\nPoint(x=5, y=6)",
                   "hint": "",
                   "xp": 10
                 },
@@ -628,49 +1051,69 @@
                   "solution": "from collections import namedtuple\n\nResult = namedtuple(\"Result\", [\"name\", \"status\", \"duration\"])\n\ndef parse_results(rows):\n    result = []\n    for row in rows:\n        name, status, duration = row.split(\",\")\n        result.append(Result(name, status, float(duration)))\n    return result\n\ndef slowest(results):\n    return max(results, key=lambda r: r.duration).name\n",
                   "hint": "",
                   "xp": 20
-                }
-              ],
-              "theory_full": "## Зачем это нужно\n\nОбычный кортеж хорош, пока полей два: `(x, y)`. Но `record[3]` в записи из пяти полей ничего не говорит о смысле. `namedtuple` добавляет кортежу **имена полей**: `record.duration` вместо `record[3]`. Это лёгкий способ описать структуру данных — ответ API, строку отчёта, результат теста — без написания класса.\n\n## Как это работает\n\n```py\nfrom collections import namedtuple\nPoint = namedtuple(\"Point\", [\"x\", \"y\"])      # или \"x y\"\n```\n\n`namedtuple` создаёт **новый тип** (класс). Его объекты:\n- доступны по имени (`p.x`) **и** по индексу (`p[0]`);\n- распаковываются как кортежи: `x, y = p`;\n- неизменяемые; «изменение» — `p._replace(x=10)` возвращает новый объект;\n- `p._asdict()` — словарь; `Point._fields` — имена полей;\n- красиво печатаются: `Point(x=3, y=4)`;\n- сравниваются и хешируются как обычные кортежи.\n\nЕсть современная альтернатива с аннотациями типов — `typing.NamedTuple` — и ещё более гибкая — `@dataclass` (тема «Классы»).\n\n## Примеры\n\n### Пример 1. Основы\n\n```python\nfrom collections import namedtuple\nPoint = namedtuple(\"Point\", \"x y\")\np = Point(3, 4)\nx, y = p\nprint(p, p.x, p[1], x + y)\nprint(p._replace(x=10), p._asdict(), Point._fields)\n```\n\n### Пример 2. Результаты тестов\n\n```python\nfrom collections import namedtuple\nResult = namedtuple(\"Result\", [\"name\", \"status\", \"duration\"])\nrows = [\"login,pass,1.2\", \"pay,fail,3.4\", \"cart,pass,0.5\"]\nresults = [Result(n, s, float(d)) for n, s, d in (r.split(\",\") for r in rows)]\nfailed = [r.name for r in results if r.status == \"fail\"]\nslow = max(results, key=lambda r: r.duration)\nprint(failed, slow.name, slow.duration)\n```\n\n### Пример 3. typing.NamedTuple\n\n```python\nfrom typing import NamedTuple\n\nclass Endpoint(NamedTuple):\n    method: str\n    path: str\n    auth: bool = True\n\ne = Endpoint(\"GET\", \"/users\")\nprint(e, e.auth)\n```\n\n## Частые ошибки\n\n**Попытка присвоить полю** — `p.x = 5` → `AttributeError`; нужен `_replace`.\n\n**Имена полей с дефисами или ключевыми словами** — ошибка создания.\n\n**Изменяемые значения по умолчанию** в `NamedTuple` — те же проблемы, что с функциями.\n\n## Шпаргалка\n\n```py\nP = namedtuple(\"P\", \"a b c\")\np = P(1, 2, 3); p.a; p[0]\np._replace(a=5); p._asdict(); P._fields\nclass P(NamedTuple): a: int; b: str = \"x\"\n```",
-              "quiz": [
-                {
-                  "q": "Как получить поле `x` у `p = Point(3, 4)`?",
-                  "options": [
-                    "`p[\"x\"]`",
-                    "`p.x`",
-                    "`p.get(\"x\")`",
-                    "`p->x`"
-                  ],
-                  "answer": 1,
-                  "explain": "namedtuple даёт доступ по имени через точку (и по индексу)."
                 },
                 {
-                  "q": "Что произойдёт при `p.x = 10`?",
+                  "slug": "tpl-m3-l1-e7",
+                  "type": "code",
+                  "prompt": "Объяви namedtuple `Product` с полями `name`, `price`, `qty`, где у `qty` значение по умолчанию `1` (параметр `defaults=[1]`). Напиши функцию `total(products)` — сумма `price * qty` по всем товарам.\n\n```\ntotal([Product(\"чай\", 300), Product(\"кофе\", 500, 2)])   # → 1300\n```",
+                  "starter_code": "from collections import namedtuple\n",
+                  "tests": "def test_defaults():\n    assert Product(\"чай\", 300).qty == 1, \"qty по умолчанию — 1\"\n\ndef test_total():\n    assert total([Product(\"чай\", 300), Product(\"кофе\", 500, 2)]) == 1300 and total([]) == 0, \"Неверная сумма\"\n",
+                  "solution": "from collections import namedtuple\n\nProduct = namedtuple(\"Product\", [\"name\", \"price\", \"qty\"], defaults=[1])\n\ndef total(products):\n    return sum(p.price * p.qty for p in products)\n",
+                  "hint": "defaults применяются к последним полям: defaults=[1] — значение для qty.",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-m3-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `to_dicts(results)` — превратить список namedtuple в список обычных словарей (для отправки в JSON). Используй `_asdict()`.\n\n```\nR = namedtuple(\"R\", \"name status\")\nto_dicts([R(\"login\", \"pass\")])   # → [{\"name\": \"login\", \"status\": \"pass\"}]\n```",
+                  "starter_code": "def to_dicts(results):\n    pass\n",
+                  "tests": "from collections import namedtuple\n\ndef test_values():\n    R = namedtuple(\"R\", \"name status\")\n    got = to_dicts([R(\"login\", \"pass\"), R(\"pay\", \"fail\")])\n    assert got == [{\"name\": \"login\", \"status\": \"pass\"}, {\"name\": \"pay\", \"status\": \"fail\"}] and to_dicts([]) == [], f\"Получено {got}\"\n",
+                  "solution": "def to_dicts(results):\n    return [dict(r._asdict()) for r in results]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКортеж-запись `(\"login\", \"pass\", 1.2)` компактен, но `r[1]` ничего не говорит читателю: что это — статус? время? **Именованный кортеж** (`namedtuple`) даёт полям имена: `r.status`, `r.duration`. При этом он остаётся обычным кортежем — лёгким, неизменяемым, с индексами и распаковкой.\n\n## Создание\n\n```python\nfrom collections import namedtuple\nPoint = namedtuple(\"Point\", [\"x\", \"y\"])\np = Point(3, 4)\nprint(p)\nprint(p.x + p.y, p[0], isinstance(p, tuple))\n```\n\n- `from collections import namedtuple` — функция из модуля `collections`.\n- `namedtuple(\"Point\", [\"x\", \"y\"])` создаёт **новый тип** с именем `Point` и полями `x`, `y`. Его принято сохранять в переменную с тем же именем, с большой буквы.\n- `Point(3, 4)` — создать запись. Печатается наглядно: `Point(x=3, y=4)`.\n- Доступ и по имени (`p.x`), и по индексу (`p[0]`); это настоящий кортеж. Вывод: `Point(x=3, y=4)`, `7 3 True`.\n\nПоля можно задать одной строкой через пробел, а значения передавать по именам:\n\n```python\nfrom collections import namedtuple\nPoint = namedtuple(\"Point\", \"x y\")\np = Point(x=1, y=2)\nx, y = p\nprint(x, y, p._fields)\nprint(Point._make([5, 6]))\n```\n\n- Распаковка работает как у кортежа.\n- `_fields` — кортеж имён полей; `_make(коллекция)` — создать запись из списка. Вывод: `1 2 ('x', 'y')`, `Point(x=5, y=6)`.\n\n## Неизменяемость и _replace\n\n```python\nfrom collections import namedtuple\nTestResult = namedtuple(\"TestResult\", \"name status duration\")\nr = TestResult(\"login\", \"pass\", 1.2)\nr2 = r._replace(status=\"fail\")\nprint(r.status, r2.status)\nprint(r._asdict())\n```\n\n- `r.status = \"fail\"` — ошибка, как у любого кортежа.\n- `_replace(поле=значение)` возвращает **новую** запись с изменённым полем.\n- `_asdict()` — словарь `{поле: значение}` (удобно для JSON).\n- Методы начинаются с `_`, чтобы не конфликтовать с именами полей.\n- Вывод: `pass fail`, `{'name': 'login', 'status': 'pass', 'duration': 1.2}`.\n\n## Значения по умолчанию\n\n```python\nfrom collections import namedtuple\nProduct = namedtuple(\"Product\", [\"name\", \"price\", \"qty\"], defaults=[1])\nitems = [Product(\"чай\", 300), Product(\"кофе\", 500, 2)]\nprint(items[0].qty, sum(p.price * p.qty for p in items))\n```\n\n- `defaults=[...]` задаёт значения для **последних** полей: здесь `qty` по умолчанию 1.\n- Вывод: `1 1300`.\n\n## Разбор данных в записи\n\n```python\nfrom collections import namedtuple\nResult = namedtuple(\"Result\", [\"name\", \"status\", \"duration\"])\nrows = [\"login,pass,1.2\", \"pay,fail,3.4\"]\nresults = [Result(n, s, float(d)) for n, s, d in (row.split(\",\") for row in rows)]\nprint(max(results, key=lambda r: r.duration).name)\n```\n\n- Каждая строка CSV разбивается на части и превращается в `Result`; время — в `float`.\n- `key=lambda r: r.duration` читается понятнее, чем `r[2]`. Вывод: `pay`.\n\n## Когда что использовать\n\n- **namedtuple** — простые неизменяемые записи: результат теста, точка, строка таблицы.\n- **Словарь** — если набор полей меняется или нужен доступ по ключу-строке.\n- **Класс** (тема «Классы», в том числе `@dataclass`) — если нужны изменяемые поля и методы-поведение.\n\n## Итог\n\n- `namedtuple(\"Имя\", [\"поле1\", \"поле2\"])` — тип-запись с именованными полями.\n- Доступ по имени и по индексу, распаковка — это кортеж.\n- `_replace(...)` — новая запись с изменениями; `_asdict()` — словарь; `_fields` — имена полей.\n- `defaults=[...]` — значения по умолчанию для последних полей.",
+              "quiz": [
+                {
+                  "q": "Что выведет `print(Point(3, 4))` для `Point = namedtuple(\"Point\", \"x y\")`?",
                   "options": [
-                    "x станет 10",
-                    "`AttributeError`: namedtuple неизменяемый",
-                    "Создастся новый объект",
-                    "Ничего"
+                    "`(3, 4)`",
+                    "`Point(x=3, y=4)`",
+                    "`{x: 3, y: 4}`",
+                    "Ошибка"
                   ],
                   "answer": 1,
-                  "explain": "Для изменения используют `_replace`, который возвращает новый объект."
+                  "explain": "namedtuple печатается с именами полей."
+                },
+                {
+                  "q": "Как «изменить» поле namedtuple `r`?",
+                  "options": [
+                    "`r.status = \"fail\"`",
+                    "`r._replace(status=\"fail\")` — вернёт новую запись",
+                    "`r[1] = \"fail\"`",
+                    "Никак"
+                  ],
+                  "answer": 1,
+                  "explain": "Запись неизменяема."
                 },
                 {
                   "q": "Является ли namedtuple кортежем?",
                   "options": [
                     "Нет",
-                    "Да, это подкласс tuple",
-                    "Только если без имён",
+                    "Да — работают индексы и распаковка",
+                    "Только после tuple()",
                     "Это словарь"
                   ],
                   "answer": 1,
-                  "explain": "`isinstance(p, tuple)` — True."
+                  "explain": "isinstance(p, tuple) — True."
                 }
               ]
             },
             {
               "slug": "tpl-m3-l2",
               "title": "Кортежи из функций и встроенных инструментов",
-              "theory": "# Где кортежи появляются сами\n\n- `return a, b` — функция возвращает кортеж\n- `divmod(17, 5)` → `(3, 2)`\n- `enumerate(xs)` → пары `(индекс, элемент)`\n- `zip(a, b)` → кортежи элементов\n- `dict.items()` → пары `(ключ, значение)`\n- `str.partition(sep)` → `(до, sep, после)`",
+              "theory": "```py\nq, r = divmod(17, 5)                    # (3, 2)\nname, _, value = s.partition(\"=\")       # по первому\nbase, dot, ext = f.rpartition(\".\")      # по последнему\nfor i, x in enumerate(items): ...\nfor k, v in d.items(): ...\nreturn min(x), max(x)                   # функция -> кортеж\n```",
               "exercises": [
                 {
                   "slug": "tpl-m3-l2-e1",
@@ -688,6 +1131,15 @@
                   "code": "def stats(nums):\n    return min(nums), max(nums), sum(nums) / len(nums)\n\nr = stats([2, 4, 9])\nprint(type(r).__name__, len(r))\nlo, hi, avg = r\nprint(lo, hi, avg)\n",
                   "expected_output": "tuple 3\n2 9 5.0",
                   "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-m3-l2-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "text = \"name=Anna\"\nprint(text.partition(\"=\"), text.rpartition(\"x\"))\nq, r = divmod(-7, 2)\nprint(q, r)\n",
+                  "expected_output": "('name', '=', 'Anna') ('', '', 'name=Anna')\n-4 1",
+                  "hint": "divmod(-7, 2): целая часть округляется вниз, к -4; остаток 1.",
                   "xp": 10
                 },
                 {
@@ -719,49 +1171,69 @@
                   "solution": "def invert(d):\n    result = {}\n    for key, value in d.items():\n        result[value] = key\n    return result\n",
                   "hint": "",
                   "xp": 15
+                },
+                {
+                  "slug": "tpl-m3-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `time_parts(seconds)` — кортеж `(часы, минуты, секунды)` из общего числа секунд. Используй `divmod` дважды.\n\n```\ntime_parts(3725)   # → (1, 2, 5)\ntime_parts(59)     # → (0, 0, 59)\n```",
+                  "starter_code": "def time_parts(seconds):\n    pass\n",
+                  "tests": "def test_values():\n    assert time_parts(3725) == (1, 2, 5) and time_parts(59) == (0, 0, 59) and time_parts(7200) == (2, 0, 0), \"Неверный результат\"\n\ndef test_divmod():\n    assert \"divmod(\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй divmod\"\n",
+                  "solution": "def time_parts(seconds):\n    minutes, s = divmod(seconds, 60)\n    h, m = divmod(minutes, 60)\n    return (h, m, s)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-m3-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `split_ext(filename)` — кортеж `(имя, расширение)` по **последней** точке (используй `rpartition`). Если точки нет — `(filename, \"\")`.\n\n```\nsplit_ext(\"report.final.pdf\")   # → (\"report.final\", \"pdf\")\nsplit_ext(\"README\")             # → (\"README\", \"\")\n```",
+                  "starter_code": "def split_ext(filename):\n    pass\n",
+                  "tests": "def test_values():\n    got = [split_ext(\"report.final.pdf\"), split_ext(\"README\"), split_ext(\"a.txt\")]\n    assert got == [(\"report.final\", \"pdf\"), (\"README\", \"\"), (\"a\", \"txt\")], f\"Получено {got}\"\n",
+                  "solution": "def split_ext(filename):\n    name, dot, ext = filename.rpartition(\".\")\n    if not dot:\n        return (filename, \"\")\n    return (name, ext)\n",
+                  "hint": "Без разделителя rpartition вернёт (\"\", \"\", строка).",
+                  "xp": 15
                 }
               ],
-              "theory_full": "## Зачем это нужно\n\nКортежи встречаются в Python повсюду, даже если ты их явно не создаёшь. Их возвращают функции с несколькими результатами, выдают `enumerate`, `zip`, `dict.items()`, `divmod`, `partition`. Узнавая кортежи «в лицо», ты уверенно распаковываешь их и не удивляешься, откуда взялись скобки в выводе.\n\n## Как это работает\n\n- **`return a, b`** — упаковка в кортеж; распаковка при вызове: `x, y = f()`.\n- **`divmod(a, b)`** → `(a // b, a % b)`.\n- **`enumerate(xs, start)`** → итератор пар `(номер, элемент)`.\n- **`zip(a, b, ...)`** → итератор кортежей из элементов на одинаковых позициях.\n- **`dict.items()`** → пары `(ключ, значение)`.\n- **`str.partition(sep)`** → `(до, sep, после)`; `rpartition` — с конца.\n- **`sorted(d.items())`** → список кортежей.\n\nРаз это кортежи — используем распаковку прямо в цикле: `for i, x in enumerate(xs)`, `for k, v in d.items()`.\n\n## Примеры\n\n### Пример 1. Зоопарк кортежей\n\n```python\nprint(divmod(125, 60))\nprint(list(enumerate([\"a\", \"b\"], start=1)))\nprint(list(zip(\"xy\", [1, 2], [True, False])))\nprint(list({\"a\": 1, \"b\": 2}.items()))\nprint(\"Authorization: Bearer x\".partition(\": \"))\n```\n\n### Пример 2. Разбор заголовков\n\n```python\nraw = [\"Content-Type: application/json\", \"X-Request-Id:  42 \", \"Accept:*/*\"]\nheaders = {}\nfor line in raw:\n    name, _, value = line.partition(\":\")\n    headers[name.strip().lower()] = value.strip()\nprint(headers)\n```\n\n### Пример 3. Функция с несколькими результатами\n\n```python\ndef validate(user):\n    errors = []\n    if \"@\" not in user.get(\"email\", \"\"):\n        errors.append(\"email\")\n    if user.get(\"age\", -1) < 0:\n        errors.append(\"age\")\n    return not errors, errors\n\nok, errors = validate({\"email\": \"a@b.ru\", \"age\": 30})\nprint(ok, errors)\nok, errors = validate({\"email\": \"bad\"})\nprint(ok, errors)\n```\n\n### Пример 4. Переворот словаря\n\n```python\ncodes = {\"OK\": 200, \"Not Found\": 404}\nprint({code: text for text, code in codes.items()})\n```\n\n## Частые ошибки\n\n**Забыли распаковать** — `for pair in d.items(): pair[0]` вместо `for k, v in ...`.\n\n**Ожидание списка от `zip`/`enumerate`** — это одноразовые итераторы.\n\n**`partition` без разделителя** — вернёт `(строка, \"\", \"\")`, а не ошибку; проверяй средний элемент.\n\n## Шпаргалка\n\n```py\nq, r = divmod(a, b)\nfor i, x in enumerate(xs): ...\nfor a, b in zip(xs, ys): ...\nfor k, v in d.items(): ...\nhead, sep, tail = s.partition(\":\")\n```",
+              "theory_full": "## Зачем это нужно\n\nКортежи повсюду в Python, даже когда ты их не создаёшь: их возвращают `divmod`, `enumerate`, `zip`, `dict.items`, строковые `partition`, а также твои функции с `return a, b`. Умение сразу распаковывать такие результаты делает код коротким и понятным.\n\n## Встроенные функции, возвращающие кортежи\n\n```python\nprint(divmod(17, 5))\nprint(list(enumerate(\"ab\")))\nprint(list(zip([1, 2], [\"x\", \"y\"])))\nprint(\"key=value\".partition(\"=\"))\n```\n\n- `divmod(a, b)` — пара `(a // b, a % b)`.\n- `enumerate` — пары `(номер, элемент)`; `zip` — кортежи из элементов нескольких коллекций.\n- `s.partition(sep)` — тройка `(до, разделитель, после)` по **первому** разделителю.\n- Вывод: `(3, 2)`, `[(0, 'a'), (1, 'b')]`, `[(1, 'x'), (2, 'y')]`, `('key', '=', 'value')`.\n\n## partition и rpartition\n\n```python\ntext = \"name=Anna\"\nprint(text.partition(\"=\"), text.rpartition(\"x\"))\nname, _, value = \"Content-Type: application/json\".partition(\":\")\nprint(name.strip().lower(), \"|\", value.strip())\n```\n\n- `rpartition` ищет **последний** разделитель. Если разделителя нет: `partition` вернёт `(строка, \"\", \"\")`, `rpartition` — `(\"\", \"\", строка)`.\n- Средний элемент (сам разделитель) часто не нужен — в `_`.\n- Вывод: `('name', '=', 'Anna') ('', '', 'name=Anna')`, `content-type | application/json`.\n\nИмя файла и расширение по **последней** точке:\n\n```python\nname, dot, ext = \"report.final.pdf\".rpartition(\".\")\nprint(name, ext, bool(dot))\n```\n\n- Пустой `dot` означал бы, что точки не было. Вывод: `report.final pdf True`.\n\n## divmod: часы, минуты, секунды\n\n```python\nminutes, s = divmod(3725, 60)\nh, m = divmod(minutes, 60)\nprint(h, m, s)\nq, r = divmod(-7, 2)\nprint(q, r)\n```\n\n- 3725 секунд = 62 минуты 5 секунд = 1 час 2 минуты 5 секунд. Вывод: `1 2 5`.\n- Для отрицательных `//` округляет **вниз**: `-7 // 2 = -4`, а остаток `1` (−4·2 + 1 = −7). Вывод: `-4 1`.\n\n## Функция возвращает кортеж\n\n```python\ndef stats(nums):\n    if not nums:\n        return None, None, None\n    return min(nums), max(nums), round(sum(nums) / len(nums), 2)\n\nr = stats([2, 4, 9])\nprint(type(r).__name__, len(r))\nlo, hi, avg = r\nprint(lo, hi, avg, stats([]))\n```\n\n- `return a, b, c` — кортеж; можно сохранить целиком или распаковать.\n- Для особого случая удобно вернуть кортеж того же размера из `None` — вызывающий код распакует без ошибки.\n- Вывод: `tuple 3`, `2 9 5.0 (None, None, None)`.\n\n## items() — кортежи пар\n\n```python\nd = {\"a\": 1, \"b\": 2}\ninverted = {}\nfor key, value in d.items():\n    inverted[value] = key\nprint(inverted)\n```\n\nВывод: `{1: 'a', 2: 'b'}`.\n\n## Итог\n\n- `divmod`, `enumerate`, `zip`, `items`, `partition`/`rpartition` возвращают кортежи.\n- `partition` — по первому разделителю, `rpartition` — по последнему; без разделителя — пустые части.\n- `return a, b` — функция возвращает кортеж; для особых случаев — кортеж из `None` того же размера.\n- Распаковывай результат сразу: `q, r = divmod(...)`.",
               "quiz": [
+                {
+                  "q": "Что вернёт `\"a=b=c\".partition(\"=\")`?",
+                  "options": [
+                    "`(\"a\", \"=\", \"b=c\")`",
+                    "`(\"a=b\", \"=\", \"c\")`",
+                    "`[\"a\", \"b\", \"c\"]`",
+                    "Ошибка"
+                  ],
+                  "answer": 0,
+                  "explain": "partition режет по первому разделителю."
+                },
                 {
                   "q": "Что вернёт `divmod(10, 3)`?",
                   "options": [
-                    "`3.33`",
                     "`(3, 1)`",
-                    "`[3, 1]`",
-                    "`3`"
+                    "`(1, 3)`",
+                    "`3.33`",
+                    "`[3, 1]`"
                   ],
-                  "answer": 1,
-                  "explain": "Кортеж из частного и остатка."
+                  "answer": 0,
+                  "explain": "(10 // 3, 10 % 3)."
                 },
                 {
-                  "q": "Что вернёт `\"abc\".partition(\"-\")`?",
+                  "q": "Что вернёт `\"README\".rpartition(\".\")`?",
                   "options": [
-                    "Ошибку",
-                    "`('abc', '', '')`",
-                    "`('', '', 'abc')`",
-                    "`['abc']`"
+                    "`(\"README\", \"\", \"\")`",
+                    "`(\"\", \"\", \"README\")`",
+                    "Ошибка",
+                    "`(\"README\",)`"
                   ],
                   "answer": 1,
-                  "explain": "Если разделителя нет, вся строка — в первом элементе."
-                },
-                {
-                  "q": "Какого типа элементы у `list(zip([1], [\"a\"]))`?",
-                  "options": [
-                    "списки",
-                    "кортежи",
-                    "словари",
-                    "строки"
-                  ],
-                  "answer": 1,
-                  "explain": "zip выдаёт кортежи: `[(1, 'a')]`."
+                  "explain": "Без разделителя строка оказывается в конце."
                 }
               ]
             },
             {
               "slug": "tpl-m3-l3",
               "title": "Изменяемое внутри неизменяемого",
-              "theory": "# Подвох\n\nКортеж неизменяем — он хранит **ссылки**, которые нельзя заменить. Но если по ссылке лежит список, **сам список** менять можно:\n\n```\nt = (\"config\", [1, 2])\nt[1].append(3)      # работает! t == (\"config\", [1, 2, 3])\nt[1] = [9]          # TypeError\n```\n\nТакой кортеж нельзя положить в множество или сделать ключом (он нехешируемый).",
+              "theory": "```py\nt = (\"tags\", [\"smoke\"])\nt[1].append(\"x\")      # можно — меняем список внутри\nt[1] = []             # TypeError — менять ссылку нельзя\nhash((1, [2]))        # TypeError — список внутри\nt[0] += [20]          # изменит список И упадёт с TypeError!\ntuple(deep_freeze(v) for v in value)   # списки -> кортежи\n```",
               "exercises": [
                 {
                   "slug": "tpl-m3-l3-e1",
@@ -779,6 +1251,15 @@
                   "code": "a = (1, 2)\nb = (1, [2])\nfor value in (a, b):\n    try:\n        hash(value)\n        print(value, \"хешируемый\")\n    except TypeError:\n        print(value, \"нехешируемый\")\n",
                   "expected_output": "(1, 2) хешируемый\n(1, [2]) нехешируемый",
                   "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-m3-l3-e6",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Знаменитая загадка с +=.",
+                  "code": "t = ([1], [2])\nt[0].append(10)\nprint(t)\ntry:\n    t[0] += [20]\nexcept TypeError:\n    print(\"TypeError\")\nprint(t)\n",
+                  "expected_output": "([1, 10], [2])\nTypeError\n([1, 10, 20], [2])",
+                  "hint": "+= сначала расширяет список на месте, а потом пытается записать его в кортеж — и падает.",
                   "xp": 10
                 },
                 {
@@ -810,42 +1291,182 @@
                   "solution": "def make_config():\n    return (\"staging\", (\"chrome\", \"firefox\"))\n",
                   "hint": "",
                   "xp": 15
-                }
-              ],
-              "theory_full": "## Зачем это нужно\n\n«Кортеж неизменяемый» — верно, но с оговоркой, о которой спотыкаются даже опытные разработчики. Кортеж неизменяем «поверхностно»: он не даёт заменить свои элементы, но если элемент — список или словарь, его содержимое спокойно меняется. Это важно, когда кортеж используют как «константу» настроек или как ключ.\n\n## Как это работает\n\nКортеж хранит **ссылки** на объекты.\n\n- Заменить ссылку нельзя: `t[1] = [...]` → `TypeError`.\n- Изменить объект по ссылке можно, если он изменяемый: `t[1].append(3)`.\n\n### Хешируемость\n\nХеш кортежа вычисляется из хешей элементов. Если внутри есть нехешируемый элемент (список, словарь, множество), весь кортеж нехешируемый — его нельзя сделать ключом словаря или положить в множество.\n\n### Настоящая неизменяемость\n\nЧтобы структура была полностью неизменяемой:\n- списки → кортежи;\n- множества → `frozenset`;\n- словари → `types.MappingProxyType` (только для чтения) или кортеж пар.\n\nРекурсивная «заморозка» превращает вложенную структуру в неизменяемую.\n\n### Забавный факт\n\n`t = ([],); t[0] += [1]` — выдаст `TypeError`, но список всё равно изменится! `+=` сначала выполнит `extend` (успешно), а потом попытается присвоить `t[0]` (ошибка).\n\n## Примеры\n\n### Пример 1. Изменение содержимого\n\n```python\nconfig = (\"staging\", [\"chrome\"])\nconfig[1].append(\"firefox\")\nprint(config)\ntry:\n    config[1] = [\"safari\"]\nexcept TypeError as e:\n    print(\"TypeError:\", e)\n```\n\n### Пример 2. Хешируемость\n\n```python\nfor value in [(1, 2), (1, [2]), (1, (2, 3)), (1, frozenset([2]))]:\n    try:\n        print(value, \"->\", hash(value) is not None)\n    except TypeError:\n        print(value, \"-> нехешируемый\")\n```\n\n### Пример 3. Рекурсивная заморозка\n\n```python\ndef deep_freeze(value):\n    if isinstance(value, list):\n        return tuple(deep_freeze(v) for v in value)\n    if isinstance(value, set):\n        return frozenset(deep_freeze(v) for v in value)\n    if isinstance(value, dict):\n        return tuple(sorted((k, deep_freeze(v)) for k, v in value.items()))\n    return value\n\nfrozen = deep_freeze({\"browsers\": [\"chrome\", \"firefox\"], \"retries\": 3})\nprint(frozen, hash(frozen) is not None)\n```\n\n### Пример 4. Странность с +=\n\n```python\nt = ([],)\ntry:\n    t[0] += [1]\nexcept TypeError as e:\n    print(\"TypeError:\", e)\nprint(t)          # список всё равно изменился!\n```\n\n## Частые ошибки\n\n**Кортеж-«константа» со списком внутри** — кто-то меняет «константу».\n\n**Кортеж со списком как ключ** — `TypeError: unhashable type`.\n\n**`t[i] += ...` для списка внутри кортежа** — и ошибка, и изменение одновременно.\n\n## Шпаргалка\n\n```text\nкортеж неизменяем поверхностно: ссылки заменить нельзя, объекты по ним — можно\nхешируемость требует хешируемых элементов\nlist → tuple, set → frozenset для полной неизменяемости\n```",
-              "quiz": [
-                {
-                  "q": "Что произойдёт при `t = (1, [2]); t[1].append(3)`?",
-                  "options": [
-                    "TypeError",
-                    "t станет (1, [2, 3])",
-                    "Создастся новый кортеж",
-                    "Ничего"
-                  ],
-                  "answer": 1,
-                  "explain": "Кортеж не даёт заменить ссылку, но список по ней можно менять."
                 },
                 {
-                  "q": "Можно ли `(1, [2])` сделать ключом словаря?",
+                  "slug": "tpl-m3-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `contains_mutable(t)` — есть ли в кортеже (на верхнем уровне) изменяемые элементы: списки, словари или множества.\n\n```\ncontains_mutable((1, \"a\", (2,)))   # → False\ncontains_mutable((1, [2]))         # → True\n```",
+                  "starter_code": "def contains_mutable(t):\n    pass\n",
+                  "tests": "def test_values():\n    got = [contains_mutable((1, \"a\", (2,))), contains_mutable((1, [2])), contains_mutable(({},)), contains_mutable((set(),)), contains_mutable(())]\n    assert got == [False, True, True, True, False], f\"Получено {got}\"\n",
+                  "solution": "def contains_mutable(t):\n    for x in t:\n        if isinstance(x, (list, dict, set)):\n            return True\n    return False\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-m3-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `snapshot(config)` — «снимок» словаря настроек, где значения — списки. Вернуть кортеж пар `(ключ, кортеж_значений)`, отсортированный по ключу. Снимок полностью неизменяемый и хешируемый.\n\n```\nsnapshot({\"browsers\": [\"chrome\", \"ff\"], \"envs\": [\"dev\"]})\n# → ((\"browsers\", (\"chrome\", \"ff\")), (\"envs\", (\"dev\",)))\n```",
+                  "starter_code": "def snapshot(config):\n    pass\n",
+                  "tests": "def test_values():\n    s = snapshot({\"browsers\": [\"chrome\", \"ff\"], \"envs\": [\"dev\"]})\n    assert s == ((\"browsers\", (\"chrome\", \"ff\")), (\"envs\", (\"dev\",))), f\"Получено {s!r}\"\n    hash(s)\n",
+                  "solution": "def snapshot(config):\n    return tuple((key, tuple(config[key])) for key in sorted(config))\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКортеж неизменяем — но это касается только его **ссылок**: нельзя заменить элемент другим. Если же элемент сам изменяемый (список, словарь), его содержимое меняется свободно. Такой кортеж уже нельзя сделать ключом словаря, а «константа» перестаёт быть константой.\n\n## Кортеж со списком внутри\n\n```python\nt = (\"tags\", [\"smoke\"])\nt[1].append(\"regress\")\nprint(t)\ntry:\n    t[1] = []\nexcept TypeError:\n    print(\"заменить элемент нельзя\")\n```\n\n- Кортеж хранит **ссылку** на список. Заменить ссылку нельзя, а изменить сам список — можно.\n- Вывод: `('tags', ['smoke', 'regress'])`, `заменить элемент нельзя`.\n\n## Хешируемость\n\n```python\na = (1, 2)\nb = (1, [2])\nfor value in (a, b):\n    try:\n        hash(value)\n        print(value, \"хешируемый\")\n    except TypeError:\n        print(value, \"нехешируемый\")\n```\n\n- Кортеж хешируемый, только если **все** его элементы хешируемые. Со списком внутри — нет, и как ключ словаря его не использовать.\n- `hash(x)` вычисляет хеш или падает с `TypeError`.\n- Вывод: `(1, 2) хешируемый`, `(1, [2]) нехешируемый`.\n\nХешируемы: числа, строки, `True`/`False`/`None`, кортежи из хешируемых, `frozenset`. Нехешируемы: `list`, `dict`, `set`.\n\n## Загадка с +=\n\n```python\nt = ([1], [2])\nt[0].append(10)\nprint(t)\ntry:\n    t[0] += [20]\nexcept TypeError:\n    print(\"TypeError\")\nprint(t)\n```\n\n- `t[0] += [20]` выполняется в два шага: 1) список `t[0]` расширяется **на месте**; 2) результат записывается обратно в `t[0]` — а это присваивание элементу кортежа, и оно падает.\n- Первый шаг уже случился! Вывод: `([1, 10], [2])`, `TypeError`, `([1, 10, 20], [2])` — ошибка, но список изменился.\n- Мораль: не храни изменяемое в кортежах, если нужна гарантия неизменяемости.\n\n## Сделать по-настоящему неизменяемым\n\nЗамени внутренние списки на кортежи:\n\n```python\ndef deep_freeze(value):\n    if isinstance(value, list):\n        return tuple(deep_freeze(v) for v in value)\n    return value\n\nfrozen = deep_freeze([1, [2, [3]], 4])\nprint(frozen, hash(frozen) == hash((1, (2, (3,)), 4)))\n```\n\n- Рекурсия обходит всю вложенность. Результат можно хешировать. Вывод: `(1, (2, (3,)), 4) True`.\n\nСнимок словаря настроек:\n\n```python\nconfig = {\"browsers\": [\"chrome\", \"ff\"], \"envs\": [\"dev\"]}\nsnap = tuple((key, tuple(config[key])) for key in sorted(config))\nprint(snap)\n```\n\nВывод: `(('browsers', ('chrome', 'ff')), ('envs', ('dev',)))`.\n\n## Итог\n\n- Кортеж запрещает заменять элементы, но не запрещает менять изменяемые элементы изнутри.\n- Кортеж хешируем, только если все элементы хешируемы.\n- `t[i] += [...]` для списка внутри кортежа изменит список **и** выбросит `TypeError`.\n- Полная неизменяемость — только кортежи/строки/числа внутри; `deep_freeze` превращает списки в кортежи.",
+              "quiz": [
+                {
+                  "q": "Можно ли выполнить `t[1].append(3)` для `t = (1, [2])`?",
+                  "options": [
+                    "Нет, TypeError",
+                    "Да, список внутри изменится",
+                    "Только через tuple()",
+                    "Нет, AttributeError"
+                  ],
+                  "answer": 1,
+                  "explain": "Неизменяемы ссылки, а не сами объекты."
+                },
+                {
+                  "q": "Можно ли использовать `(1, [2])` как ключ словаря?",
                   "options": [
                     "Да",
-                    "Нет, внутри нехешируемый список",
-                    "Только через str()",
+                    "Нет — нехешируемый",
+                    "Только в Python 3.12",
                     "Да, если список пуст"
                   ],
                   "answer": 1,
-                  "explain": "Хешируемость кортежа требует хешируемых элементов."
+                  "explain": "Все элементы должны быть хешируемыми."
                 },
                 {
-                  "q": "Во что превратить множество, чтобы оно стало неизменяемым?",
+                  "q": "Что произойдёт при `t[0] += [1]` для `t = ([0],)`?",
                   "options": [
-                    "`tuple`",
-                    "`frozenset`",
-                    "`list`",
-                    "`dict`"
+                    "Только TypeError",
+                    "Список изменится, затем TypeError",
+                    "Ничего",
+                    "t станет ([0, 1],) без ошибки"
                   ],
                   "answer": 1,
-                  "explain": "frozenset — неизменяемое и хешируемое множество."
+                  "explain": "Два шага: расширение на месте, потом присваивание."
+                }
+              ]
+            },
+            {
+              "slug": "tpl-immut",
+              "title": "Неизменяемость на практике",
+              "theory": "```py\nt += (3,)                      # НОВЫЙ кортеж (id меняется)\nlst += [3]                     # тот же список\ndef f(items=()): ...           # кортеж — безопасный default\nt[:i] + (new,) + t[i + 1:]     # заменить\nt[:i] + (new,) + t[i:]         # вставить\ntuple(x for x in t if x != v)  # удалить\n```",
+              "exercises": [
+                {
+                  "slug": "tpl-immut-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? += у кортежа и у списка.",
+                  "code": "t = (1, 2)\nbefore = id(t)\nt += (3,)\nprint(t, id(t) == before)\nlst = [1, 2]\nbefore = id(lst)\nlst += [3]\nprint(lst, id(lst) == before)\n",
+                  "expected_output": "(1, 2, 3) False\n[1, 2, 3] True",
+                  "hint": "id — «номер» объекта. Кортеж при += создаётся новый, список расширяется на месте.",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-immut-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Кортеж как безопасное значение по умолчанию.",
+                  "code": "def add_default(items=()):\n    return items + (\"default\",)\n\nprint(add_default(), add_default())\n",
+                  "expected_output": "('default',) ('default',)",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-immut-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "a = (1, 2, 3)\nb = a\nb = b + (4,)\nprint(a, b, a is b)\n",
+                  "expected_output": "(1, 2, 3) (1, 2, 3, 4) False",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "tpl-immut-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `with_updated(t, index, value)` — **новый** кортеж, где элемент с индексом `index` заменён на `value`. Используй срезы.\n\n```\nwith_updated((1, 2, 3), 1, 99)   # → (1, 99, 3)\n```",
+                  "starter_code": "def with_updated(t, index, value):\n    pass\n",
+                  "tests": "def test_values():\n    src = (1, 2, 3)\n    assert with_updated(src, 1, 99) == (1, 99, 3) and with_updated(src, 0, 0) == (0, 2, 3) and src == (1, 2, 3), \"Неверный результат\"\n",
+                  "solution": "def with_updated(t, index, value):\n    return t[:index] + (value,) + t[index + 1:]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-immut-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `remove_from(t, value)` — новый кортеж без всех вхождений `value`.\n\n```\nremove_from((1, 2, 1, 3), 1)   # → (2, 3)\n```",
+                  "starter_code": "def remove_from(t, value):\n    pass\n",
+                  "tests": "def test_values():\n    assert remove_from((1, 2, 1, 3), 1) == (2, 3) and remove_from((), 1) == () and remove_from((5,), 1) == (5,), \"Неверный результат\"\n",
+                  "solution": "def remove_from(t, value):\n    return tuple(x for x in t if x != value)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-immut-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `insert_at(t, index, value)` — новый кортеж со вставленным перед позицией `index` значением.\n\n```\ninsert_at((1, 2, 3), 1, \"x\")   # → (1, \"x\", 2, 3)\ninsert_at((1, 2), 2, \"x\")      # → (1, 2, \"x\")\n```",
+                  "starter_code": "def insert_at(t, index, value):\n    pass\n",
+                  "tests": "def test_values():\n    assert insert_at((1, 2, 3), 1, \"x\") == (1, \"x\", 2, 3) and insert_at((1, 2), 2, \"x\") == (1, 2, \"x\") and insert_at((), 0, 5) == (5,), \"Неверный результат\"\n",
+                  "solution": "def insert_at(t, index, value):\n    return t[:index] + (value,) + t[index:]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-immut-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `append_log(entry, log=())` — вернуть новый кортеж-журнал с добавленной записью. Кортеж по умолчанию безопасен: вызовы без `log` не должны «помнить» друг друга (в отличие от списка по умолчанию).\n\n```\nappend_log(\"a\")          # → (\"a\",)\nappend_log(\"b\")          # → (\"b\",)\nappend_log(\"c\", (\"a\",))  # → (\"a\", \"c\")\n```",
+                  "starter_code": "def append_log(entry, log=()):\n    pass\n",
+                  "tests": "def test_values():\n    assert append_log(\"a\") == (\"a\",) and append_log(\"b\") == (\"b\",) and append_log(\"c\", (\"a\",)) == (\"a\", \"c\"), \"Неверный журнал\"\n",
+                  "solution": "def append_log(entry, log=()):\n    return log + (entry,)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "tpl-immut-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `apply_moves(start, moves)` — точка `start = (x, y)` последовательно сдвигается на каждый `(dx, dy)` из списка. Каждый раз создаётся **новый** кортеж. Вернуть итоговую точку.\n\n```\napply_moves((0, 0), [(1, 2), (3, -1)])   # → (4, 1)\n```",
+                  "starter_code": "def apply_moves(start, moves):\n    pass\n",
+                  "tests": "def test_values():\n    assert apply_moves((0, 0), [(1, 2), (3, -1)]) == (4, 1) and apply_moves((5, 5), []) == (5, 5), \"Неверная точка\"\n",
+                  "solution": "def apply_moves(start, moves):\n    point = start\n    for dx, dy in moves:\n        x, y = point\n        point = (x + dx, y + dy)\n    return point\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nС неизменяемыми данными программа предсказуемее: никакая функция не испортит кортеж, переданный ей в аргументе; его безопасно использовать как значение по умолчанию и делить между частями программы. Цена — чтобы «изменить» кортеж, нужно создать новый. Разберём, как это делать удобно и что при этом происходит.\n\n## += у кортежа создаёт новый объект\n\n```python\nt = (1, 2)\nbefore = id(t)\nt += (3,)\nprint(t, id(t) == before)\nlst = [1, 2]\nbefore = id(lst)\nlst += [3]\nprint(lst, id(lst) == before)\n```\n\n- `id(x)` — уникальный номер объекта. Если номер тот же — это тот же объект.\n- Для кортежа `t += (3,)` значит `t = t + (3,)`: создан **новый** кортеж, имя перевешено на него.\n- Для списка `lst += [3]` расширяет **тот же** список на месте.\n- Вывод: `(1, 2, 3) False`, `[1, 2, 3] True`.\n\n## Другие имена не затронуты\n\n```python\na = (1, 2, 3)\nb = a\nb = b + (4,)\nprint(a, b, a is b)\n```\n\n- `b` указывала на тот же кортеж, что и `a`, но «изменение» `b` создало новый объект. `a` не пострадала.\n- Со списком `b.append(4)` изменил бы и `a` (тема «Списки»). Вывод: `(1, 2, 3) (1, 2, 3, 4) False`.\n\n## Кортеж — безопасное значение по умолчанию\n\n```python\ndef add_default(items=()):\n    return items + (\"default\",)\n\nprint(add_default(), add_default())\n```\n\n- Список по умолчанию накапливается между вызовами (тема «Функции»). Кортеж изменить нельзя, поэтому ловушки нет.\n- Вывод: `('default',) ('default',)`.\n\n## Приёмы «изменения» через срезы\n\n```python\nt = (1, 2, 3)\nprint(t[:1] + (99,) + t[2:])\nprint(t[:1] + (\"x\",) + t[1:])\nprint(tuple(x for x in (1, 2, 1, 3) if x != 1))\n```\n\n- **Замена** элемента `i`: `t[:i] + (новый,) + t[i + 1:]`.\n- **Вставка** перед `i`: `t[:i] + (новый,) + t[i:]`.\n- **Удаление** значений: генератор с фильтром внутри `tuple(...)`.\n- Вывод: `(1, 99, 3)`, `(1, 'x', 2, 3)`, `(2, 3)`.\n\n## Состояние как последовательность новых кортежей\n\n```python\npoint = (0, 0)\nfor dx, dy in [(1, 2), (3, -1)]:\n    x, y = point\n    point = (x + dx, y + dy)\nprint(point)\n```\n\n- Каждый шаг создаёт новую точку; старые никто не меняет. Так проще отлаживать: каждое промежуточное значение неизменно.\n- Вывод: `(4, 1)`.\n\n## Когда кортеж неудобен\n\nЕсли данные меняются **часто** (сотни добавлений в цикле), каждый `t + (x,)` копирует весь кортеж — это медленно. Тогда собирай **список**, а в конце превращай в кортеж: `tuple(result)`.\n\n## Итог\n\n- `t += (x,)` создаёт новый кортеж; другие имена, указывающие на старый, не меняются.\n- `id(x)` и `is` показывают, тот же ли это объект.\n- Кортеж — безопасное значение по умолчанию.\n- Замена, вставка, удаление — срезы и `tuple(генератор)`.\n- Много изменений — работай со списком и в конце делай `tuple(...)`.",
+              "quiz": [
+                {
+                  "q": "Изменится ли `id(t)` после `t += (1,)` для кортежа?",
+                  "options": [
+                    "Нет",
+                    "Да — создаётся новый кортеж",
+                    "Только для пустого",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Кортеж нельзя расширить на месте."
+                },
+                {
+                  "q": "Как заменить элемент с индексом 1 в `t = (1, 2, 3)`?",
+                  "options": [
+                    "`t[1] = 9`",
+                    "`t[:1] + (9,) + t[2:]`",
+                    "`t.replace(1, 9)`",
+                    "`t.insert(1, 9)`"
+                  ],
+                  "answer": 1,
+                  "explain": "Собрать новый кортеж из срезов."
+                },
+                {
+                  "q": "Почему кортеж — безопасное значение по умолчанию?",
+                  "options": [
+                    "Он быстрее",
+                    "Его нельзя изменить — ничего не накапливается",
+                    "Он пустой",
+                    "Так требует Python"
+                  ],
+                  "answer": 1,
+                  "explain": "В отличие от списка."
                 }
               ]
             }
