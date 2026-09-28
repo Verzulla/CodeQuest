@@ -1,0 +1,1478 @@
+{
+  "topics": [
+    {
+      "slug": "py-json",
+      "title": "JSON",
+      "icon": "🧾",
+      "color": "#1cb0f6",
+      "description": "Формат JSON, loads и dumps, типы, вложенные данные, файлы, проверка и сравнение ответов API",
+      "group": "Python",
+      "modules": [
+        {
+          "slug": "jsn-m1",
+          "title": "JSON и Python",
+          "icon": "🧾",
+          "description": "Формат JSON, loads и dumps, форматирование и соответствие типов",
+          "lessons": [
+            {
+              "slug": "jsn-m1-l1",
+              "title": "Что такое JSON",
+              "theory": "```py\nimport json\ndata = json.loads('{\"a\": 1, \"ok\": true, \"x\": null}')   # строка -> dict\ndata[\"ok\"]                       # True\ntext = json.dumps({\"a\": None})   # dict -> '{\"a\": null}'\njson.dumps(d, ensure_ascii=False)   # кириллица как есть\n```\n- объект→dict, массив→list, true/false→True/False, null→None.",
+              "exercises": [
+                {
+                  "slug": "jsn-m1-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\ntext = '{\"name\": \"Аня\", \"age\": 25, \"skills\": [\"qa\", \"sql\"]}'\ndata = json.loads(text)\nprint(type(text).__name__, type(data).__name__)\nprint(data[\"name\"], data[\"skills\"][1])\n",
+                  "expected_output": "str dict\nАня sql",
+                  "hint": "JSON — это строка; loads превращает её в объекты Python.",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m1-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\nprint(json.loads(\"[1, 2, 3]\"), json.loads(\"true\"), json.loads(\"null\"))\nprint(json.loads('\"текст\"'), json.loads(\"3.5\"))\n",
+                  "expected_output": "[1, 2, 3] True None\nтекст 3.5",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m1-l1-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Из Python в JSON.",
+                  "code": "import json\nuser = {\"name\": \"Аня\", \"active\": True, \"phone\": None}\nprint(json.dumps(user, ensure_ascii=False))\n",
+                  "expected_output": "{\"name\": \"Аня\", \"active\": true, \"phone\": null}",
+                  "hint": "True → true, None → null, кавычки — только двойные.",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m1-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_name(text)` — разобрать JSON-строку с объектом пользователя и вернуть значение поля `\"name\"`.\n\n```\nparse_name('{\"name\": \"Аня\", \"age\": 25}')   # → \"Аня\"\n```",
+                  "starter_code": "import json\n\ndef parse_name(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert parse_name('{\"name\": \"Аня\", \"age\": 25}') == \"Аня\" and parse_name('{\"id\": 1, \"name\": \"Bob\"}') == \"Bob\", \"Неверное имя\"\n",
+                  "solution": "import json\n\ndef parse_name(text):\n    return json.loads(text)[\"name\"]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m1-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `to_json(data)` — превратить Python-объект в JSON-строку, **не экранируя** кириллицу (`ensure_ascii=False`).\n\n```\nto_json({\"город\": \"Казань\"})   # → '{\"город\": \"Казань\"}'\n```",
+                  "starter_code": "import json\n\ndef to_json(data):\n    pass\n",
+                  "tests": "def test_values():\n    assert to_json({\"город\": \"Казань\"}) == '{\"город\": \"Казань\"}' and to_json([1, None, True]) == \"[1, null, true]\", \"Неверный JSON\"\n",
+                  "solution": "import json\n\ndef to_json(data):\n    return json.dumps(data, ensure_ascii=False)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m1-l1-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `count_items(text)` — сколько элементов в JSON-массиве.\n\n```\ncount_items('[{\"id\": 1}, {\"id\": 2}]')   # → 2\ncount_items(\"[]\")                       # → 0\n```",
+                  "starter_code": "import json\n\ndef count_items(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert [count_items('[{\"id\": 1}, {\"id\": 2}]'), count_items(\"[]\"), count_items(\"[1, 2, 3]\")] == [2, 0, 3], \"Неверное количество\"\n",
+                  "solution": "import json\n\ndef count_items(text):\n    return len(json.loads(text))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m1-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_active(text)` — `True`, если в JSON-объекте поле `\"active\"` равно `true`; если поля нет или оно другое — `False`.\n\n```\nis_active('{\"active\": true}')    # → True\nis_active('{\"active\": 1}')       # → False\nis_active('{}')                  # → False\n```",
+                  "starter_code": "import json\n\ndef is_active(text):\n    pass\n",
+                  "tests": "def test_values():\n    got = [is_active('{\"active\": true}'), is_active('{\"active\": 1}'), is_active('{}'), is_active('{\"active\": false}')]\n    assert got == [True, False, False, False], f\"Получено {got}\"\n",
+                  "solution": "import json\n\ndef is_active(text):\n    return json.loads(text).get(\"active\") is True\n",
+                  "hint": "1 == True в Python, поэтому сравнивай через is True.",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m1-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `skills_line(text)` — из JSON-объекта с массивом `\"skills\"` вернуть навыки через запятую с пробелом.\n\n```\nskills_line('{\"skills\": [\"qa\", \"sql\", \"python\"]}')   # → \"qa, sql, python\"\n```",
+                  "starter_code": "import json\n\ndef skills_line(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert skills_line('{\"skills\": [\"qa\", \"sql\", \"python\"]}') == \"qa, sql, python\" and skills_line('{\"skills\": []}') == \"\", \"Неверная строка\"\n",
+                  "solution": "import json\n\ndef skills_line(text):\n    return \", \".join(json.loads(text)[\"skills\"])\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n**JSON** (JavaScript Object Notation) — текстовый формат обмена данными. На нём разговаривают почти все веб-API: ты отправляешь запрос — сервер отвечает JSON-текстом. Тестировщик API работает с JSON каждый день: разбирает ответы, собирает тела запросов, сравнивает ожидаемое с фактическим. В Python для этого есть встроенный модуль `json`.\n\n## Как выглядит JSON\n\n```\n{\n  \"name\": \"Аня\",\n  \"age\": 25,\n  \"active\": true,\n  \"phone\": null,\n  \"skills\": [\"qa\", \"sql\"]\n}\n```\n\n- **Объект** `{...}` — пары `\"ключ\": значение`; ключи — только строки в **двойных** кавычках.\n- **Массив** `[...]` — упорядоченный список значений.\n- Значения: строки (`\"...\"`), числа, `true`/`false`, `null`, объекты, массивы.\n- Похоже на словари и списки Python, но это **текст** — строка, которую ещё надо разобрать.\n\n## Соответствие типов\n\n- объект `{}` → `dict`;\n- массив `[]` → `list`;\n- строка `\"...\"` → `str`;\n- число `10` → `int`, `2.5` → `float`;\n- `true` / `false` → `True` / `False`;\n- `null` → `None`.\n\n## loads — из строки в Python\n\n```python\nimport json\ntext = '{\"name\": \"Аня\", \"age\": 25, \"skills\": [\"qa\", \"sql\"]}'\ndata = json.loads(text)\nprint(type(text).__name__, type(data).__name__)\nprint(data[\"name\"], data[\"skills\"][1])\n```\n\n- `import json` — подключить модуль.\n- `json.loads(строка)` («load string») разбирает JSON-текст и возвращает объект Python.\n- После разбора работаем с обычным словарём и списком.\n- Вывод: `str dict`, `Аня sql`.\n\nКорнем JSON может быть не только объект:\n\n```python\nimport json\nprint(json.loads(\"[1, 2, 3]\"), json.loads(\"true\"), json.loads(\"null\"))\nprint(json.loads('\"текст\"'), json.loads(\"3.5\"))\n```\n\nВывод: `[1, 2, 3] True None`, `текст 3.5`.\n\n## dumps — из Python в строку\n\n```python\nimport json\nuser = {\"name\": \"Аня\", \"active\": True, \"phone\": None}\nprint(json.dumps(user, ensure_ascii=False))\n```\n\n- `json.dumps(объект)` («dump string») превращает объект в JSON-строку — например, для тела запроса.\n- `True` → `true`, `None` → `null`, кавычки — двойные.\n- `ensure_ascii=False` — оставить кириллицу как есть (подробнее — урок «json.dumps»).\n- Вывод: `{\"name\": \"Аня\", \"active\": true, \"phone\": null}`.\n\n## Итог\n\n- JSON — текстовый формат: объекты `{}`, массивы `[]`, строки, числа, `true/false`, `null`.\n- `json.loads(строка)` → Python (`dict`, `list`…); `json.dumps(объект)` → строка.\n- `true/false/null` ↔ `True/False/None`.\n- JSON — это строка; работать с данными можно только после `loads`.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `json.loads(\"null\")`?",
+                  "options": [
+                    "`\"null\"`",
+                    "`None`",
+                    "`0`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "null соответствует None."
+                },
+                {
+                  "q": "Что делает `json.dumps`?",
+                  "options": [
+                    "Разбирает JSON-строку",
+                    "Превращает объект Python в JSON-строку",
+                    "Удаляет данные",
+                    "Читает файл"
+                  ],
+                  "answer": 1,
+                  "explain": "dump string."
+                },
+                {
+                  "q": "Какие кавычки допустимы для строк в JSON?",
+                  "options": [
+                    "Любые",
+                    "Только двойные",
+                    "Только одинарные",
+                    "Обратные"
+                  ],
+                  "answer": 1,
+                  "explain": "Одинарные — ошибка разбора."
+                }
+              ]
+            },
+            {
+              "slug": "jsn-m1-l2",
+              "title": "json.loads: из строки в Python",
+              "theory": "```py\njson.loads('{\"b\": [true], \"c\": {\"d\": null}}')   # вложенные dict/list\ntype(json.loads(\"10\"))    # int\ntype(json.loads(\"10.0\"))  # float\ntry:\n    json.loads(\"{'a': 1}\")\nexcept json.JSONDecodeError as e:\n    e.msg                 # описание ошибки\n```",
+              "exercises": [
+                {
+                  "slug": "jsn-m1-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\ndata = json.loads('{\"a\": 1, \"b\": [true, false], \"c\": {\"d\": null}}')\nprint(data)\nprint(data[\"c\"][\"d\"] is None, data[\"b\"][0])\n",
+                  "expected_output": "{'a': 1, 'b': [True, False], 'c': {'d': None}}\nTrue True",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m1-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Числа в JSON.",
+                  "code": "import json\nprint(type(json.loads(\"10\")).__name__, type(json.loads(\"10.0\")).__name__, type(json.loads(\"1e3\")).__name__)\n",
+                  "expected_output": "int float float",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m1-l2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Одинарные кавычки.",
+                  "code": "import json\ntry:\n    json.loads(\"{'name': 'Аня'}\")\nexcept json.JSONDecodeError as e:\n    print(\"ошибка:\", e.msg)\n",
+                  "expected_output": "ошибка: Expecting property name enclosed in double quotes",
+                  "hint": "В JSON строки и ключи — только в двойных кавычках.",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m1-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `total_price(text)` — JSON-массив товаров `[{\"price\": ...}, ...]`; вернуть сумму цен.\n\n```\ntotal_price('[{\"price\": 300}, {\"price\": 150.5}]')   # → 450.5\n```",
+                  "starter_code": "import json\n\ndef total_price(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert total_price('[{\"price\": 300}, {\"price\": 150.5}]') == 450.5 and total_price(\"[]\") == 0, \"Неверная сумма\"\n",
+                  "solution": "import json\n\ndef total_price(text):\n    return sum(item[\"price\"] for item in json.loads(text))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m1-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `get_ids(text)` — список значений `\"id\"` из JSON-массива объектов.\n\n```\nget_ids('[{\"id\": 3}, {\"id\": 7}]')   # → [3, 7]\n```",
+                  "starter_code": "import json\n\ndef get_ids(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert get_ids('[{\"id\": 3}, {\"id\": 7}]') == [3, 7] and get_ids(\"[]\") == [], \"Неверный список\"\n",
+                  "solution": "import json\n\ndef get_ids(text):\n    return [obj[\"id\"] for obj in json.loads(text)]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m1-l2-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_or_none(text)` — разобрать JSON, а если строка не является корректным JSON — вернуть `None`. Лови `json.JSONDecodeError`.\n\n```\nparse_or_none('{\"a\": 1}')   # → {\"a\": 1}\nparse_or_none(\"{a: 1}\")     # → None\n```",
+                  "starter_code": "import json\n\ndef parse_or_none(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert parse_or_none('{\"a\": 1}') == {\"a\": 1} and parse_or_none(\"{a: 1}\") is None and parse_or_none(\"\") is None, \"Неверный результат\"\n    assert parse_or_none(\"null\") is None and parse_or_none(\"[]\") == [], \"Корректный JSON разбирается\"\n",
+                  "solution": "import json\n\ndef parse_or_none(text):\n    try:\n        return json.loads(text)\n    except json.JSONDecodeError:\n        return None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m1-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `keys_of(text)` — отсортированный список ключей верхнего уровня JSON-объекта.\n\n```\nkeys_of('{\"name\": \"a\", \"id\": 1, \"email\": \"x\"}')   # → [\"email\", \"id\", \"name\"]\n```",
+                  "starter_code": "import json\n\ndef keys_of(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert keys_of('{\"name\": \"a\", \"id\": 1, \"email\": \"x\"}') == [\"email\", \"id\", \"name\"] and keys_of(\"{}\") == [], \"Неверные ключи\"\n",
+                  "solution": "import json\n\ndef keys_of(text):\n    return sorted(json.loads(text))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m1-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `count_nulls(text)` — сколько полей верхнего уровня JSON-объекта имеют значение `null`.\n\n```\ncount_nulls('{\"a\": null, \"b\": 0, \"c\": null, \"d\": \"\"}')   # → 2\n```",
+                  "starter_code": "import json\n\ndef count_nulls(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert count_nulls('{\"a\": null, \"b\": 0, \"c\": null, \"d\": \"\"}') == 2 and count_nulls(\"{}\") == 0, \"Неверный подсчёт\"\n",
+                  "solution": "import json\n\ndef count_nulls(text):\n    return sum(1 for v in json.loads(text).values() if v is None)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКаждый ответ API начинается с разбора: `json.loads(response_text)`. Нужно знать, что получится для каждого типа JSON, как ведут себя числа и что происходит, если текст — **не** корректный JSON (а это случается: сервер вернул HTML-страницу ошибки или пустое тело).\n\n## Вложенные структуры\n\n```python\nimport json\ndata = json.loads('{\"a\": 1, \"b\": [true, false], \"c\": {\"d\": null}}')\nprint(data)\nprint(data[\"c\"][\"d\"] is None, data[\"b\"][0])\n```\n\n- Вложенные объекты и массивы превращаются во вложенные словари и списки.\n- Вывод: `{'a': 1, 'b': [True, False], 'c': {'d': None}}`, `True True`.\n\n## Числа\n\n```python\nimport json\nprint(type(json.loads(\"10\")).__name__, type(json.loads(\"10.0\")).__name__, type(json.loads(\"1e3\")).__name__)\n```\n\n- Число без точки и экспоненты → `int`, с точкой или `e` → `float`.\n- Вывод: `int float float`.\n- Для проверок типов это важно: `10` и `10.0` в JSON дают разные типы Python.\n\n## Обработка массива объектов\n\n```python\nimport json\ntext = '[{\"id\": 3, \"price\": 300}, {\"id\": 7, \"price\": 150.5}]'\nitems = json.loads(text)\nprint([i[\"id\"] for i in items], sum(i[\"price\"] for i in items))\n```\n\nВывод: `[3, 7] 450.5`.\n\n## Некорректный JSON\n\n```python\nimport json\ntry:\n    json.loads(\"{'name': 'Аня'}\")\nexcept json.JSONDecodeError as e:\n    print(\"ошибка:\", e.msg)\n```\n\n- Если текст не соответствует формату, `loads` выбрасывает `json.JSONDecodeError`.\n- Частые причины: одинарные кавычки, запятая после последнего элемента, ключ без кавычек, пустая строка, HTML вместо JSON.\n- `e.msg` — описание ошибки. Вывод: `ошибка: Expecting property name enclosed in double quotes`.\n\n```python\nimport json\n\ndef parse_or_none(text):\n    try:\n        return json.loads(text)\n    except json.JSONDecodeError:\n        return None\n\nprint(parse_or_none('{\"a\": 1}'), parse_or_none(\"{a: 1}\"), parse_or_none(\"\"))\n```\n\nВывод: `{'a': 1} None None`. Подробнее — урок «Ошибки разбора».\n\n## Подсчёты по разобранным данным\n\n```python\nimport json\ndata = json.loads('{\"a\": null, \"b\": 0, \"c\": null, \"d\": \"\"}')\nprint(sorted(data), sum(1 for v in data.values() if v is None))\n```\n\n- После разбора — обычная работа со словарём. Вывод: `['a', 'b', 'c', 'd'] 2`.\n\n## Итог\n\n- `loads` превращает вложенный JSON во вложенные `dict`/`list`.\n- `10` → `int`, `10.0` и `1e3` → `float`.\n- Некорректный текст → `json.JSONDecodeError` (атрибут `msg` — описание).\n- Частые ошибки формата: одинарные кавычки, лишняя запятая, пустая строка.",
+              "quiz": [
+                {
+                  "q": "Какой тип даст `json.loads(\"7.0\")`?",
+                  "options": [
+                    "int",
+                    "float",
+                    "str",
+                    "Decimal"
+                  ],
+                  "answer": 1,
+                  "explain": "Число с точкой — float."
+                },
+                {
+                  "q": "Что будет при `json.loads(\"[1, 2,]\")`?",
+                  "options": [
+                    "`[1, 2]`",
+                    "`json.JSONDecodeError`",
+                    "`[1, 2, None]`",
+                    "`None`"
+                  ],
+                  "answer": 1,
+                  "explain": "Запятая после последнего элемента недопустима."
+                },
+                {
+                  "q": "Что вернёт `json.loads('{\"x\": [true]}')[\"x\"][0]`?",
+                  "options": [
+                    "`\"true\"`",
+                    "`True`",
+                    "`1`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "true → True."
+                }
+              ]
+            },
+            {
+              "slug": "jsn-m1-l3",
+              "title": "json.dumps: форматирование",
+              "theory": "```py\njson.dumps(d, sort_keys=True)            # ключи по алфавиту\njson.dumps(d, separators=(\",\", \":\"))     # компактно\njson.dumps(d, indent=2)                  # красиво\njson.dumps(d, ensure_ascii=False)        # кириллица как есть\njson.dumps(d, sort_keys=True, separators=(\",\", \":\"))   # канон для сравнения\nlen(text.encode(\"utf-8\"))                # размер в байтах\n```",
+              "exercises": [
+                {
+                  "slug": "jsn-m1-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\nd = {\"b\": 1, \"a\": [1, 2]}\nprint(json.dumps(d))\nprint(json.dumps(d, sort_keys=True))\nprint(json.dumps(d, separators=(\",\", \":\")))\n",
+                  "expected_output": "{\"b\": 1, \"a\": [1, 2]}\n{\"a\": [1, 2], \"b\": 1}\n{\"b\":1,\"a\":[1,2]}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m1-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Отступы.",
+                  "code": "import json\nprint(json.dumps({\"x\": 1, \"y\": [1, 2]}, indent=2))\n",
+                  "expected_output": "{\n  \"x\": 1,\n  \"y\": [\n    1,\n    2\n  ]\n}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m1-l3-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Кириллица.",
+                  "code": "import json\nprint(json.dumps(\"Привет\"))\nprint(json.dumps(\"Привет\", ensure_ascii=False))\n",
+                  "expected_output": "\"\\u041f\\u0440\\u0438\\u0432\\u0435\\u0442\"\n\"Привет\"",
+                  "hint": "По умолчанию не-ASCII символы экранируются как \\uXXXX.",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m1-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `compact(data)` — самая компактная JSON-строка: без пробелов после `,` и `:`.\n\n```\ncompact({\"a\": 1, \"b\": [1, 2]})   # → '{\"a\":1,\"b\":[1,2]}'\n```",
+                  "starter_code": "import json\n\ndef compact(data):\n    pass\n",
+                  "tests": "def test_values():\n    assert compact({\"a\": 1, \"b\": [1, 2]}) == '{\"a\":1,\"b\":[1,2]}', f\"Получено {compact({'a': 1, 'b': [1, 2]})!r}\"\n",
+                  "solution": "import json\n\ndef compact(data):\n    return json.dumps(data, separators=(\",\", \":\"))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m1-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `pretty(data)` — «красивый» JSON для отчёта: отступ 2 пробела, ключи отсортированы, кириллица без экранирования.\n\n```\nprint(pretty({\"б\": 2, \"а\": 1}))\n# {\n#   \"а\": 1,\n#   \"б\": 2\n# }\n```",
+                  "starter_code": "import json\n\ndef pretty(data):\n    pass\n",
+                  "tests": "def test_values():\n    assert pretty({\"б\": 2, \"а\": 1}) == '{\\n  \"а\": 1,\\n  \"б\": 2\\n}', f\"Получено {pretty({'б': 2, 'а': 1})!r}\"\n",
+                  "solution": "import json\n\ndef pretty(data):\n    return json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m1-l3-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `canonical(data)` — «каноническая» форма JSON для сравнения: ключи отсортированы, без лишних пробелов. Два словаря с одинаковым содержимым в разном порядке дадут одну и ту же строку.\n\n```\ncanonical({\"b\": 1, \"a\": 2}) == canonical({\"a\": 2, \"b\": 1})   # → True\ncanonical({\"b\": 1, \"a\": 2})                                  # → '{\"a\":2,\"b\":1}'\n```",
+                  "starter_code": "import json\n\ndef canonical(data):\n    pass\n",
+                  "tests": "def test_values():\n    assert canonical({\"b\": 1, \"a\": 2}) == '{\"a\":2,\"b\":1}', \"Неверная строка\"\n    assert canonical({\"x\": {\"b\": 1, \"a\": 2}}) == '{\"x\":{\"a\":2,\"b\":1}}', \"Сортировка вложенных ключей тоже\"\n",
+                  "solution": "import json\n\ndef canonical(data):\n    return json.dumps(data, sort_keys=True, separators=(\",\", \":\"))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m1-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `json_size(data)` — размер компактного JSON (без экранирования кириллицы, без пробелов) **в байтах** UTF-8. Кириллическая буква занимает 2 байта.\n\n```\njson_size({\"a\": 1})      # → 7    '{\"a\":1}'\njson_size({\"я\": 1})      # → 8\n```",
+                  "starter_code": "import json\n\ndef json_size(data):\n    pass\n",
+                  "tests": "def test_values():\n    assert [json_size({\"a\": 1}), json_size({\"я\": 1}), json_size([])] == [7, 8, 2], \"Неверный размер\"\n",
+                  "solution": "import json\n\ndef json_size(data):\n    text = json.dumps(data, ensure_ascii=False, separators=(\",\", \":\"))\n    return len(text.encode(\"utf-8\"))\n",
+                  "hint": "text.encode(\"utf-8\") — байты строки; len — их количество.",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m1-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `to_lines(records)` — формат **JSON Lines**: каждая запись — компактный JSON на отдельной строке (строки через `\\n`).\n\n```\nto_lines([{\"id\": 1}, {\"id\": 2}])   # → '{\"id\":1}\\n{\"id\":2}'\n```",
+                  "starter_code": "import json\n\ndef to_lines(records):\n    pass\n",
+                  "tests": "def test_values():\n    assert to_lines([{\"id\": 1}, {\"id\": 2}]) == '{\"id\":1}\\n{\"id\":2}' and to_lines([]) == \"\", \"Неверный формат\"\n",
+                  "solution": "import json\n\ndef to_lines(records):\n    return \"\\n\".join(json.dumps(r, separators=(\",\", \":\")) for r in records)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n`json.dumps` умеет не только превращать объект в строку, но и форматировать её: красиво с отступами — для отчётов и логов; компактно — для передачи по сети; с отсортированными ключами — для сравнения. Разберём параметры.\n\n## sort_keys и separators\n\n```python\nimport json\nd = {\"b\": 1, \"a\": [1, 2]}\nprint(json.dumps(d))\nprint(json.dumps(d, sort_keys=True))\nprint(json.dumps(d, separators=(\",\", \":\")))\n```\n\n- По умолчанию ключи идут в порядке словаря, после `,` и `:` — пробелы.\n- `sort_keys=True` — ключи по алфавиту (на всех уровнях вложенности).\n- `separators=(\",\", \":\")` — разделители без пробелов: самая компактная форма.\n- Вывод: `{\"b\": 1, \"a\": [1, 2]}`, `{\"a\": [1, 2], \"b\": 1}`, `{\"b\":1,\"a\":[1,2]}`.\n\n## indent — красивый вывод\n\n```python\nimport json\nprint(json.dumps({\"x\": 1, \"y\": [1, 2]}, indent=2))\n```\n\n- `indent=2` — каждый элемент на своей строке с отступом 2 пробела на уровень.\n- Вывод — многострочный JSON, удобный для чтения человеком.\n\n## ensure_ascii — кириллица\n\n```python\nimport json\nprint(json.dumps(\"Привет\"))\nprint(json.dumps(\"Привет\", ensure_ascii=False))\n```\n\n- По умолчанию (`ensure_ascii=True`) все не-ASCII символы экранируются: `П…`. Это корректный JSON, но читать неудобно.\n- `ensure_ascii=False` — символы как есть.\n- Вывод: экранированная строка, затем `\"Привет\"`.\n\n## Каноническая форма для сравнения\n\n```python\nimport json\n\ndef canonical(data):\n    return json.dumps(data, sort_keys=True, separators=(\",\", \":\"))\n\nprint(canonical({\"b\": 1, \"a\": 2}), canonical({\"b\": 1, \"a\": 2}) == canonical({\"a\": 2, \"b\": 1}))\n```\n\n- Отсортированные ключи и фиксированные разделители дают одну и ту же строку для одинаковых данных. Такую строку удобно сравнивать, хешировать, хранить как «эталон».\n- Вывод: `{\"a\":2,\"b\":1} True`.\n\n## Размер в байтах\n\n```python\nimport json\ntext = json.dumps({\"я\": 1}, ensure_ascii=False, separators=(\",\", \":\"))\nprint(text, len(text), len(text.encode(\"utf-8\")))\n```\n\n- `len(строки)` — число символов, а по сети идут **байты**. В UTF-8 кириллическая буква занимает 2 байта.\n- Вывод: `{\"я\":1} 7 8`.\n\n## JSON Lines\n\n```python\nimport json\nrecords = [{\"id\": 1}, {\"id\": 2}]\nprint(\"\\n\".join(json.dumps(r, separators=(\",\", \":\")) for r in records))\n```\n\n- Формат **JSON Lines**: один компактный JSON-объект на строку. Так пишут логи и большие выгрузки — их можно читать построчно.\n- Вывод: две строки `{\"id\":1}` и `{\"id\":2}`.\n\n## Итог\n\n- `sort_keys=True` — ключи по алфавиту; `separators=(\",\", \":\")` — компактно.\n- `indent=2` — многострочный читаемый вывод.\n- `ensure_ascii=False` — кириллица без `\\uXXXX`.\n- Канонический JSON (`sort_keys` + компактные разделители) — для сравнения.\n- JSON Lines — объект на строку.",
+              "quiz": [
+                {
+                  "q": "Что делает `ensure_ascii=False`?",
+                  "options": [
+                    "Запрещает кириллицу",
+                    "Оставляет не-ASCII символы без экранирования",
+                    "Сжимает JSON",
+                    "Сортирует ключи"
+                  ],
+                  "answer": 1,
+                  "explain": "Без \\uXXXX."
+                },
+                {
+                  "q": "Какой параметр даёт многострочный вывод с отступами?",
+                  "options": [
+                    "`sort_keys`",
+                    "`indent`",
+                    "`separators`",
+                    "`pretty`"
+                  ],
+                  "answer": 1,
+                  "explain": "indent=2."
+                },
+                {
+                  "q": "Зачем `sort_keys=True` при сравнении JSON-строк?",
+                  "options": [
+                    "Быстрее",
+                    "Одинаковые данные дают одинаковую строку",
+                    "Меньше размер",
+                    "Иначе ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Порядок ключей перестаёт влиять."
+                }
+              ]
+            },
+            {
+              "slug": "jsn-m1-l4",
+              "title": "Соответствие типов и подводные камни",
+              "theory": "```py\njson.dumps((1, 2))          # \"[1, 2]\" — вернётся списком\njson.dumps({1: \"a\"})        # '{\"1\": \"a\"}' — ключ стал строкой\njson.dumps({1, 2})          # TypeError: not JSON serializable\njson.dumps(obj, default=str)\njson.loads(json.dumps(x)) == x   # переживёт ли JSON\n```",
+              "exercises": [
+                {
+                  "slug": "jsn-m1-l4-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Туда и обратно.",
+                  "code": "import json\ndata = {\"t\": (1, 2), 1: \"one\", \"ok\": True, \"none\": None}\ntext = json.dumps(data)\nprint(text)\nback = json.loads(text)\nprint(back[\"t\"], back[\"1\"], back == data)\n",
+                  "expected_output": "{\"t\": [1, 2], \"1\": \"one\", \"ok\": true, \"none\": null}\n[1, 2] one False",
+                  "hint": "Кортеж становится массивом, а числовой ключ — строкой.",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m1-l4-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\ntry:\n    json.dumps({\"tags\": {\"a\", \"b\"}})\nexcept TypeError as e:\n    print(\"TypeError:\", e)\n",
+                  "expected_output": "TypeError: Object of type set is not JSON serializable",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m1-l4-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Параметр default.",
+                  "code": "import json\nfrom datetime import date\nprint(json.dumps({\"d\": date(2024, 1, 15)}, default=str))\n",
+                  "expected_output": "{\"d\": \"2024-01-15\"}",
+                  "hint": "default вызывается для объектов, которые JSON не умеет сохранять.",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m1-l4-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `serialize(data)` — JSON-строка, где **множества** превращаются в отсортированные списки. Используй параметр `default` функции `dumps` со своей функцией-конвертером.\n\n```\nserialize({\"tags\": {\"b\", \"a\"}})   # → '{\"tags\": [\"a\", \"b\"]}'\n```",
+                  "starter_code": "import json\n\ndef serialize(data):\n    pass\n",
+                  "tests": "def test_values():\n    assert serialize({\"tags\": {\"b\", \"a\"}}) == '{\"tags\": [\"a\", \"b\"]}' and serialize({\"x\": 1}) == '{\"x\": 1}', \"Неверный JSON\"\n",
+                  "solution": "import json\n\ndef convert(obj):\n    if isinstance(obj, set):\n        return sorted(obj)\n    raise TypeError(f\"не умею сохранять {type(obj).__name__}\")\n\ndef serialize(data):\n    return json.dumps(data, default=convert)\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "jsn-m1-l4-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `roundtrip_equal(data)` — совпадёт ли объект сам с собой после `dumps` → `loads`.\n\n```\nroundtrip_equal({\"a\": [1, 2]})    # → True\nroundtrip_equal({\"a\": (1, 2)})    # → False   кортеж вернётся списком\nroundtrip_equal({1: \"x\"})         # → False   ключ станет \"1\"\n```",
+                  "starter_code": "import json\n\ndef roundtrip_equal(data):\n    pass\n",
+                  "tests": "def test_values():\n    got = [roundtrip_equal({\"a\": [1, 2]}), roundtrip_equal({\"a\": (1, 2)}), roundtrip_equal({1: \"x\"}), roundtrip_equal(None)]\n    assert got == [True, False, False, True], f\"Получено {got}\"\n",
+                  "solution": "import json\n\ndef roundtrip_equal(data):\n    return json.loads(json.dumps(data)) == data\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m1-l4-e6",
+                  "type": "code",
+                  "prompt": "После JSON числовые ключи словаря стали строками. Напиши функцию `fix_keys(d)` — вернуть новый словарь, где ключи из одних цифр снова превращены в `int`.\n\n```\nfix_keys({\"1\": \"a\", \"20\": \"b\", \"x\": \"c\"})   # → {1: \"a\", 20: \"b\", \"x\": \"c\"}\n```",
+                  "starter_code": "def fix_keys(d):\n    pass\n",
+                  "tests": "def test_values():\n    assert fix_keys({\"1\": \"a\", \"20\": \"b\", \"x\": \"c\"}) == {1: \"a\", 20: \"b\", \"x\": \"c\"} and fix_keys({}) == {}, \"Неверные ключи\"\n",
+                  "solution": "def fix_keys(d):\n    return {int(k) if k.isdigit() else k: v for k, v in d.items()}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m1-l4-e7",
+                  "type": "code",
+                  "prompt": "Напиши **рекурсивную** функцию `to_jsonable(obj)` — привести структуру к виду, который JSON сохранит без потерь смысла:\n\n- кортежи → списки;\n- множества → отсортированные списки;\n- ключи словарей → строки;\n- вложенные структуры обрабатываются рекурсивно; остальное — как есть.\n\n```\nto_jsonable({1: (2, {3}), \"a\": [(4,)]})   # → {\"1\": [2, [3]], \"a\": [[4]]}\n```",
+                  "starter_code": "def to_jsonable(obj):\n    pass\n",
+                  "tests": "def test_values():\n    assert to_jsonable({1: (2, {3}), \"a\": [(4,)]}) == {\"1\": [2, [3]], \"a\": [[4]]}, f\"Получено {to_jsonable({1: (2, {3}), 'a': [(4,)]})}\"\n    assert to_jsonable({\"s\": {\"b\", \"a\"}}) == {\"s\": [\"a\", \"b\"]} and to_jsonable(5) == 5, \"Неверный результат\"\n",
+                  "solution": "def to_jsonable(obj):\n    if isinstance(obj, dict):\n        return {str(k): to_jsonable(v) for k, v in obj.items()}\n    if isinstance(obj, (list, tuple)):\n        return [to_jsonable(x) for x in obj]\n    if isinstance(obj, set):\n        return [to_jsonable(x) for x in sorted(obj)]\n    return obj\n",
+                  "hint": "",
+                  "xp": 25
+                },
+                {
+                  "slug": "jsn-m1-l4-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `safe_dumps(data)` — JSON-строка, в которой любые «неудобные» объекты (даты, множества…) превращаются в строки через `str`. Используй `default=str`.\n\n```\nfrom datetime import date\nsafe_dumps({\"d\": date(2024, 5, 1)})   # → '{\"d\": \"2024-05-01\"}'\n```",
+                  "starter_code": "import json\n\ndef safe_dumps(data):\n    pass\n",
+                  "tests": "from datetime import date\n\ndef test_values():\n    assert safe_dumps({\"d\": date(2024, 5, 1)}) == '{\"d\": \"2024-05-01\"}' and safe_dumps([1]) == \"[1]\", \"Неверный JSON\"\n",
+                  "solution": "import json\n\ndef safe_dumps(data):\n    return json.dumps(data, default=str)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nНе все объекты Python переводятся в JSON один в один. Кортеж возвращается списком, числовые ключи становятся строками, а множества и даты не сохраняются вовсе. Эти «потери при переводе» — частая причина упавших тестов вида «было `{1: ...}`, стало `{\"1\": ...}`».\n\n## Что меняется при dumps → loads\n\n```python\nimport json\ndata = {\"t\": (1, 2), 1: \"one\", \"ok\": True, \"none\": None}\ntext = json.dumps(data)\nprint(text)\nback = json.loads(text)\nprint(back[\"t\"], back[\"1\"], back == data)\n```\n\n- Кортеж `(1, 2)` → массив `[1, 2]` → после `loads` **список**.\n- Ключ-число `1` → строка `\"1\"`: в JSON ключи объектов — только строки.\n- `True` → `true`, `None` → `null` — эти возвращаются как были.\n- Итог: `back != data`. Вывод: JSON-строка, затем `[1, 2] one False`.\n\n## Что не сохраняется\n\n```python\nimport json\ntry:\n    json.dumps({\"tags\": {\"a\", \"b\"}})\nexcept TypeError as e:\n    print(\"TypeError:\", e)\n```\n\n- Множества, даты, свои объекты — `TypeError: Object of type set is not JSON serializable`.\n- Вывод: `TypeError: Object of type set is not JSON serializable`.\n\n## Параметр default\n\n```python\nimport json\nfrom datetime import date\nprint(json.dumps({\"d\": date(2024, 1, 15)}, default=str))\n```\n\n- `default=функция` — вызывается для каждого объекта, который JSON не умеет сохранять; её результат сохраняется вместо объекта.\n- `default=str` — превратить в строку. Вывод: `{\"d\": \"2024-01-15\"}`.\n\nСвоя функция-конвертер:\n\n```python\nimport json\n\ndef convert(obj):\n    if isinstance(obj, set):\n        return sorted(obj)\n    raise TypeError(f\"не умею сохранять {type(obj).__name__}\")\n\nprint(json.dumps({\"tags\": {\"b\", \"a\"}}, default=convert))\n```\n\n- Множество → отсортированный список (отсортированный — чтобы результат был стабильным).\n- Для неизвестных типов — снова `TypeError`, чтобы ошибки не прятались. Вывод: `{\"tags\": [\"a\", \"b\"]}`.\n\n## Восстановление числовых ключей\n\n```python\nback = {\"1\": \"a\", \"20\": \"b\", \"x\": \"c\"}\nprint({int(k) if k.isdigit() else k: v for k, v in back.items()})\n```\n\nВывод: `{1: 'a', 20: 'b', 'x': 'c'}`.\n\n## Проверка «туда-обратно»\n\n```python\nimport json\nfor data in ({\"a\": [1, 2]}, {\"a\": (1, 2)}, {1: \"x\"}):\n    print(json.loads(json.dumps(data)) == data)\n```\n\n- Такая проверка показывает, переживут ли данные сохранение в JSON без изменений. Вывод: `True`, `False`, `False`.\n\n## Итог\n\n- `tuple` → `list`; ключи-числа → строки; `True/None` → `true/null` и обратно.\n- `set`, даты, свои объекты — `TypeError: not JSON serializable`.\n- `default=str` или своя функция — как сохранять «неудобные» объекты.\n- `json.loads(json.dumps(x)) == x` — проверка, что данные не исказятся.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `json.loads(json.dumps((1, 2)))`?",
+                  "options": [
+                    "`(1, 2)`",
+                    "`[1, 2]`",
+                    "`\"(1, 2)\"`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Кортеж становится массивом."
+                },
+                {
+                  "q": "Что будет с ключом `5` в `json.dumps({5: \"x\"})`?",
+                  "options": [
+                    "Ошибка",
+                    "Станет строкой \"5\"",
+                    "Останется числом",
+                    "Удалится"
+                  ],
+                  "answer": 1,
+                  "explain": "Ключи объектов JSON — строки."
+                },
+                {
+                  "q": "Что делает параметр `default` у `json.dumps`?",
+                  "options": [
+                    "Значение по умолчанию для пустых полей",
+                    "Функция для объектов, которые JSON не умеет сохранять",
+                    "Кодировка",
+                    "Отступ"
+                  ],
+                  "answer": 1,
+                  "explain": "Например, default=str."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "jsn-m2",
+          "title": "Работа с данными",
+          "icon": "🗃️",
+          "description": "Вложенный JSON, списки объектов, сборка и изменение, файлы",
+          "lessons": [
+            {
+              "slug": "jsn-m2-l1",
+              "title": "Навигация по вложенному JSON",
+              "theory": "```py\nusers = resp[\"data\"][\"users\"]         # по цепочке\nusers[1][\"name\"]\n(resp[\"data\"][\"user\"][\"address\"] or {}).get(\"city\")   # null -> {}\nresp.get(\"meta\", {}).get(\"page\")       # нет ключа\nnext((u for u in users if u[\"id\"] == 2), None)        # найти первый\n```",
+              "exercises": [
+                {
+                  "slug": "jsn-m2-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\nresp = json.loads('{\"data\": {\"users\": [{\"id\": 1, \"name\": \"Аня\"}, {\"id\": 2, \"name\": \"Боря\"}]}, \"total\": 2}')\nusers = resp[\"data\"][\"users\"]\nprint(len(users), users[1][\"name\"], resp[\"total\"])\n",
+                  "expected_output": "2 Боря 2",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m2-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? null и отсутствующие ключи.",
+                  "code": "import json\nresp = json.loads('{\"data\": {\"user\": {\"address\": null}}}')\naddress = resp[\"data\"][\"user\"][\"address\"] or {}\nprint(address.get(\"city\", \"нет города\"))\nprint(resp.get(\"meta\", {}).get(\"page\"))\n",
+                  "expected_output": "нет города\nNone",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m2-l1-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\norder = json.loads('{\"items\": [{\"sku\": \"A\", \"qty\": 2}, {\"sku\": \"B\", \"qty\": 1}]}')\nfor i, item in enumerate(order[\"items\"], start=1):\n    print(i, item[\"sku\"], item[\"qty\"])\n",
+                  "expected_output": "1 A 2\n2 B 1",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m2-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `first_user_name(text)` — имя первого пользователя из ответа вида `{\"data\": {\"users\": [...]}}`. Если список пуст — `None`.\n\n```\nfirst_user_name('{\"data\": {\"users\": [{\"name\": \"Аня\"}]}}')   # → \"Аня\"\nfirst_user_name('{\"data\": {\"users\": []}}')                  # → None\n```",
+                  "starter_code": "import json\n\ndef first_user_name(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert first_user_name('{\"data\": {\"users\": [{\"name\": \"Аня\"}, {\"name\": \"Б\"}]}}') == \"Аня\" and first_user_name('{\"data\": {\"users\": []}}') is None, \"Неверный результат\"\n",
+                  "solution": "import json\n\ndef first_user_name(text):\n    users = json.loads(text)[\"data\"][\"users\"]\n    if not users:\n        return None\n    return users[0][\"name\"]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `get_in(data, path, default=None)` — значение во вложенной структуре по пути: путь — список ключей (строки для объектов) и индексов (числа для массивов). Если на каком-то шаге ключа/индекса нет — `default`.\n\n```\ndata = {\"users\": [{\"name\": \"Аня\"}, {\"name\": \"Боря\"}]}\nget_in(data, [\"users\", 1, \"name\"])        # → \"Боря\"\nget_in(data, [\"users\", 5, \"name\"], \"-\")   # → \"-\"\n```",
+                  "starter_code": "def get_in(data, path, default=None):\n    pass\n",
+                  "tests": "def test_values():\n    data = {\"users\": [{\"name\": \"Аня\"}, {\"name\": \"Боря\"}], \"x\": None}\n    assert get_in(data, [\"users\", 1, \"name\"]) == \"Боря\" and get_in(data, [\"users\", 5, \"name\"], \"-\") == \"-\", \"Неверный путь\"\n    assert get_in(data, [\"nope\"]) is None and get_in(data, [\"x\", \"y\"], 0) == 0 and get_in(data, []) == data, \"Неверный результат\"\n",
+                  "solution": "def get_in(data, path, default=None):\n    current = data\n    for key in path:\n        if isinstance(current, dict) and key in current:\n            current = current[key]\n        elif isinstance(current, list) and isinstance(key, int) and -len(current) <= key < len(current):\n            current = current[key]\n        else:\n            return default\n    return current\n",
+                  "hint": "",
+                  "xp": 25
+                },
+                {
+                  "slug": "jsn-m2-l1-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `user_emails(text)` — список email-ов из `{\"data\": {\"users\": [...]}}`; пользователей без поля `\"email\"` (или с `null`) пропускать.\n\n```\nuser_emails('{\"data\": {\"users\": [{\"email\": \"a@x\"}, {\"name\": \"b\"}, {\"email\": null}]}}')   # → [\"a@x\"]\n```",
+                  "starter_code": "import json\n\ndef user_emails(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert user_emails('{\"data\": {\"users\": [{\"email\": \"a@x\"}, {\"name\": \"b\"}, {\"email\": null}]}}') == [\"a@x\"], \"Неверный список\"\n",
+                  "solution": "import json\n\ndef user_emails(text):\n    users = json.loads(text)[\"data\"][\"users\"]\n    return [u[\"email\"] for u in users if u.get(\"email\") is not None]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `total_qty(text)` — общее количество товаров в заказе `{\"items\": [{\"sku\": ..., \"qty\": ...}, ...]}`.\n\n```\ntotal_qty('{\"items\": [{\"sku\": \"A\", \"qty\": 2}, {\"sku\": \"B\", \"qty\": 1}]}')   # → 3\n```",
+                  "starter_code": "import json\n\ndef total_qty(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert total_qty('{\"items\": [{\"sku\": \"A\", \"qty\": 2}, {\"sku\": \"B\", \"qty\": 1}]}') == 3 and total_qty('{\"items\": []}') == 0, \"Неверная сумма\"\n",
+                  "solution": "import json\n\ndef total_qty(text):\n    return sum(item[\"qty\"] for item in json.loads(text)[\"items\"])\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `find_by_id(text, uid)` — объект пользователя с данным `id` из JSON-массива или `None`.\n\n```\nfind_by_id('[{\"id\": 1, \"name\": \"Аня\"}, {\"id\": 2, \"name\": \"Боря\"}]', 2)   # → {\"id\": 2, \"name\": \"Боря\"}\n```",
+                  "starter_code": "import json\n\ndef find_by_id(text, uid):\n    pass\n",
+                  "tests": "def test_values():\n    text = '[{\"id\": 1, \"name\": \"Аня\"}, {\"id\": 2, \"name\": \"Боря\"}]'\n    assert find_by_id(text, 2) == {\"id\": 2, \"name\": \"Боря\"} and find_by_id(text, 9) is None, \"Неверный результат\"\n",
+                  "solution": "import json\n\ndef find_by_id(text, uid):\n    for user in json.loads(text):\n        if user[\"id\"] == uid:\n            return user\n    return None\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nРеальные ответы API вложенные: `{\"data\": {\"users\": [{...}, {...}]}, \"meta\": {...}}`. Чтобы достать нужное значение, идут по цепочке ключей и индексов. Главное — не упасть, если какого-то уровня нет или там `null`.\n\n## Цепочка ключей и индексов\n\n```python\nimport json\nresp = json.loads('{\"data\": {\"users\": [{\"id\": 1, \"name\": \"Аня\"}, {\"id\": 2, \"name\": \"Боря\"}]}, \"total\": 2}')\nusers = resp[\"data\"][\"users\"]\nprint(len(users), users[1][\"name\"], resp[\"total\"])\n```\n\n- `resp[\"data\"]` — словарь, `[\"users\"]` — список, `[1]` — второй пользователь, `[\"name\"]` — поле.\n- Промежуточное значение удобно сохранить в переменную (`users`) — короче и понятнее.\n- Вывод: `2 Боря 2`.\n\n## null и отсутствующие ключи\n\n```python\nimport json\nresp = json.loads('{\"data\": {\"user\": {\"address\": null}}}')\naddress = resp[\"data\"][\"user\"][\"address\"] or {}\nprint(address.get(\"city\", \"нет города\"))\nprint(resp.get(\"meta\", {}).get(\"page\"))\n```\n\n- Поле есть, но значение `null` (`None`): `resp[...][\"address\"]` не падает, но у `None` нет `.get`. Приём `значение or {}` подменяет `None` пустым словарём.\n- Ключа нет вовсе: `resp.get(\"meta\", {})` вернёт пустой словарь, и цепочку можно продолжать (тема «Словари»).\n- Вывод: `нет города`, `None`.\n\n## Перебор массива объектов\n\n```python\nimport json\norder = json.loads('{\"items\": [{\"sku\": \"A\", \"qty\": 2}, {\"sku\": \"B\", \"qty\": 1}]}')\nfor i, item in enumerate(order[\"items\"], start=1):\n    print(i, item[\"sku\"], item[\"qty\"])\nprint(sum(item[\"qty\"] for item in order[\"items\"]))\n```\n\nВывод: `1 A 2`, `2 B 1`, `3`.\n\n## Путь как список\n\n```python\ndef get_in(data, path, default=None):\n    current = data\n    for key in path:\n        if isinstance(current, dict) and key in current:\n            current = current[key]\n        elif isinstance(current, list) and isinstance(key, int) and -len(current) <= key < len(current):\n            current = current[key]\n        else:\n            return default\n    return current\n\ndata = {\"users\": [{\"name\": \"Аня\"}, {\"name\": \"Боря\"}]}\nprint(get_in(data, [\"users\", 1, \"name\"]), get_in(data, [\"users\", 5, \"name\"], \"-\"))\n```\n\n- Строки в пути — ключи объектов, числа — индексы массивов.\n- На каждом шаге проверяем, что двигаться можно: у словаря есть ключ, у списка — такой индекс.\n- Вывод: `Боря -`.\n\n## Поиск в массиве\n\n```python\nimport json\nusers = json.loads('[{\"id\": 1, \"name\": \"Аня\"}, {\"id\": 2, \"name\": \"Боря\"}]')\nfound = next((u for u in users if u[\"id\"] == 2), None)\nprint(found)\n```\n\n- `next(генератор, по_умолчанию)` — первый подходящий элемент или умолчание (аналог цикла с `return`).\n- Вывод: `{'id': 2, 'name': 'Боря'}`.\n\n## Итог\n\n- Вложенный JSON — цепочка `data[\"a\"][\"b\"][0][\"c\"]`; промежуточное — в переменную.\n- `null` → `None`: `значение or {}`; нет ключа — `get(ключ, {})`.\n- Путь списком ключей и индексов — цикл с проверками.\n- Поиск первого — цикл или `next((... for ...), None)`.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `json.loads('{\"a\": null}')[\"a\"] or {}`?",
+                  "options": [
+                    "`None`",
+                    "`{}`",
+                    "Ошибка",
+                    "`\"null\"`"
+                  ],
+                  "answer": 1,
+                  "explain": "None ложен — берётся {}."
+                },
+                {
+                  "q": "Как безопасно прочитать `resp[\"meta\"][\"page\"]`, если meta может отсутствовать?",
+                  "options": [
+                    "`resp[\"meta\"][\"page\"]`",
+                    "`resp.get(\"meta\", {}).get(\"page\")`",
+                    "`resp.meta.page`",
+                    "Никак"
+                  ],
+                  "answer": 1,
+                  "explain": "Цепочка get с пустым словарём."
+                },
+                {
+                  "q": "Что вернёт `next((x for x in [] ), \"нет\")`?",
+                  "options": [
+                    "Ошибка",
+                    "`\"нет\"`",
+                    "`None`",
+                    "`[]`"
+                  ],
+                  "answer": 1,
+                  "explain": "Значение по умолчанию."
+                }
+              ]
+            },
+            {
+              "slug": "jsn-m2-l2",
+              "title": "Списки объектов",
+              "theory": "```py\n[p[\"name\"] for p in items if p[\"price\"] < 400]\nsum(p[\"price\"] for p in items)\nCounter(t[\"status\"] for t in tests)\nsorted(users, key=lambda u: u[\"age\"])\nmax(users, key=lambda u: u[\"age\"])\n{o[\"id\"]: o for o in data}              # индекс\n```",
+              "exercises": [
+                {
+                  "slug": "jsn-m2-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\nproducts = json.loads('[{\"name\": \"чай\", \"price\": 300}, {\"name\": \"кофе\", \"price\": 500}, {\"name\": \"сок\", \"price\": 150}]')\ncheap = [p[\"name\"] for p in products if p[\"price\"] < 400]\nprint(cheap, sum(p[\"price\"] for p in products))\n",
+                  "expected_output": "['чай', 'сок'] 950",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m2-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\nfrom collections import Counter\ntests = json.loads('[{\"name\": \"a\", \"status\": \"pass\"}, {\"name\": \"b\", \"status\": \"fail\"}, {\"name\": \"c\", \"status\": \"pass\"}]')\nprint(Counter(t[\"status\"] for t in tests))\n",
+                  "expected_output": "Counter({'pass': 2, 'fail': 1})",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m2-l2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\nusers = json.loads('[{\"name\": \"Боря\", \"age\": 30}, {\"name\": \"Аня\", \"age\": 25}]')\nprint([u[\"name\"] for u in sorted(users, key=lambda u: u[\"age\"])])\nprint(max(users, key=lambda u: u[\"age\"])[\"name\"])\n",
+                  "expected_output": "['Аня', 'Боря']\nБоря",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m2-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `names_by_status(text, status)` — имена тестов с заданным статусом из JSON-массива `[{\"name\": ..., \"status\": ...}]`.\n\n```\nnames_by_status('[{\"name\": \"a\", \"status\": \"fail\"}, {\"name\": \"b\", \"status\": \"pass\"}]', \"fail\")   # → [\"a\"]\n```",
+                  "starter_code": "import json\n\ndef names_by_status(text, status):\n    pass\n",
+                  "tests": "def test_values():\n    text = '[{\"name\": \"a\", \"status\": \"fail\"}, {\"name\": \"b\", \"status\": \"pass\"}, {\"name\": \"c\", \"status\": \"fail\"}]'\n    assert names_by_status(text, \"fail\") == [\"a\", \"c\"] and names_by_status(text, \"skip\") == [], \"Неверный список\"\n",
+                  "solution": "import json\n\ndef names_by_status(text, status):\n    return [t[\"name\"] for t in json.loads(text) if t[\"status\"] == status]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `average_price(text)` — средняя цена товаров из JSON-массива `[{\"price\": ...}]`, округлённая до 2 знаков. Пустой массив — `None`.\n\n```\naverage_price('[{\"price\": 100}, {\"price\": 250}]')   # → 175.0\n```",
+                  "starter_code": "import json\n\ndef average_price(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert [average_price('[{\"price\": 100}, {\"price\": 250}]'), average_price(\"[]\"), average_price('[{\"price\": 1}, {\"price\": 2}, {\"price\": 2}]')] == [175.0, None, 1.67], \"Неверное среднее\"\n",
+                  "solution": "import json\n\ndef average_price(text):\n    items = json.loads(text)\n    if not items:\n        return None\n    return round(sum(i[\"price\"] for i in items) / len(items), 2)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l2-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `count_by(text, field)` — словарь «значение поля → сколько объектов» для JSON-массива.\n\n```\ncount_by('[{\"role\": \"qa\"}, {\"role\": \"dev\"}, {\"role\": \"qa\"}]', \"role\")   # → {\"qa\": 2, \"dev\": 1}\n```",
+                  "starter_code": "import json\n\ndef count_by(text, field):\n    pass\n",
+                  "tests": "def test_values():\n    assert count_by('[{\"role\": \"qa\"}, {\"role\": \"dev\"}, {\"role\": \"qa\"}]', \"role\") == {\"qa\": 2, \"dev\": 1} and count_by(\"[]\", \"x\") == {}, \"Неверный подсчёт\"\n",
+                  "solution": "import json\n\ndef count_by(text, field):\n    counts = {}\n    for obj in json.loads(text):\n        value = obj[field]\n        counts[value] = counts.get(value, 0) + 1\n    return counts\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `index_by(text, field)` — словарь «значение поля → объект» (индекс для быстрого поиска).\n\n```\nindex_by('[{\"id\": 1, \"n\": \"a\"}, {\"id\": 2, \"n\": \"b\"}]', \"id\")   # → {1: {\"id\": 1, \"n\": \"a\"}, 2: {\"id\": 2, \"n\": \"b\"}}\n```",
+                  "starter_code": "import json\n\ndef index_by(text, field):\n    pass\n",
+                  "tests": "def test_values():\n    assert index_by('[{\"id\": 1, \"n\": \"a\"}, {\"id\": 2, \"n\": \"b\"}]', \"id\") == {1: {\"id\": 1, \"n\": \"a\"}, 2: {\"id\": 2, \"n\": \"b\"}}, \"Неверный индекс\"\n",
+                  "solution": "import json\n\ndef index_by(text, field):\n    return {obj[field]: obj for obj in json.loads(text)}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l2-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `top_n(text, field, n)` — значения поля `\"name\"` у `n` объектов с наибольшим значением `field` (по убыванию).\n\n```\ntop_n('[{\"name\": \"a\", \"t\": 1.2}, {\"name\": \"b\", \"t\": 3.4}, {\"name\": \"c\", \"t\": 2.0}]', \"t\", 2)   # → [\"b\", \"c\"]\n```",
+                  "starter_code": "import json\n\ndef top_n(text, field, n):\n    pass\n",
+                  "tests": "def test_values():\n    text = '[{\"name\": \"a\", \"t\": 1.2}, {\"name\": \"b\", \"t\": 3.4}, {\"name\": \"c\", \"t\": 2.0}]'\n    assert top_n(text, \"t\", 2) == [\"b\", \"c\"] and top_n(text, \"t\", 0) == [] and top_n(\"[]\", \"t\", 3) == [], \"Неверный результат\"\n",
+                  "solution": "import json\n\ndef top_n(text, field, n):\n    items = sorted(json.loads(text), key=lambda obj: obj[field], reverse=True)\n    return [obj[\"name\"] for obj in items[:n]]\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОчень часто API возвращает **массив объектов**: список товаров, пользователей, результатов тестов. После разбора это список словарей, и к нему применимы все знакомые приёмы: фильтр, сумма, подсчёт, сортировка, индекс.\n\n## Фильтр и сумма\n\n```python\nimport json\nproducts = json.loads('[{\"name\": \"чай\", \"price\": 300}, {\"name\": \"кофе\", \"price\": 500}, {\"name\": \"сок\", \"price\": 150}]')\ncheap = [p[\"name\"] for p in products if p[\"price\"] < 400]\nprint(cheap, sum(p[\"price\"] for p in products))\n```\n\n- Списковое включение с условием и `sum` с генератором. Вывод: `['чай', 'сок'] 950`.\n\n## Подсчёт по полю\n\n```python\nimport json\nfrom collections import Counter\ntests = json.loads('[{\"name\": \"a\", \"status\": \"pass\"}, {\"name\": \"b\", \"status\": \"fail\"}, {\"name\": \"c\", \"status\": \"pass\"}]')\nprint(Counter(t[\"status\"] for t in tests))\n```\n\n- `Counter` считает значения поля (тема «Словари»). Вывод: `Counter({'pass': 2, 'fail': 1})`.\n\nБез `Counter` — словарь и `get`:\n\n```python\nimport json\ndata = json.loads('[{\"role\": \"qa\"}, {\"role\": \"dev\"}, {\"role\": \"qa\"}]')\ncounts = {}\nfor obj in data:\n    counts[obj[\"role\"]] = counts.get(obj[\"role\"], 0) + 1\nprint(counts)\n```\n\nВывод: `{'qa': 2, 'dev': 1}`.\n\n## Сортировка и лучший элемент\n\n```python\nimport json\nusers = json.loads('[{\"name\": \"Боря\", \"age\": 30}, {\"name\": \"Аня\", \"age\": 25}]')\nprint([u[\"name\"] for u in sorted(users, key=lambda u: u[\"age\"])])\nprint(max(users, key=lambda u: u[\"age\"])[\"name\"])\n```\n\n- `key=lambda u: u[\"age\"]` — сравнивать объекты по полю. Вывод: `['Аня', 'Боря']`, `Боря`.\n\nТоп-N:\n\n```python\nimport json\nitems = json.loads('[{\"name\": \"a\", \"t\": 1.2}, {\"name\": \"b\", \"t\": 3.4}, {\"name\": \"c\", \"t\": 2.0}]')\nprint([o[\"name\"] for o in sorted(items, key=lambda o: o[\"t\"], reverse=True)[:2]])\n```\n\nВывод: `['b', 'c']`.\n\n## Индекс по полю\n\n```python\nimport json\ndata = json.loads('[{\"id\": 1, \"n\": \"a\"}, {\"id\": 2, \"n\": \"b\"}]')\nby_id = {obj[\"id\"]: obj for obj in data}\nprint(by_id[2][\"n\"])\n```\n\n- Словарь «id → объект» позволяет находить объект мгновенно, без перебора массива. Вывод: `b`.\n\n## Среднее с защитой от пустого массива\n\n```python\nimport json\nitems = json.loads(\"[]\")\navg = round(sum(i[\"price\"] for i in items) / len(items), 2) if items else None\nprint(avg)\n```\n\n- Для пустого массива деление на `len` дало бы `ZeroDivisionError`. Вывод: `None`.\n\n## Итог\n\n- Массив объектов после `loads` — список словарей.\n- Фильтр — включение с `if`; сумма — `sum(o[\"f\"] for o in ...)`.\n- Подсчёт — `Counter` или словарь с `get`.\n- Сортировка и `max` — с `key=lambda o: o[\"поле\"]`.\n- Индекс `{o[\"id\"]: o for o in data}` — быстрый поиск.\n- Пустой массив — проверяй перед делением.",
+              "quiz": [
+                {
+                  "q": "Как отсортировать список объектов по полю \"age\"?",
+                  "options": [
+                    "`sorted(users)`",
+                    "`sorted(users, key=lambda u: u[\"age\"])`",
+                    "`users.sort(\"age\")`",
+                    "`sorted(users[\"age\"])`"
+                  ],
+                  "answer": 1,
+                  "explain": "key — функция, вычисляющая поле."
+                },
+                {
+                  "q": "Зачем строить `{o[\"id\"]: o for o in data}`?",
+                  "options": [
+                    "Для красоты",
+                    "Для быстрого поиска объекта по id",
+                    "Чтобы отсортировать",
+                    "Чтобы удалить дубли"
+                  ],
+                  "answer": 1,
+                  "explain": "Поиск по ключу — мгновенный."
+                },
+                {
+                  "q": "Что случится при `sum(...) / len(items)` для пустого массива?",
+                  "options": [
+                    "0",
+                    "`ZeroDivisionError`",
+                    "None",
+                    "nan"
+                  ],
+                  "answer": 1,
+                  "explain": "Проверяй пустоту заранее."
+                }
+              ]
+            },
+            {
+              "slug": "jsn-m2-l3",
+              "title": "Сборка и изменение JSON",
+              "theory": "```py\ndata = json.loads(text)      # разобрать\ndata[\"count\"] += 1           # изменить словарь\ntext = json.dumps(data)      # собрать заново\ndata[new] = data.pop(old)    # переименовать\n{k: v for k, v in data.items() if v is not None}   # убрать null\n{**json.loads(a), **json.loads(b)}                  # слить\n```",
+              "exercises": [
+                {
+                  "slug": "jsn-m2-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\npayload = {\"name\": \"Аня\", \"roles\": [\"qa\"]}\npayload[\"roles\"].append(\"admin\")\npayload[\"active\"] = True\nprint(json.dumps(payload, ensure_ascii=False))\n",
+                  "expected_output": "{\"name\": \"Аня\", \"roles\": [\"qa\", \"admin\"], \"active\": true}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m2-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Строку JSON нельзя «поменять» — только разобрать и собрать заново.",
+                  "code": "import json\ntext = '{\"count\": 1}'\ndata = json.loads(text)\ndata[\"count\"] += 1\ntext = json.dumps(data)\nprint(text)\n",
+                  "expected_output": "{\"count\": 2}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m2-l3-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\noriginal = '{\"a\": 1, \"b\": {\"c\": 2}}'\ndata = json.loads(original)\ndata[\"b\"][\"c\"] = 99\nprint(original)\nprint(json.dumps(data))\n",
+                  "expected_output": "{\"a\": 1, \"b\": {\"c\": 2}}\n{\"a\": 1, \"b\": {\"c\": 99}}",
+                  "hint": "Исходная строка не меняется — меняется разобранный словарь.",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m2-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `add_field(text, key, value)` — добавить (или заменить) поле в JSON-объекте и вернуть новую JSON-строку (обычный `dumps`, без параметров).\n\n```\nadd_field('{\"a\": 1}', \"b\", True)   # → '{\"a\": 1, \"b\": true}'\n```",
+                  "starter_code": "import json\n\ndef add_field(text, key, value):\n    pass\n",
+                  "tests": "def test_values():\n    assert add_field('{\"a\": 1}', \"b\", True) == '{\"a\": 1, \"b\": true}' and add_field('{\"a\": 1}', \"a\", None) == '{\"a\": null}', \"Неверный JSON\"\n",
+                  "solution": "import json\n\ndef add_field(text, key, value):\n    data = json.loads(text)\n    data[key] = value\n    return json.dumps(data)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `rename_field(text, old, new)` — переименовать поле JSON-объекта (если оно есть) и вернуть новую JSON-строку.\n\n```\nrename_field('{\"userName\": \"a\", \"id\": 1}', \"userName\", \"user_name\")   # → '{\"id\": 1, \"user_name\": \"a\"}'\n```",
+                  "starter_code": "import json\n\ndef rename_field(text, old, new):\n    pass\n",
+                  "tests": "def test_values():\n    assert rename_field('{\"userName\": \"a\", \"id\": 1}', \"userName\", \"user_name\") == '{\"id\": 1, \"user_name\": \"a\"}', \"Неверный JSON\"\n    assert rename_field('{\"a\": 1}', \"x\", \"y\") == '{\"a\": 1}', \"Нет поля — без изменений\"\n",
+                  "solution": "import json\n\ndef rename_field(text, old, new):\n    data = json.loads(text)\n    if old in data:\n        data[new] = data.pop(old)\n    return json.dumps(data)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l3-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `remove_nulls(text)` — убрать из JSON-объекта поля со значением `null` и вернуть новую JSON-строку.\n\n```\nremove_nulls('{\"a\": 1, \"b\": null, \"c\": 0}')   # → '{\"a\": 1, \"c\": 0}'\n```",
+                  "starter_code": "import json\n\ndef remove_nulls(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert remove_nulls('{\"a\": 1, \"b\": null, \"c\": 0}') == '{\"a\": 1, \"c\": 0}' and remove_nulls(\"{}\") == \"{}\", \"Неверный JSON\"\n",
+                  "solution": "import json\n\ndef remove_nulls(text):\n    data = json.loads(text)\n    return json.dumps({k: v for k, v in data.items() if v is not None})\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `bump_version(text)` — увеличить поле `\"version\"` на 1 (если поля нет — считать, что было 0) и вернуть новую JSON-строку.\n\n```\nbump_version('{\"name\": \"app\", \"version\": 3}')   # → '{\"name\": \"app\", \"version\": 4}'\nbump_version('{}')                              # → '{\"version\": 1}'\n```",
+                  "starter_code": "import json\n\ndef bump_version(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert bump_version('{\"name\": \"app\", \"version\": 3}') == '{\"name\": \"app\", \"version\": 4}' and bump_version(\"{}\") == '{\"version\": 1}', \"Неверный JSON\"\n",
+                  "solution": "import json\n\ndef bump_version(text):\n    data = json.loads(text)\n    data[\"version\"] = data.get(\"version\", 0) + 1\n    return json.dumps(data)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `merge_json(a, b)` — слить два JSON-объекта (строки): поля `b` важнее. Вернуть JSON-строку с **отсортированными** ключами.\n\n```\nmerge_json('{\"b\": 1, \"a\": 1}', '{\"a\": 2, \"c\": 3}')   # → '{\"a\": 2, \"b\": 1, \"c\": 3}'\n```",
+                  "starter_code": "import json\n\ndef merge_json(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    assert merge_json('{\"b\": 1, \"a\": 1}', '{\"a\": 2, \"c\": 3}') == '{\"a\": 2, \"b\": 1, \"c\": 3}', \"Неверный JSON\"\n",
+                  "solution": "import json\n\ndef merge_json(a, b):\n    merged = {**json.loads(a), **json.loads(b)}\n    return json.dumps(merged, sort_keys=True)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nДля запросов к API нужно **собирать** JSON: тело POST-запроса, обновление объекта, сообщение в очередь. Схема всегда одна: собрать или изменить обычный словарь Python, а в конце превратить его в строку через `dumps`.\n\n## Собрать тело запроса\n\n```python\nimport json\npayload = {\"name\": \"Аня\", \"roles\": [\"qa\"]}\npayload[\"roles\"].append(\"admin\")\npayload[\"active\"] = True\nprint(json.dumps(payload, ensure_ascii=False))\n```\n\n- Работаем со словарём: добавляем, меняем, дополняем списки.\n- `dumps` — последним шагом, перед отправкой. Вывод: `{\"name\": \"Аня\", \"roles\": [\"qa\", \"admin\"], \"active\": true}`.\n\n## Изменить JSON-строку\n\nJSON-строку нельзя «поменять на месте» — это просто текст. Схема: **разобрать → изменить → собрать**.\n\n```python\nimport json\ntext = '{\"count\": 1}'\ndata = json.loads(text)\ndata[\"count\"] += 1\ntext = json.dumps(data)\nprint(text)\n```\n\nВывод: `{\"count\": 2}`.\n\n```python\nimport json\noriginal = '{\"a\": 1, \"b\": {\"c\": 2}}'\ndata = json.loads(original)\ndata[\"b\"][\"c\"] = 99\nprint(original)\nprint(json.dumps(data))\n```\n\n- `loads` создаёт **новые** объекты; исходная строка остаётся прежней.\n- Вывод: исходная строка без изменений, затем `{\"a\": 1, \"b\": {\"c\": 99}}`.\n\n## Типичные преобразования\n\n```python\nimport json\ndata = json.loads('{\"userName\": \"a\", \"id\": 1, \"email\": null, \"version\": 3}')\ndata[\"user_name\"] = data.pop(\"userName\")\ndata = {k: v for k, v in data.items() if v is not None}\ndata[\"version\"] = data.get(\"version\", 0) + 1\nprint(json.dumps(data))\n```\n\n- Переименование ключа — `pop` + присваивание (новый ключ окажется в конце).\n- Удаление `null` — словарное включение.\n- Увеличение счётчика с умолчанием — `get(ключ, 0) + 1`.\n- Вывод: `{\"id\": 1, \"version\": 4, \"user_name\": \"a\"}`.\n\n## Слияние двух JSON\n\n```python\nimport json\na = '{\"b\": 1, \"a\": 1}'\nb = '{\"a\": 2, \"c\": 3}'\nmerged = {**json.loads(a), **json.loads(b)}\nprint(json.dumps(merged, sort_keys=True))\n```\n\n- Разобрали оба, слили словари (правый важнее), собрали с сортировкой ключей. Вывод: `{\"a\": 2, \"b\": 1, \"c\": 3}`.\n\n## Итог\n\n- Собирай словарь Python, `dumps` — в конце.\n- Изменение JSON-строки: `loads` → правка словаря → `dumps`.\n- Исходная строка после `loads` не меняется.\n- Переименование, удаление `null`, счётчики, слияние — обычные операции со словарями.",
+              "quiz": [
+                {
+                  "q": "Как «увеличить поле» в JSON-строке?",
+                  "options": [
+                    "Заменить подстроку",
+                    "loads → изменить словарь → dumps",
+                    "text[\"count\"] += 1",
+                    "Нельзя"
+                  ],
+                  "answer": 1,
+                  "explain": "JSON-строка — текст."
+                },
+                {
+                  "q": "Меняется ли исходная строка после `data = json.loads(text); data[\"a\"] = 5`?",
+                  "options": [
+                    "Да",
+                    "Нет — loads создал новые объекты",
+                    "Только a",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Строки неизменяемы."
+                },
+                {
+                  "q": "Что выведет `json.dumps({\"x\": None})`?",
+                  "options": [
+                    "`{\"x\": None}`",
+                    "`{\"x\": null}`",
+                    "`{}`",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "None → null."
+                }
+              ]
+            },
+            {
+              "slug": "jsn-m2-l4",
+              "title": "Файлы: dump и load",
+              "theory": "```py\njson.dump(data, f, ensure_ascii=False, indent=2)   # в файл\ndata = json.load(f)                                 # из файла\nwith open(\"x.json\", encoding=\"utf-8\") as f: ...\n[json.loads(line) for line in f if line.strip()]    # JSON Lines\nf.write(json.dumps(r) + \"\\n\")\nio.StringIO()                                       # файл в памяти\n```",
+              "exercises": [
+                {
+                  "slug": "jsn-m2-l4-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? StringIO — «файл в памяти».",
+                  "code": "import json, io\nbuffer = io.StringIO()\njson.dump({\"a\": 1}, buffer)\nprint(buffer.getvalue())\nbuffer.seek(0)\nprint(json.load(buffer))\n",
+                  "expected_output": "{\"a\": 1}\n{'a': 1}",
+                  "hint": "dump пишет в файл, load читает из файла. seek(0) — вернуться в начало.",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m2-l4-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json, io\nf = io.StringIO('[{\"id\": 1}, {\"id\": 2}]')\ndata = json.load(f)\nprint(len(data), data[-1][\"id\"])\n",
+                  "expected_output": "2 2",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m2-l4-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? JSON Lines.",
+                  "code": "import json, io\nf = io.StringIO('{\"id\": 1}\\n{\"id\": 2}\\n\\n{\"id\": 3}\\n')\nrows = [json.loads(line) for line in f if line.strip()]\nprint([r[\"id\"] for r in rows])\n",
+                  "expected_output": "[1, 2, 3]",
+                  "hint": "Перебор файла идёт по строкам; пустые пропускаем.",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m2-l4-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `save(data, fp)` — записать данные в открытый файл `fp` как JSON с отступом 2 и без экранирования кириллицы (`json.dump`).\n\nПроверка передаст «файл в памяти» `io.StringIO`.",
+                  "starter_code": "import json\n\ndef save(data, fp):\n    pass\n",
+                  "tests": "import io\n\ndef test_values():\n    buf = io.StringIO()\n    save({\"имя\": \"Аня\"}, buf)\n    assert buf.getvalue() == '{\\n  \"имя\": \"Аня\"\\n}', f\"В файле: {buf.getvalue()!r}\"\n",
+                  "solution": "import json\n\ndef save(data, fp):\n    json.dump(data, fp, indent=2, ensure_ascii=False)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l4-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `load_ids(fp)` — прочитать из файла JSON-массив объектов (`json.load`) и вернуть список их `\"id\"`.",
+                  "starter_code": "import json\n\ndef load_ids(fp):\n    pass\n",
+                  "tests": "import io\n\ndef test_values():\n    assert load_ids(io.StringIO('[{\"id\": 3}, {\"id\": 5}]')) == [3, 5] and load_ids(io.StringIO(\"[]\")) == [], \"Неверный список\"\n",
+                  "solution": "import json\n\ndef load_ids(fp):\n    return [obj[\"id\"] for obj in json.load(fp)]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l4-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `read_lines(fp)` — прочитать файл в формате JSON Lines (по объекту на строку) и вернуть список объектов; пустые строки пропускать.",
+                  "starter_code": "import json\n\ndef read_lines(fp):\n    pass\n",
+                  "tests": "import io\n\ndef test_values():\n    assert read_lines(io.StringIO('{\"a\": 1}\\n\\n{\"a\": 2}\\n')) == [{\"a\": 1}, {\"a\": 2}] and read_lines(io.StringIO(\"\")) == [], \"Неверный результат\"\n",
+                  "solution": "import json\n\ndef read_lines(fp):\n    return [json.loads(line) for line in fp if line.strip()]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l4-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `write_lines(records, fp)` — записать список объектов в файл в формате JSON Lines: каждый объект — `json.dumps` на своей строке, после каждой строки — `\\n`.",
+                  "starter_code": "import json\n\ndef write_lines(records, fp):\n    pass\n",
+                  "tests": "import io\n\ndef test_values():\n    buf = io.StringIO()\n    write_lines([{\"id\": 1}, {\"id\": 2}], buf)\n    assert buf.getvalue() == '{\"id\": 1}\\n{\"id\": 2}\\n', f\"В файле: {buf.getvalue()!r}\"\n",
+                  "solution": "import json\n\ndef write_lines(records, fp):\n    for r in records:\n        fp.write(json.dumps(r) + \"\\n\")\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m2-l4-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `failed_count(fp)` — в файле JSON Lines записаны результаты тестов `{\"name\": ..., \"status\": ...}`. Вернуть количество записей со статусом `\"fail\"`.",
+                  "starter_code": "import json\n\ndef failed_count(fp):\n    pass\n",
+                  "tests": "import io\n\ndef test_values():\n    data = '{\"name\": \"a\", \"status\": \"fail\"}\\n{\"name\": \"b\", \"status\": \"pass\"}\\n{\"name\": \"c\", \"status\": \"fail\"}\\n'\n    assert failed_count(io.StringIO(data)) == 2 and failed_count(io.StringIO(\"\")) == 0, \"Неверный подсчёт\"\n",
+                  "solution": "import json\n\ndef failed_count(fp):\n    count = 0\n    for line in fp:\n        if line.strip() and json.loads(line)[\"status\"] == \"fail\":\n            count += 1\n    return count\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nJSON часто лежит в **файлах**: тестовые данные, конфиги, ожидаемые ответы («эталоны»), отчёты о прогоне. Для файлов в модуле `json` есть пара функций без буквы `s` на конце: `dump` пишет в файл, `load` читает из файла.\n\n## dump и load\n\n```python\nimport json, io\nbuffer = io.StringIO()\njson.dump({\"a\": 1}, buffer)\nprint(buffer.getvalue())\nbuffer.seek(0)\nprint(json.load(buffer))\n```\n\n- `json.dump(объект, файл)` — записать JSON в открытый файл (у `dumps` — вернуть строку).\n- `json.load(файл)` — прочитать и разобрать JSON из файла (у `loads` — из строки).\n- `io.StringIO` — «файл в памяти»: ведёт себя как файл, но ничего не пишет на диск. Удобен для примеров и тестов.\n- `getvalue()` — всё содержимое; `seek(0)` — вернуться в начало, чтобы читать.\n- Вывод: `{\"a\": 1}`, `{'a': 1}`.\n\nС настоящим файлом это выглядит так (подробно — тема «Файлы»):\n\n```py\nwith open(\"users.json\", \"w\", encoding=\"utf-8\") as f:\n    json.dump(users, f, ensure_ascii=False, indent=2)\n\nwith open(\"users.json\", encoding=\"utf-8\") as f:\n    users = json.load(f)\n```\n\n- `open(путь, \"w\")` — открыть для записи, без режима — для чтения.\n- `encoding=\"utf-8\"` — обязательно для кириллицы.\n- `with` сам закроет файл (тема «Контекстные менеджеры»).\n- `dump` принимает те же параметры, что `dumps`: `indent`, `ensure_ascii`, `sort_keys`.\n\n## Чтение массива из файла\n\n```python\nimport json, io\nf = io.StringIO('[{\"id\": 1}, {\"id\": 2}]')\ndata = json.load(f)\nprint(len(data), data[-1][\"id\"])\n```\n\nВывод: `2 2`.\n\n## JSON Lines: объект на строку\n\nБольшие логи и выгрузки пишут в формате JSON Lines — каждая строка отдельный JSON. Его читают **построчно** через `loads`, а не целиком через `load`:\n\n```python\nimport json, io\nf = io.StringIO('{\"id\": 1}\\n{\"id\": 2}\\n\\n{\"id\": 3}\\n')\nrows = [json.loads(line) for line in f if line.strip()]\nprint([r[\"id\"] for r in rows])\n```\n\n- Перебор файла идёт по строкам; пустые строки пропускаем через `line.strip()`.\n- Вывод: `[1, 2, 3]`.\n\nЗапись JSON Lines — `dumps` для каждого объекта и перевод строки:\n\n```python\nimport json, io\nbuf = io.StringIO()\nfor r in [{\"id\": 1}, {\"id\": 2}]:\n    buf.write(json.dumps(r) + \"\\n\")\nprint(repr(buf.getvalue()))\n```\n\nВывод: `'{\"id\": 1}\\n{\"id\": 2}\\n'`.\n\n## Итог\n\n- `dump(obj, f)` / `load(f)` — файлы; `dumps(obj)` / `loads(s)` — строки.\n- Для кириллицы — `encoding=\"utf-8\"` при открытии и `ensure_ascii=False`.\n- `io.StringIO` — файл в памяти для примеров и тестов.\n- JSON Lines читают построчно `loads`, пишут `dumps(...) + \"\\n\"`.",
+              "quiz": [
+                {
+                  "q": "Чем `json.load` отличается от `json.loads`?",
+                  "options": [
+                    "Ничем",
+                    "load читает из файла, loads — из строки",
+                    "load быстрее",
+                    "loads — из файла"
+                  ],
+                  "answer": 1,
+                  "explain": "s — string."
+                },
+                {
+                  "q": "Как читать файл JSON Lines?",
+                  "options": [
+                    "json.load(f)",
+                    "Построчно json.loads(line)",
+                    "f.read().split()",
+                    "Нельзя"
+                  ],
+                  "answer": 1,
+                  "explain": "Каждая строка — отдельный JSON."
+                },
+                {
+                  "q": "Зачем `encoding=\"utf-8\"` при открытии JSON-файла с кириллицей?",
+                  "options": [
+                    "Быстрее",
+                    "Чтобы символы прочитались и записались правильно",
+                    "Так требует json",
+                    "Не нужно"
+                  ],
+                  "answer": 1,
+                  "explain": "Иначе возможны ошибки кодировки."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "jsn-m3",
+          "title": "JSON в тестах API",
+          "icon": "🧪",
+          "description": "Проверка полей и типов, сравнение, ошибки разбора, отчёт о прогоне",
+          "lessons": [
+            {
+              "slug": "jsn-m3-l1",
+              "title": "Проверка полей и типов ответа",
+              "theory": "```py\n[f for f in required if f not in body]            # нет полей\nisinstance(body[\"id\"], int)                       # тип\nisinstance(x, (int, float))                       # любое число\nisinstance(x, int) and not isinstance(x, bool)    # true — не id!\n\"a\" in body    # поле есть (может быть null)\n```",
+              "exercises": [
+                {
+                  "slug": "jsn-m3-l1-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\nbody = json.loads('{\"id\": 7, \"name\": \"Аня\", \"tags\": [], \"score\": 4.5}')\nchecks = {\"id\": int, \"name\": str, \"tags\": list, \"score\": float}\nprint(all(isinstance(body[k], t) for k, t in checks.items()))\n",
+                  "expected_output": "True",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m3-l1-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Число в кавычках.",
+                  "code": "import json\nbody = json.loads('{\"id\": \"7\"}')\nprint(isinstance(body[\"id\"], int), type(body[\"id\"]).__name__)\n",
+                  "expected_output": "False str",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m3-l1-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? 10 или 10.0.",
+                  "code": "import json\nbody = json.loads('{\"price\": 10}')\nprint(isinstance(body[\"price\"], float), isinstance(body[\"price\"], (int, float)))\n",
+                  "expected_output": "False True",
+                  "hint": "JSON-число без точки становится int.",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m3-l1-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `missing_fields(text, required)` — список обязательных полей (в порядке `required`), которых нет в JSON-объекте.\n\n```\nmissing_fields('{\"id\": 1}', [\"id\", \"name\", \"email\"])   # → [\"name\", \"email\"]\n```",
+                  "starter_code": "import json\n\ndef missing_fields(text, required):\n    pass\n",
+                  "tests": "def test_values():\n    assert missing_fields('{\"id\": 1}', [\"id\", \"name\", \"email\"]) == [\"name\", \"email\"] and missing_fields('{\"a\": null}', [\"a\"]) == [], \"Неверный список\"\n",
+                  "solution": "import json\n\ndef missing_fields(text, required):\n    body = json.loads(text)\n    return [f for f in required if f not in body]\n",
+                  "hint": "Поле со значением null — есть, просто пустое.",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m3-l1-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `wrong_types(text, schema)` — список полей (в порядке схемы), которые **есть** в JSON-объекте, но имеют не тот тип. `schema` — словарь `{поле: тип или кортеж типов}`.\n\n```\nwrong_types('{\"id\": \"7\", \"price\": 10}', {\"id\": int, \"price\": (int, float)})   # → [\"id\"]\n```",
+                  "starter_code": "import json\n\ndef wrong_types(text, schema):\n    pass\n",
+                  "tests": "def test_values():\n    assert wrong_types('{\"id\": \"7\", \"price\": 10}', {\"id\": int, \"price\": (int, float)}) == [\"id\"], \"Неверный список\"\n    assert wrong_types('{\"a\": 1}', {\"a\": int, \"b\": str}) == [], \"Отсутствующие поля не считаем\"\n",
+                  "solution": "import json\n\ndef wrong_types(text, schema):\n    body = json.loads(text)\n    return [f for f, typ in schema.items() if f in body and not isinstance(body[f], typ)]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m3-l1-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `validate_user(text)` — список ошибок пользователя из JSON (в указанном порядке проверок):\n\n- `id` — целое положительное число, иначе `\"bad id\"`;\n- `email` — строка с `@`, иначе `\"bad email\"`;\n- `name` — непустая строка, иначе `\"bad name\"`.\n\n```\nvalidate_user('{\"id\": 1, \"email\": \"a@x\", \"name\": \"Аня\"}')   # → []\nvalidate_user('{\"id\": 0, \"email\": \"ax\", \"name\": \"\"}')        # → [\"bad id\", \"bad email\", \"bad name\"]\n```",
+                  "starter_code": "import json\n\ndef validate_user(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert validate_user('{\"id\": 1, \"email\": \"a@x\", \"name\": \"Аня\"}') == [], \"Корректный пользователь\"\n    assert validate_user('{\"id\": 0, \"email\": \"ax\", \"name\": \"\"}') == [\"bad id\", \"bad email\", \"bad name\"], \"Все ошибки\"\n    assert validate_user('{\"id\": \"1\", \"name\": \"x\"}') == [\"bad id\", \"bad email\"], \"Тип id и отсутствующий email\"\n    assert validate_user('{\"id\": true, \"email\": \"a@b\", \"name\": \"x\"}') == [\"bad id\"], \"true — не id\"\n",
+                  "solution": "import json\n\ndef validate_user(text):\n    u = json.loads(text)\n    errors = []\n    uid = u.get(\"id\")\n    if not (isinstance(uid, int) and not isinstance(uid, bool) and uid > 0):\n        errors.append(\"bad id\")\n    email = u.get(\"email\")\n    if not (isinstance(email, str) and \"@\" in email):\n        errors.append(\"bad email\")\n    name = u.get(\"name\")\n    if not (isinstance(name, str) and name):\n        errors.append(\"bad name\")\n    return errors\n",
+                  "hint": "JSON true становится True, а isinstance(True, int) — True. Исключи bool отдельно.",
+                  "xp": 25
+                },
+                {
+                  "slug": "jsn-m3-l1-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `all_have(text, field)` — у **каждого** объекта JSON-массива есть поле `field`. Для пустого массива — `True`.\n\n```\nall_have('[{\"id\": 1}, {\"id\": 2}]', \"id\")    # → True\nall_have('[{\"id\": 1}, {\"x\": 2}]', \"id\")     # → False\n```",
+                  "starter_code": "import json\n\ndef all_have(text, field):\n    pass\n",
+                  "tests": "def test_values():\n    assert [all_have('[{\"id\": 1}, {\"id\": 2}]', \"id\"), all_have('[{\"id\": 1}, {\"x\": 2}]', \"id\"), all_have(\"[]\", \"id\")] == [True, False, True], \"Неверный результат\"\n",
+                  "solution": "import json\n\ndef all_have(text, field):\n    return all(field in obj for obj in json.loads(text))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m3-l1-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `response_ok(status, text)` — успешен ли ответ API: статус `200`, тело — JSON-**объект**, в нём есть ключ `\"data\"` и **нет** ключа `\"error\"`.\n\n```\nresponse_ok(200, '{\"data\": []}')                 # → True\nresponse_ok(200, '{\"data\": 1, \"error\": \"x\"}')    # → False\nresponse_ok(200, '[1, 2]')                       # → False\n```",
+                  "starter_code": "import json\n\ndef response_ok(status, text):\n    pass\n",
+                  "tests": "def test_values():\n    got = [response_ok(200, '{\"data\": []}'), response_ok(200, '{\"data\": 1, \"error\": \"x\"}'), response_ok(200, '[1, 2]'), response_ok(500, '{\"data\": 1}'), response_ok(200, '{}')]\n    assert got == [True, False, False, False, False], f\"Получено {got}\"\n",
+                  "solution": "import json\n\ndef response_ok(status, text):\n    if status != 200:\n        return False\n    body = json.loads(text)\n    return isinstance(body, dict) and \"data\" in body and \"error\" not in body\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПроверка ответа API — это не только «статус 200». Нужно убедиться, что в теле есть **все обязательные поля** и что у них **правильные типы**: частый баг бэкенда — `\"id\": \"7\"` (строка) вместо `7` (число), или `null` там, где ожидали список.\n\n## Проверка типов\n\n```python\nimport json\nbody = json.loads('{\"id\": 7, \"name\": \"Аня\", \"tags\": [], \"score\": 4.5}')\nchecks = {\"id\": int, \"name\": str, \"tags\": list, \"score\": float}\nprint(all(isinstance(body[k], t) for k, t in checks.items()))\n```\n\n- Схема «поле → тип» и `isinstance` для каждого поля. Вывод: `True`.\n\n```python\nimport json\nbody = json.loads('{\"id\": \"7\"}')\nprint(isinstance(body[\"id\"], int), type(body[\"id\"]).__name__)\n```\n\n- Число в кавычках — это строка. Вывод: `False str`.\n\n## int или float\n\n```python\nimport json\nbody = json.loads('{\"price\": 10}')\nprint(isinstance(body[\"price\"], float), isinstance(body[\"price\"], (int, float)))\n```\n\n- `10` в JSON становится `int`. Если по смыслу поле — «любое число», проверяй кортежем типов `(int, float)`.\n- Вывод: `False True`.\n\n## Ловушка: true — это тоже int\n\n```python\nimport json\nbody = json.loads('{\"id\": true}')\nprint(isinstance(body[\"id\"], int), isinstance(body[\"id\"], bool))\n```\n\n- `bool` — подтип `int`, поэтому `true` пройдёт проверку `isinstance(x, int)`. Для полей-чисел исключай `bool` явно.\n- Вывод: `True True`.\n\n## Отсутствует или null\n\n```python\nimport json\nbody = json.loads('{\"a\": null}')\nprint(\"a\" in body, \"b\" in body, body.get(\"a\"), body.get(\"b\"))\n```\n\n- `\"a\" in body` — поле **есть** (со значением `null`); `\"b\"` — нет вовсе. Через `get` оба дают `None` — не путай эти случаи в проверках.\n- Вывод: `True False None None`.\n\n## Сбор всех ошибок\n\n```python\nimport json\n\ndef validate_user(text):\n    u = json.loads(text)\n    errors = []\n    uid = u.get(\"id\")\n    if not (isinstance(uid, int) and not isinstance(uid, bool) and uid > 0):\n        errors.append(\"bad id\")\n    if not (isinstance(u.get(\"email\"), str) and \"@\" in u[\"email\"]):\n        errors.append(\"bad email\")\n    return errors\n\nprint(validate_user('{\"id\": 1, \"email\": \"a@x\"}'), validate_user('{\"id\": \"1\"}'))\n```\n\n- Каждая проверка добавляет свою ошибку — отчёт сразу показывает все проблемы.\n- Вывод: `[] ['bad id', 'bad email']`.\n\n## Итог\n\n- Обязательные поля — `поле in body`; типы — `isinstance(body[поле], тип)`.\n- Число в кавычках — строка; `10` → `int`; «любое число» — `(int, float)`.\n- `true` проходит `isinstance(x, int)` — исключай `bool`.\n- «Нет поля» и «поле = null» — разные случаи.\n- Собирай все ошибки в список.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `isinstance(json.loads(\"true\"), int)`?",
+                  "options": [
+                    "`False`",
+                    "`True`",
+                    "Ошибка",
+                    "`None`"
+                  ],
+                  "answer": 1,
+                  "explain": "bool — подтип int."
+                },
+                {
+                  "q": "Какой тип у значения из `{\"id\": \"7\"}`?",
+                  "options": [
+                    "int",
+                    "str",
+                    "float",
+                    "None"
+                  ],
+                  "answer": 1,
+                  "explain": "Кавычки — строка."
+                },
+                {
+                  "q": "Чем `\"a\" in body` отличается от `body.get(\"a\") is not None`?",
+                  "options": [
+                    "Ничем",
+                    "in проверяет наличие ключа, даже со значением null",
+                    "get быстрее",
+                    "in проверяет значение"
+                  ],
+                  "answer": 1,
+                  "explain": "null — это присутствующее поле."
+                }
+              ]
+            },
+            {
+              "slug": "jsn-m3-l2",
+              "title": "Сравнение JSON",
+              "theory": "```py\njson.loads(a) == json.loads(b)          # по содержимому\n[1, 2] != [2, 1]                        # порядок в массивах важен\nTrue == 1                               # осторожно!\njson.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True)   # строго\nactual.pop(\"ts\", None)                  # убрать изменчивое\nsorted(json.dumps(o, sort_keys=True) for o in items)             # без порядка\n```",
+              "exercises": [
+                {
+                  "slug": "jsn-m3-l2-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Строки против объектов.",
+                  "code": "import json\na = json.loads('{\"x\": 1, \"y\": 2}')\nb = json.loads('{\"y\": 2, \"x\": 1}')\nprint(a == b, json.dumps(a) == json.dumps(b), json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True))\n",
+                  "expected_output": "True False True",
+                  "hint": "Словари равны без учёта порядка, а строки JSON — нет.",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m3-l2-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\nprint(json.loads(\"[1, 2]\") == json.loads(\"[2, 1]\"))\nprint(json.loads(\"1\") == json.loads(\"1.0\"), json.loads(\"true\") == json.loads(\"1\"))\n",
+                  "expected_output": "False\nTrue True",
+                  "hint": "Порядок в массивах важен. А в Python 1 == 1.0 и True == 1.",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m3-l2-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\nexpected = {\"id\": 1, \"status\": \"ok\"}\nactual = json.loads('{\"id\": 1, \"status\": \"ok\", \"ts\": 1712}')\nactual.pop(\"ts\", None)\nprint(actual == expected)\n",
+                  "expected_output": "True",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m3-l2-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `json_equal(a, b)` — равны ли две JSON-строки **по содержимому** (порядок ключей и пробелы не важны).\n\n```\njson_equal('{\"a\": 1, \"b\": 2}', '{\"b\":2,\"a\":1}')   # → True\njson_equal('[1, 2]', '[2, 1]')                    # → False\n```",
+                  "starter_code": "import json\n\ndef json_equal(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    assert [json_equal('{\"a\": 1, \"b\": 2}', '{\"b\":2,\"a\":1}'), json_equal('[1, 2]', '[2, 1]'), json_equal(\"null\", \"null\")] == [True, False, True], \"Неверное сравнение\"\n",
+                  "solution": "import json\n\ndef json_equal(a, b):\n    return json.loads(a) == json.loads(b)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m3-l2-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `equal_ignoring(a, b, ignore)` — равны ли два JSON-объекта (строки), если не учитывать поля верхнего уровня из списка `ignore` (например, время и id запроса).\n\n```\nequal_ignoring('{\"id\": 1, \"ts\": 5}', '{\"id\": 1, \"ts\": 9}', [\"ts\"])   # → True\n```",
+                  "starter_code": "import json\n\ndef equal_ignoring(a, b, ignore):\n    pass\n",
+                  "tests": "def test_values():\n    assert equal_ignoring('{\"id\": 1, \"ts\": 5}', '{\"id\": 1, \"ts\": 9}', [\"ts\"]) is True, \"ts игнорируем\"\n    assert equal_ignoring('{\"id\": 1}', '{\"id\": 2}', [\"ts\"]) is False and equal_ignoring('{\"id\": 1, \"x\": 1}', '{\"id\": 1}', []) is False, \"Различия\"\n",
+                  "solution": "import json\n\ndef equal_ignoring(a, b, ignore):\n    da = {k: v for k, v in json.loads(a).items() if k not in ignore}\n    db = {k: v for k, v in json.loads(b).items() if k not in ignore}\n    return da == db\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m3-l2-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `diff_keys(a, b)` — различия в наборе полей двух JSON-объектов: словарь `{\"only_a\": [...], \"only_b\": [...]}` с отсортированными списками.\n\n```\ndiff_keys('{\"id\": 1, \"x\": 2}', '{\"id\": 1, \"y\": 3}')   # → {\"only_a\": [\"x\"], \"only_b\": [\"y\"]}\n```",
+                  "starter_code": "import json\n\ndef diff_keys(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    assert diff_keys('{\"id\": 1, \"x\": 2}', '{\"id\": 1, \"y\": 3}') == {\"only_a\": [\"x\"], \"only_b\": [\"y\"]}, \"Неверные различия\"\n    assert diff_keys(\"{}\", \"{}\") == {\"only_a\": [], \"only_b\": []}, \"Нет различий\"\n",
+                  "solution": "import json\n\ndef diff_keys(a, b):\n    ka = json.loads(a).keys()\n    kb = json.loads(b).keys()\n    return {\"only_a\": sorted(ka - kb), \"only_b\": sorted(kb - ka)}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m3-l2-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `same_items(a, b)` — содержат ли два JSON-массива объектов одни и те же объекты, **без учёта порядка** элементов. Подсказка: превращай каждый объект в каноническую строку `json.dumps(obj, sort_keys=True)` и сравнивай отсортированные списки строк.\n\n```\nsame_items('[{\"id\": 1}, {\"id\": 2}]', '[{\"id\": 2}, {\"id\": 1}]')   # → True\n```",
+                  "starter_code": "import json\n\ndef same_items(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    assert same_items('[{\"id\": 1}, {\"id\": 2}]', '[{\"id\": 2}, {\"id\": 1}]') is True, \"Порядок не важен\"\n    assert same_items('[{\"id\": 1}, {\"id\": 1}]', '[{\"id\": 1}]') is False and same_items('[{\"a\": 1, \"b\": 2}]', '[{\"b\": 2, \"a\": 1}]') is True, \"Повторы важны, порядок ключей — нет\"\n",
+                  "solution": "import json\n\ndef same_items(a, b):\n    def canon(text):\n        return sorted(json.dumps(obj, sort_keys=True) for obj in json.loads(text))\n    return canon(a) == canon(b)\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "jsn-m3-l2-e8",
+                  "type": "code",
+                  "prompt": "В Python `True == 1`, поэтому обычное сравнение не отличит JSON `true` от `1`. Напиши функцию `strict_equal(a, b)` — строгое сравнение двух Python-объектов через их каноническую JSON-форму (`sort_keys=True`).\n\n```\nstrict_equal({\"ok\": True}, {\"ok\": 1})    # → False\nstrict_equal({\"a\": 1, \"b\": 2}, {\"b\": 2, \"a\": 1})   # → True\n```",
+                  "starter_code": "import json\n\ndef strict_equal(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    assert [strict_equal({\"ok\": True}, {\"ok\": 1}), strict_equal({\"a\": 1, \"b\": 2}, {\"b\": 2, \"a\": 1}), strict_equal([1], [1.0])] == [False, True, False], \"Неверное сравнение\"\n",
+                  "solution": "import json\n\ndef strict_equal(a, b):\n    return json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True)\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nГлавная проверка API-теста — «фактический ответ совпадает с ожидаемым». Сравнивать JSON-**строки** нельзя: у одинаковых данных может быть разный порядок ключей и разные пробелы. Сравнивают **разобранные** объекты — и учитывают тонкости Python.\n\n## Строки против объектов\n\n```python\nimport json\na = json.loads('{\"x\": 1, \"y\": 2}')\nb = json.loads('{\"y\": 2, \"x\": 1}')\nprint(a == b, json.dumps(a) == json.dumps(b), json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True))\n```\n\n- Словари равны без учёта порядка ключей.\n- Строки `dumps` различаются — порядок сохранился. С `sort_keys=True` строки совпадают.\n- Вывод: `True False True`.\n\n## Порядок в массивах важен\n\n```python\nimport json\nprint(json.loads(\"[1, 2]\") == json.loads(\"[2, 1]\"))\nprint(json.loads(\"1\") == json.loads(\"1.0\"), json.loads(\"true\") == json.loads(\"1\"))\n```\n\n- Списки сравниваются поэлементно по порядку.\n- В Python `1 == 1.0` и `True == 1` — поэтому обычное сравнение не заметит, что API вернул `true` вместо `1`.\n- Вывод: `False`, `True True`.\n\n## Строгое сравнение через канонический JSON\n\n```python\nimport json\n\ndef strict_equal(a, b):\n    return json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True)\n\nprint(strict_equal({\"ok\": True}, {\"ok\": 1}), strict_equal({\"a\": 1, \"b\": 2}, {\"b\": 2, \"a\": 1}))\n```\n\n- В JSON-тексте `true` и `1` пишутся по-разному, поэтому сравнение канонических строк их различает. Вывод: `False True`.\n\n## Игнорировать изменчивые поля\n\n```python\nimport json\nexpected = {\"id\": 1, \"status\": \"ok\"}\nactual = json.loads('{\"id\": 1, \"status\": \"ok\", \"ts\": 1712}')\nactual.pop(\"ts\", None)\nprint(actual == expected)\n```\n\n- Время, id запроса, токены меняются от прогона к прогону — их убирают перед сравнением. Вывод: `True`.\n\n## Массивы без учёта порядка\n\n```python\nimport json\n\ndef same_items(a, b):\n    def canon(text):\n        return sorted(json.dumps(obj, sort_keys=True) for obj in json.loads(text))\n    return canon(a) == canon(b)\n\nprint(same_items('[{\"id\": 1}, {\"id\": 2}]', '[{\"id\": 2}, {\"id\": 1}]'))\n```\n\n- Словари нельзя сортировать напрямую, но их канонические строки — можно. Одинаковые наборы дадут одинаковые отсортированные списки строк.\n- Вывод: `True`.\n\n## Различия в полях\n\n```python\nimport json\na = json.loads('{\"id\": 1, \"x\": 2}')\nb = json.loads('{\"id\": 1, \"y\": 3}')\nprint(sorted(a.keys() - b.keys()), sorted(b.keys() - a.keys()))\n```\n\nВывод: `['x'] ['y']` — такой список удобно выводить в сообщении упавшего теста.\n\n## Итог\n\n- Сравнивай разобранные объекты, а не JSON-строки.\n- Порядок ключей не важен, порядок элементов массива — важен.\n- `True == 1`, `1 == 1.0` в Python; строго — канонический `dumps(sort_keys=True)`.\n- Изменчивые поля удаляй перед сравнением.\n- Массив без учёта порядка — сравнение отсортированных канонических строк.",
+              "quiz": [
+                {
+                  "q": "Равны ли `json.loads('{\"a\":1,\"b\":2}')` и `json.loads('{\"b\":2,\"a\":1}')`?",
+                  "options": [
+                    "Да",
+                    "Нет",
+                    "Ошибка",
+                    "Зависит от пробелов"
+                  ],
+                  "answer": 0,
+                  "explain": "Словари сравниваются без порядка."
+                },
+                {
+                  "q": "Что вернёт `json.loads(\"[1, 2]\") == json.loads(\"[2, 1]\")`?",
+                  "options": [
+                    "`True`",
+                    "`False`",
+                    "Ошибка",
+                    "`None`"
+                  ],
+                  "answer": 1,
+                  "explain": "Порядок элементов важен."
+                },
+                {
+                  "q": "Как отличить `true` от `1` при сравнении?",
+                  "options": [
+                    "Через ==",
+                    "Сравнить канонические JSON-строки",
+                    "Нельзя",
+                    "Через is"
+                  ],
+                  "answer": 1,
+                  "explain": "В тексте JSON они разные."
+                }
+              ]
+            },
+            {
+              "slug": "jsn-m3-l3",
+              "title": "Ошибки разбора и безопасная обработка",
+              "theory": "```py\ntry:\n    data = json.loads(text)\nexcept json.JSONDecodeError as e:\n    e.lineno, e.colno, e.msg     # где и что\nif not text.strip(): ...         # пустое тело\nissubclass(json.JSONDecodeError, ValueError)   # True\nif not isinstance(data, dict):\n    raise ValueError(\"ожидали объект\")\n```",
+              "exercises": [
+                {
+                  "slug": "jsn-m3-l3-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\nfor text in ['{\"a\": 1}', \"{'a': 1}\", '{\"a\": 1,}', \"\", \"null\"]:\n    try:\n        print(repr(json.loads(text)))\n    except json.JSONDecodeError:\n        print(\"не JSON:\", repr(text))\n",
+                  "expected_output": "{'a': 1}\nне JSON: \"{'a': 1}\"\nне JSON: '{\"a\": 1,}'\nне JSON: ''\nNone",
+                  "hint": "JSON не допускает одинарные кавычки и запятую в конце; пустая строка — тоже не JSON.",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m3-l3-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Где ошибка.",
+                  "code": "import json\ntry:\n    json.loads('{\"a\": 1,\\n \"b\": }')\nexcept json.JSONDecodeError as e:\n    print(e.lineno, e.colno, e.msg)\n",
+                  "expected_output": "2 7 Expecting value",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m3-l3-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\nprint(issubclass(json.JSONDecodeError, ValueError))\ntry:\n    json.loads(\"abc\")\nexcept ValueError:\n    print(\"поймали как ValueError\")\n",
+                  "expected_output": "True\nпоймали как ValueError",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m3-l3-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `safe_parse(text, default=None)` — разобрать JSON, а при ошибке разбора вернуть `default`.\n\n```\nsafe_parse('[1]')          # → [1]\nsafe_parse('oops', {})     # → {}\n```",
+                  "starter_code": "import json\n\ndef safe_parse(text, default=None):\n    pass\n",
+                  "tests": "def test_values():\n    assert [safe_parse('[1]'), safe_parse('oops', {}), safe_parse('')] == [[1], {}, None], \"Неверный результат\"\n",
+                  "solution": "import json\n\ndef safe_parse(text, default=None):\n    try:\n        return json.loads(text)\n    except json.JSONDecodeError:\n        return default\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m3-l3-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `invalid_indexes(texts)` — индексы строк из списка, которые **не** являются корректным JSON.\n\n```\ninvalid_indexes(['{\"a\": 1}', \"{a: 1}\", \"[]\", \"nul\"])   # → [1, 3]\n```",
+                  "starter_code": "import json\n\ndef invalid_indexes(texts):\n    pass\n",
+                  "tests": "def test_values():\n    assert invalid_indexes(['{\"a\": 1}', \"{a: 1}\", \"[]\", \"nul\"]) == [1, 3] and invalid_indexes([]) == [], \"Неверные индексы\"\n",
+                  "solution": "import json\n\ndef invalid_indexes(texts):\n    bad = []\n    for i, text in enumerate(texts):\n        try:\n            json.loads(text)\n        except json.JSONDecodeError:\n            bad.append(i)\n    return bad\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m3-l3-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_object(text)` — разобрать JSON и убедиться, что это **объект**. Если корень — не объект (массив, число…), выбросить `ValueError(\"ожидали объект\")`. Ошибку разбора не перехватывать (она сама является `ValueError`).\n\n```\nparse_object('{\"a\": 1}')   # → {\"a\": 1}\nparse_object('[1]')        # ValueError: ожидали объект\n```",
+                  "starter_code": "import json\n\ndef parse_object(text):\n    pass\n",
+                  "tests": "def test_ok():\n    assert parse_object('{\"a\": 1}') == {\"a\": 1}, \"Объект разбирается\"\n\ndef test_not_object():\n    for bad in (\"[1]\", \"5\", \"null\", \"{oops\"):\n        try:\n            parse_object(bad)\n        except ValueError:\n            continue\n        assert False, f\"Для {bad!r} нужен ValueError\"\n",
+                  "solution": "import json\n\ndef parse_object(text):\n    data = json.loads(text)\n    if not isinstance(data, dict):\n        raise ValueError(\"ожидали объект\")\n    return data\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m3-l3-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `error_position(text)` — пара `(номер строки, номер столбца)` места ошибки разбора JSON или `None`, если строка корректна. Используй атрибуты `lineno` и `colno` исключения.\n\n```\nerror_position('{\"a\": 1}')        # → None\nerror_position('{\"a\": 1,}')       # → (1, 9)\n```",
+                  "starter_code": "import json\n\ndef error_position(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert error_position('{\"a\": 1}') is None and error_position('{\"a\": 1,}') == (1, 9), \"Неверная позиция\"\n",
+                  "solution": "import json\n\ndef error_position(text):\n    try:\n        json.loads(text)\n    except json.JSONDecodeError as e:\n        return (e.lineno, e.colno)\n    return None\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m3-l3-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_body(text)` — разбор тела ответа API:\n\n- пустое тело (или только пробелы) → `{}`;\n- корректный JSON → результат разбора;\n- некорректный → `{\"error\": \"invalid json\"}`.\n\n```\nparse_body(\"  \")          # → {}\nparse_body('{\"a\": 1}')    # → {\"a\": 1}\nparse_body(\"<html>\")      # → {\"error\": \"invalid json\"}\n```",
+                  "starter_code": "import json\n\ndef parse_body(text):\n    pass\n",
+                  "tests": "def test_values():\n    assert [parse_body(\"  \"), parse_body('{\"a\": 1}'), parse_body(\"<html>\"), parse_body(\"[]\")] == [{}, {\"a\": 1}, {\"error\": \"invalid json\"}, []], \"Неверный результат\"\n",
+                  "solution": "import json\n\ndef parse_body(text):\n    if not text.strip():\n        return {}\n    try:\n        return json.loads(text)\n    except json.JSONDecodeError:\n        return {\"error\": \"invalid json\"}\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСервер не всегда возвращает корректный JSON: при ошибке прокси придёт HTML-страница, при таймауте — пустое тело, при баге — обрезанный текст. Тест должен не падать с непонятной трассой, а сообщать: «тело ответа — не JSON». Для этого ошибки разбора перехватывают.\n\n## Что не является JSON\n\n```python\nimport json\nfor text in ['{\"a\": 1}', \"{'a': 1}\", '{\"a\": 1,}', \"\", \"null\"]:\n    try:\n        print(repr(json.loads(text)))\n    except json.JSONDecodeError:\n        print(\"не JSON:\", repr(text))\n```\n\n- Одинарные кавычки, запятая в конце, пустая строка — ошибки.\n- `\"null\"` — корректный JSON, результат `None`.\n- `repr(...)` показывает значение с кавычками — видно, где пустая строка.\n- Вывод: `{'a': 1}`, три строки «не JSON», `None`.\n\n## Где именно ошибка\n\n```python\nimport json\ntry:\n    json.loads('{\"a\": 1,\\n \"b\": }')\nexcept json.JSONDecodeError as e:\n    print(e.lineno, e.colno, e.msg)\n```\n\n- `lineno` — номер строки, `colno` — номер символа в строке (с 1), `msg` — описание, `pos` — позиция от начала текста.\n- Вывод: `2 7 Expecting value` — на второй строке, 7-м символе ожидалось значение.\n\n## JSONDecodeError — это ValueError\n\n```python\nimport json\nprint(issubclass(json.JSONDecodeError, ValueError))\ntry:\n    json.loads(\"abc\")\nexcept ValueError:\n    print(\"поймали как ValueError\")\n```\n\n- `issubclass(A, B)` — является ли класс `A` разновидностью `B`. Поэтому `except ValueError` тоже ловит ошибки разбора.\n- Вывод: `True`, `поймали как ValueError`.\n\n## Безопасный разбор тела\n\n```python\nimport json\n\ndef parse_body(text):\n    if not text.strip():\n        return {}\n    try:\n        return json.loads(text)\n    except json.JSONDecodeError:\n        return {\"error\": \"invalid json\"}\n\nprint(parse_body(\"  \"), parse_body('{\"a\": 1}'), parse_body(\"<html>\"))\n```\n\n- Пустое тело — отдельный понятный случай; некорректный JSON — маркер ошибки вместо падения.\n- Вывод: `{} {'a': 1} {'error': 'invalid json'}`.\n\n## Проверка корневого типа\n\n```python\nimport json\n\ndef parse_object(text):\n    data = json.loads(text)\n    if not isinstance(data, dict):\n        raise ValueError(\"ожидали объект\")\n    return data\n\ntry:\n    parse_object(\"[1, 2]\")\nexcept ValueError as e:\n    print(e)\n```\n\n- Корректный JSON может оказаться массивом или числом там, где ждали объект. `raise ValueError(...)` — выбросить свою понятную ошибку (тема «Исключения»).\n- Вывод: `ожидали объект`.\n\n## Итог\n\n- Некорректный текст → `json.JSONDecodeError` (подтип `ValueError`).\n- `e.lineno`, `e.colno`, `e.msg` — где и что не так.\n- Пустое тело, HTML, обрезанный текст — обрабатывай явно.\n- Проверяй тип корня: `isinstance(data, dict)`.",
+              "quiz": [
+                {
+                  "q": "Какую ошибку вызовет `json.loads(\"\")`?",
+                  "options": [
+                    "KeyError",
+                    "`json.JSONDecodeError`",
+                    "TypeError",
+                    "Никакую"
+                  ],
+                  "answer": 1,
+                  "explain": "Пустая строка — не JSON."
+                },
+                {
+                  "q": "Поймает ли `except ValueError` ошибку разбора JSON?",
+                  "options": [
+                    "Нет",
+                    "Да — JSONDecodeError наследует ValueError",
+                    "Только в Python 2",
+                    "Только для пустой строки"
+                  ],
+                  "answer": 1,
+                  "explain": "issubclass(...) — True."
+                },
+                {
+                  "q": "Что вернёт `json.loads(\"null\")`?",
+                  "options": [
+                    "Ошибка",
+                    "`None`",
+                    "`\"null\"`",
+                    "`{}`"
+                  ],
+                  "answer": 1,
+                  "explain": "null — корректный JSON."
+                }
+              ]
+            },
+            {
+              "slug": "jsn-m3-l4",
+              "title": "Практика: отчёт о прогоне тестов",
+              "theory": "```py\nreport = {\"total\": len(tests), \"tests\": tests}\njson.dumps(report, ensure_ascii=False, sort_keys=True)\nsum(1 for t in tests if t[\"status\"] == \"fail\")\n[t[\"name\"] for t in json.loads(text)[\"tests\"] if t[\"status\"] == \"fail\"]\nmax(tests, key=lambda t: t[\"time\"])[\"name\"]\n```",
+              "exercises": [
+                {
+                  "slug": "jsn-m3-l4-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\nresults = [(\"login\", \"pass\", 1.2), (\"pay\", \"fail\", 3.4)]\nreport = {\"total\": len(results), \"tests\": [{\"name\": n, \"status\": s, \"time\": t} for n, s, t in results]}\nprint(json.dumps(report, ensure_ascii=False))\n",
+                  "expected_output": "{\"total\": 2, \"tests\": [{\"name\": \"login\", \"status\": \"pass\", \"time\": 1.2}, {\"name\": \"pay\", \"status\": \"fail\", \"time\": 3.4}]}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m3-l4-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\ntext = '{\"tests\": [{\"name\": \"a\", \"status\": \"pass\"}, {\"name\": \"b\", \"status\": \"fail\"}]}'\nreport = json.loads(text)\nfailed = [t[\"name\"] for t in report[\"tests\"] if t[\"status\"] == \"fail\"]\nprint(failed, len(report[\"tests\"]) - len(failed))\n",
+                  "expected_output": "['b'] 1",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m3-l4-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "import json\nsummary = {\"passed\": 2, \"failed\": 1}\nsummary[\"rate\"] = round(summary[\"passed\"] / (summary[\"passed\"] + summary[\"failed\"]) * 100, 1)\nprint(json.dumps(summary, sort_keys=True))\n",
+                  "expected_output": "{\"failed\": 1, \"passed\": 2, \"rate\": 66.7}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "jsn-m3-l4-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_report(results)` — `results` это список кортежей `(имя, статус, время)`. Вернуть словарь:\n\n```\n{\"total\": N, \"passed\": ..., \"failed\": ..., \"tests\": [{\"name\": ..., \"status\": ..., \"time\": ...}, ...]}\n```\n\n```\nmake_report([(\"a\", \"pass\", 1.0), (\"b\", \"fail\", 2.0)])\n# → {\"total\": 2, \"passed\": 1, \"failed\": 1, \"tests\": [{\"name\": \"a\", \"status\": \"pass\", \"time\": 1.0}, {\"name\": \"b\", \"status\": \"fail\", \"time\": 2.0}]}\n```",
+                  "starter_code": "def make_report(results):\n    pass\n",
+                  "tests": "def test_values():\n    got = make_report([(\"a\", \"pass\", 1.0), (\"b\", \"fail\", 2.0)])\n    assert got == {\"total\": 2, \"passed\": 1, \"failed\": 1, \"tests\": [{\"name\": \"a\", \"status\": \"pass\", \"time\": 1.0}, {\"name\": \"b\", \"status\": \"fail\", \"time\": 2.0}]}, f\"Получено {got}\"\n    assert make_report([]) == {\"total\": 0, \"passed\": 0, \"failed\": 0, \"tests\": []}, \"Пустой прогон\"\n",
+                  "solution": "def make_report(results):\n    tests = [{\"name\": n, \"status\": s, \"time\": t} for n, s, t in results]\n    return {\n        \"total\": len(tests),\n        \"passed\": sum(1 for t in tests if t[\"status\"] == \"pass\"),\n        \"failed\": sum(1 for t in tests if t[\"status\"] == \"fail\"),\n        \"tests\": tests,\n    }\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "jsn-m3-l4-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `summary_json(results)` — JSON-строка сводки `{\"failed\": ..., \"passed\": ...}` с **отсортированными** ключами для списка кортежей `(имя, статус)`.\n\n```\nsummary_json([(\"a\", \"pass\"), (\"b\", \"fail\"), (\"c\", \"pass\")])   # → '{\"failed\": 1, \"passed\": 2}'\n```",
+                  "starter_code": "import json\n\ndef summary_json(results):\n    pass\n",
+                  "tests": "def test_values():\n    assert summary_json([(\"a\", \"pass\"), (\"b\", \"fail\"), (\"c\", \"pass\")]) == '{\"failed\": 1, \"passed\": 2}' and summary_json([]) == '{\"failed\": 0, \"passed\": 0}', \"Неверная сводка\"\n",
+                  "solution": "import json\n\ndef summary_json(results):\n    passed = sum(1 for _, s in results if s == \"pass\")\n    failed = sum(1 for _, s in results if s == \"fail\")\n    return json.dumps({\"passed\": passed, \"failed\": failed}, sort_keys=True)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m3-l4-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `failed_names(text)` — имена упавших тестов из JSON-отчёта `{\"tests\": [{\"name\": ..., \"status\": ...}]}`.",
+                  "starter_code": "import json\n\ndef failed_names(text):\n    pass\n",
+                  "tests": "def test_values():\n    text = '{\"tests\": [{\"name\": \"a\", \"status\": \"pass\"}, {\"name\": \"b\", \"status\": \"fail\"}]}'\n    assert failed_names(text) == [\"b\"] and failed_names('{\"tests\": []}') == [], \"Неверный список\"\n",
+                  "solution": "import json\n\ndef failed_names(text):\n    return [t[\"name\"] for t in json.loads(text)[\"tests\"] if t[\"status\"] == \"fail\"]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m3-l4-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `slowest(text)` — имя самого долгого теста из JSON-отчёта `{\"tests\": [{\"name\": ..., \"time\": ...}]}`; пустой список — `None`.",
+                  "starter_code": "import json\n\ndef slowest(text):\n    pass\n",
+                  "tests": "def test_values():\n    text = '{\"tests\": [{\"name\": \"a\", \"time\": 1.2}, {\"name\": \"b\", \"time\": 3.4}, {\"name\": \"c\", \"time\": 0.5}]}'\n    assert slowest(text) == \"b\" and slowest('{\"tests\": []}') is None, \"Неверный результат\"\n",
+                  "solution": "import json\n\ndef slowest(text):\n    tests = json.loads(text)[\"tests\"]\n    if not tests:\n        return None\n    return max(tests, key=lambda t: t[\"time\"])[\"name\"]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "jsn-m3-l4-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `merge_reports(texts)` — сложить сводки нескольких прогонов: каждый элемент списка — JSON-строка `{\"passed\": ..., \"failed\": ...}`. Вернуть словарь с суммами.\n\n```\nmerge_reports(['{\"passed\": 2, \"failed\": 1}', '{\"passed\": 5, \"failed\": 0}'])   # → {\"passed\": 7, \"failed\": 1}\n```",
+                  "starter_code": "import json\n\ndef merge_reports(texts):\n    pass\n",
+                  "tests": "def test_values():\n    assert merge_reports(['{\"passed\": 2, \"failed\": 1}', '{\"passed\": 5, \"failed\": 0}']) == {\"passed\": 7, \"failed\": 1} and merge_reports([]) == {\"passed\": 0, \"failed\": 0}, \"Неверная сумма\"\n",
+                  "solution": "import json\n\ndef merge_reports(texts):\n    total = {\"passed\": 0, \"failed\": 0}\n    for text in texts:\n        report = json.loads(text)\n        total[\"passed\"] += report[\"passed\"]\n        total[\"failed\"] += report[\"failed\"]\n    return total\n",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nРезультаты прогона тестов принято сохранять в JSON: его читают CI-системы, дашборды, скрипты уведомлений. Соберём всё изученное в одну задачу: построить отчёт, превратить в JSON, прочитать и проанализировать.\n\n## Построить отчёт\n\n```python\nimport json\nresults = [(\"login\", \"pass\", 1.2), (\"pay\", \"fail\", 3.4)]\nreport = {\"total\": len(results), \"tests\": [{\"name\": n, \"status\": s, \"time\": t} for n, s, t in results]}\nprint(json.dumps(report, ensure_ascii=False))\n```\n\n- Сначала словарь Python, потом `dumps`. Кортежи результатов распаковываются в поля объектов.\n- Вывод: `{\"total\": 2, \"tests\": [{\"name\": \"login\", \"status\": \"pass\", \"time\": 1.2}, {\"name\": \"pay\", \"status\": \"fail\", \"time\": 3.4}]}`.\n\nПолный отчёт со счётчиками:\n\n```python\nresults = [(\"a\", \"pass\", 1.0), (\"b\", \"fail\", 2.0)]\ntests = [{\"name\": n, \"status\": s, \"time\": t} for n, s, t in results]\nreport = {\n    \"total\": len(tests),\n    \"passed\": sum(1 for t in tests if t[\"status\"] == \"pass\"),\n    \"failed\": sum(1 for t in tests if t[\"status\"] == \"fail\"),\n}\nprint(report)\n```\n\nВывод: `{'total': 2, 'passed': 1, 'failed': 1}`.\n\n## Прочитать отчёт\n\n```python\nimport json\ntext = '{\"tests\": [{\"name\": \"a\", \"status\": \"pass\"}, {\"name\": \"b\", \"status\": \"fail\"}]}'\nreport = json.loads(text)\nfailed = [t[\"name\"] for t in report[\"tests\"] if t[\"status\"] == \"fail\"]\nprint(failed, len(report[\"tests\"]) - len(failed))\n```\n\nВывод: `['b'] 1`.\n\n```python\nimport json\ntext = '{\"tests\": [{\"name\": \"a\", \"time\": 1.2}, {\"name\": \"b\", \"time\": 3.4}]}'\ntests = json.loads(text)[\"tests\"]\nprint(max(tests, key=lambda t: t[\"time\"])[\"name\"] if tests else None)\n```\n\nВывод: `b`.\n\n## Процент успешных\n\n```python\nimport json\nsummary = {\"passed\": 2, \"failed\": 1}\nsummary[\"rate\"] = round(summary[\"passed\"] / (summary[\"passed\"] + summary[\"failed\"]) * 100, 1)\nprint(json.dumps(summary, sort_keys=True))\n```\n\n- `sort_keys=True` делает отчёт стабильным: одинаковые данные — одинаковый текст (удобно хранить в git и сравнивать).\n- Вывод: `{\"failed\": 1, \"passed\": 2, \"rate\": 66.7}`.\n\n## Сложить несколько прогонов\n\n```python\nimport json\ntexts = ['{\"passed\": 2, \"failed\": 1}', '{\"passed\": 5, \"failed\": 0}']\ntotal = {\"passed\": 0, \"failed\": 0}\nfor text in texts:\n    r = json.loads(text)\n    total[\"passed\"] += r[\"passed\"]\n    total[\"failed\"] += r[\"failed\"]\nprint(total)\n```\n\nВывод: `{'passed': 7, 'failed': 1}`.\n\n## Итог\n\n- Отчёт собирают словарём и сохраняют через `dumps`/`dump`.\n- Счётчики — `sum(1 for t in tests if ...)`.\n- Читают через `loads` и обрабатывают как список словарей.\n- `sort_keys=True` — стабильный текст отчёта.\n- Несколько отчётов — разобрать и сложить.",
+              "quiz": [
+                {
+                  "q": "Зачем в отчёте `sort_keys=True`?",
+                  "options": [
+                    "Быстрее",
+                    "Стабильный текст: одинаковые данные — одинаковый JSON",
+                    "Меньше размер",
+                    "Так требует CI"
+                  ],
+                  "answer": 1,
+                  "explain": "Удобно сравнивать и хранить."
+                },
+                {
+                  "q": "Как посчитать упавшие тесты в списке `tests`?",
+                  "options": [
+                    "`len(tests)`",
+                    "`sum(1 for t in tests if t[\"status\"] == \"fail\")`",
+                    "`tests.count(\"fail\")`",
+                    "`max(tests)`"
+                  ],
+                  "answer": 1,
+                  "explain": "Генератор с условием."
+                },
+                {
+                  "q": "В каком порядке строят JSON-отчёт?",
+                  "options": [
+                    "Сразу строкой",
+                    "Словарь Python, затем dumps",
+                    "dumps, затем словарь",
+                    "Через loads"
+                  ],
+                  "answer": 1,
+                  "explain": "Строку собирать вручную — источник ошибок."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
