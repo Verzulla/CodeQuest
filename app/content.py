@@ -156,8 +156,10 @@ def export_package(conn) -> dict:
 
 
 def learning_path(conn, uid: int) -> list:
-    """Карта пути. Внутри темы уроки открываются последовательно;
-    темы независимы друг от друга — можно учить несколько параллельно."""
+    """Карта пути. Внутри темы уроки открываются последовательно (если пользователь
+    не выключил это в настройках); темы независимы — можно учить несколько параллельно."""
+    st = conn.execute("SELECT sequential_lessons FROM user_state WHERE user_id = ?", (uid,)).fetchone()
+    sequential = st is None or bool(st["sequential_lessons"])
     done = {r["lesson_slug"]: r
             for r in conn.execute("SELECT * FROM lesson_completions WHERE user_id = ?", (uid,))}
     trophies = {(r["kind"], r["slug"])
@@ -177,7 +179,12 @@ def learning_path(conn, uid: int) -> list:
                 ex_slugs = [r[0] for r in conn.execute(
                     "SELECT slug FROM exercises WHERE lesson_id = ?", (l["id"],))]
                 is_done = l["slug"] in done
-                status = "done" if is_done else ("current" if prev_done else "locked")
+                if is_done:
+                    status = "done"
+                elif prev_done:
+                    status = "current"      # следующий по порядку — подсвечен «Начать»
+                else:
+                    status = "locked" if sequential else "open"
                 lessons.append({
                     "id": l["id"], "title": l["title"], "status": status,
                     "perfect": bool(done[l["slug"]]["perfect"]) if is_done else False,

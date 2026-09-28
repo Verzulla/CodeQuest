@@ -123,6 +123,7 @@ def get_state(conn, uid: int) -> dict:
         "hearts": st["hearts"],
         "max_hearts": MAX_HEARTS,
         "hearts_enabled": bool(st["hearts_enabled"]),
+        "sequential_lessons": bool(st["sequential_lessons"]),
         "next_heart_in": next_heart_in,
         "streak": streak,
         "streak_at_risk": at_risk,

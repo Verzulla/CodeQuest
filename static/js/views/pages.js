@@ -135,6 +135,8 @@ export function renderSettings(view) {
         <div class="switch"><div><b>🌙 Тёмная тема</b></div><button class="toggle ${s.theme === "dark" ? "on" : ""}" id="theme"></button></div>
         <div class="switch"><div><b>❤️ Сердечки</b><br><small class="muted">Ошибка в уроке стоит сердечко; без сердечек — только повторение. Выключи, если мешает.</small></div>
           <button class="toggle ${s.hearts_enabled ? "on" : ""}" id="hearts"></button></div>
+        <div class="switch"><div><b>🔒 Уроки по порядку</b><br><small class="muted">Следующий урок темы открывается после прохождения предыдущего. Выключи, чтобы открывать любой урок сразу.</small></div>
+          <button class="toggle ${s.sequential_lessons ? "on" : ""}" id="sequential"></button></div>
         <div class="switch"><div><b>🔊 Звуки</b></div><button class="toggle ${soundOn() ? "on" : ""}" id="sound"></button></div>
       </div>
       ${installCard()}
@@ -162,6 +164,7 @@ export function renderSettings(view) {
     view.querySelectorAll("[data-goal]").forEach((b) => b.onclick = () => save({ daily_goal: Number(b.dataset.goal) }));
     view.querySelector("#theme").onclick = () => save({ theme: s.theme === "dark" ? "light" : "dark" });
     view.querySelector("#hearts").onclick = () => save({ hearts_enabled: !s.hearts_enabled });
+    view.querySelector("#sequential").onclick = () => save({ sequential_lessons: !s.sequential_lessons });
     view.querySelector("#sound").onclick = () => {
       localStorage.setItem("cq-sound", soundOn() ? "off" : "on");
       sound("good");

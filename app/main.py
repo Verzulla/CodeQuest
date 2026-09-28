@@ -456,6 +456,7 @@ def stats(user: User):
 class SettingsIn(BaseModel):
     daily_goal: int | None = Field(None, ge=5, le=500)
     hearts_enabled: bool | None = None
+    sequential_lessons: bool | None = None
     theme: Literal["light", "dark"] | None = None
 
 

@@ -123,6 +123,18 @@ def test_seed_and_locking(client):
     assert client.get(f"/api/lessons/{lessons[1]['id']}").status_code == 403
 
 
+def test_sequential_lessons_can_be_disabled(client):
+    lessons = first_lessons(client)
+    assert client.put("/api/settings", json={"sequential_lessons": False}).json()["sequential_lessons"] is False
+    lessons = first_lessons(client)
+    assert lessons[0]["status"] == "current" and all(l["status"] == "open" for l in lessons[1:])
+    assert client.get(f"/api/lessons/{lessons[3]['id']}").status_code == 200
+    solve_lesson(client, lessons[3]["id"])
+    client.put("/api/settings", json={"sequential_lessons": True})
+    statuses = [l["status"] for l in first_lessons(client)]
+    assert statuses[:5] == ["current", "locked", "locked", "done", "current"]
+
+
 def test_lesson_flow_awards_xp_and_unlocks_next(client):
     lessons = first_lessons(client)
     r = solve_lesson(client, lessons[0]["id"])

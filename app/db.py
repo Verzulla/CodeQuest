@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS user_state (
     hearts             INTEGER NOT NULL DEFAULT 5,
     hearts_updated_at  TEXT,
     hearts_enabled     INTEGER NOT NULL DEFAULT 1,
+    sequential_lessons INTEGER NOT NULL DEFAULT 1,  -- уроки темы открываются по порядку
     streak             INTEGER NOT NULL DEFAULT 0,
     longest_streak     INTEGER NOT NULL DEFAULT 0,
     last_active_date   TEXT,
@@ -190,6 +191,7 @@ MIGRATIONS = [
     ("topics", "group_name", "TEXT NOT NULL DEFAULT ''"),          # группа в каталоге тем
     ("lessons", "theory_full", "TEXT NOT NULL DEFAULT ''"),        # подробный теоретический урок
     ("lessons", "quiz", "TEXT NOT NULL DEFAULT '[]'"),             # «Проверь себя»: JSON-список вопросов
+    ("user_state", "sequential_lessons", "INTEGER NOT NULL DEFAULT 1"),  # уроки по порядку (замки)
 ]
 
 
