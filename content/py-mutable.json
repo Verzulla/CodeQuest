@@ -1,0 +1,1478 @@
+{
+  "topics": [
+    {
+      "slug": "py-mutable",
+      "title": "Изменяемые и неизменяемые",
+      "icon": "🧊",
+      "color": "#1cb0f6",
+      "description": "Изменяемые и неизменяемые типы, ссылки и is, операции на месте, хешируемость, аргументы функций, значения по умолчанию, copy и deepcopy, перебор с изменением, frozenset и frozen dataclass, данные в тестах",
+      "group": "Python",
+      "modules": [
+        {
+          "slug": "mut-m1",
+          "title": "Объекты и ссылки",
+          "icon": "🔗",
+          "description": "Изменяемые и неизменяемые типы, ссылки и is, операции на месте, хешируемость",
+          "lessons": [
+            {
+              "slug": "mut-types",
+              "title": "Какие типы изменяемые",
+              "theory": "```py\n# изменяемые:   list dict set bytearray, свои классы\n# неизменяемые: int float bool str tuple frozenset bytes None\nlst.append(x)          # тот же объект (id не меняется)\ns = s.upper()          # новая строка\ns[0] = \"К\"             # TypeError\nt = t + (x,)           # новый кортеж\nhash([])               # TypeError — изменяемый\n```",
+              "exercises": [
+                {
+                  "slug": "mut-types-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Список меняется на месте.",
+                  "code": "nums = [1, 2, 3]\nbefore = id(nums)\nnums.append(4)\nnums[0] = 100\nprint(nums, id(nums) == before)\n",
+                  "expected_output": "[100, 2, 3, 4] True",
+                  "hint": "id — номер объекта. У изменённого списка он тот же.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-types-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Строку изменить нельзя.",
+                  "code": "s = \"кот\"\ntry:\n    s[0] = \"К\"\nexcept TypeError as e:\n    print(e)\nbefore = id(s)\ns = s.upper()\nprint(s, id(s) == before)\n",
+                  "expected_output": "'str' object does not support item assignment\nКОТ False",
+                  "hint": "upper() не меняет строку, а создаёт новую.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-types-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Изменяемо или нет.",
+                  "code": "values = [1, 2.5, \"a\", (1, 2), frozenset({1}), [1], {\"a\": 1}, {1, 2}, None, True]\nfor v in values:\n    try:\n        hash(v)\n        kind = \"неизменяемый\"\n    except TypeError:\n        kind = \"изменяемый\"\n    print(type(v).__name__, kind)\n",
+                  "expected_output": "int неизменяемый\nfloat неизменяемый\nstr неизменяемый\ntuple неизменяемый\nfrozenset неизменяемый\nlist изменяемый\ndict изменяемый\nset изменяемый\nNoneType неизменяемый\nbool неизменяемый",
+                  "hint": "Встроенные неизменяемые типы хешируемы, изменяемые — нет.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-types-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_mutable(value)` — `True` для изменяемых встроенных коллекций (`list`, `dict`, `set`, `bytearray`), иначе `False`.",
+                  "starter_code": "def is_mutable(value):\n    pass\n",
+                  "tests": "def test_values():\n    assert all(is_mutable(v) for v in [[], {}, set(), bytearray()]), \"Изменяемые\"\n    assert not any(is_mutable(v) for v in [1, \"a\", (1,), frozenset(), b\"x\", None, 2.5]), \"Неизменяемые\"\n",
+                  "solution": "def is_mutable(value):\n    return isinstance(value, (list, dict, set, bytearray))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-types-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `capitalize_all(words)` — список слов с заглавной первой буквой. Строки менять «на месте» нельзя — собери новые.",
+                  "starter_code": "def capitalize_all(words):\n    pass\n",
+                  "tests": "def test_values():\n    words = [\"аня\", \"боря\"]\n    assert capitalize_all(words) == [\"Аня\", \"Боря\"] and words == [\"аня\", \"боря\"] and capitalize_all([]) == [], \"Неверный результат\"\n",
+                  "solution": "def capitalize_all(words):\n    return [w.capitalize() for w in words]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-types-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `replace_char(s, index, char)` — вернуть новую строку, в которой символ на позиции `index` заменён на `char`. Используй срезы.\n\n```\nreplace_char(\"кот\", 0, \"К\")   # → \"Кот\"\n```",
+                  "starter_code": "def replace_char(s, index, char):\n    pass\n",
+                  "tests": "def test_values():\n    assert replace_char(\"кот\", 0, \"К\") == \"Кот\" and replace_char(\"abc\", 2, \"Z\") == \"abZ\" and replace_char(\"abc\", 1, \"\") == \"ac\", \"Неверный результат\"\n",
+                  "solution": "def replace_char(s, index, char):\n    return s[:index] + char + s[index + 1:]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-types-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `add_to_tuple(tpl, item)` — вернуть **новый** кортеж с добавленным в конец элементом (кортеж изменить нельзя).",
+                  "starter_code": "def add_to_tuple(tpl, item):\n    pass\n",
+                  "tests": "def test_values():\n    t = (1, 2)\n    assert add_to_tuple(t, 3) == (1, 2, 3) and t == (1, 2) and add_to_tuple((), \"a\") == (\"a\",), \"Неверный результат\"\n",
+                  "solution": "def add_to_tuple(tpl, item):\n    return tpl + (item,)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-types-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `split_by_mutability(values)` — кортеж из двух списков: `(изменяемые, неизменяемые)`. Считай значение неизменяемым, если `hash(value)` работает без `TypeError`.",
+                  "starter_code": "def split_by_mutability(values):\n    pass\n",
+                  "tests": "def test_values():\n    m, im = split_by_mutability([1, [2], \"a\", {\"k\": 1}, (3,), {4}])\n    assert m == [[2], {\"k\": 1}, {4}] and im == [1, \"a\", (3,)], (m, im)\n",
+                  "solution": "def split_by_mutability(values):\n    mutable, immutable = [], []\n    for v in values:\n        try:\n            hash(v)\n        except TypeError:\n            mutable.append(v)\n        else:\n            immutable.append(v)\n    return mutable, immutable\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОдни объекты в Python можно менять после создания (список, словарь, множество), другие — нельзя (число, строка, кортеж). От этого зависит, что произойдёт, когда ты передашь объект в функцию, положишь его в словарь или скопируешь переменную. Большая часть загадочных багов вида «я ничего не трогал, а данные изменились» — отсюда.\n\n## Изменяемые и неизменяемые типы\n\n- **Изменяемые** (mutable): `list`, `dict`, `set`, `bytearray`, объекты своих классов.\n- **Неизменяемые** (immutable): `int`, `float`, `bool`, `str`, `tuple`, `frozenset`, `bytes`, `None`.\n\n## Изменение на месте\n\n```python\nnums = [1, 2, 3]\nbefore = id(nums)\nnums.append(4)\nnums[0] = 100\nprint(nums, id(nums) == before)\n```\n\n- `id(объект)` — уникальный номер объекта, пока он существует.\n- `append` и присваивание по индексу меняют **тот же самый** список — номер не изменился.\n- Вывод: `[100, 2, 3, 4] True`.\n\n## Строку изменить нельзя\n\n```python\ns = \"кот\"\ntry:\n    s[0] = \"К\"\nexcept TypeError as e:\n    print(e)\nbefore = id(s)\ns = s.upper()\nprint(s, id(s) == before)\n```\n\n- Присваивание символа строки запрещено → `TypeError`.\n- `s.upper()` не меняет строку, а **создаёт новую**. `s = ...` перенаправляет имя `s` на новый объект.\n- Вывод: `'str' object does not support item assignment`, `КОТ False`.\n\n## Как «изменить» неизменяемое\n\n```python\ns = \"кот\"\nprint(\"К\" + s[1:])\n\nt = (1, 2)\nt = t + (3,)\nprint(t)\n```\n\n- Собираем новый объект из частей: срезы, сложение.\n- `(3,)` — кортеж из одного элемента (запятая обязательна).\n- Вывод: `Кот`, `(1, 2, 3)`.\n\n## Проверка через hash\n\n```python\nvalues = [1, \"a\", (1, 2), frozenset({1}), [1], {\"a\": 1}, {1, 2}]\nfor v in values:\n    try:\n        hash(v)\n        kind = \"неизменяемый\"\n    except TypeError:\n        kind = \"изменяемый\"\n    print(type(v).__name__, kind)\n```\n\n- `hash(объект)` — число для быстрого поиска в словарях и множествах. Встроенные изменяемые типы его не дают (почему — в уроке про хешируемость).\n- Вывод: `int неизменяемый`, `str неизменяемый`, `tuple неизменяемый`, `frozenset неизменяемый`, `list изменяемый`, `dict изменяемый`, `set изменяемый`.\n\n## Итог\n\n- Изменяемые: `list`, `dict`, `set` — меняются на месте, `id` тот же.\n- Неизменяемые: числа, `str`, `tuple`, `frozenset` — «изменение» создаёт новый объект.\n- Для строк и кортежей собирай новый объект из частей.",
+              "quiz": [
+                {
+                  "q": "Какой из типов изменяемый?",
+                  "options": [
+                    "str",
+                    "tuple",
+                    "list",
+                    "frozenset"
+                  ],
+                  "answer": 2,
+                  "explain": "Список меняется на месте."
+                },
+                {
+                  "q": "Что делает `s.upper()` со строкой `s`?",
+                  "options": [
+                    "Меняет её на месте",
+                    "Возвращает новую строку, s не меняется",
+                    "Ошибка",
+                    "Возвращает None"
+                  ],
+                  "answer": 1,
+                  "explain": "Строки неизменяемы."
+                },
+                {
+                  "q": "Что будет при `\"кот\"[0] = \"К\"`?",
+                  "options": [
+                    "\"Кот\"",
+                    "TypeError",
+                    "IndexError",
+                    "Ничего"
+                  ],
+                  "answer": 1,
+                  "explain": "Строки не поддерживают присваивание элементов."
+                }
+              ]
+            },
+            {
+              "slug": "mut-refs",
+              "title": "Переменные — это ссылки",
+              "theory": "```py\nb = a                  # тот же объект, НЕ копия\nb.append(1)            # видно и через a\nb = b + [1]            # новый объект, a не меняется\na == b                 # равны?\na is b                 # один объект?\nx is None              # проверка None\n[[0] * n for _ in range(m)]   # не [[0] * n] * m\n```",
+              "exercises": [
+                {
+                  "slug": "mut-refs-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Две переменные, один список.",
+                  "code": "a = [1, 2, 3]\nb = a\nb.append(4)\nprint(a)\nprint(a is b, a == b)\n",
+                  "expected_output": "[1, 2, 3, 4]\nTrue True",
+                  "hint": "b = a не копирует список, а даёт ему второе имя.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-refs-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Переприсваивание не меняет объект.",
+                  "code": "a = [1, 2]\nb = a\nb = b + [3]\nprint(a, b, a is b)\n\nx = 10\ny = x\ny += 1\nprint(x, y)\n",
+                  "expected_output": "[1, 2] [1, 2, 3] False\n10 11",
+                  "hint": "b + [3] создаёт новый список, и имя b начинает указывать на него.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-refs-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? == и is.",
+                  "code": "a = [1, 2]\nb = [1, 2]\nc = a\nprint(a == b, a is b, a is c)\nprint(None is None, [] is [])\n",
+                  "expected_output": "True False True\nTrue False",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-refs-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `same_object(a, b)` — `True`, если две переменные ссылаются на **один и тот же** объект (а не просто равные).",
+                  "starter_code": "def same_object(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    x = [1]\n    assert same_object(x, x) and not same_object(x, [1]) and not same_object({}, {}), \"Неверный результат\"\n",
+                  "solution": "def same_object(a, b):\n    return a is b\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-refs-e5",
+                  "type": "code",
+                  "prompt": "Функция `add_item` из заготовки случайно меняет исходный список, потому что `result = items` не копирует его. Исправь: исходный список должен остаться прежним.",
+                  "starter_code": "def add_item(items, item):\n    result = items\n    result.append(item)\n    return result\n",
+                  "tests": "def test_values():\n    src = [1, 2]\n    assert add_item(src, 3) == [1, 2, 3] and src == [1, 2], f\"Исходный: {src}\"\n",
+                  "solution": "def add_item(items, item):\n    result = list(items)\n    result.append(item)\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-refs-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `count_unique_objects(items)` — сколько разных объектов в списке (по `id`, а не по значению).",
+                  "starter_code": "def count_unique_objects(items):\n    pass\n",
+                  "tests": "def test_values():\n    a = [1]\n    assert count_unique_objects([a, a, [1]]) == 2 and count_unique_objects([]) == 0, \"Неверный результат\"\n",
+                  "solution": "def count_unique_objects(items):\n    return len({id(x) for x in items})\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-refs-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `make_grid(rows, cols, fill)` — список списков размером `rows × cols`, где **каждая строка — отдельный список** (изменение одной строки не должно менять другие).",
+                  "starter_code": "def make_grid(rows, cols, fill):\n    pass\n",
+                  "tests": "def test_values():\n    g = make_grid(3, 2, 0)\n    g[0][0] = 9\n    assert g == [[9, 0], [0, 0], [0, 0]], g\n    assert make_grid(0, 5, 1) == [], \"Пустая сетка\"\n",
+                  "solution": "def make_grid(rows, cols, fill):\n    return [[fill] * cols for _ in range(rows)]\n",
+                  "hint": "[[0] * cols] * rows — ловушка: одна строка повторена rows раз.",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-refs-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `find_aliases(named)` — `named` — словарь «имя переменной → объект». Верни список групп имён (отсортированных), которые ссылаются на **один и тот же** объект, если в группе больше одного имени. Группы — в порядке первого появления.\n\n```\nx = []\nfind_aliases({\"a\": x, \"b\": [], \"c\": x})   # → [[\"a\", \"c\"]]\n```",
+                  "starter_code": "def find_aliases(named):\n    pass\n",
+                  "tests": "def test_values():\n    x, y = [], {}\n    assert find_aliases({\"a\": x, \"b\": [], \"c\": x, \"d\": y, \"e\": y}) == [[\"a\", \"c\"], [\"d\", \"e\"]] and find_aliases({\"a\": []}) == [], \"Неверный результат\"\n",
+                  "solution": "def find_aliases(named):\n    groups = {}\n    for name, obj in named.items():\n        groups.setdefault(id(obj), []).append(name)\n    return [sorted(g) for g in groups.values() if len(g) > 1]\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВ Python переменная — не «коробка со значением», а **ярлык**, наклеенный на объект. Два ярлыка могут висеть на одном объекте. С неизменяемыми объектами это незаметно, а с изменяемыми — изменение через одно имя видно через другое.\n\n## Присваивание не копирует\n\n```python\na = [1, 2, 3]\nb = a\nb.append(4)\nprint(a)\nprint(a is b, a == b)\n```\n\n- `b = a` — второе имя для **того же** списка. Копии не появилось.\n- Изменение через `b` видно через `a`.\n- `is` — один ли это объект; `==` — равны ли значения.\n- Вывод: `[1, 2, 3, 4]`, `True True`.\n\n## Переприсваивание — другое дело\n\n```python\na = [1, 2]\nb = a\nb = b + [3]\nprint(a, b, a is b)\n\nx = 10\ny = x\ny += 1\nprint(x, y)\n```\n\n- `b + [3]` создаёт **новый** список, и `b = ...` перевешивает ярлык на него. `a` не затронут.\n- С числами то же: `y += 1` создаёт новое число, `x` остаётся 10.\n- Вывод: `[1, 2] [1, 2, 3] False`, `10 11`.\n- Правило: **менять объект** (`append`, `[i] =`, `update`) — видно всем именам; **присвоить имени новое** (`=`) — только этому имени.\n\n## == и is\n\n```python\na = [1, 2]\nb = [1, 2]\nc = a\nprint(a == b, a is b, a is c)\nprint(None is None)\n```\n\n- `a` и `b` равны, но это разные объекты.\n- `is` используют для `None`, `True`, `False` и когда важна именно идентичность объекта.\n- Вывод: `True False True`, `True`.\n\n## Ловушка: умножение списка списков\n\n```python\ngrid = [[0] * 3] * 2\ngrid[0][0] = 1\nprint(grid)\nprint(grid[0] is grid[1])\n\ngood = [[0] * 3 for _ in range(2)]\ngood[0][0] = 1\nprint(good)\n```\n\n- `[строка] * 2` повторяет **ссылку** на одну и ту же строку-список. Меняем одну — меняются «все».\n- Списковое включение создаёт новый внутренний список на каждой итерации.\n- Вывод: `[[1, 0, 0], [1, 0, 0]]`, `True`, `[[1, 0, 0], [0, 0, 0]]`.\n\n## Итог\n\n- `b = a` — новое имя для того же объекта.\n- Изменение объекта видно через все имена; присваивание меняет только одно имя.\n- `==` — значения, `is` — объект.\n- `[[0] * n] * m` — ловушка; используй списковое включение.",
+              "quiz": [
+                {
+                  "q": "Что выведет `a = [1]; b = a; b.append(2); print(a)`?",
+                  "options": [
+                    "[1]",
+                    "[1, 2]",
+                    "[2]",
+                    "Ошибку"
+                  ],
+                  "answer": 1,
+                  "explain": "a и b — один список."
+                },
+                {
+                  "q": "Что выведет `a = [1]; b = a; b = b + [2]; print(a)`?",
+                  "options": [
+                    "[1]",
+                    "[1, 2]",
+                    "[2]",
+                    "None"
+                  ],
+                  "answer": 0,
+                  "explain": "b + [2] создал новый список."
+                },
+                {
+                  "q": "Чем опасен `[[0] * 3] * 2`?",
+                  "options": [
+                    "Ничем",
+                    "Обе строки — один и тот же список",
+                    "Будет ошибка",
+                    "Создаст кортеж"
+                  ],
+                  "answer": 1,
+                  "explain": "Повторяется ссылка."
+                }
+              ]
+            },
+            {
+              "slug": "mut-ops",
+              "title": "Изменить на месте или создать новое",
+              "theory": "```py\nlst.sort()        → None   | sorted(lst)    → новый\nlst.reverse()     → None   | lst[::-1]      → новый\nlst += [x]        # на месте | lst + [x]    → новый\nd.update(o)       # на месте | {**d, **o}, d | o → новый\ns = s.strip()     # строки — только новое, сохраняй!\nlst[:] = [...]    # заменить содержимое того же списка\n```",
+              "exercises": [
+                {
+                  "slug": "mut-ops-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? += у списка и у кортежа.",
+                  "code": "a = [1, 2]\nb = a\na += [3]\nprint(a, b)\n\nt = (1, 2)\nu = t\nt += (3,)\nprint(t, u)\n",
+                  "expected_output": "[1, 2, 3] [1, 2, 3]\n(1, 2, 3) (1, 2)",
+                  "hint": "Для списка += меняет объект на месте, для кортежа — создаёт новый.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-ops-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? sort и sorted.",
+                  "code": "nums = [3, 1, 2]\nresult = nums.sort()\nprint(result, nums)\n\nnums = [3, 1, 2]\nnew = sorted(nums)\nprint(new, nums)\n",
+                  "expected_output": "None [1, 2, 3]\n[1, 2, 3] [3, 1, 2]",
+                  "hint": "Методы, меняющие список на месте, возвращают None.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-ops-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Методы строки возвращают новое.",
+                  "code": "s = \"  Hello  \"\ns.strip()\ns.lower()\nprint(repr(s))\ns = s.strip().lower()\nprint(repr(s))\n",
+                  "expected_output": "'  Hello  '\n'hello'",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-ops-e4",
+                  "type": "code",
+                  "prompt": "Исправь функцию `sorted_names` из заготовки: она возвращает `None`, потому что `list.sort()` ничего не возвращает. Функция должна вернуть **новый** отсортированный список и не менять исходный.",
+                  "starter_code": "def sorted_names(names):\n    return names.sort()\n",
+                  "tests": "def test_values():\n    src = [\"вика\", \"аня\", \"боря\"]\n    assert sorted_names(src) == [\"аня\", \"боря\", \"вика\"] and src == [\"вика\", \"аня\", \"боря\"], \"Неверный результат\"\n",
+                  "solution": "def sorted_names(names):\n    return sorted(names)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-ops-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `normalize_inplace(words)` — привести все слова списка к нижнему регистру **на месте** (тот же список) и вернуть `None`.",
+                  "starter_code": "def normalize_inplace(words):\n    pass\n",
+                  "tests": "def test_values():\n    w = [\"Аня\", \"БОРЯ\"]\n    ref = w\n    assert normalize_inplace(w) is None and w == [\"аня\", \"боря\"] and w is ref, \"Неверный результат\"\n",
+                  "solution": "def normalize_inplace(words):\n    for i, w in enumerate(words):\n        words[i] = w.lower()\n",
+                  "hint": "words[:] = [...] тоже меняет тот же список.",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-ops-e6",
+                  "type": "code",
+                  "prompt": "Напиши две функции:\n\n- `with_item(items, x)` — вернуть **новый** список с добавленным `x` (исходный не меняется);\n- `add_item(items, x)` — добавить `x` **в тот же** список и вернуть `None`.",
+                  "starter_code": "def with_item(items, x):\n    pass\n\n\ndef add_item(items, x):\n    pass\n",
+                  "tests": "def test_values():\n    a = [1]\n    b = with_item(a, 2)\n    assert b == [1, 2] and a == [1] and b is not a, \"with_item\"\n    assert add_item(a, 3) is None and a == [1, 3], \"add_item\"\n",
+                  "solution": "def with_item(items, x):\n    return items + [x]\n\n\ndef add_item(items, x):\n    items.append(x)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-ops-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `merge_settings(base, extra)` — вернуть **новый** словарь: всё из `base`, поверх — из `extra`. Ни один из исходных словарей не менять.",
+                  "starter_code": "def merge_settings(base, extra):\n    pass\n",
+                  "tests": "def test_values():\n    base, extra = {\"a\": 1, \"b\": 2}, {\"b\": 3}\n    r = merge_settings(base, extra)\n    assert r == {\"a\": 1, \"b\": 3} and base == {\"a\": 1, \"b\": 2} and extra == {\"b\": 3}, r\n",
+                  "solution": "def merge_settings(base, extra):\n    return {**base, **extra}\n",
+                  "hint": "{**a, **b} или a | b — новый словарь; a.update(b) меняет a.",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-ops-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `dedupe_inplace(items)` — убрать повторы из списка **на месте**, сохранив порядок первого появления. Вернуть количество удалённых элементов.",
+                  "starter_code": "def dedupe_inplace(items):\n    pass\n",
+                  "tests": "def test_values():\n    x = [3, 1, 3, 2, 1]\n    ref = x\n    assert dedupe_inplace(x) == 2 and x == [3, 1, 2] and x is ref, x\n",
+                  "solution": "def dedupe_inplace(items):\n    seen = set()\n    result = []\n    for x in items:\n        if x not in seen:\n            seen.add(x)\n            result.append(x)\n    removed = len(items) - len(result)\n    items[:] = result\n    return removed\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nУ многих операций есть два варианта: одна меняет объект **на месте**, другая возвращает **новый**. Перепутаешь — получишь `None` вместо списка или неожиданно испорченные данные.\n\n## += у списка и у кортежа\n\n```python\na = [1, 2]\nb = a\na += [3]\nprint(a, b)\n\nt = (1, 2)\nu = t\nt += (3,)\nprint(t, u)\n```\n\n- Для списка `a += [3]` работает как `a.extend([3])` — меняет **тот же** объект, `b` видит изменение.\n- Для кортежа (и строки, числа) `t += ...` создаёт новый объект, `u` остаётся прежним.\n- А вот `a = a + [3]` для списка создаёт новый список.\n- Вывод: `[1, 2, 3] [1, 2, 3]`, `(1, 2, 3) (1, 2)`.\n\n## Методы «на месте» возвращают None\n\n```python\nnums = [3, 1, 2]\nresult = nums.sort()\nprint(result, nums)\n\nnums = [3, 1, 2]\nnew = sorted(nums)\nprint(new, nums)\n```\n\n- `list.sort()` сортирует сам список и возвращает `None`. Классическая ошибка: `nums = nums.sort()` — теряем список.\n- `sorted(nums)` возвращает **новый** список, исходный не трогает.\n- Вывод: `None [1, 2, 3]`, `[1, 2, 3] [3, 1, 2]`.\n\n## Пары «на месте / новое»\n\n- `lst.sort()` / `sorted(lst)`\n- `lst.reverse()` / `lst[::-1]`, `reversed(lst)`\n- `lst.append(x)`, `lst.extend(...)`, `lst += ...` / `lst + [x]`\n- `d.update(other)`, `d |= other` / `{**d, **other}`, `d | other`\n- `s.add(x)`, `s |= other` / `s | other`\n- У строк есть только «новое»: `upper()`, `strip()`, `replace()` — всё возвращает новую строку.\n\n## Результат методов строки нужно сохранять\n\n```python\ns = \"  Hello  \"\ns.strip()\ns.lower()\nprint(repr(s))\ns = s.strip().lower()\nprint(repr(s))\n```\n\n- Вызов `s.strip()` без присваивания ничего не делает: новая строка создаётся и сразу выбрасывается.\n- Вывод: `'  Hello  '`, `'hello'`.\n\n## Изменить список на месте целиком\n\n```python\nwords = [\"Аня\", \"БОРЯ\"]\nref = words\nwords[:] = [w.lower() for w in words]\nprint(words, words is ref)\n```\n\n- `words[:] = ...` заменяет **содержимое** того же списка. `words = ...` перевесил бы имя на новый список, и другие ссылки не увидели бы изменений.\n- Вывод: `['аня', 'боря'] True`.\n\n## Итог\n\n- `+=` у списка — на месте, у кортежа и строки — новый объект.\n- Методы «на месте» (`sort`, `append`, `update`) возвращают `None`.\n- Методы строк всегда возвращают новую строку — сохраняй результат.\n- `lst[:] = новое` — заменить содержимое того же списка.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `[3, 1].sort()`?",
+                  "options": [
+                    "[1, 3]",
+                    "None",
+                    "[3, 1]",
+                    "Ошибку"
+                  ],
+                  "answer": 1,
+                  "explain": "sort меняет список на месте."
+                },
+                {
+                  "q": "Меняет ли `a += [1]` объект, на который ссылается `a` (список)?",
+                  "options": [
+                    "Да, на месте",
+                    "Нет, создаёт новый",
+                    "Только если список пуст",
+                    "Ошибка"
+                  ],
+                  "answer": 0,
+                  "explain": "Для списков += — это extend."
+                },
+                {
+                  "q": "Что произойдёт после `s = \"Hi\"; s.lower()`?",
+                  "options": [
+                    "s станет \"hi\"",
+                    "s останется \"Hi\"",
+                    "Ошибка",
+                    "s станет None"
+                  ],
+                  "answer": 1,
+                  "explain": "Результат не сохранён."
+                }
+              ]
+            },
+            {
+              "slug": "mut-hash",
+              "title": "Хешируемость: ключи словаря и элементы множества",
+              "theory": "```py\nhash(x)                          # TypeError → нельзя в ключ/множество\n{(1, 2): \"ok\"}                   # кортеж — можно\n{[1, 2]: \"x\"}                    # TypeError\n(1, [2])                         # нехешируемый кортеж\nfrozenset({\"a\", \"b\"})            # множество для ключей/множеств\ntuple(lst), frozenset(s), tuple(sorted(d.items()))\n```",
+              "exercises": [
+                {
+                  "slug": "mut-hash-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа?",
+                  "code": "d = {}\nd[(1, 2)] = \"кортеж\"\nd[\"a\"] = \"строка\"\ntry:\n    d[[1, 2]] = \"список\"\nexcept TypeError as e:\n    print(e)\nprint(d)\n",
+                  "expected_output": "unhashable type: 'list'\n{(1, 2): 'кортеж', 'a': 'строка'}",
+                  "hint": "Ключом словаря может быть только хешируемый объект.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-hash-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Кортеж со списком внутри.",
+                  "code": "t = (1, [2, 3])\nt[1].append(4)\nprint(t)\ntry:\n    hash(t)\nexcept TypeError as e:\n    print(e)\nprint(hash((1, (2, 3))) == hash((1, (2, 3))))\n",
+                  "expected_output": "(1, [2, 3, 4])\nunhashable type: 'list'\nTrue",
+                  "hint": "Кортеж неизменяем, но список внутри него — изменяем.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-hash-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? frozenset.",
+                  "code": "groups = {frozenset({\"аня\", \"боря\"}), frozenset({\"боря\", \"аня\"}), frozenset({\"вика\"})}\nprint(len(groups))\ntry:\n    {{\"a\"}}\nexcept TypeError as e:\n    print(e)\nfs = frozenset([1, 2])\nprint(fs | {3}, type(fs | {3}).__name__)\n",
+                  "expected_output": "2\nunhashable type: 'set'\nfrozenset({1, 2, 3}) frozenset",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-hash-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_hashable(value)` — `True`, если значение можно использовать как ключ словаря.",
+                  "starter_code": "def is_hashable(value):\n    pass\n",
+                  "tests": "def test_values():\n    assert is_hashable(1) and is_hashable(\"a\") and is_hashable((1, 2)) and is_hashable(frozenset()), \"Хешируемые\"\n    assert not is_hashable([]) and not is_hashable({}) and not is_hashable((1, [2])), \"Нехешируемые\"\n",
+                  "solution": "def is_hashable(value):\n    try:\n        hash(value)\n    except TypeError:\n        return False\n    return True\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-hash-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `count_pairs(pairs)` — `pairs` — список **списков** из двух элементов. Верни словарь «пара (как кортеж) → сколько раз встретилась».",
+                  "starter_code": "def count_pairs(pairs):\n    pass\n",
+                  "tests": "def test_values():\n    assert count_pairs([[1, 2], [3, 4], [1, 2]]) == {(1, 2): 2, (3, 4): 1} and count_pairs([]) == {}, \"Неверный результат\"\n",
+                  "solution": "def count_pairs(pairs):\n    result = {}\n    for p in pairs:\n        key = tuple(p)\n        result[key] = result.get(key, 0) + 1\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-hash-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `unique_teams(teams)` — `teams` — список списков имён. Команда — это **набор** людей, порядок не важен. Верни количество разных команд.",
+                  "starter_code": "def unique_teams(teams):\n    pass\n",
+                  "tests": "def test_values():\n    assert unique_teams([[\"аня\", \"боря\"], [\"боря\", \"аня\"], [\"вика\"]]) == 2 and unique_teams([]) == 0, \"Неверный результат\"\n",
+                  "solution": "def unique_teams(teams):\n    return len({frozenset(t) for t in teams})\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-hash-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `unique_dicts(items)` — убрать дубликаты из списка **словарей** (с простыми значениями), сохранив порядок. Словари нехешируемы — используй в качестве ключа `tuple(sorted(d.items()))`.",
+                  "starter_code": "def unique_dicts(items):\n    pass\n",
+                  "tests": "def test_values():\n    data = [{\"a\": 1, \"b\": 2}, {\"b\": 2, \"a\": 1}, {\"a\": 2}]\n    assert unique_dicts(data) == [{\"a\": 1, \"b\": 2}, {\"a\": 2}] and unique_dicts([]) == [], unique_dicts(data)\n",
+                  "solution": "def unique_dicts(items):\n    seen = set()\n    result = []\n    for d in items:\n        key = tuple(sorted(d.items()))\n        if key not in seen:\n            seen.add(key)\n            result.append(d)\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-hash-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `freeze(value)` — рекурсивно превратить структуру в хешируемую: список → кортеж, множество → `frozenset`, словарь → кортеж отсортированных пар `(ключ, freeze(значение))`. Остальное — как есть.",
+                  "starter_code": "def freeze(value):\n    pass\n",
+                  "tests": "def test_values():\n    r = freeze({\"b\": [1, {2}], \"a\": {\"x\": [3]}})\n    assert r == ((\"a\", ((\"x\", (3,)),)), (\"b\", (1, frozenset({2})))), r\n    hash(r)\n    assert freeze(5) == 5 and freeze([]) == (), \"Простые значения\"\n",
+                  "solution": "def freeze(value):\n    if isinstance(value, list):\n        return tuple(freeze(v) for v in value)\n    if isinstance(value, set):\n        return frozenset(freeze(v) for v in value)\n    if isinstance(value, dict):\n        return tuple(sorted((k, freeze(v)) for k, v in value.items()))\n    return value\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКлючом словаря и элементом множества может быть только **хешируемый** объект. Поэтому `{[1, 2]: \"x\"}` падает, а `{(1, 2): \"x\"}` работает. Понимание хешируемости помогает правильно выбирать структуры данных: считать пары, убирать дубликаты, группировать.\n\n## Что такое хеш\n\n- **Хеш** — число, вычисленное по значению объекта (`hash(obj)`). По нему словарь сразу находит «ячейку», где лежит ключ, — поэтому поиск в словаре мгновенный.\n- Хеш объекта не должен меняться, пока объект лежит в словаре. Поэтому изменяемые встроенные типы нехешируемы: изменишь список-ключ — словарь его потеряет.\n\n```python\nd = {}\nd[(1, 2)] = \"кортеж\"\nd[\"a\"] = \"строка\"\ntry:\n    d[[1, 2]] = \"список\"\nexcept TypeError as e:\n    print(e)\nprint(d)\n```\n\n- Вывод: `unhashable type: 'list'`, `{(1, 2): 'кортеж', 'a': 'строка'}`.\n\n## Кортеж со списком внутри\n\n```python\nt = (1, [2, 3])\nt[1].append(4)\nprint(t)\ntry:\n    hash(t)\nexcept TypeError as e:\n    print(e)\nprint(hash((1, (2, 3))) == hash((1, (2, 3))))\n```\n\n- Кортеж неизменяем в том смысле, что нельзя заменить его **элементы**. Но если элемент — список, сам список менять можно.\n- Кортеж хешируем, только если хешируемы все его элементы.\n- Вывод: `(1, [2, 3, 4])`, `unhashable type: 'list'`, `True`.\n\n## frozenset: неизменяемое множество\n\n```python\ngroups = {frozenset({\"аня\", \"боря\"}), frozenset({\"боря\", \"аня\"}), frozenset({\"вика\"})}\nprint(len(groups))\ntry:\n    {{\"a\"}}\nexcept TypeError as e:\n    print(e)\n```\n\n- Обычное множество нельзя положить в множество. `frozenset` — можно.\n- Две команды с одинаковым составом — одна и та же, порядок не важен.\n- Вывод: `2`, `unhashable type: 'set'`.\n\n## Приведение к хешируемому\n\n```python\npairs = [[1, 2], [3, 4], [1, 2]]\ncounts = {}\nfor p in pairs:\n    key = tuple(p)\n    counts[key] = counts.get(key, 0) + 1\nprint(counts)\n\nusers = [{\"a\": 1, \"b\": 2}, {\"b\": 2, \"a\": 1}]\nprint(len({tuple(sorted(u.items())) for u in users}))\n```\n\n- Список → `tuple(...)`, множество → `frozenset(...)`, словарь → `tuple(sorted(d.items()))`.\n- `sorted` нужен, чтобы словари с одинаковыми парами в разном порядке дали одинаковый ключ.\n- Вывод: `{(1, 2): 2, (3, 4): 1}`, `1`.\n\n## Итог\n\n- Ключи словаря и элементы множества — только хешируемые объекты.\n- Хешируемы: числа, строки, `None`, `frozenset`, кортежи из хешируемых.\n- Нехешируемы: `list`, `dict`, `set` (и кортеж, внутри которого они есть).\n- Для ключей: `tuple(list)`, `frozenset(set)`, `tuple(sorted(d.items()))`.",
+              "quiz": [
+                {
+                  "q": "Можно ли использовать список как ключ словаря?",
+                  "options": [
+                    "Да",
+                    "Нет, он нехешируемый",
+                    "Только пустой",
+                    "Только из чисел"
+                  ],
+                  "answer": 1,
+                  "explain": "Используй tuple(список)."
+                },
+                {
+                  "q": "Хешируем ли кортеж `(1, [2])`?",
+                  "options": [
+                    "Да",
+                    "Нет — внутри список",
+                    "Только в Python 3.12",
+                    "Зависит от длины"
+                  ],
+                  "answer": 1,
+                  "explain": "Все элементы должны быть хешируемыми."
+                },
+                {
+                  "q": "Что положить в множество вместо обычного множества?",
+                  "options": [
+                    "list",
+                    "frozenset",
+                    "dict",
+                    "tuple из set"
+                  ],
+                  "answer": 1,
+                  "explain": "frozenset неизменяем и хешируем."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "mut-m2",
+          "title": "Функции и копии",
+          "icon": "📋",
+          "description": "Аргументы-ссылки, изменяемые значения по умолчанию, поверхностная и глубокая копия",
+          "lessons": [
+            {
+              "slug": "mut-args",
+              "title": "Изменяемые аргументы функций",
+              "theory": "```py\ndef f(lst):\n    lst.append(1)        # видно снаружи\n    lst = []             # НЕ видно снаружи (новое имя)\n\ndef pure(lst):           # чистая функция\n    return lst + [1]     # не меняет аргумент\n\ndef pure_dict(d):\n    d = dict(d)          # работаем с копией\n    d[\"k\"] = 1\n    return d\n```",
+              "exercises": [
+                {
+                  "slug": "mut-args-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Функция меняет список.",
+                  "code": "def add_bonus(scores):\n    for i in range(len(scores)):\n        scores[i] += 10\n\nmy = [50, 70]\nadd_bonus(my)\nprint(my)\n",
+                  "expected_output": "[60, 80]",
+                  "hint": "Функция получает ссылку на тот же список.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-args-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Переприсваивание внутри функции.",
+                  "code": "def reset(items):\n    items = []\n    items.append(\"новый\")\n    return items\n\ndef clear(items):\n    items.clear()\n\ndata = [1, 2]\nprint(reset(data), data)\nclear(data)\nprint(data)\n",
+                  "expected_output": "['новый'] [1, 2]\n[]",
+                  "hint": "items = [] меняет только локальное имя, clear() — сам объект.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-args-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Числа и строки не изменить.",
+                  "code": "def inc(n):\n    n += 1\n    return n\n\ndef shout(s):\n    s += \"!\"\n    return s\n\nx, word = 5, \"привет\"\nprint(inc(x), x)\nprint(shout(word), word)\n",
+                  "expected_output": "6 5\nпривет! привет",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-args-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `with_bonus(scores, bonus)` — вернуть **новый** список баллов, увеличенных на `bonus`. Исходный список не менять.",
+                  "starter_code": "def with_bonus(scores, bonus):\n    pass\n",
+                  "tests": "def test_values():\n    s = [50, 70]\n    assert with_bonus(s, 10) == [60, 80] and s == [50, 70], \"Исходный список изменился\"\n",
+                  "solution": "def with_bonus(scores, bonus):\n    return [x + bonus for x in scores]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-args-e5",
+                  "type": "code",
+                  "prompt": "Функция `normalize_user` из заготовки портит переданный словарь. Исправь: работать с копией, исходный словарь не менять.",
+                  "starter_code": "def normalize_user(user):\n    user[\"name\"] = user[\"name\"].strip().title()\n    user[\"email\"] = user[\"email\"].lower()\n    return user\n",
+                  "tests": "def test_values():\n    u = {\"name\": \"  аня \", \"email\": \"A@X.RU\", \"id\": 1}\n    r = normalize_user(u)\n    assert r == {\"name\": \"Аня\", \"email\": \"a@x.ru\", \"id\": 1} and u == {\"name\": \"  аня \", \"email\": \"A@X.RU\", \"id\": 1}, u\n",
+                  "solution": "def normalize_user(user):\n    user = dict(user)\n    user[\"name\"] = user[\"name\"].strip().title()\n    user[\"email\"] = user[\"email\"].lower()\n    return user\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-args-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `move_done(todo, done)` — перенести все задачи, заканчивающиеся на `\"✓\"`, из списка `todo` в список `done` **на месте** (оба списка меняются). Вернуть количество перенесённых.",
+                  "starter_code": "def move_done(todo, done):\n    pass\n",
+                  "tests": "def test_values():\n    todo = [\"код ✓\", \"тесты\", \"ревью ✓\"]\n    done = [\"старт ✓\"]\n    assert move_done(todo, done) == 2 and todo == [\"тесты\"] and done == [\"старт ✓\", \"код ✓\", \"ревью ✓\"], (todo, done)\n",
+                  "solution": "def move_done(todo, done):\n    finished = [t for t in todo if t.endswith(\"✓\")]\n    todo[:] = [t for t in todo if not t.endswith(\"✓\")]\n    done.extend(finished)\n    return len(finished)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-args-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `safe_process(data, func)` — вызвать `func(копия_data)` и вернуть результат. Даже если `func` меняет переданный список, исходный `data` должен остаться прежним.",
+                  "starter_code": "def safe_process(data, func):\n    pass\n",
+                  "tests": "def test_values():\n    def evil(x):\n        x.append(99)\n        return len(x)\n    d = [1, 2]\n    assert safe_process(d, evil) == 3 and d == [1, 2], d\n",
+                  "solution": "def safe_process(data, func):\n    return func(list(data))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-args-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `apply_discount(cart, percent)` — `cart` — список словарей `{\"name\", \"price\"}`. Вернуть **новый** список новых словарей с уменьшенной ценой (округлить до 2 знаков). Исходная корзина и её словари не должны меняться.",
+                  "starter_code": "def apply_discount(cart, percent):\n    pass\n",
+                  "tests": "def test_values():\n    cart = [{\"name\": \"чай\", \"price\": 100}, {\"name\": \"кофе\", \"price\": 250}]\n    r = apply_discount(cart, 10)\n    assert r == [{\"name\": \"чай\", \"price\": 90.0}, {\"name\": \"кофе\", \"price\": 225.0}], r\n    assert cart == [{\"name\": \"чай\", \"price\": 100}, {\"name\": \"кофе\", \"price\": 250}], \"Исходная корзина изменилась\"\n",
+                  "solution": "def apply_discount(cart, percent):\n    return [{**item, \"price\": round(item[\"price\"] * (1 - percent / 100), 2)} for item in cart]\n",
+                  "hint": "Копировать нужно и список, и каждый словарь.",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nКогда ты передаёшь список или словарь в функцию, она получает **ссылку на тот же объект**. Если функция его изменит, изменения увидит вызывающий код. Иногда это нужно (функция-«команда»), но чаще это незаметный побочный эффект: тестовые данные портятся, повторный вызов даёт другой результат.\n\n## Функция меняет переданный список\n\n```python\ndef add_bonus(scores):\n    for i in range(len(scores)):\n        scores[i] += 10\n\nmy = [50, 70]\nadd_bonus(my)\nprint(my)\n```\n\n- Параметр `scores` и переменная `my` — ярлыки на один список. Изменение по индексу видно снаружи.\n- Вывод: `[60, 80]`.\n\n## Переприсваивание параметра — не видно снаружи\n\n```python\ndef reset(items):\n    items = []\n    items.append(\"новый\")\n    return items\n\ndef clear(items):\n    items.clear()\n\ndata = [1, 2]\nprint(reset(data), data)\nclear(data)\nprint(data)\n```\n\n- `items = []` перевешивает **локальное** имя на новый список — `data` не затронут.\n- `items.clear()` меняет сам объект — `data` опустел.\n- Вывод: `['новый'] [1, 2]`, `[]`.\n\n## Неизменяемые аргументы защищены\n\n```python\ndef inc(n):\n    n += 1\n    return n\n\ndef shout(s):\n    s += \"!\"\n    return s\n\nx, word = 5, \"привет\"\nprint(inc(x), x)\nprint(shout(word), word)\n```\n\n- Число и строку изменить нельзя — `+=` создаёт новые объекты внутри функции.\n- Вывод: `6 5`, `привет! привет`.\n\n## Чистая функция: вернуть новое\n\n```python\ndef with_bonus(scores, bonus):\n    return [x + bonus for x in scores]\n\nsrc = [50, 70]\nprint(with_bonus(src, 10), src)\n\ndef normalize_user(user):\n    user = dict(user)\n    user[\"email\"] = user[\"email\"].lower()\n    return user\n\nu = {\"email\": \"A@X.RU\"}\nprint(normalize_user(u), u)\n```\n\n- **Чистая функция** не меняет аргументы и возвращает результат. Её легко тестировать и безопасно вызывать много раз.\n- `dict(user)` — копия словаря; дальше меняем копию.\n- Вывод: `[60, 80] [50, 70]`, `{'email': 'a@x.ru'} {'email': 'A@X.RU'}`.\n\n## Соглашение об именах\n\n- Функции, меняющие аргумент, обычно ничего не возвращают (`None`) — как `list.sort()`. Это сигнал: «я поменяла твой объект».\n- Функции, возвращающие результат, не должны менять аргументы — как `sorted()`.\n- Смешивать (и менять, и возвращать) — путь к ошибкам.\n\n## Итог\n\n- Функция получает ссылку: изменения списка/словаря видны снаружи.\n- Переприсваивание параметра (`x = ...`) снаружи не видно.\n- Числа и строки изменить внутри функции нельзя.\n- Предпочитай чистые функции: копия → изменения → `return`.",
+              "quiz": [
+                {
+                  "q": "Функция делает `items.append(1)`. Изменится ли список вызывающего кода?",
+                  "options": [
+                    "Да",
+                    "Нет",
+                    "Только если вернуть его",
+                    "Зависит от длины"
+                  ],
+                  "answer": 0,
+                  "explain": "Передаётся ссылка на тот же объект."
+                },
+                {
+                  "q": "Функция делает `items = [1]`. Изменится ли список вызывающего кода?",
+                  "options": [
+                    "Да",
+                    "Нет",
+                    "Станет [1]",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Меняется только локальное имя."
+                },
+                {
+                  "q": "Что такое чистая функция?",
+                  "options": [
+                    "Без комментариев",
+                    "Не меняет аргументы и возвращает результат",
+                    "Без return",
+                    "Без параметров"
+                  ],
+                  "answer": 1,
+                  "explain": "Её легко тестировать."
+                }
+              ]
+            },
+            {
+              "slug": "mut-default",
+              "title": "Изменяемые значения по умолчанию",
+              "theory": "```py\ndef f(x, items=[]): ...        # ✗ один список на все вызовы\n\ndef f(x, items=None):          # ✓\n    if items is None:\n        items = []\n\ndef __init__(self, tests=None):\n    self.tests = list(tests) if tests is not None else []\nf.__defaults__                 # где живут умолчания\n```",
+              "exercises": [
+                {
+                  "slug": "mut-default-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Классическая ловушка.",
+                  "code": "def add(item, items=[]):\n    items.append(item)\n    return items\n\nprint(add(\"a\"))\nprint(add(\"b\"))\nprint(add(\"c\", []))\nprint(add(\"d\"))\n",
+                  "expected_output": "['a']\n['a', 'b']\n['c']\n['a', 'b', 'd']",
+                  "hint": "Список по умолчанию создаётся один раз — при объявлении функции.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-default-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Где живёт значение по умолчанию.",
+                  "code": "def log(msg, history=[]):\n    history.append(msg)\n    return len(history)\n\nlog(\"старт\")\nlog(\"стоп\")\nprint(log.__defaults__)\n",
+                  "expected_output": "(['старт', 'стоп'],)",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-default-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Правильный вариант.",
+                  "code": "def add(item, items=None):\n    if items is None:\n        items = []\n    items.append(item)\n    return items\n\nprint(add(\"a\"), add(\"b\"))\nshared = [\"x\"]\nprint(add(\"y\", shared), shared)\n",
+                  "expected_output": "['a'] ['b']\n['x', 'y'] ['x', 'y']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-default-e4",
+                  "type": "code",
+                  "prompt": "Исправь функцию `add_tag` из заготовки: у неё значение по умолчанию — изменяемый список, поэтому теги «накапливаются» между вызовами.",
+                  "starter_code": "def add_tag(tag, tags=[]):\n    tags.append(tag)\n    return tags\n",
+                  "tests": "def test_values():\n    assert add_tag(\"a\") == [\"a\"] and add_tag(\"b\") == [\"b\"], \"Вызовы не должны влиять друг на друга\"\n    mine = [\"x\"]\n    assert add_tag(\"y\", mine) == [\"x\", \"y\"] and mine == [\"x\", \"y\"], \"Переданный список дополняется\"\n",
+                  "solution": "def add_tag(tag, tags=None):\n    if tags is None:\n        tags = []\n    tags.append(tag)\n    return tags\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-default-e5",
+                  "type": "code",
+                  "prompt": "Исправь функцию `make_request` из заготовки: у неё словарь по умолчанию, и заголовки из одного вызова попадают в другой.",
+                  "starter_code": "def make_request(url, headers={}):\n    headers[\"Accept\"] = \"json\"\n    return {\"url\": url, \"headers\": headers}\n",
+                  "tests": "def test_values():\n    r1 = make_request(\"/a\")\n    r1[\"headers\"][\"X-Token\"] = \"secret\"\n    r2 = make_request(\"/b\")\n    assert r2[\"headers\"] == {\"Accept\": \"json\"}, f\"Заголовки протекли: {r2['headers']}\"\n",
+                  "solution": "def make_request(url, headers=None):\n    headers = dict(headers or {})\n    headers[\"Accept\"] = \"json\"\n    return {\"url\": url, \"headers\": headers}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-default-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `has_mutable_defaults(func)` — `True`, если среди значений по умолчанию функции (`func.__defaults__`, может быть `None`) есть список, словарь или множество.",
+                  "starter_code": "def has_mutable_defaults(func):\n    pass\n",
+                  "tests": "def test_values():\n    def a(x, y=[]): pass\n    def b(x, y=None, z=1): pass\n    def c(x): pass\n    def d(x={}): pass\n    assert has_mutable_defaults(a) and not has_mutable_defaults(b) and not has_mutable_defaults(c) and has_mutable_defaults(d), \"Неверный результат\"\n",
+                  "solution": "def has_mutable_defaults(func):\n    return any(isinstance(v, (list, dict, set)) for v in (func.__defaults__ or ()))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-default-e7",
+                  "type": "code",
+                  "prompt": "Иногда «общий» изменяемый объект нужен специально — например, для кэша. Напиши функцию `cached_square(n, _cache={})` — считает `n * n`, сохраняет результат в словаре по умолчанию и возвращает кортеж `(результат, был_ли_в_кэше)`.",
+                  "starter_code": "def cached_square(n, _cache={}):\n    pass\n",
+                  "tests": "def test_values():\n    assert cached_square(4) == (16, False) and cached_square(4) == (16, True) and cached_square(5) == (25, False), \"Неверный результат\"\n",
+                  "solution": "def cached_square(n, _cache={}):\n    if n in _cache:\n        return _cache[n], True\n    _cache[n] = n * n\n    return _cache[n], False\n",
+                  "hint": "Подчёркивание в имени — знак «не передавать снаружи».",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-default-e8",
+                  "type": "code",
+                  "prompt": "Исправь класс `Suite` из заготовки: у всех наборов тестов оказывается один общий список `tests`, потому что он задан значением по умолчанию в `__init__`.",
+                  "starter_code": "class Suite:\n    def __init__(self, name, tests=[]):\n        self.name = name\n        self.tests = tests\n\n    def add(self, test):\n        self.tests.append(test)\n",
+                  "tests": "def test_values():\n    a, b = Suite(\"api\"), Suite(\"ui\")\n    a.add(\"login\")\n    assert b.tests == [] and a.tests == [\"login\"], \"Списки наборов должны быть разными\"\n    src = [\"x\"]\n    c = Suite(\"c\", src)\n    c.add(\"y\")\n    assert src == [\"x\"], \"Переданный список не должен меняться\"\n",
+                  "solution": "class Suite:\n    def __init__(self, name, tests=None):\n        self.name = name\n        self.tests = list(tests) if tests is not None else []\n\n    def add(self, test):\n        self.tests.append(test)\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОдна из самых известных ловушек Python: изменяемое значение по умолчанию у параметра. Код выглядит невинно, а данные из одного вызова «перетекают» в другой. Ревьюеры и линтеры всегда на это указывают.\n\n## Ловушка\n\n```python\ndef add(item, items=[]):\n    items.append(item)\n    return items\n\nprint(add(\"a\"))\nprint(add(\"b\"))\nprint(add(\"c\", []))\nprint(add(\"d\"))\n```\n\n- Значение по умолчанию вычисляется **один раз** — когда Python выполняет `def`, а не при каждом вызове.\n- Все вызовы без второго аргумента получают **один и тот же** список и дописывают в него.\n- Вызов с явным `[]` получает свой список.\n- Вывод: `['a']`, `['a', 'b']`, `['c']`, `['a', 'b', 'd']`.\n\n## Где хранится значение по умолчанию\n\n```python\ndef log(msg, history=[]):\n    history.append(msg)\n    return len(history)\n\nlog(\"старт\")\nlog(\"стоп\")\nprint(log.__defaults__)\n```\n\n- `func.__defaults__` — кортеж значений по умолчанию. Список хранится прямо в объекте функции и живёт, пока жива функция.\n- Вывод: `(['старт', 'стоп'],)`.\n\n## Правильный шаблон: None\n\n```python\ndef add(item, items=None):\n    if items is None:\n        items = []\n    items.append(item)\n    return items\n\nprint(add(\"a\"), add(\"b\"))\nshared = [\"x\"]\nprint(add(\"y\", shared), shared)\n```\n\n- `None` неизменяем — безопасное значение по умолчанию.\n- Новый список создаётся внутри функции при **каждом** вызове.\n- Вывод: `['a'] ['b']`, `['x', 'y'] ['x', 'y']`.\n\n## То же в классах\n\n```python\nclass Suite:\n    def __init__(self, name, tests=None):\n        self.name = name\n        self.tests = list(tests) if tests is not None else []\n\na, b = Suite(\"api\"), Suite(\"ui\")\na.tests.append(\"login\")\nprint(a.tests, b.tests)\n```\n\n- `__init__` — обычная функция, ловушка та же. `list(tests)` ещё и защищает от изменений переданного снаружи списка.\n- Вывод: `['login'] []`.\n\n## Когда общий объект нужен специально\n\n```python\ndef cached_square(n, _cache={}):\n    if n not in _cache:\n        _cache[n] = n * n\n    return _cache[n]\n\nprint(cached_square(4), cached_square(4))\n```\n\n- Иногда этот эффект используют как кэш «между вызовами». Подчёркивание в имени намекает: не передавать снаружи. Но понятнее — `functools.lru_cache`.\n- Вывод: `16 16`.\n\n## Итог\n\n- Значение по умолчанию создаётся один раз при `def`.\n- Никаких `[]`, `{}`, `set()` в значениях по умолчанию — только `None` и создание внутри.\n- То же в `__init__`.",
+              "quiz": [
+                {
+                  "q": "Когда вычисляется значение по умолчанию параметра?",
+                  "options": [
+                    "При каждом вызове",
+                    "Один раз при выполнении def",
+                    "При первом вызове",
+                    "Никогда"
+                  ],
+                  "answer": 1,
+                  "explain": "Поэтому список общий."
+                },
+                {
+                  "q": "Какое значение по умолчанию безопасно для «необязательного списка»?",
+                  "options": [
+                    "[]",
+                    "None",
+                    "list()",
+                    "[None]"
+                  ],
+                  "answer": 1,
+                  "explain": "И создание списка внутри функции."
+                },
+                {
+                  "q": "Действует ли ловушка в `__init__`?",
+                  "options": [
+                    "Нет",
+                    "Да, это обычная функция",
+                    "Только в dataclass",
+                    "Только для словарей"
+                  ],
+                  "answer": 1,
+                  "explain": "Все объекты получат один список."
+                }
+              ]
+            },
+            {
+              "slug": "mut-copy",
+              "title": "Поверхностная копия",
+              "theory": "```py\nlst[:], list(lst), lst.copy(), [*lst]   # копия списка\ndict(d), d.copy(), {**d}                # копия словаря\nimport copy; copy.copy(x)               # поверхностная\n\nb = a.copy()\nb[0].append(1)          # ✗ меняет и a (вложенный общий)\n[row[:] for row in m]   # копия на 2 уровня\n[dict(u) for u in users]\n```",
+              "exercises": [
+                {
+                  "slug": "mut-copy-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Способы скопировать список.",
+                  "code": "a = [1, 2, 3]\ncopies = [a[:], list(a), a.copy(), [*a]]\nfor c in copies:\n    c.append(4)\nprint(a, [c is a for c in copies])\n",
+                  "expected_output": "[1, 2, 3] [False, False, False, False]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-copy-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Вложенные списки общие.",
+                  "code": "a = [[1, 2], [3, 4]]\nb = a.copy()\nb.append([5])\nb[0].append(99)\nprint(a)\nprint(b)\nprint(a[0] is b[0])\n",
+                  "expected_output": "[[1, 2, 99], [3, 4]]\n[[1, 2, 99], [3, 4], [5]]\nTrue",
+                  "hint": "Копия поверхностная: внешний список новый, внутренние — те же.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-copy-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Копия словаря.",
+                  "code": "user = {\"name\": \"Аня\", \"tags\": [\"qa\"]}\ncopy1 = dict(user)\ncopy2 = user.copy()\ncopy1[\"name\"] = \"Боря\"\ncopy2[\"tags\"].append(\"api\")\nprint(user)\n",
+                  "expected_output": "{'name': 'Аня', 'tags': ['qa', 'api']}",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-copy-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `copy_and_sort(items)` — вернуть отсортированную **копию** списка через `.copy()` и `.sort()`; исходный список не менять.",
+                  "starter_code": "def copy_and_sort(items):\n    pass\n",
+                  "tests": "def test_values():\n    x = [3, 1, 2]\n    assert copy_and_sort(x) == [1, 2, 3] and x == [3, 1, 2], \"Неверный результат\"\n",
+                  "solution": "def copy_and_sort(items):\n    result = items.copy()\n    result.sort()\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-copy-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `copy_matrix(matrix)` — копия списка списков, в которой **каждая строка** тоже скопирована (изменение копии не затрагивает оригинал). Без модуля `copy`.",
+                  "starter_code": "def copy_matrix(matrix):\n    pass\n",
+                  "tests": "def test_values():\n    m = [[1, 2], [3, 4]]\n    c = copy_matrix(m)\n    c[0][0] = 99\n    c.append([5])\n    assert m == [[1, 2], [3, 4]] and c == [[99, 2], [3, 4], [5]], (m, c)\n",
+                  "solution": "def copy_matrix(matrix):\n    return [row[:] for row in matrix]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-copy-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `copy_users(users)` — `users` — список словарей с простыми значениями. Вернуть список **копий** словарей, чтобы изменение копий не трогало оригиналы.",
+                  "starter_code": "def copy_users(users):\n    pass\n",
+                  "tests": "def test_values():\n    src = [{\"name\": \"Аня\"}, {\"name\": \"Боря\"}]\n    c = copy_users(src)\n    c[0][\"name\"] = \"X\"\n    assert src == [{\"name\": \"Аня\"}, {\"name\": \"Боря\"}] and c == [{\"name\": \"X\"}, {\"name\": \"Боря\"}], src\n",
+                  "solution": "def copy_users(users):\n    return [dict(u) for u in users]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-copy-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `shares_inner(a, b)` — два списка списков. Верни `True`, если хотя бы один внутренний список является **одним и тем же** объектом в обоих (так бывает после поверхностной копии).",
+                  "starter_code": "def shares_inner(a, b):\n    pass\n",
+                  "tests": "def test_values():\n    m = [[1], [2]]\n    assert shares_inner(m, m.copy()) and not shares_inner(m, [r[:] for r in m]) and not shares_inner([], []), \"Неверный результат\"\n",
+                  "solution": "def shares_inner(a, b):\n    ids = {id(x) for x in a}\n    return any(id(x) in ids for x in b)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-copy-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `update_config(config, section, key, value)` — `config` — словарь словарей. Вернуть новый конфиг, где `config[section][key] = value`. Исходный конфиг (включая вложенный словарь секции) должен остаться прежним; остальные секции можно не копировать.",
+                  "starter_code": "def update_config(config, section, key, value):\n    pass\n",
+                  "tests": "def test_values():\n    cfg = {\"api\": {\"url\": \"prod\", \"timeout\": 5}, \"ui\": {\"browser\": \"chrome\"}}\n    new = update_config(cfg, \"api\", \"url\", \"test\")\n    assert new == {\"api\": {\"url\": \"test\", \"timeout\": 5}, \"ui\": {\"browser\": \"chrome\"}}, new\n    assert cfg[\"api\"][\"url\"] == \"prod\", \"Исходный конфиг изменился\"\n    assert update_config(cfg, \"db\", \"host\", \"x\")[\"db\"] == {\"host\": \"x\"}, \"Новая секция\"\n",
+                  "solution": "def update_config(config, section, key, value):\n    new = dict(config)\n    new[section] = {**config.get(section, {}), key: value}\n    return new\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nЧтобы изменить данные, не трогая оригинал, нужна **копия**. Но копии бывают разной глубины. Поверхностная копия создаёт новый внешний контейнер, а вложенные объекты остаются общими — это частый источник багов.\n\n## Способы скопировать список\n\n```python\na = [1, 2, 3]\ncopies = [a[:], list(a), a.copy(), [*a]]\nfor c in copies:\n    c.append(4)\nprint(a, [c is a for c in copies])\n```\n\n- Срез `a[:]`, конструктор `list(a)`, метод `a.copy()`, распаковка `[*a]` — четыре способа получить новый список с теми же элементами.\n- Добавление в копии не трогает оригинал.\n- Вывод: `[1, 2, 3] [False, False, False, False]`.\n\n## Словари и множества\n\n- `dict(d)`, `d.copy()`, `{**d}` — копия словаря.\n- `set(s)`, `s.copy()` — копия множества.\n- `import copy; copy.copy(x)` — поверхностная копия любого объекта.\n\n## Поверхностная копия: вложенное — общее\n\n```python\na = [[1, 2], [3, 4]]\nb = a.copy()\nb.append([5])\nb[0].append(99)\nprint(a)\nprint(b)\nprint(a[0] is b[0])\n```\n\n- `b` — новый внешний список, но его элементы — **те же** внутренние списки, что и в `a`.\n- `b.append(...)` меняет только `b`, а `b[0].append(...)` — общий внутренний список.\n- Вывод: `[[1, 2, 99], [3, 4]]`, `[[1, 2, 99], [3, 4], [5]]`, `True`.\n\n## То же со словарями\n\n```python\nuser = {\"name\": \"Аня\", \"tags\": [\"qa\"]}\ncopy1 = dict(user)\ncopy1[\"name\"] = \"Боря\"\ncopy1[\"tags\"].append(\"api\")\nprint(user)\n```\n\n- Замена значения (`copy1[\"name\"] = ...`) оригинал не трогает.\n- Изменение вложенного списка (`copy1[\"tags\"].append`) — трогает.\n- Вывод: `{'name': 'Аня', 'tags': ['qa', 'api']}`.\n\n## Копия на два уровня вручную\n\n```python\nmatrix = [[1, 2], [3, 4]]\ncopy2 = [row[:] for row in matrix]\ncopy2[0][0] = 99\nprint(matrix, copy2)\n\nusers = [{\"name\": \"Аня\"}]\nusers_copy = [dict(u) for u in users]\nusers_copy[0][\"name\"] = \"X\"\nprint(users)\n```\n\n- Если вложенность известна (список списков, список словарей), копируем каждый внутренний объект.\n- Вывод: `[[1, 2], [3, 4]] [[99, 2], [3, 4]]`, `[{'name': 'Аня'}]`.\n\n## Итог\n\n- Поверхностная копия: `lst[:]`, `list()`, `.copy()`, `dict()`, `copy.copy()`.\n- Новый внешний контейнер, вложенные объекты — общие.\n- Заменять элементы копии безопасно, менять вложенные — нет.\n- Для известной вложенности — копируй каждый уровень; для любой — `deepcopy` (следующий урок).",
+              "quiz": [
+                {
+                  "q": "Что делает поверхностная копия?",
+                  "options": [
+                    "Копирует всё",
+                    "Создаёт новый внешний контейнер, вложенные объекты общие",
+                    "Ничего не копирует",
+                    "Копирует только вложенные"
+                  ],
+                  "answer": 1,
+                  "explain": "copy.copy, list(), .copy()."
+                },
+                {
+                  "q": "`b = a.copy(); b[0].append(9)`, где `a = [[1]]`. Чему равно `a`?",
+                  "options": [
+                    "[[1]]",
+                    "[[1, 9]]",
+                    "[[9]]",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Внутренний список общий."
+                },
+                {
+                  "q": "Какой из способов НЕ копирует список?",
+                  "options": [
+                    "a[:]",
+                    "list(a)",
+                    "b = a",
+                    "a.copy()"
+                  ],
+                  "answer": 2,
+                  "explain": "Это второе имя."
+                }
+              ]
+            },
+            {
+              "slug": "mut-deepcopy",
+              "title": "Глубокая копия",
+              "theory": "```py\nimport copy\n\ncopy.copy(x)        # поверхностная: вложенное общее\ncopy.deepcopy(x)    # глубокая: всё новое\n\nTEMPLATE = {...}\ndef payload(**kw):\n    p = copy.deepcopy(TEMPLATE)   # эталон не портится\n    p.update(kw)\n    return p\n```",
+              "exercises": [
+                {
+                  "slug": "mut-deepcopy-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? copy и deepcopy.",
+                  "code": "import copy\n\ndata = {\"users\": [{\"name\": \"Аня\"}]}\nshallow = copy.copy(data)\ndeep = copy.deepcopy(data)\ndata[\"users\"][0][\"name\"] = \"Изменено\"\nprint(shallow[\"users\"][0][\"name\"], deep[\"users\"][0][\"name\"])\n",
+                  "expected_output": "Изменено Аня",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-deepcopy-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Ловушка умножения списка.",
+                  "code": "grid = [[0] * 3] * 2\ngrid[0][0] = 1\nprint(grid, grid[0] is grid[1])\n\ngood = [[0] * 3 for _ in range(2)]\ngood[0][0] = 1\nprint(good)\n",
+                  "expected_output": "[[1, 0, 0], [1, 0, 0]] True\n[[1, 0, 0], [0, 0, 0]]",
+                  "hint": "* повторяет ссылку на тот же внутренний список.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-deepcopy-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Общие ссылки сохраняются.",
+                  "code": "import copy\n\nshared = [1, 2]\npair = [shared, shared]\nclone = copy.deepcopy(pair)\nclone[0].append(3)\nprint(clone, clone[0] is clone[1], shared)\n",
+                  "expected_output": "[[1, 2, 3], [1, 2, 3]] True [1, 2]",
+                  "hint": "deepcopy копирует каждый объект один раз и сохраняет структуру ссылок.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-deepcopy-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `clone(data)` — полностью независимая копия любой вложенной структуры (используй `copy.deepcopy`).",
+                  "starter_code": "import copy\n\n\ndef clone(data):\n    pass\n",
+                  "tests": "def test_values():\n    d = {\"a\": [1, {\"b\": [2]}]}\n    c = clone(d)\n    c[\"a\"][1][\"b\"].append(3)\n    assert d == {\"a\": [1, {\"b\": [2]}]} and c == {\"a\": [1, {\"b\": [2, 3]}]}, d\n",
+                  "solution": "import copy\n\n\ndef clone(data):\n    return copy.deepcopy(data)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-deepcopy-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `deep_copy(value)` **без** модуля `copy`: рекурсивно скопировать списки и словари (ключи копировать не нужно), остальные значения вернуть как есть.",
+                  "starter_code": "def deep_copy(value):\n    pass\n",
+                  "tests": "def test_values():\n    d = {\"a\": [1, [2]], \"b\": {\"c\": [3]}}\n    c = deep_copy(d)\n    c[\"a\"][1].append(9)\n    c[\"b\"][\"c\"].append(9)\n    assert d == {\"a\": [1, [2]], \"b\": {\"c\": [3]}} and c == {\"a\": [1, [2, 9]], \"b\": {\"c\": [3, 9]}}, d\n    assert \"import copy\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Без модуля copy\"\n",
+                  "solution": "def deep_copy(value):\n    if isinstance(value, list):\n        return [deep_copy(v) for v in value]\n    if isinstance(value, dict):\n        return {k: deep_copy(v) for k, v in value.items()}\n    return value\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-deepcopy-e6",
+                  "type": "code",
+                  "prompt": "Функция `make_board` из заготовки создаёт игровое поле через умножение списков, и ход в одну клетку отражается во всех строках. Исправь её.",
+                  "starter_code": "def make_board(size):\n    return [[\".\"] * size] * size\n",
+                  "tests": "def test_values():\n    b = make_board(3)\n    b[1][1] = \"X\"\n    assert b == [[\".\", \".\", \".\"], [\".\", \"X\", \".\"], [\".\", \".\", \".\"]], b\n",
+                  "solution": "def make_board(size):\n    return [[\".\"] * size for _ in range(size)]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-deepcopy-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `template_payload(template, **changes)` — `template` — вложенный словарь (эталонное тело запроса). Верни **глубокую копию** с заменёнными верхнеуровневыми ключами из `changes`. Эталон не должен меняться даже при изменении вложенных частей результата.",
+                  "starter_code": "import copy\n\n\ndef template_payload(template, **changes):\n    pass\n",
+                  "tests": "TEMPLATE = {\"user\": {\"name\": \"test\", \"roles\": [\"reader\"]}, \"active\": True}\n\ndef test_values():\n    p = template_payload(TEMPLATE, active=False)\n    p[\"user\"][\"roles\"].append(\"admin\")\n    assert p == {\"user\": {\"name\": \"test\", \"roles\": [\"reader\", \"admin\"]}, \"active\": False}, p\n    assert TEMPLATE == {\"user\": {\"name\": \"test\", \"roles\": [\"reader\"]}, \"active\": True}, \"Эталон изменился\"\n",
+                  "solution": "import copy\n\n\ndef template_payload(template, **changes):\n    payload = copy.deepcopy(template)\n    payload.update(changes)\n    return payload\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-deepcopy-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `is_independent(a, b)` — `True`, если две вложенные структуры из списков и словарей **не имеют общих изменяемых объектов** (ни на каком уровне). Сравнивай по `id`.",
+                  "starter_code": "import copy\n\n\ndef is_independent(a, b):\n    pass\n",
+                  "tests": "import copy\n\ndef test_values():\n    d = {\"x\": [1, {\"y\": [2]}]}\n    assert is_independent(d, copy.deepcopy(d)), \"Глубокая копия независима\"\n    assert not is_independent(d, copy.copy(d)), \"Поверхностная делит вложенные\"\n    assert not is_independent(d, d), \"Сам с собой\"\n",
+                  "solution": "import copy\n\n\ndef _mutable_ids(value, acc):\n    if isinstance(value, (list, dict)):\n        acc.add(id(value))\n        items = value.values() if isinstance(value, dict) else value\n        for v in items:\n            _mutable_ids(v, acc)\n    return acc\n\n\ndef is_independent(a, b):\n    return not (_mutable_ids(a, set()) & _mutable_ids(b, set()))\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nРеальные данные вложенные: JSON-ответ API — словари в списках в словарях. Чтобы получить полностью независимую копию (например, эталонное тело запроса, которое тест будет менять), нужна **глубокая копия**.\n\n## copy.deepcopy\n\n```python\nimport copy\n\ndata = {\"users\": [{\"name\": \"Аня\"}]}\nshallow = copy.copy(data)\ndeep = copy.deepcopy(data)\ndata[\"users\"][0][\"name\"] = \"Изменено\"\nprint(shallow[\"users\"][0][\"name\"], deep[\"users\"][0][\"name\"])\n```\n\n- `copy.deepcopy(x)` рекурсивно копирует все вложенные изменяемые объекты.\n- Поверхностная копия делит список `users` с оригиналом — изменение видно. Глубокая — нет.\n- Вывод: `Изменено Аня`.\n\n## Структура ссылок сохраняется\n\n```python\nimport copy\n\nshared = [1, 2]\npair = [shared, shared]\nclone = copy.deepcopy(pair)\nclone[0].append(3)\nprint(clone, clone[0] is clone[1], shared)\n```\n\n- Если в оригинале один объект встречается дважды, в копии он тоже будет одним (но новым) объектом. `deepcopy` помнит уже скопированное.\n- Вывод: `[[1, 2, 3], [1, 2, 3]] True [1, 2]`.\n\n## Своя глубокая копия\n\n```python\ndef deep_copy(value):\n    if isinstance(value, list):\n        return [deep_copy(v) for v in value]\n    if isinstance(value, dict):\n        return {k: deep_copy(v) for k, v in value.items()}\n    return value\n\nd = {\"a\": [1, [2]]}\nc = deep_copy(d)\nc[\"a\"][1].append(9)\nprint(d, c)\n```\n\n- Рекурсия: список и словарь копируем, углубляясь; неизменяемые значения возвращаем как есть — их копировать незачем.\n- Вывод: `{'a': [1, [2]]} {'a': [1, [2, 9]]}`.\n\n## Эталонные данные в тестах\n\n```python\nimport copy\n\nTEMPLATE = {\"user\": {\"name\": \"test\", \"roles\": [\"reader\"]}, \"active\": True}\n\ndef payload(**changes):\n    p = copy.deepcopy(TEMPLATE)\n    p.update(changes)\n    return p\n\np = payload(active=False)\np[\"user\"][\"roles\"].append(\"admin\")\nprint(TEMPLATE)\nprint(p)\n```\n\n- Эталон копируется глубоко перед каждым использованием — тесты не портят его друг другу.\n- Вывод: `{'user': {'name': 'test', 'roles': ['reader']}, 'active': True}`, `{'user': {'name': 'test', 'roles': ['reader', 'admin']}, 'active': False}`.\n\n## Когда deepcopy не нужен\n\n- Данные не вложенные (список чисел, словарь строк) — хватит поверхностной копии.\n- Ты не будешь менять вложенные объекты — только читать.\n- `deepcopy` медленнее: он обходит всю структуру. Для огромных данных это заметно.\n\n## Итог\n\n- `copy.deepcopy(x)` — полностью независимая копия любой вложенности.\n- Общие ссылки внутри структуры сохраняются.\n- Эталонные данные в тестах — копируй глубоко.\n- Для плоских данных достаточно поверхностной копии.",
+              "quiz": [
+                {
+                  "q": "Чем `deepcopy` отличается от `copy`?",
+                  "options": [
+                    "Ничем",
+                    "Копирует и все вложенные объекты",
+                    "Быстрее",
+                    "Копирует только ключи"
+                  ],
+                  "answer": 1,
+                  "explain": "Полная независимость."
+                },
+                {
+                  "q": "Нужен ли `deepcopy` для списка чисел?",
+                  "options": [
+                    "Да, всегда",
+                    "Нет, числа неизменяемы — хватит list()",
+                    "Только для больших",
+                    "Нельзя скопировать"
+                  ],
+                  "answer": 1,
+                  "explain": "Поверхностной копии достаточно."
+                },
+                {
+                  "q": "Зачем копировать эталонные тестовые данные перед использованием?",
+                  "options": [
+                    "Для скорости",
+                    "Чтобы тесты не портили эталон друг другу",
+                    "Этого требует pytest",
+                    "Не нужно"
+                  ],
+                  "answer": 1,
+                  "explain": "Иначе тесты зависят от порядка запуска."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "mut-m3",
+          "title": "Практика",
+          "icon": "🛡️",
+          "description": "Изменение во время перебора, неизменяемые структуры, изменяемость в классах, данные в тестах",
+          "lessons": [
+            {
+              "slug": "mut-iterate",
+              "title": "Изменение коллекции во время перебора",
+              "theory": "```py\nfor x in lst: lst.remove(x)          # ✗ пропуски\nlst = [x for x in lst if ok(x)]      # ✓ новый\nlst[:] = [x for x in lst if ok(x)]   # ✓ тот же объект\nfor x in lst[:]: lst.remove(x)       # ✓ по копии\nfor k in list(d): del d[k]           # ✓ словарь\nwhile queue: task = queue.pop(0)     # ✓ очередь\n```",
+              "exercises": [
+                {
+                  "slug": "mut-iterate-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Удаление при переборе.",
+                  "code": "nums = [1, 2, 2, 3, 2, 4]\nfor n in nums:\n    if n == 2:\n        nums.remove(n)\nprint(nums)\n",
+                  "expected_output": "[1, 3, 2, 4]",
+                  "hint": "После удаления элементы сдвигаются, и цикл перескакивает через следующий.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-iterate-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Словарь во время перебора.",
+                  "code": "d = {\"a\": 1, \"b\": 2}\ntry:\n    for k in d:\n        d[k + \"!\"] = 0\nexcept RuntimeError as e:\n    print(e)\nfor k in list(d):\n    if d[k] == 0:\n        del d[k]\nprint(d)\n",
+                  "expected_output": "dictionary changed size during iteration\n{'a': 1, 'b': 2}",
+                  "hint": "list(d) — копия ключей, по ней перебирать безопасно.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-iterate-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Правильные способы.",
+                  "code": "nums = [1, 2, 2, 3, 2, 4]\nprint([n for n in nums if n != 2])\n\nfor n in nums[:]:\n    if n == 2:\n        nums.remove(n)\nprint(nums)\n",
+                  "expected_output": "[1, 3, 4]\n[1, 3, 4]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-iterate-e4",
+                  "type": "code",
+                  "prompt": "Функция `remove_negatives` из заготовки удаляет элементы во время перебора и пропускает некоторые из них. Исправь: удалить **все** отрицательные числа из переданного списка **на месте**.",
+                  "starter_code": "def remove_negatives(nums):\n    for n in nums:\n        if n < 0:\n            nums.remove(n)\n",
+                  "tests": "def test_values():\n    x = [-1, -2, 3, -4, -5, 6]\n    ref = x\n    remove_negatives(x)\n    assert x == [3, 6] and x is ref, x\n",
+                  "solution": "def remove_negatives(nums):\n    nums[:] = [n for n in nums if n >= 0]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-iterate-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `drop_empty(d)` — удалить из словаря **на месте** все ключи, у которых значение пустое (`\"\"`, `None`, `[]`, `{}`). Вернуть список удалённых ключей.",
+                  "starter_code": "def drop_empty(d):\n    pass\n",
+                  "tests": "def test_values():\n    d = {\"a\": 1, \"b\": \"\", \"c\": None, \"d\": [], \"e\": 0, \"f\": {}}\n    assert drop_empty(d) == [\"b\", \"c\", \"d\", \"f\"] and d == {\"a\": 1, \"e\": 0}, d\n",
+                  "solution": "def drop_empty(d):\n    removed = [k for k, v in d.items() if v in (\"\", None) or v == [] or v == {}]\n    for k in removed:\n        del d[k]\n    return removed\n",
+                  "hint": "0 — не пустое значение, его оставляем.",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-iterate-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `expand(items)` — **на месте** после каждого числа больше 10 вставить его половину (целочисленно). Перебирай по копии или с индексами, чтобы не зациклиться.\n\n```\nexpand([4, 20, 7, 30])   # список становится [4, 20, 10, 7, 30, 15]\n```",
+                  "starter_code": "def expand(items):\n    pass\n",
+                  "tests": "def test_values():\n    x = [4, 20, 7, 30]\n    expand(x)\n    assert x == [4, 20, 10, 7, 30, 15], x\n",
+                  "solution": "def expand(items):\n    result = []\n    for x in items:\n        result.append(x)\n        if x > 10:\n            result.append(x // 2)\n    items[:] = result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-iterate-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `rename_keys(d, mapping)` — **на месте** переименовать ключи словаря по словарю `mapping` («старое → новое»). Ключи, которых нет в `mapping`, оставить.",
+                  "starter_code": "def rename_keys(d, mapping):\n    pass\n",
+                  "tests": "def test_values():\n    d = {\"user_name\": \"Аня\", \"age\": 30}\n    ref = d\n    rename_keys(d, {\"user_name\": \"name\", \"missing\": \"x\"})\n    assert d == {\"age\": 30, \"name\": \"Аня\"} and d is ref, d\n",
+                  "solution": "def rename_keys(d, mapping):\n    for old in list(d):\n        if old in mapping:\n            d[mapping[old]] = d.pop(old)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-iterate-e8",
+                  "type": "code",
+                  "prompt": "Напиши функцию `process_queue(queue, handler)` — обработать очередь задач (список): брать задачи **с начала**, вызывать `handler(task)`; handler может вернуть список новых задач — их добавить в конец. Вернуть список обработанных задач в порядке обработки. Очередь в конце пустая.",
+                  "starter_code": "def process_queue(queue, handler):\n    pass\n",
+                  "tests": "def test_values():\n    q = [\"a\", \"b\"]\n    def h(task):\n        return [\"a1\", \"a2\"] if task == \"a\" else None\n    assert process_queue(q, h) == [\"a\", \"b\", \"a1\", \"a2\"] and q == [], q\n",
+                  "solution": "def process_queue(queue, handler):\n    done = []\n    while queue:\n        task = queue.pop(0)\n        done.append(task)\n        new = handler(task)\n        if new:\n            queue.extend(new)\n    return done\n",
+                  "hint": "while queue и pop(0) — безопасно: мы не перебираем список for-ом.",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n«Пройти по списку и удалить лишнее» — одна из самых частых задач. Если удалять элементы из списка прямо во время перебора `for`, часть элементов будет пропущена. А словарь во время перебора вообще нельзя менять по размеру.\n\n## Удаление при переборе пропускает элементы\n\n```python\nnums = [1, 2, 2, 3, 2, 4]\nfor n in nums:\n    if n == 2:\n        nums.remove(n)\nprint(nums)\n```\n\n- `for` идёт по индексам 0, 1, 2… Когда элемент удалён, все следующие сдвигаются влево, и цикл «перешагивает» через тот, что встал на место удалённого.\n- Вывод: `[1, 3, 2, 4]` — одна двойка осталась!\n\n## Правильно: новый список или копия\n\n```python\nnums = [1, 2, 2, 3, 2, 4]\nprint([n for n in nums if n != 2])\n\nfor n in nums[:]:\n    if n == 2:\n        nums.remove(n)\nprint(nums)\n\ndata = [1, -2, 3, -4]\ndata[:] = [x for x in data if x >= 0]\nprint(data)\n```\n\n- Лучший вариант — построить новый список списковым включением.\n- Если нужно изменить **тот же** список — перебирай копию (`nums[:]`) или замени содержимое `data[:] = ...`.\n- Вывод: `[1, 3, 4]`, `[1, 3, 4]`, `[1, 3]`.\n\n## Словарь нельзя менять во время перебора\n\n```python\nd = {\"a\": 1, \"b\": 2}\ntry:\n    for k in d:\n        d[k + \"!\"] = 0\nexcept RuntimeError as e:\n    print(e)\nfor k in list(d):\n    if d[k] == 0:\n        del d[k]\nprint(d)\n```\n\n- Добавление или удаление ключей во время перебора словаря → `RuntimeError`.\n- `list(d)` — копия ключей; по ней перебирать безопасно, а удалять — из оригинала.\n- Менять **значения** существующих ключей во время перебора можно.\n- Вывод: `dictionary changed size during iteration`, `{'a': 1, 'b': 2}`.\n\n## Очередь: while вместо for\n\n```python\nqueue = [\"a\", \"b\"]\ndone = []\nwhile queue:\n    task = queue.pop(0)\n    done.append(task)\n    if task == \"a\":\n        queue.extend([\"a1\", \"a2\"])\nprint(done, queue)\n```\n\n- Если коллекция должна меняться по ходу обработки (очередь задач, обход дерева), используй `while` и явное извлечение элементов.\n- `pop(0)` берёт элемент с начала. Для длинных очередей быстрее `collections.deque` с `popleft()`.\n- Вывод: `['a', 'b', 'a1', 'a2'] []`.\n\n## Итог\n\n- Не удаляй из списка во время `for` по нему самому.\n- Новый список через включение; или перебор копии `lst[:]`; или `lst[:] = [...]`.\n- Словарь: перебирай `list(d)`, если меняешь ключи.\n- Очередь — `while queue: queue.pop(0)`.",
+              "quiz": [
+                {
+                  "q": "Что будет при удалении элементов списка во время `for` по нему?",
+                  "options": [
+                    "Всё удалится правильно",
+                    "Некоторые элементы будут пропущены",
+                    "Ошибка",
+                    "Бесконечный цикл"
+                  ],
+                  "answer": 1,
+                  "explain": "Элементы сдвигаются."
+                },
+                {
+                  "q": "Что будет при добавлении ключей в словарь во время перебора?",
+                  "options": [
+                    "Ничего",
+                    "RuntimeError",
+                    "Ключи пропустятся",
+                    "KeyError"
+                  ],
+                  "answer": 1,
+                  "explain": "Размер словаря нельзя менять при переборе."
+                },
+                {
+                  "q": "Как безопасно удалять ключи словаря в цикле?",
+                  "options": [
+                    "for k in d",
+                    "for k in list(d)",
+                    "for k in d.values()",
+                    "Нельзя"
+                  ],
+                  "answer": 1,
+                  "explain": "Перебираем копию ключей."
+                }
+              ]
+            },
+            {
+              "slug": "mut-frozen",
+              "title": "Неизменяемые структуры",
+              "theory": "```py\npoint = (3, 4)                         # tuple\nroles = frozenset({\"read\"})            # frozenset\nfrom types import MappingProxyType\nCFG = MappingProxyType(dict(cfg))      # dict только для чтения\n\nfrom collections import namedtuple\nP = namedtuple(\"P\", \"x y\"); p._replace(x=1)\n\n@dataclass(frozen=True)\nclass User: name: str\nreplace(u, name=\"X\")                   # новый объект\n```",
+              "exercises": [
+                {
+                  "slug": "mut-frozen-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Кортеж и frozenset.",
+                  "code": "point = (3, 4)\ntry:\n    point[0] = 10\nexcept TypeError as e:\n    print(e)\nroles = frozenset({\"read\", \"write\"})\ntry:\n    roles.add(\"admin\")\nexcept AttributeError as e:\n    print(e)\nprint(\"read\" in roles)\n",
+                  "expected_output": "'tuple' object does not support item assignment\n'frozenset' object has no attribute 'add'\nTrue",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-frozen-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Словарь только для чтения.",
+                  "code": "from types import MappingProxyType\n\n_settings = {\"url\": \"prod\", \"timeout\": 5}\nSETTINGS = MappingProxyType(_settings)\nprint(SETTINGS[\"url\"])\ntry:\n    SETTINGS[\"url\"] = \"test\"\nexcept TypeError as e:\n    print(e)\n_settings[\"timeout\"] = 10\nprint(SETTINGS[\"timeout\"])\n",
+                  "expected_output": "prod\n'mappingproxy' object does not support item assignment\n10",
+                  "hint": "MappingProxyType — «окно» в словарь без права записи. Изменения оригинала в нём видны.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-frozen-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? namedtuple и frozen dataclass.",
+                  "code": "from collections import namedtuple\nfrom dataclasses import dataclass, replace\n\nPoint = namedtuple(\"Point\", \"x y\")\np = Point(1, 2)\nprint(p, p.x, p._replace(x=10))\n\n@dataclass(frozen=True)\nclass User:\n    name: str\n    age: int\n\nu = User(\"Аня\", 30)\ntry:\n    u.age = 31\nexcept Exception as e:\n    print(type(e).__name__)\nprint(replace(u, age=31), u)\n",
+                  "expected_output": "Point(x=1, y=2) 1 Point(x=10, y=2)\nFrozenInstanceError\nUser(name='Аня', age=31) User(name='Аня', age=30)",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-frozen-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `freeze_config(config)` — вернуть «замороженную» версию словаря конфигурации через `types.MappingProxyType` **над копией**, чтобы ни запись через результат, ни изменение исходного словаря не влияли на результат.",
+                  "starter_code": "from types import MappingProxyType\n\n\ndef freeze_config(config):\n    pass\n",
+                  "tests": "def test_values():\n    src = {\"url\": \"prod\"}\n    f = freeze_config(src)\n    src[\"url\"] = \"hacked\"\n    assert f[\"url\"] == \"prod\", \"Результат не должен зависеть от исходного словаря\"\n    try:\n        f[\"url\"] = \"x\"\n    except TypeError:\n        return\n    assert False, \"Запись должна быть запрещена\"\n",
+                  "solution": "from types import MappingProxyType\n\n\ndef freeze_config(config):\n    return MappingProxyType(dict(config))\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-frozen-e5",
+                  "type": "code",
+                  "prompt": "Опиши неизменяемый класс `Money` через `@dataclass(frozen=True)` с полями `amount: int` и `currency: str` и методом `add(other)` — возвращает **новый** `Money` с суммой (валюты должны совпадать, иначе `ValueError`).",
+                  "starter_code": "from dataclasses import dataclass\n",
+                  "tests": "def test_values():\n    a = Money(100, \"RUB\")\n    b = a.add(Money(50, \"RUB\"))\n    assert b == Money(150, \"RUB\") and a == Money(100, \"RUB\"), \"Сложение\"\n    try:\n        a.amount = 1\n    except AttributeError:\n        pass\n    else:\n        assert False, \"Money должен быть неизменяемым\"\n    try:\n        a.add(Money(1, \"USD\"))\n    except ValueError:\n        return\n    assert False, \"Нужен ValueError\"\n",
+                  "solution": "from dataclasses import dataclass\n\n\n@dataclass(frozen=True)\nclass Money:\n    amount: int\n    currency: str\n\n    def add(self, other):\n        if self.currency != other.currency:\n            raise ValueError(\"разные валюты\")\n        return Money(self.amount + other.amount, self.currency)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-frozen-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `to_points(pairs)` — превратить список пар `[x, y]` в список `namedtuple` `Point(x, y)`. Объяви `Point` на уровне модуля.",
+                  "starter_code": "from collections import namedtuple\n",
+                  "tests": "def test_values():\n    ps = to_points([[1, 2], [3, 4]])\n    assert ps == [(1, 2), (3, 4)] and ps[1].y == 4 and type(ps[0]).__name__ == \"Point\", ps\n    assert len({ps[0], Point(1, 2)}) == 1, \"Point хешируемый\"\n",
+                  "solution": "from collections import namedtuple\n\nPoint = namedtuple(\"Point\", \"x y\")\n\n\ndef to_points(pairs):\n    return [Point(x, y) for x, y in pairs]\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-frozen-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `readonly_roles(roles_by_user)` — `roles_by_user` — словарь «пользователь → список ролей». Вернуть новый словарь, где роли — `frozenset`, чтобы их нельзя было случайно изменить.",
+                  "starter_code": "def readonly_roles(roles_by_user):\n    pass\n",
+                  "tests": "def test_values():\n    r = readonly_roles({\"аня\": [\"read\", \"write\", \"read\"], \"боря\": []})\n    assert r == {\"аня\": frozenset({\"read\", \"write\"}), \"боря\": frozenset()} and all(type(v) is frozenset for v in r.values()), r\n",
+                  "solution": "def readonly_roles(roles_by_user):\n    return {user: frozenset(roles) for user, roles in roles_by_user.items()}\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-frozen-e8",
+                  "type": "code",
+                  "prompt": "Создай неизменяемый класс `Version` через `@dataclass(frozen=True, order=True)` с полями `major`, `minor`, `patch` (int), классовым методом `parse(text)` (`\"1.10.2\"` → `Version(1, 10, 2)`) и методом `bump_minor()` — новая версия с `minor + 1` и `patch = 0`.",
+                  "starter_code": "from dataclasses import dataclass, replace\n",
+                  "tests": "def test_values():\n    v = Version.parse(\"1.10.2\")\n    assert v == Version(1, 10, 2) and v.bump_minor() == Version(1, 11, 0) and v == Version(1, 10, 2), \"parse и bump\"\n    assert Version.parse(\"1.10.0\") > Version.parse(\"1.9.9\") and len({v, Version(1, 10, 2)}) == 1, \"Сравнение и хеш\"\n",
+                  "solution": "from dataclasses import dataclass, replace\n\n\n@dataclass(frozen=True, order=True)\nclass Version:\n    major: int\n    minor: int\n    patch: int\n\n    @classmethod\n    def parse(cls, text):\n        return cls(*(int(p) for p in text.split(\".\")))\n\n    def bump_minor(self):\n        return replace(self, minor=self.minor + 1, patch=0)\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nНеизменяемые данные безопаснее: их можно спокойно передавать куда угодно, класть в множества и использовать как ключи, не боясь, что кто-то их испортит. Для настроек, эталонов, координат, версий удобно сразу выбирать неизменяемые структуры.\n\n## tuple и frozenset\n\n```python\npoint = (3, 4)\ntry:\n    point[0] = 10\nexcept TypeError as e:\n    print(e)\nroles = frozenset({\"read\", \"write\"})\ntry:\n    roles.add(\"admin\")\nexcept AttributeError as e:\n    print(e)\nprint(\"read\" in roles)\n```\n\n- Кортеж — неизменяемый список, `frozenset` — неизменяемое множество (нет методов `add`, `remove`).\n- Вывод: `'tuple' object does not support item assignment`, `'frozenset' object has no attribute 'add'`, `True`.\n\n## Словарь только для чтения\n\n```python\nfrom types import MappingProxyType\n\n_settings = {\"url\": \"prod\", \"timeout\": 5}\nSETTINGS = MappingProxyType(_settings)\nprint(SETTINGS[\"url\"])\ntry:\n    SETTINGS[\"url\"] = \"test\"\nexcept TypeError as e:\n    print(e)\n_settings[\"timeout\"] = 10\nprint(SETTINGS[\"timeout\"])\n```\n\n- `MappingProxyType(d)` — «окно» в словарь: читать можно, писать нельзя.\n- Изменения **исходного** словаря в окне видны. Чтобы результат был полностью неизменным — оборачивай копию: `MappingProxyType(dict(d))`.\n- Вывод: `prod`, `'mappingproxy' object does not support item assignment`, `10`.\n\n## namedtuple\n\n```python\nfrom collections import namedtuple\n\nPoint = namedtuple(\"Point\", \"x y\")\np = Point(1, 2)\nprint(p, p.x, p[1])\nprint(p._replace(x=10), p)\n```\n\n- Кортеж с именованными полями: доступ по имени и по индексу, неизменяемый, хешируемый.\n- `_replace(поле=...)` — новая копия с изменённым полем.\n- Вывод: `Point(x=1, y=2) 1 2`, `Point(x=10, y=2) Point(x=1, y=2)`.\n\n## frozen dataclass\n\n```python\nfrom dataclasses import dataclass, replace\n\n@dataclass(frozen=True)\nclass User:\n    name: str\n    age: int\n\nu = User(\"Аня\", 30)\ntry:\n    u.age = 31\nexcept Exception as e:\n    print(type(e).__name__)\nprint(replace(u, age=31), u)\nprint(len({u, User(\"Аня\", 30)}))\n```\n\n- `frozen=True` запрещает менять поля после создания и делает объект хешируемым.\n- «Изменение» — создание нового объекта через `replace`.\n- Вывод: `FrozenInstanceError`, `User(name='Аня', age=31) User(name='Аня', age=30)`, `1`.\n\n## Неизменяемость — поверхностная\n\n```python\nfrom dataclasses import dataclass\n\n@dataclass(frozen=True)\nclass Team:\n    name: str\n    members: list\n\nt = Team(\"qa\", [\"Аня\"])\nt.members.append(\"Боря\")\nprint(t)\n```\n\n- Нельзя заменить поле `members`, но сам список внутри — изменяемый. Для полной неизменности храни `tuple` или `frozenset`.\n- Вывод: `Team(name='qa', members=['Аня', 'Боря'])`.\n\n## Итог\n\n- `tuple`, `frozenset` — неизменяемые коллекции.\n- `MappingProxyType(dict(d))` — словарь только для чтения.\n- `namedtuple`, `@dataclass(frozen=True)` — неизменяемые записи; изменение — `_replace`/`replace`.\n- Неизменяемость поверхностная: вложенные списки лучше заменить кортежами.",
+              "quiz": [
+                {
+                  "q": "Что вернёт попытка `roles.add(\"x\")` для `frozenset`?",
+                  "options": [
+                    "Добавит",
+                    "AttributeError — метода нет",
+                    "TypeError",
+                    "None"
+                  ],
+                  "answer": 1,
+                  "explain": "frozenset не имеет методов изменения."
+                },
+                {
+                  "q": "Как «изменить» поле frozen dataclass?",
+                  "options": [
+                    "obj.field = x",
+                    "Создать новый через dataclasses.replace",
+                    "Нельзя никак",
+                    "setattr"
+                  ],
+                  "answer": 1,
+                  "explain": "replace возвращает копию."
+                },
+                {
+                  "q": "Видны ли в `MappingProxyType(d)` изменения исходного `d`?",
+                  "options": [
+                    "Нет",
+                    "Да",
+                    "Только новые ключи",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Это окно, а не копия."
+                }
+              ]
+            },
+            {
+              "slug": "mut-classes",
+              "title": "Изменяемость и классы",
+              "theory": "```py\nclass Team:\n    def __init__(self, members=()):\n        self._members = list(members)   # защитная копия\n\n    def members(self):\n        return tuple(self._members)     # не отдаём внутренний список\n\n# НЕ: items = [] в теле класса\n# «изменение» неизменяемого: return Settings({**self._values, k: v})\n```",
+              "exercises": [
+                {
+                  "slug": "mut-classes-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Общий список в атрибуте класса.",
+                  "code": "class Cart:\n    items = []\n\n    def add(self, x):\n        self.items.append(x)\n\na, b = Cart(), Cart()\na.add(\"чай\")\nprint(b.items, a.items is b.items)\n",
+                  "expected_output": "['чай'] True",
+                  "hint": "Атрибут класса — один на все объекты.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-classes-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Утечка внутреннего списка.",
+                  "code": "class Team:\n    def __init__(self):\n        self._members = []\n\n    def add(self, name):\n        self._members.append(name)\n\n    def members(self):\n        return self._members\n\n    def members_copy(self):\n        return list(self._members)\n\nt = Team()\nt.add(\"Аня\")\nt.members().append(\"Взломщик\")\nt.members_copy().append(\"Нет\")\nprint(t._members)\n",
+                  "expected_output": "['Аня', 'Взломщик']",
+                  "hint": "Возвращая внутренний список, мы даём внешнему коду менять объект.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-classes-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Объект в двух списках.",
+                  "code": "class User:\n    def __init__(self, name):\n        self.name = name\n\nu = User(\"аня\")\nadmins = [u]\neveryone = [u, User(\"боря\")]\nadmins[0].name = \"АНЯ\"\nprint([x.name for x in everyone])\n",
+                  "expected_output": "['АНЯ', 'боря']",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-classes-e4",
+                  "type": "code",
+                  "prompt": "Исправь класс `Cart` из заготовки: товары всех корзин попадают в общий список.",
+                  "starter_code": "class Cart:\n    items = []\n\n    def add(self, item):\n        self.items.append(item)\n",
+                  "tests": "def test_values():\n    a, b = Cart(), Cart()\n    a.add(\"чай\")\n    assert a.items == [\"чай\"] and b.items == [], (a.items, b.items)\n",
+                  "solution": "class Cart:\n    def __init__(self):\n        self.items = []\n\n    def add(self, item):\n        self.items.append(item)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-classes-e5",
+                  "type": "code",
+                  "prompt": "Создай класс `Team` с методами `add(name)` и `members()`. `members()` должен возвращать **кортеж** участников, чтобы внешний код не мог изменить состав команды.",
+                  "starter_code": "class Team:\n    pass\n",
+                  "tests": "def test_values():\n    t = Team()\n    t.add(\"Аня\")\n    m = t.members()\n    assert m == (\"Аня\",) and isinstance(m, tuple), m\n    t.add(\"Боря\")\n    assert t.members() == (\"Аня\", \"Боря\") and m == (\"Аня\",), \"Снимок не меняется\"\n",
+                  "solution": "class Team:\n    def __init__(self):\n        self._members = []\n\n    def add(self, name):\n        self._members.append(name)\n\n    def members(self):\n        return tuple(self._members)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-classes-e6",
+                  "type": "code",
+                  "prompt": "Создай класс `Order(items)`: в конструкторе сохрани **копию** переданного списка (чтобы изменения снаружи не влияли на заказ). Метод `total()` — сумма цен (элементы — числа).",
+                  "starter_code": "class Order:\n    pass\n",
+                  "tests": "def test_values():\n    prices = [100, 200]\n    o = Order(prices)\n    prices.append(1000)\n    assert o.total() == 300, o.total()\n",
+                  "solution": "class Order:\n    def __init__(self, items):\n        self.items = list(items)\n\n    def total(self):\n        return sum(self.items)\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-classes-e7",
+                  "type": "code",
+                  "prompt": "Создай класс `Settings(values)` — неизменяемый объект настроек: хранит копию словаря, метод `get(key, default=None)`, метод `with_value(key, value)` возвращает **новый** `Settings`. Прямого доступа к словарю на запись не давай: свойство `values` возвращает `MappingProxyType`.",
+                  "starter_code": "from types import MappingProxyType\n\n\nclass Settings:\n    pass\n",
+                  "tests": "def test_values():\n    s = Settings({\"url\": \"prod\"})\n    s2 = s.with_value(\"url\", \"test\")\n    assert s.get(\"url\") == \"prod\" and s2.get(\"url\") == \"test\" and s.get(\"x\", 1) == 1, \"get и with_value\"\n    try:\n        s.values[\"url\"] = \"hack\"\n    except TypeError:\n        pass\n    else:\n        assert False, \"values только для чтения\"\n",
+                  "solution": "from types import MappingProxyType\n\n\nclass Settings:\n    def __init__(self, values):\n        self._values = dict(values)\n\n    @property\n    def values(self):\n        return MappingProxyType(self._values)\n\n    def get(self, key, default=None):\n        return self._values.get(key, default)\n\n    def with_value(self, key, value):\n        return Settings({**self._values, key: value})\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-classes-e8",
+                  "type": "code",
+                  "prompt": "Создай класс `History`, который хранит снимки состояния: `save(state)` сохраняет **глубокую копию** переданной структуры, `get(i)` возвращает **глубокую копию** i-го снимка (чтобы ни сохранённое, ни выданное нельзя было испортить снаружи), `count()` — количество снимков.",
+                  "starter_code": "import copy\n\n\nclass History:\n    pass\n",
+                  "tests": "def test_values():\n    h = History()\n    state = {\"cart\": [\"чай\"]}\n    h.save(state)\n    state[\"cart\"].append(\"кофе\")\n    h.save(state)\n    got = h.get(0)\n    got[\"cart\"].append(\"взлом\")\n    assert h.get(0) == {\"cart\": [\"чай\"]} and h.get(1) == {\"cart\": [\"чай\", \"кофе\"]} and h.count() == 2, h.get(0)\n",
+                  "solution": "import copy\n\n\nclass History:\n    def __init__(self):\n        self._snapshots = []\n\n    def save(self, state):\n        self._snapshots.append(copy.deepcopy(state))\n\n    def get(self, i):\n        return copy.deepcopy(self._snapshots[i])\n\n    def count(self):\n        return len(self._snapshots)\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОбъекты своих классов изменяемы, а их атрибуты часто — списки и словари. Здесь поджидают три ловушки: общий изменяемый атрибут класса, утечка внутреннего списка наружу и хранение чужого списка без копии.\n\n## Общий атрибут класса\n\n```python\nclass Cart:\n    items = []\n\n    def add(self, x):\n        self.items.append(x)\n\na, b = Cart(), Cart()\na.add(\"чай\")\nprint(b.items, a.items is b.items)\n```\n\n- `items = []` в теле класса — один список на **все** объекты.\n- Решение: создавать список в `__init__` через `self.items = []`.\n- Вывод: `['чай'] True`.\n\n## Утечка внутреннего списка\n\n```python\nclass Team:\n    def __init__(self):\n        self._members = []\n\n    def add(self, name):\n        self._members.append(name)\n\n    def members(self):\n        return self._members\n\n    def members_copy(self):\n        return tuple(self._members)\n\nt = Team()\nt.add(\"Аня\")\nt.members().append(\"Взломщик\")\nprint(t._members)\nprint(t.members_copy())\n```\n\n- Возвращая `self._members`, класс отдаёт ссылку на своё внутреннее состояние — любой может изменить состав команды в обход `add`.\n- Возвращай копию или неизменяемый кортеж.\n- Вывод: `['Аня', 'Взломщик']`, `('Аня', 'Взломщик')`.\n\n## Хранение чужого списка\n\n```python\nclass Order:\n    def __init__(self, items):\n        self.items = list(items)\n\nprices = [100, 200]\no = Order(prices)\nprices.append(1000)\nprint(o.items)\n```\n\n- `list(items)` — защитная копия. Без неё заказ менялся бы вместе со списком вызывающего кода.\n- Вывод: `[100, 200]`.\n\n## Один объект в нескольких местах\n\n```python\nclass User:\n    def __init__(self, name):\n        self.name = name\n\nu = User(\"аня\")\nadmins = [u]\neveryone = [u, User(\"боря\")]\nadmins[0].name = \"АНЯ\"\nprint([x.name for x in everyone])\n```\n\n- В двух списках лежит **один и тот же** объект. Изменение через один список видно через другой. Иногда это и нужно (один пользователь), иногда — баг.\n- Вывод: `['АНЯ', 'боря']`.\n\n## Неизменяемый объект с «изменениями»\n\n```python\nfrom types import MappingProxyType\n\nclass Settings:\n    def __init__(self, values):\n        self._values = dict(values)\n\n    @property\n    def values(self):\n        return MappingProxyType(self._values)\n\n    def with_value(self, key, value):\n        return Settings({**self._values, key: value})\n\ns = Settings({\"url\": \"prod\"})\ns2 = s.with_value(\"url\", \"test\")\nprint(s.values[\"url\"], s2.values[\"url\"])\n```\n\n- Вместо изменения — метод, возвращающий новый объект. Старые ссылки остаются корректными.\n- Вывод: `prod test`.\n\n## Итог\n\n- Изменяемые атрибуты — в `__init__`, не в теле класса.\n- Не отдавай внутренние списки наружу: копия, `tuple`, `MappingProxyType`.\n- Сохраняй копию переданных коллекций (`list(items)`, `dict(values)`).\n- Для «неизменяемых» классов — методы, возвращающие новый объект.",
+              "quiz": [
+                {
+                  "q": "Чем опасен метод, возвращающий `self._items`?",
+                  "options": [
+                    "Ничем",
+                    "Внешний код может изменить внутреннее состояние",
+                    "Медленно",
+                    "Ошибка"
+                  ],
+                  "answer": 1,
+                  "explain": "Отдавай копию или кортеж."
+                },
+                {
+                  "q": "Зачем в `__init__` писать `self.items = list(items)`?",
+                  "options": [
+                    "Чтобы превратить в список",
+                    "Защитная копия — внешние изменения не влияют на объект",
+                    "Так быстрее",
+                    "Не нужно"
+                  ],
+                  "answer": 1,
+                  "explain": "Иначе объект делит список с вызывающим кодом."
+                },
+                {
+                  "q": "Где создавать изменяемые атрибуты объекта?",
+                  "options": [
+                    "В теле класса",
+                    "В __init__ через self",
+                    "В глобальной области",
+                    "Не важно"
+                  ],
+                  "answer": 1,
+                  "explain": "Атрибут класса — общий для всех."
+                }
+              ]
+            },
+            {
+              "slug": "mut-tests",
+              "title": "Практика: данные в тестах",
+              "theory": "```py\ndef make_user(**kw):                   # фабрика\n    u = {\"name\": \"test\", \"roles\": []}  # новые объекты каждый раз\n    u.update(kw)\n    return u\n\ndef load_fixture(name):\n    return copy.deepcopy(FIXTURES[name])\n\nsnap = copy.deepcopy(arg); f(arg); assert arg == snap   # не меняет вход\nafter.keys() - before.keys()           # добавленные ключи\n```",
+              "exercises": [
+                {
+                  "slug": "mut-tests-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Данные протекают между тестами.",
+                  "code": "USER = {\"name\": \"test\", \"roles\": [\"reader\"]}\n\ndef test_admin():\n    user = USER\n    user[\"roles\"].append(\"admin\")\n    return user[\"roles\"]\n\ndef test_reader():\n    return USER[\"roles\"] == [\"reader\"]\n\nprint(test_admin())\nprint(test_reader())\n",
+                  "expected_output": "['reader', 'admin']\nFalse",
+                  "hint": "Первый тест испортил общий эталон, и второй упал бы без вины.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-tests-e2",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Фабрика вместо общей переменной.",
+                  "code": "def make_user(**overrides):\n    user = {\"name\": \"test\", \"roles\": [\"reader\"]}\n    user.update(overrides)\n    return user\n\na = make_user()\na[\"roles\"].append(\"admin\")\nb = make_user(name=\"боря\")\nprint(a)\nprint(b)\n",
+                  "expected_output": "{'name': 'test', 'roles': ['reader', 'admin']}\n{'name': 'боря', 'roles': ['reader']}",
+                  "hint": "Каждый вызов создаёт новые словарь и список.",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-tests-e3",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Проверка, что функция не меняет вход.",
+                  "code": "import copy\n\ndef top3(scores):\n    scores.sort(reverse=True)\n    return scores[:3]\n\ndata = [5, 1, 9, 3, 7]\nsnapshot = copy.deepcopy(data)\nprint(top3(data))\nprint(\"вход не изменён:\", data == snapshot)\n",
+                  "expected_output": "[9, 7, 5]\nвход не изменён: False",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "mut-tests-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию-фабрику `make_order(**overrides)` — каждый вызов возвращает **новый** заказ `{\"id\": 1, \"items\": [], \"status\": \"new\"}` с применёнными переопределениями. Изменение списка `items` одного заказа не должно влиять на другие.",
+                  "starter_code": "def make_order(**overrides):\n    pass\n",
+                  "tests": "def test_values():\n    a = make_order()\n    a[\"items\"].append(\"чай\")\n    b = make_order(status=\"paid\")\n    assert b == {\"id\": 1, \"items\": [], \"status\": \"paid\"} and a[\"items\"] == [\"чай\"], b\n",
+                  "solution": "def make_order(**overrides):\n    order = {\"id\": 1, \"items\": [], \"status\": \"new\"}\n    order.update(overrides)\n    return order\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-tests-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `assert_not_mutated(func, *args)` — вызвать `func(*args)` и проверить, что ни один аргумент не изменился (сравни с глубокими копиями до вызова). Если изменился — `AssertionError(f\"аргумент {номер} изменён\")` (номер с 0). Иначе вернуть результат.",
+                  "starter_code": "import copy\n\n\ndef assert_not_mutated(func, *args):\n    pass\n",
+                  "tests": "def test_values():\n    assert assert_not_mutated(sorted, [3, 1]) == [1, 3], \"sorted не меняет\"\n    def bad(a, b):\n        b.append(1)\n    try:\n        assert_not_mutated(bad, [1], [2])\n    except AssertionError as e:\n        assert str(e) == \"аргумент 1 изменён\", str(e)\n        return\n    assert False, \"Нужен AssertionError\"\n",
+                  "solution": "import copy\n\n\ndef assert_not_mutated(func, *args):\n    before = copy.deepcopy(args)\n    result = func(*args)\n    for i, (old, new) in enumerate(zip(before, args)):\n        if old != new:\n            raise AssertionError(f\"аргумент {i} изменён\")\n    return result\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-tests-e6",
+                  "type": "code",
+                  "prompt": "Напиши функцию `load_fixture(name)` — возвращает **глубокую копию** эталонных данных из словаря `FIXTURES` (уже есть в заготовке). Тесты могут менять полученные данные, но эталон — никогда.",
+                  "starter_code": "import copy\n\nFIXTURES = {\n    \"admin\": {\"name\": \"admin\", \"roles\": [\"read\", \"write\"]},\n    \"cart\": {\"items\": [{\"sku\": \"A1\", \"qty\": 1}]},\n}\n\n\ndef load_fixture(name):\n    pass\n",
+                  "tests": "def test_values():\n    c = load_fixture(\"cart\")\n    c[\"items\"][0][\"qty\"] = 99\n    c[\"items\"].append({\"sku\": \"B2\", \"qty\": 1})\n    assert load_fixture(\"cart\") == {\"items\": [{\"sku\": \"A1\", \"qty\": 1}]}, load_fixture(\"cart\")\n",
+                  "solution": "import copy\n\nFIXTURES = {\n    \"admin\": {\"name\": \"admin\", \"roles\": [\"read\", \"write\"]},\n    \"cart\": {\"items\": [{\"sku\": \"A1\", \"qty\": 1}]},\n}\n\n\ndef load_fixture(name):\n    return copy.deepcopy(FIXTURES[name])\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-tests-e7",
+                  "type": "code",
+                  "prompt": "Напиши функцию `diff(before, after)` — сравнить два словаря (снимки состояния до и после действия) и вернуть словарь изменений: `{\"added\": [...], \"removed\": [...], \"changed\": [...]}` — отсортированные списки ключей.",
+                  "starter_code": "def diff(before, after):\n    pass\n",
+                  "tests": "def test_values():\n    r = diff({\"a\": 1, \"b\": 2, \"c\": [1]}, {\"a\": 1, \"c\": [1, 2], \"d\": 4})\n    assert r == {\"added\": [\"d\"], \"removed\": [\"b\"], \"changed\": [\"c\"]}, r\n",
+                  "solution": "def diff(before, after):\n    return {\n        \"added\": sorted(after.keys() - before.keys()),\n        \"removed\": sorted(before.keys() - after.keys()),\n        \"changed\": sorted(k for k in before.keys() & after.keys() if before[k] != after[k]),\n    }\n",
+                  "hint": "",
+                  "xp": 15
+                },
+                {
+                  "slug": "mut-tests-e8",
+                  "type": "code",
+                  "prompt": "Функция `apply_patch(resource, patch)` из заготовки должна вести себя как PATCH-запрос: вернуть **новый** ресурс, где поля из `patch` заменены (вложенные словари — объединяются рекурсивно). Сейчас она портит исходный ресурс. Перепиши её так, чтобы `resource` не менялся ни на каком уровне.",
+                  "starter_code": "def apply_patch(resource, patch):\n    for key, value in patch.items():\n        if isinstance(value, dict) and isinstance(resource.get(key), dict):\n            apply_patch(resource[key], value)\n        else:\n            resource[key] = value\n    return resource\n",
+                  "tests": "def test_values():\n    res = {\"name\": \"Аня\", \"address\": {\"city\": \"Москва\", \"zip\": \"101\"}, \"tags\": [\"qa\"]}\n    r = apply_patch(res, {\"address\": {\"city\": \"Казань\"}, \"age\": 30})\n    assert r == {\"name\": \"Аня\", \"address\": {\"city\": \"Казань\", \"zip\": \"101\"}, \"tags\": [\"qa\"], \"age\": 30}, r\n    assert res == {\"name\": \"Аня\", \"address\": {\"city\": \"Москва\", \"zip\": \"101\"}, \"tags\": [\"qa\"]}, \"Исходный ресурс изменился\"\n    r[\"tags\"].append(\"x\")\n    assert res[\"tags\"] == [\"qa\"], \"Результат не должен делить списки с исходным\"\n",
+                  "solution": "import copy\n\n\ndef apply_patch(resource, patch):\n    result = copy.deepcopy(resource)\n    for key, value in patch.items():\n        if isinstance(value, dict) and isinstance(result.get(key), dict):\n            result[key] = apply_patch(result[key], value)\n        else:\n            result[key] = copy.deepcopy(value)\n    return result\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nТесты должны быть **независимыми**: результат одного не должен зависеть от того, какие тесты выполнились до него. Общие изменяемые данные ломают это правило: один тест испортил эталон — упали другие. Такие «плавающие» падения очень трудно искать. Решения: фабрики, глубокие копии, неизменяемые эталоны, проверка, что функция не меняет вход.\n\n## Данные протекают между тестами\n\n```python\nUSER = {\"name\": \"test\", \"roles\": [\"reader\"]}\n\ndef check_admin():\n    user = USER\n    user[\"roles\"].append(\"admin\")\n    return user[\"roles\"]\n\ndef check_reader():\n    return USER[\"roles\"] == [\"reader\"]\n\nprint(check_admin())\nprint(check_reader())\n```\n\n- `user = USER` — не копия. Первый «тест» испортил общий эталон, второй получил неверные данные.\n- Если поменять порядок запуска — оба пройдут. Так появляются тесты, которые падают «иногда».\n- Вывод: `['reader', 'admin']`, `False`.\n\n## Фабрика: новые данные на каждый вызов\n\n```python\ndef make_user(**overrides):\n    user = {\"name\": \"test\", \"roles\": [\"reader\"]}\n    user.update(overrides)\n    return user\n\na = make_user()\na[\"roles\"].append(\"admin\")\nb = make_user(name=\"боря\")\nprint(a)\nprint(b)\n```\n\n- Литералы `{...}` и `[...]` внутри функции создают новые объекты при каждом вызове.\n- `**overrides` — меняем только поля, важные для теста.\n- В pytest то же делают фикстуры (они вызываются заново для каждого теста) или библиотеки вроде `factory_boy`.\n- Вывод: `{'name': 'test', 'roles': ['reader', 'admin']}`, `{'name': 'боря', 'roles': ['reader']}`.\n\n## Эталон + глубокая копия\n\n```python\nimport copy\n\nFIXTURES = {\"cart\": {\"items\": [{\"sku\": \"A1\", \"qty\": 1}]}}\n\ndef load_fixture(name):\n    return copy.deepcopy(FIXTURES[name])\n\nc = load_fixture(\"cart\")\nc[\"items\"][0][\"qty\"] = 99\nprint(load_fixture(\"cart\"))\n```\n\n- Эталон хранится в одном месте, а тесты получают свои независимые копии.\n- Вывод: `{'items': [{'sku': 'A1', 'qty': 1}]}`.\n\n## Проверка: функция не меняет вход\n\n```python\nimport copy\n\ndef top3(scores):\n    scores.sort(reverse=True)\n    return scores[:3]\n\ndata = [5, 1, 9, 3, 7]\nsnapshot = copy.deepcopy(data)\nprint(top3(data))\nprint(\"вход не изменён:\", data == snapshot)\n```\n\n- Снимок до вызова + сравнение после — простой способ поймать побочный эффект.\n- Здесь `top3` испортила порядок входного списка — это баг: правильнее `sorted(scores, reverse=True)[:3]`.\n- Вывод: `[9, 7, 5]`, `вход не изменён: False`.\n\n## Сравнение состояний до и после\n\n```python\nbefore = {\"a\": 1, \"b\": 2}\nafter = {\"a\": 1, \"c\": 3}\nprint(sorted(after.keys() - before.keys()), sorted(before.keys() - after.keys()))\n```\n\n- `keys()` поддерживает операции множеств: разность показывает добавленные и удалённые ключи.\n- Вывод: `['c'] ['b']`.\n\n## Итог\n\n- Общие изменяемые данные между тестами — источник «плавающих» падений.\n- Фабрики и фикстуры создают свежие данные для каждого теста.\n- Эталоны отдавай через `copy.deepcopy`.\n- Проверяй, что функции не меняют входные данные: снимок до, сравнение после.",
+              "quiz": [
+                {
+                  "q": "Почему тесты с общими изменяемыми данными «плавают»?",
+                  "options": [
+                    "Из-за сети",
+                    "Результат зависит от порядка запуска тестов",
+                    "Из-за pytest",
+                    "Не плавают"
+                  ],
+                  "answer": 1,
+                  "explain": "Один тест портит данные другому."
+                },
+                {
+                  "q": "Как фабрика защищает от протекания данных?",
+                  "options": [
+                    "Кэширует объект",
+                    "Создаёт новые объекты при каждом вызове",
+                    "Замораживает словарь",
+                    "Удаляет данные"
+                  ],
+                  "answer": 1,
+                  "explain": "Литералы внутри функции — новые объекты."
+                },
+                {
+                  "q": "Как проверить, что функция не изменила аргумент?",
+                  "options": [
+                    "Никак",
+                    "Сохранить глубокую копию до вызова и сравнить после",
+                    "Проверить id",
+                    "Посмотреть return"
+                  ],
+                  "answer": 1,
+                  "explain": "id не меняется при изменении на месте."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
