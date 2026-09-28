@@ -1,5 +1,5 @@
 // «Учиться»: каталог тем (сгруппированный) → страница темы с дорожкой уроков.
-import { api, esc, sound, plural } from "../util.js";
+import { api, esc, sound, plural, toast } from "../util.js";
 import { pills, statusStrip } from "../store.js";
 
 const OFFSETS = [0, 44, 70, 44, 0, -44, -70, -44]; // зигзаг дорожки
@@ -82,12 +82,7 @@ export async function renderTopic(view, topicId) {
     <div style="--tc:${esc(t.color)}">${t.modules.map((m, mi) => unit(m, mi)).join("") ||
       `<div class="empty"><div class="big">🧱</div><p class="muted">В этой теме пока нет модулей.</p></div>`}</div>`;
 
-  view.querySelectorAll(".node").forEach((n) => n.onclick = (e) => {
-    e.stopPropagation();
-    sound("click");
-    togglePopover(n.closest(".node-wrap"));
-  });
-  view.onclick = () => view.querySelectorAll(".popover").forEach((p) => p.remove());
+  view.querySelectorAll(".node").forEach((n) => n.onclick = () => openLesson(n.closest(".node-wrap")));
   view.querySelector(".node-wrap.current .node")?.scrollIntoView({ block: "center", behavior: "smooth" });
 }
 
@@ -115,17 +110,13 @@ function unit(m, mi) {
     </div></section>`;
 }
 
-function togglePopover(wrap) {
-  const had = wrap.querySelector(".popover");
-  document.querySelectorAll(".popover").forEach((p) => p.remove());
-  if (had) return;
-  const { id, status, title, info } = wrap.dataset;
-  const pop = document.createElement("div");
-  pop.className = `popover ${status === "locked" ? "locked" : ""}`;
-  pop.style.transform = `translateX(-50%)`;
-  pop.innerHTML = status === "locked"
-    ? `<h3>${esc(title)}</h3><p>Пройди предыдущие уроки, чтобы открыть этот.</p><button class="btn" disabled>Закрыто</button>`
-    : `<h3>${esc(title)}</h3><p>${esc(info)}</p><a class="btn" href="#/lesson/${id}">${status === "done" ? "Повторить +XP" : "Начать +XP"}</a>`;
-  pop.onclick = (e) => e.stopPropagation();
-  wrap.append(pop);
+// Нажатие на урок сразу открывает его; закрытый — короткая подсказка вместо перехода.
+function openLesson(wrap) {
+  const { id, status } = wrap.dataset;
+  if (status === "locked") {
+    toast("🔒", "Урок пока закрыт", "Пройди предыдущие уроки или выключи «Уроки по порядку» в настройках.");
+    return;
+  }
+  sound("click");
+  location.hash = `#/lesson/${id}`;
 }
