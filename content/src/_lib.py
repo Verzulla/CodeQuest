@@ -37,6 +37,53 @@ def cmd(slug, prompt, answers, context="", hint="", xp=10):
             "expected_output": "\n".join(answers), "solution": answers[0], "hint": hint, "xp": xp}
 
 
+# Проверка заданий, где ученик пишет pytest-тесты: тесты задания запускают настоящий pytest
+# на solution.py и смотрят исходы. patch= подменяет имена в модуле решения (например,
+# на «сломанную» реализацию) — так проверяется, что тесты ученика ловят баги.
+PYTEST_RUNNER = """
+import importlib, os, sys
+import pytest
+
+
+class _Collect:
+    def __init__(self):
+        self.outcomes = {}
+
+    def pytest_runtest_logreport(self, report):
+        name = report.nodeid.split("::", 1)[-1]
+        if report.when == "call" or report.outcome != "passed":
+            self.outcomes[name] = report.outcome
+
+
+def run_pytest(*args, patch=None):
+    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"
+    if os.getcwd() not in sys.path:
+        sys.path.insert(0, os.getcwd())
+    sys.modules.pop("solution", None)
+    module = importlib.import_module("solution")
+    for name, value in (patch or {}).items():
+        setattr(module, name, value)
+    collector = _Collect()
+    code = pytest.main(["-q", "-p", "no:cacheprovider", "solution.py", *args], plugins=[collector])
+    return int(code), collector.outcomes
+
+"""
+
+# Хвост заготовки и эталона: «▶ Запустить» покажет обычный вывод pytest.
+PYTEST_MAIN = """
+
+if __name__ == "__main__":
+    pytest.main(["-q", "-p", "no:cacheprovider", "solution.py"])
+"""
+
+
+def pyt(slug, prompt, starter, tests, solution, hint="", xp=20):
+    """Задание «напиши pytest-тесты»: к заготовке и эталону добавляется запуск pytest,
+    к тестам задания — помощник run_pytest()."""
+    return cod(slug, prompt, d(starter).rstrip("\n") + PYTEST_MAIN, PYTEST_RUNNER + d(tests),
+               d(solution).rstrip("\n") + PYTEST_MAIN, hint=hint, xp=xp)
+
+
 def lesson(slug, title, *items, full="", quiz=None):
     """lesson(slug, title, [краткая теория,] *задания, full=подробный урок, quiz=«Проверь себя»).
 

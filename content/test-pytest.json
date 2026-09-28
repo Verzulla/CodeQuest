@@ -1,0 +1,1514 @@
+{
+  "topics": [
+    {
+      "slug": "test-pytest",
+      "title": "pytest",
+      "icon": "🧪",
+      "color": "#0a9edc",
+      "description": "Первые тесты, assert и approx, pytest.raises, флаги запуска, фикстуры и yield, scope и conftest.py, parametrize, tmp_path/monkeypatch/capsys, маркеры, pytest-xdist, настройка, хорошие тесты",
+      "group": "Тестирование",
+      "modules": [
+        {
+          "slug": "pyt-m1",
+          "title": "Основы pytest",
+          "icon": "🧪",
+          "description": "Первые тесты, assert и approx, pytest.raises, запуск из командной строки",
+          "lessons": [
+            {
+              "slug": "pyt-first",
+              "title": "Первый тест",
+              "theory": "```py\ndef test_add():                  # файл test_*.py, функция test_*\n    assert add(2, 3) == 5\n\nclass TestCart:                  # группа тестов\n    def test_total(self):\n        assert total([1, 2]) == 3\n# $ pytest   ·   pytest tests/test_cart.py   ·   python -m pytest\n# . прошёл  F упал  E ошибка  s пропущен  x xfail\n```",
+              "exercises": [
+                {
+                  "slug": "pyt-first-e1",
+                  "type": "code",
+                  "prompt": "Напиши тест `test_add`, который проверяет функцию `add`: `add(2, 3)` равно `5`.\n\nНажми «▶ Запустить», чтобы увидеть вывод pytest, и «Проверить», чтобы сдать задание.",
+                  "starter_code": "import pytest\n\n\ndef add(a, b):\n    return a + b\n\n\n# напиши тест ниже\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_add\") == \"passed\", f\"Нужен проходящий тест test_add, сейчас: {res}\"\n\ndef test_catches_bug():\n    code, res = run_pytest(patch={\"add\": lambda a, b: a - b})\n    assert res.get(\"test_add\") == \"failed\", \"Тест должен падать, если add считает неправильно\"\n",
+                  "solution": "import pytest\n\n\ndef add(a, b):\n    return a + b\n\n\ndef test_add():\n    assert add(2, 3) == 5\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-first-e2",
+                  "type": "code",
+                  "prompt": "Напиши **два** теста для `is_even(n)`: `test_even` (4 — чётное) и `test_odd` (7 — нечётное).",
+                  "starter_code": "import pytest\n\n\ndef is_even(n):\n    return n % 2 == 0\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"test_even\": \"passed\", \"test_odd\": \"passed\"}, f\"Нужны два проходящих теста: {res}\"\n\ndef test_catches_bugs():\n    for bug in (lambda n: True, lambda n: False):\n        code, res = run_pytest(patch={\"is_even\": bug})\n        assert code == 1, f\"Тесты не заметили сломанную is_even: {res}\"\n",
+                  "solution": "import pytest\n\n\ndef is_even(n):\n    return n % 2 == 0\n\n\ndef test_even():\n    assert is_even(4)\n\n\ndef test_odd():\n    assert not is_even(7)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-first-e3",
+                  "type": "command",
+                  "prompt": "Запусти все тесты проекта.",
+                  "code": "",
+                  "expected_output": "pytest\npython -m pytest\nuv run pytest",
+                  "solution": "pytest",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-first-e4",
+                  "type": "command",
+                  "prompt": "Запусти тесты только из файла `tests/test_cart.py`.",
+                  "code": "",
+                  "expected_output": "pytest tests/test_cart.py\npython -m pytest tests/test_cart.py\nuv run pytest tests/test_cart.py",
+                  "solution": "pytest tests/test_cart.py",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-first-e5",
+                  "type": "command",
+                  "prompt": "Сколько тестов **прошло**? Введи число.",
+                  "code": "$ pytest\n============================= test session starts ==============================\ncollected 4 items\n\ntests/test_cart.py ..F.                                                  [100%]\n\n=================================== FAILURES ===================================\n...\n========================= 1 failed, 3 passed in 0.12s ==========================\n",
+                  "expected_output": "3",
+                  "solution": "3",
+                  "hint": "Точка — прошёл, F — упал.",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-first-e6",
+                  "type": "command",
+                  "prompt": "Какие из этих файлов pytest **найдёт** автоматически? Введи имена через пробел в порядке списка.",
+                  "code": "tests/\n  test_api.py\n  helpers.py\n  ui_test.py\n  api_tests.py\n",
+                  "expected_output": "test_api.py ui_test.py",
+                  "solution": "test_api.py ui_test.py",
+                  "hint": "По умолчанию: test_*.py или *_test.py.",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-first-e7",
+                  "type": "code",
+                  "prompt": "Сгруппируй тесты в класс: создай класс `TestCart` с методами `test_empty_total` (сумма пустой корзины — 0) и `test_total` (сумма `[100, 250]` — 350) для функции `total(prices)`.",
+                  "starter_code": "import pytest\n\n\ndef total(prices):\n    return sum(prices)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"TestCart::test_empty_total\": \"passed\", \"TestCart::test_total\": \"passed\"}, res\n\ndef test_catches_bug():\n    code, res = run_pytest(patch={\"total\": lambda prices: len(prices)})\n    assert code == 1, \"Тесты должны поймать неправильный total\"\n",
+                  "solution": "import pytest\n\n\ndef total(prices):\n    return sum(prices)\n\n\nclass TestCart:\n    def test_empty_total(self):\n        assert total([]) == 0\n\n    def test_total(self):\n        assert total([100, 250]) == 350\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "Класс с тестами называется Test…, методы — test_…, у методов параметр self; __init__ не нужен.",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-first-e8",
+                  "type": "code",
+                  "prompt": "Функция `slugify(title)` превращает заголовок в часть URL. Напиши тест `test_slugify`, который проверит **три** случая: `\"Hello World\"` → `\"hello-world\"`, `\"  Python  \"` → `\"python\"`, `\"A B C\"` → `\"a-b-c\"`.",
+                  "starter_code": "import pytest\n\n\ndef slugify(title):\n    return \"-\".join(title.lower().split())\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_slugify\") == \"passed\", res\n\ndef test_catches_bugs():\n    bugs = [\n        lambda s: s.lower().replace(\" \", \"-\"),\n        lambda s: \"-\".join(s.split()),\n        lambda s: \"_\".join(s.lower().split()),\n    ]\n    for bug in bugs:\n        code, res = run_pytest(patch={\"slugify\": bug})\n        assert code == 1, \"Тест пропустил ошибку — проверь все три случая\"\n",
+                  "solution": "import pytest\n\n\ndef slugify(title):\n    return \"-\".join(title.lower().split())\n\n\ndef test_slugify():\n    assert slugify(\"Hello World\") == \"hello-world\"\n    assert slugify(\"  Python  \") == \"python\"\n    assert slugify(\"A B C\") == \"a-b-c\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\n**pytest** — главный инструмент автотестов на Python. Тест в нём — обычная функция с `assert`. pytest сам находит тесты, запускает их, красиво показывает, что сломалось, а плагины добавляют параллельный запуск, отчёты Allure, работу с браузером и API. Почти все вакансии QA Automation на Python требуют pytest.\n\n## Первый тест\n\n```py\ndef add(a, b):\n    return a + b\n\n\ndef test_add():\n    assert add(2, 3) == 5\n```\n\n- Тест — функция, имя которой начинается с `test_`.\n- `assert условие` — проверка. Если условие ложно, тест **падает**; если истинно — проходит.\n- Одна проверка — одно утверждение о поведении. Тестов может быть сколько угодно.\n\n## Запуск\n\n```bash\n$ pytest\n============================= test session starts ==============================\ncollected 4 items\n\ntests/test_cart.py ..F.                                                  [100%]\n\n=================================== FAILURES ===================================\n___________________________________ test_total _________________________________\n...\n========================= 1 failed, 3 passed in 0.12s ==========================\n```\n\n- `pytest` без аргументов ищет тесты в текущей папке и вложенных.\n- Каждый символ — результат теста: `.` — прошёл, `F` — упал, `E` — ошибка в подготовке, `s` — пропущен, `x` — ожидаемо упал.\n- В конце — подробности по каждому упавшему тесту и сводка.\n- `pytest tests/test_cart.py` — только один файл. `python -m pytest` — то же, но гарантированно pytest текущего окружения.\n\n## Как pytest находит тесты\n\n- Файлы `test_*.py` или `*_test.py`.\n- В них — функции `test_*`.\n- И классы `Test*` (без `__init__`) с методами `test_*`.\n\n```py\nclass TestCart:\n    def test_empty_total(self):\n        assert total([]) == 0\n\n    def test_total(self):\n        assert total([100, 250]) == 350\n```\n\n- Классы просто группируют похожие тесты. Имя теста в отчёте: `test_cart.py::TestCart::test_total`.\n\n## В CodeQuest\n\nВ заданиях этой темы ты пишешь настоящие тесты. «▶ Запустить» показывает вывод pytest, а «Проверить» запускает твои тесты на правильном коде и на специально **сломанных** версиях. Тест засчитывается, только если он проходит на правильном коде и падает на сломанном. Так и проверяется качество тестов.\n\n## Итог\n\n- Тест — функция `test_*` с `assert`; класс `Test*` — группа тестов.\n- Файлы `test_*.py`; `pytest` находит и запускает всё сам.\n- `.` прошёл, `F` упал, `E` ошибка, `s` пропущен, `x` xfail.\n- Хороший тест падает, когда код сломан.",
+              "quiz": [
+                {
+                  "q": "Какую функцию pytest найдёт как тест?",
+                  "options": [
+                    "check_login()",
+                    "test_login()",
+                    "login_test()",
+                    "TestLogin()"
+                  ],
+                  "answer": 1,
+                  "explain": "Функции должны начинаться с test_."
+                },
+                {
+                  "q": "Что означает `F` в строке прогона?",
+                  "options": [
+                    "Пропущен",
+                    "Упал",
+                    "Прошёл",
+                    "Ошибка импорта"
+                  ],
+                  "answer": 1,
+                  "explain": "F — failed."
+                },
+                {
+                  "q": "Как понять, что тест хороший?",
+                  "options": [
+                    "Он всегда проходит",
+                    "Он падает, если проверяемый код сломан",
+                    "Он длинный",
+                    "В нём много assert"
+                  ],
+                  "answer": 1,
+                  "explain": "Тест, который не ловит ошибки, бесполезен."
+                }
+              ]
+            },
+            {
+              "slug": "pyt-assert",
+              "title": "assert и сравнения",
+              "theory": "```py\nassert result == {\"id\": 1, \"name\": \"anna\"}   # целиком\nassert \"smoke\" in tags, f\"нет smoke: {tags}\"\nassert isinstance(items, list)\nassert all(isinstance(i[\"id\"], int) for i in items)\nassert 0.1 + 0.2 == pytest.approx(0.3)\n# pytest -vv — полный diff\n```",
+              "exercises": [
+                {
+                  "slug": "pyt-assert-e1",
+                  "type": "code",
+                  "prompt": "Напиши тест `test_user`, проверяющий, что `get_user(1)` возвращает словарь, **равный** `{\"id\": 1, \"name\": \"anna\", \"active\": True}`. Сравнивай словарь целиком одним `assert`.",
+                  "starter_code": "import pytest\n\n\ndef get_user(user_id):\n    return {\"id\": user_id, \"name\": \"anna\", \"active\": True}\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_user\") == \"passed\", res\n\ndef test_catches_bug():\n    code, res = run_pytest(patch={\"get_user\": lambda i: {\"id\": i, \"name\": \"anna\", \"active\": False}})\n    assert code == 1, \"Тест должен замечать любое отличие в словаре\"\n",
+                  "solution": "import pytest\n\n\ndef get_user(user_id):\n    return {\"id\": user_id, \"name\": \"anna\", \"active\": True}\n\n\ndef test_user():\n    assert get_user(1) == {\"id\": 1, \"name\": \"anna\", \"active\": True}\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-assert-e2",
+                  "type": "code",
+                  "prompt": "`0.1 + 0.2` не равно `0.3` точно. Напиши тест `test_price`, проверяющий, что `price_with_tax(0.1)` примерно равно `0.12` с помощью `pytest.approx`.",
+                  "starter_code": "import pytest\n\n\ndef price_with_tax(price):\n    return price * 1.2\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_price\") == \"passed\", res\n    assert \"approx\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй pytest.approx\"\n\ndef test_catches_bug():\n    code, res = run_pytest(patch={\"price_with_tax\": lambda p: p * 1.18})\n    assert code == 1, \"Неверный налог должен ронять тест\"\n",
+                  "solution": "import pytest\n\n\ndef price_with_tax(price):\n    return price * 1.2\n\n\ndef test_price():\n    assert price_with_tax(0.1) == pytest.approx(0.12)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-assert-e3",
+                  "type": "code",
+                  "prompt": "Напиши тест `test_tags`, который проверяет, что в списке `get_tags()` есть тег `\"smoke\"` и **нет** тега `\"broken\"`. Добавь к каждому `assert` понятное сообщение после запятой.",
+                  "starter_code": "import pytest\n\n\ndef get_tags():\n    return [\"api\", \"smoke\", \"regression\"]\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_tags\") == \"passed\", res\n\ndef test_catches_bugs():\n    for bug in (lambda: [\"api\"], lambda: [\"smoke\", \"broken\"]):\n        code, res = run_pytest(patch={\"get_tags\": bug})\n        assert code == 1, f\"Тест должен падать для {bug()}\"\n",
+                  "solution": "import pytest\n\n\ndef get_tags():\n    return [\"api\", \"smoke\", \"regression\"]\n\n\ndef test_tags():\n    tags = get_tags()\n    assert \"smoke\" in tags, f\"нет smoke в {tags}\"\n    assert \"broken\" not in tags, f\"лишний тег broken в {tags}\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-assert-e4",
+                  "type": "command",
+                  "prompt": "Какое значение вернула функция, если тест упал так? Введи число.",
+                  "code": "def test_discount():\n>       assert discount(100, 10) == 90\nE       assert 90.5 == 90\nE        +  where 90.5 = discount(100, 10)\n",
+                  "expected_output": "90.5",
+                  "solution": "90.5",
+                  "hint": "pytest раскрывает, что вернула функция.",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-assert-e5",
+                  "type": "command",
+                  "prompt": "Сколько ключей отличается в словарях? Введи число.",
+                  "code": "E       AssertionError: assert {'id': 1, 'name': 'anna', 'role': 'qa'} == {'id': 1, 'name': 'anna', 'role': 'admin'}\nE         Omitting 2 identical items, use -vv to show\nE         Differing items:\nE         {'role': 'qa'} != {'role': 'admin'}\n",
+                  "expected_output": "1",
+                  "solution": "1",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-assert-e6",
+                  "type": "code",
+                  "prompt": "Напиши тест `test_sorted`, который проверяет, что `sort_users(users)` возвращает пользователей, отсортированных по возрасту, **и** что исходный список не изменился. Данные: `[{\"name\": \"b\", \"age\": 30}, {\"name\": \"a\", \"age\": 20}]`.",
+                  "starter_code": "import pytest\n\n\ndef sort_users(users):\n    return sorted(users, key=lambda u: u[\"age\"])\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_sorted\") == \"passed\", res\n\ndef test_catches_bugs():\n    def mutating(users):\n        users.sort(key=lambda u: u[\"age\"])\n        return users\n    for bug in (lambda users: list(users), mutating):\n        code, res = run_pytest(patch={\"sort_users\": bug})\n        assert code == 1, \"Тест должен ловить и неверный порядок, и изменение исходного списка\"\n",
+                  "solution": "import pytest\n\n\ndef sort_users(users):\n    return sorted(users, key=lambda u: u[\"age\"])\n\n\ndef test_sorted():\n    users = [{\"name\": \"b\", \"age\": 30}, {\"name\": \"a\", \"age\": 20}]\n    result = sort_users(users)\n    assert [u[\"age\"] for u in result] == [20, 30]\n    assert users == [{\"name\": \"b\", \"age\": 30}, {\"name\": \"a\", \"age\": 20}]\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "Сохрани копию исходных данных или сравни с литералом.",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-assert-e7",
+                  "type": "command",
+                  "prompt": "Что выведет pytest в строке с ошибкой? Какое **ожидаемое** значение длины? Введи число.",
+                  "code": ">       assert len(items) == 3\nE       assert 2 == 3\nE        +  where 2 = len(['a', 'b'])\n",
+                  "expected_output": "3",
+                  "solution": "3",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-assert-e8",
+                  "type": "code",
+                  "prompt": "Напиши тест `test_response`, который проверяет ответ `fake_api()`: статус `200`, в теле есть ключ `\"items\"`, это список, и у **каждого** элемента есть `\"id\"` типа `int`.",
+                  "starter_code": "import pytest\n\n\ndef fake_api():\n    return {\"status\": 200, \"body\": {\"items\": [{\"id\": 1}, {\"id\": 2}]}}\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_response\") == \"passed\", res\n\ndef test_catches_bugs():\n    bugs = [\n        lambda: {\"status\": 500, \"body\": {\"items\": [{\"id\": 1}]}},\n        lambda: {\"status\": 200, \"body\": {}},\n        lambda: {\"status\": 200, \"body\": {\"items\": {\"id\": 1}}},\n        lambda: {\"status\": 200, \"body\": {\"items\": [{\"id\": 1}, {\"name\": \"x\"}]}},\n        lambda: {\"status\": 200, \"body\": {\"items\": [{\"id\": \"1\"}]}},\n    ]\n    for i, bug in enumerate(bugs):\n        code, res = run_pytest(patch={\"fake_api\": bug})\n        assert code == 1, f\"Тест не поймал ошибку №{i + 1}: {bug()}\"\n",
+                  "solution": "import pytest\n\n\ndef fake_api():\n    return {\"status\": 200, \"body\": {\"items\": [{\"id\": 1}, {\"id\": 2}]}}\n\n\ndef test_response():\n    resp = fake_api()\n    assert resp[\"status\"] == 200\n    assert \"items\" in resp[\"body\"]\n    items = resp[\"body\"][\"items\"]\n    assert isinstance(items, list)\n    for item in items:\n        assert isinstance(item.get(\"id\"), int)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nГлавное преимущество pytest — обычный `assert` с подробным объяснением при падении. Не нужно помнить `assertEqual`, `assertIn` и прочее: pytest сам покажет, что было слева и справа, какие ключи словаря отличаются, что вернула функция.\n\n## Подробности при падении\n\n```bash\n    def test_discount():\n>       assert discount(100, 10) == 90\nE       assert 90.5 == 90\nE        +  where 90.5 = discount(100, 10)\n```\n\n- `>` — строка, где упал тест.\n- `E` — объяснение: слева `90.5`, справа `90`, и откуда взялось `90.5`.\n- pytest «переписывает» assert при импорте тестов, поэтому знает промежуточные значения.\n\n## Словари и списки\n\n```py\ndef test_user():\n    assert get_user(1) == {\"id\": 1, \"name\": \"anna\", \"active\": True}\n```\n\n```bash\nE   AssertionError: assert {'id': 1, 'name': 'anna', 'role': 'qa'} == {'id': 1, 'name': 'anna', 'role': 'admin'}\nE     Omitting 2 identical items, use -vv to show\nE     Differing items:\nE     {'role': 'qa'} != {'role': 'admin'}\n```\n\n- Сравнивать структуру целиком — хорошая практика: тест заметит любое лишнее или отсутствующее поле.\n- pytest покажет только отличия; `-vv` — полный вывод.\n\n## Полезные проверки\n\n```py\ndef test_checks():\n    tags = [\"api\", \"smoke\"]\n    assert \"smoke\" in tags, f\"нет smoke в {tags}\"\n    assert \"broken\" not in tags\n    assert isinstance(tags, list)\n    assert len(tags) == 2\n    assert all(isinstance(t, str) for t in tags)\n```\n\n- `in` / `not in` — наличие элемента, подстроки, ключа.\n- `isinstance` — тип.\n- `all(...)` / `any(...)` — условие для каждого / хотя бы одного элемента.\n- `assert условие, \"сообщение\"` — сообщение появится в отчёте. Полезно, когда из условия не очевидно, что проверялось.\n\n## Дробные числа: pytest.approx\n\n```python\nimport pytest\n\nprint(0.1 + 0.2 == 0.3)\nprint(0.1 + 0.2 == pytest.approx(0.3))\nprint([0.1 + 0.2, 1.0] == pytest.approx([0.3, 1.0]))\n```\n\n- Дробные числа хранятся неточно: `0.1 + 0.2` = `0.30000000000000004`.\n- `pytest.approx(значение)` сравнивает с небольшим допуском. Работает и для списков и словарей чисел.\n- Вывод: `False`, `True`, `True`.\n\n## Итог\n\n- Обычный `assert`; pytest сам расскажет, что не так.\n- Сравнивай структуры целиком; `in`, `isinstance`, `all`.\n- `assert x, \"сообщение\"` — пояснение в отчёте.\n- Дробные — через `pytest.approx`.",
+              "quiz": [
+                {
+                  "q": "Почему `0.1 + 0.2 == 0.3` ложно?",
+                  "options": [
+                    "Ошибка Python",
+                    "Дробные числа хранятся неточно",
+                    "Нужен int",
+                    "Это истина"
+                  ],
+                  "answer": 1,
+                  "explain": "Используй pytest.approx."
+                },
+                {
+                  "q": "Что делает второй аргумент в `assert x, \"текст\"`?",
+                  "options": [
+                    "Ожидаемое значение",
+                    "Сообщение в отчёте при падении",
+                    "Имя теста",
+                    "Таймаут"
+                  ],
+                  "answer": 1,
+                  "explain": "Помогает понять причину."
+                },
+                {
+                  "q": "Какой флаг покажет полное сравнение больших структур?",
+                  "options": [
+                    "-x",
+                    "-vv",
+                    "-k",
+                    "-s"
+                  ],
+                  "answer": 1,
+                  "explain": "Двойной verbose."
+                }
+              ]
+            },
+            {
+              "slug": "pyt-raises",
+              "title": "Проверка исключений: pytest.raises",
+              "theory": "```py\nwith pytest.raises(ZeroDivisionError):\n    divide(1, 0)\n\nwith pytest.raises(ValueError, match=\"age\"):\n    set_age(-1)\n\nwith pytest.raises(ApiError) as exc_info:\n    api_call()\nassert exc_info.value.status == 404\n```",
+              "exercises": [
+                {
+                  "slug": "pyt-raises-e1",
+                  "type": "code",
+                  "prompt": "Напиши тест `test_zero`, который проверяет, что `divide(1, 0)` выбрасывает `ZeroDivisionError`. Используй `with pytest.raises(...)`.",
+                  "starter_code": "import pytest\n\n\ndef divide(a, b):\n    return a / b\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_zero\") == \"passed\", res\n\ndef test_catches_bug():\n    code, res = run_pytest(patch={\"divide\": lambda a, b: 0 if b == 0 else a / b})\n    assert code == 1, \"Тест должен падать, если исключения нет\"\n",
+                  "solution": "import pytest\n\n\ndef divide(a, b):\n    return a / b\n\n\ndef test_zero():\n    with pytest.raises(ZeroDivisionError):\n        divide(1, 0)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-raises-e2",
+                  "type": "code",
+                  "prompt": "Функция `set_age(age)` должна выбрасывать `ValueError` с текстом, содержащим `\"age\"`, для отрицательного возраста. Напиши тест `test_negative_age` с проверкой текста через `match=`.",
+                  "starter_code": "import pytest\n\n\ndef set_age(age):\n    if age < 0:\n        raise ValueError(\"age must be >= 0\")\n    return age\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_negative_age\") == \"passed\", res\n    assert \"match=\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй match=\"\n\ndef test_catches_bugs():\n    def wrong_text(age):\n        if age < 0:\n            raise ValueError(\"bad value\")\n        return age\n    def wrong_type(age):\n        if age < 0:\n            raise TypeError(\"age must be >= 0\")\n        return age\n    for bug in (wrong_text, wrong_type, lambda age: age):\n        code, res = run_pytest(patch={\"set_age\": bug})\n        assert code == 1, f\"Тест пропустил ошибку ({bug.__name__})\"\n",
+                  "solution": "import pytest\n\n\ndef set_age(age):\n    if age < 0:\n        raise ValueError(\"age must be >= 0\")\n    return age\n\n\ndef test_negative_age():\n    with pytest.raises(ValueError, match=\"age\"):\n        set_age(-1)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-raises-e3",
+                  "type": "code",
+                  "prompt": "Иногда нужно проверить **свойства** исключения. Функция `api_call()` выбрасывает `ApiError` с атрибутом `status`. Напиши тест `test_not_found`: исключение выброшено, и `status == 404`. Используй `with pytest.raises(...) as exc_info` и `exc_info.value`.",
+                  "starter_code": "import pytest\n\n\nclass ApiError(Exception):\n    def __init__(self, status):\n        super().__init__(f\"HTTP {status}\")\n        self.status = status\n\n\ndef api_call():\n    raise ApiError(404)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_not_found\") == \"passed\", res\n    assert \".value\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Проверь статус через exc_info.value\"\n\ndef test_catches_bug():\n    def wrong():\n        raise sys.modules[\"solution\"].ApiError(500)\n    code, res = run_pytest(patch={\"api_call\": wrong})\n    assert code == 1, \"Тест должен проверять статус\"\n",
+                  "solution": "import pytest\n\n\nclass ApiError(Exception):\n    def __init__(self, status):\n        super().__init__(f\"HTTP {status}\")\n        self.status = status\n\n\ndef api_call():\n    raise ApiError(404)\n\n\ndef test_not_found():\n    with pytest.raises(ApiError) as exc_info:\n        api_call()\n    assert exc_info.value.status == 404\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-raises-e4",
+                  "type": "command",
+                  "prompt": "Почему упал тест? Введи слово `нет`, если исключения не было, или `другое`, если было другое исключение.",
+                  "code": "def test_zero():\n    with pytest.raises(ZeroDivisionError):\n>       divide(1, 0)\nE       Failed: DID NOT RAISE <class 'ZeroDivisionError'>\n",
+                  "expected_output": "нет",
+                  "solution": "нет",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-raises-e5",
+                  "type": "command",
+                  "prompt": "Какой текст исключения был **на самом деле**? Введи его без кавычек.",
+                  "code": "E   AssertionError: Regex pattern did not match.\nE    Regex: 'age'\nE    Input: 'bad value'\n",
+                  "expected_output": "bad value",
+                  "solution": "bad value",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-raises-e6",
+                  "type": "code",
+                  "prompt": "Функция `parse_port(value)` превращает строку в номер порта. Напиши тест `test_invalid_ports`, который проверяет, что **каждое** из значений `\"abc\"`, `\"-1\"`, `\"70000\"` выбрасывает `ValueError`. Проверь их в цикле, для каждого — свой `with pytest.raises`.",
+                  "starter_code": "import pytest\n\n\ndef parse_port(value):\n    port = int(value)\n    if not 0 < port < 65536:\n        raise ValueError(f\"порт вне диапазона: {port}\")\n    return port\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_invalid_ports\") == \"passed\", res\n\ndef test_catches_bugs():\n    def no_range(value):\n        return int(value)\n    def no_upper(value):\n        port = int(value)\n        if port <= 0:\n            raise ValueError(\"x\")\n        return port\n    for bug in (no_range, no_upper):\n        code, res = run_pytest(patch={\"parse_port\": bug})\n        assert code == 1, f\"Тест пропустил ошибку ({bug.__name__})\"\n",
+                  "solution": "import pytest\n\n\ndef parse_port(value):\n    port = int(value)\n    if not 0 < port < 65536:\n        raise ValueError(f\"порт вне диапазона: {port}\")\n    return port\n\n\ndef test_invalid_ports():\n    for value in [\"abc\", \"-1\", \"70000\"]:\n        with pytest.raises(ValueError):\n            parse_port(value)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "int('abc') тоже выбрасывает ValueError.",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-raises-e7",
+                  "type": "command",
+                  "prompt": "Какой тип исключения ожидали, а какой получили? Введи **полученный** тип.",
+                  "code": ">       set_age(\"x\")\nE       TypeError: '<' not supported between instances of 'str' and 'int'\n",
+                  "expected_output": "TypeError",
+                  "solution": "TypeError",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-raises-e8",
+                  "type": "code",
+                  "prompt": "Проверь и **отсутствие** ошибки: напиши два теста для `withdraw(balance, amount)`:\n\n- `test_ok` — снятие 30 со 100 возвращает 70 (без исключения);\n- `test_not_enough` — снятие 200 со 100 выбрасывает `ValueError` с текстом `\"недостаточно\"`.",
+                  "starter_code": "import pytest\n\n\ndef withdraw(balance, amount):\n    if amount > balance:\n        raise ValueError(\"недостаточно средств\")\n    return balance - amount\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"test_ok\": \"passed\", \"test_not_enough\": \"passed\"}, res\n\ndef test_catches_bugs():\n    def always_raise(balance, amount):\n        raise ValueError(\"недостаточно средств\")\n    def never_raise(balance, amount):\n        return balance - amount\n    for bug in (always_raise, never_raise):\n        code, res = run_pytest(patch={\"withdraw\": bug})\n        assert code == 1, f\"Тесты пропустили ошибку ({bug.__name__})\"\n",
+                  "solution": "import pytest\n\n\ndef withdraw(balance, amount):\n    if amount > balance:\n        raise ValueError(\"недостаточно средств\")\n    return balance - amount\n\n\ndef test_ok():\n    assert withdraw(100, 30) == 70\n\n\ndef test_not_enough():\n    with pytest.raises(ValueError, match=\"недостаточно\"):\n        withdraw(100, 200)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nНегативные проверки не менее важны, чем позитивные: неверный ввод должен давать понятную ошибку, а не молча «проглатываться». `pytest.raises` проверяет, что код выбрасывает нужное исключение с нужным текстом.\n\n## Базовая проверка\n\n```py\nimport pytest\n\n\ndef test_zero():\n    with pytest.raises(ZeroDivisionError):\n        divide(1, 0)\n```\n\n- Внутри блока `with` должна произойти ошибка указанного типа (или его наследника). Тогда тест проходит.\n- Если ошибки не было — тест падает с `Failed: DID NOT RAISE`.\n- Если была **другая** ошибка — она вылетит наружу, тест упадёт с ней.\n- В блок кладут только ту строку, которая должна упасть: иначе ошибка из подготовки данных может «засчитаться» по ошибке.\n\n## Проверка текста: match\n\n```py\ndef test_negative_age():\n    with pytest.raises(ValueError, match=\"age\"):\n        set_age(-1)\n```\n\n- `match` — регулярное выражение, которое ищется в тексте исключения (`re.search`).\n- Текст не совпал — `Regex pattern did not match` с настоящим текстом в отчёте.\n- Спецсимволы регулярок (`.`, `(`, `?`) экранируй: `match=r\"цена \\(руб\\)\"` или `re.escape(текст)`.\n\n## Свойства исключения\n\n```py\ndef test_not_found():\n    with pytest.raises(ApiError) as exc_info:\n        api_call()\n    assert exc_info.value.status == 404\n    assert \"404\" in str(exc_info.value)\n```\n\n- `as exc_info` — объект с информацией; `exc_info.value` — само исключение, `exc_info.type` — его класс.\n- Проверки после блока `with` — уже снаружи, там исключения нет.\n\n## Позитивное и негативное вместе\n\n```py\ndef test_ok():\n    assert withdraw(100, 30) == 70\n\n\ndef test_not_enough():\n    with pytest.raises(ValueError, match=\"недостаточно\"):\n        withdraw(100, 200)\n```\n\n- Хороший набор тестов проверяет и успешный путь, и ошибки: иначе баг «всегда выбрасывать исключение» или «никогда не выбрасывать» пройдёт незамеченным.\n\n## Итог\n\n- `with pytest.raises(Тип):` — код внутри должен упасть с этим типом.\n- `match=\"...\"` — проверка текста (регулярка).\n- `as exc_info` → `exc_info.value` — свойства исключения.\n- Нет исключения → `DID NOT RAISE`.",
+              "quiz": [
+                {
+                  "q": "Что будет, если внутри `pytest.raises` исключения не было?",
+                  "options": [
+                    "Тест пройдёт",
+                    "Тест упадёт: DID NOT RAISE",
+                    "Тест пропустится",
+                    "Ошибка синтаксиса"
+                  ],
+                  "answer": 1,
+                  "explain": "Ожидаемая ошибка не произошла."
+                },
+                {
+                  "q": "Как проверить текст исключения?",
+                  "options": [
+                    "text=",
+                    "match=",
+                    "msg=",
+                    "expect="
+                  ],
+                  "answer": 1,
+                  "explain": "match — регулярное выражение."
+                },
+                {
+                  "q": "Где лежит само исключение после `with pytest.raises(...) as e`?",
+                  "options": [
+                    "e",
+                    "e.value",
+                    "e.error",
+                    "e.exception"
+                  ],
+                  "answer": 1,
+                  "explain": "ExceptionInfo.value."
+                }
+              ]
+            },
+            {
+              "slug": "pyt-cli",
+              "title": "Запуск: полезные флаги",
+              "theory": "```bash\npytest tests/test_cart.py::test_checkout   # один тест\npytest -k \"cart and not slow\"              # по имени\npytest -v / -q                             # подробно / кратко\npytest -s                                  # показывать print\npytest -x   /   --maxfail=3                # стоп на падении\npytest --lf  /  --ff                       # упавшие / сначала упавшие\npytest --tb=short -ra                      # коротко + сводка\n```",
+              "exercises": [
+                {
+                  "slug": "pyt-cli-e1",
+                  "type": "command",
+                  "prompt": "Запусти тесты с подробным выводом: имя каждого теста и его результат.",
+                  "code": "",
+                  "expected_output": "pytest -v\npytest --verbose\npython -m pytest -v",
+                  "solution": "pytest -v",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-cli-e2",
+                  "type": "command",
+                  "prompt": "Запусти только тесты, в имени которых есть `login`.",
+                  "code": "",
+                  "expected_output": "pytest -k login\npytest -k 'login'\npytest -k \"login\"\npython -m pytest -k login",
+                  "solution": "pytest -k login",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-cli-e3",
+                  "type": "command",
+                  "prompt": "Останови прогон на **первом** упавшем тесте.",
+                  "code": "",
+                  "expected_output": "pytest -x\npytest --exitfirst\npytest --maxfail=1\npytest --maxfail 1",
+                  "solution": "pytest -x",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-cli-e4",
+                  "type": "command",
+                  "prompt": "Перезапусти только те тесты, которые упали в прошлый раз.",
+                  "code": "",
+                  "expected_output": "pytest --lf\npytest --last-failed",
+                  "solution": "pytest --lf",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-cli-e5",
+                  "type": "command",
+                  "prompt": "Запусти один тест `test_checkout` из файла `tests/test_cart.py`.",
+                  "code": "",
+                  "expected_output": "pytest tests/test_cart.py::test_checkout\npython -m pytest tests/test_cart.py::test_checkout",
+                  "solution": "pytest tests/test_cart.py::test_checkout",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-cli-e6",
+                  "type": "command",
+                  "prompt": "Запусти тесты и **показывай print** из тестов (отключи перехват вывода).",
+                  "code": "",
+                  "expected_output": "pytest -s\npytest --capture=no\npytest -s -v\npytest -v -s\npytest -vs\npytest -sv",
+                  "solution": "pytest -s",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-cli-e7",
+                  "type": "command",
+                  "prompt": "Запусти тесты, в имени которых есть `cart`, но нет `slow`.",
+                  "code": "",
+                  "expected_output": "pytest -k 'cart and not slow'\npytest -k \"cart and not slow\"",
+                  "solution": "pytest -k 'cart and not slow'",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-cli-e8",
+                  "type": "command",
+                  "prompt": "Сократи вывод ошибок до одной строки на тест и покажи сводку по всем непрошедшим тестам в конце (флаги `--tb` и `-r`).",
+                  "code": "",
+                  "expected_output": "pytest --tb=line -ra\npytest -ra --tb=line\npytest --tb=line -rA\npytest -rA --tb=line\npytest --tb=line -rf\npytest -rf --tb=line",
+                  "solution": "pytest --tb=line -ra",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nВ реальном проекте тысячи тестов. Чтобы быстро проверить одну функцию, найти упавший тест, повторить только сломанное или увидеть print — нужны флаги командной строки. Это ежедневный инструмент.\n\n## Что запускать\n\n```bash\n$ pytest tests/test_cart.py\n$ pytest tests/test_cart.py::test_checkout\n$ pytest tests/test_cart.py::TestCart::test_total\n$ pytest -k login\n$ pytest -k \"cart and not slow\"\n```\n\n- Путь — папка или файл; `::` — конкретный тест (и класс).\n- `-k выражение` — по подстроке имени теста; можно `and`, `or`, `not`.\n\n## Как показывать\n\n```bash\n$ pytest -v\ntests/test_cart.py::test_total PASSED                                    [ 50%]\ntests/test_cart.py::test_checkout FAILED                                 [100%]\n$ pytest -q\n$ pytest -s\n$ pytest --tb=short\n$ pytest -ra\n```\n\n- `-v` — имя и результат каждого теста; `-q` — минимум вывода.\n- `-s` — не перехватывать вывод: видны `print` из тестов (по умолчанию pytest показывает их только для упавших).\n- `--tb=short` / `line` / `no` — насколько подробно показывать ошибки.\n- `-ra` — в конце сводка по всем непрошедшим (упавшие, пропущенные, xfail) с причинами.\n\n## Когда что-то упало\n\n```bash\n$ pytest -x\n$ pytest --maxfail=3\n$ pytest --lf\n$ pytest --ff\n```\n\n- `-x` — остановиться на первом падении (не ждать весь прогон).\n- `--maxfail=N` — остановиться после N падений.\n- `--lf` (last failed) — перезапустить только упавшие в прошлый раз.\n- `--ff` (failed first) — сначала упавшие, потом остальные.\n- Информацию о прошлом прогоне pytest хранит в папке `.pytest_cache`.\n\n## Итог\n\n- Выбор: путь, `файл::тест`, `-k`.\n- Вывод: `-v`, `-q`, `-s`, `--tb=...`, `-ra`.\n- Падения: `-x`, `--maxfail`, `--lf`, `--ff`.",
+              "quiz": [
+                {
+                  "q": "Какой флаг перезапускает только упавшие в прошлый раз тесты?",
+                  "options": [
+                    "-x",
+                    "--lf",
+                    "-k",
+                    "-s"
+                  ],
+                  "answer": 1,
+                  "explain": "last failed."
+                },
+                {
+                  "q": "Как увидеть print из проходящих тестов?",
+                  "options": [
+                    "-v",
+                    "-s",
+                    "-q",
+                    "--tb=long"
+                  ],
+                  "answer": 1,
+                  "explain": "-s отключает перехват вывода."
+                },
+                {
+                  "q": "Что делает `-k \"cart and not slow\"`?",
+                  "options": [
+                    "Запускает маркер cart",
+                    "Выбирает тесты по имени: есть cart и нет slow",
+                    "Запускает 2 файла",
+                    "Пропускает всё"
+                  ],
+                  "answer": 1,
+                  "explain": "Фильтр по имени теста."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "pyt-m2",
+          "title": "Фикстуры и параметризация",
+          "icon": "🧩",
+          "description": "Фикстуры и yield, области видимости и conftest.py, parametrize, встроенные фикстуры",
+          "lessons": [
+            {
+              "slug": "pyt-fixtures",
+              "title": "Фикстуры",
+              "theory": "```py\n@pytest.fixture\ndef user():\n    return {\"name\": \"anna\"}\n\n@pytest.fixture\ndef api(base_url):          # фикстура из фикстуры\n    token = login()\n    yield token             # до — setup, после — teardown\n    logout(token)\n\ndef test_x(user, api): ...  # pytest подставит по именам\n```",
+              "exercises": [
+                {
+                  "slug": "pyt-fixtures-e1",
+                  "type": "code",
+                  "prompt": "Создай фикстуру `user`, которая возвращает словарь `{\"name\": \"anna\", \"role\": \"qa\"}`, и тест `test_role`, который **получает её параметром** и проверяет роль.",
+                  "starter_code": "import pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_role\") == \"passed\", res\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    import re\n    assert \"@pytest.fixture\" in src and re.search(r\"def test_role\\(\\s*user\\s*\\)\", src), \"Нужна фикстура user и тест test_role(user)\"\n",
+                  "solution": "import pytest\n\n\n@pytest.fixture\ndef user():\n    return {\"name\": \"anna\", \"role\": \"qa\"}\n\n\ndef test_role(user):\n    assert user[\"role\"] == \"qa\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-fixtures-e2",
+                  "type": "code",
+                  "prompt": "Фикстура может зависеть от другой фикстуры. Создай фикстуру `base_url` (возвращает `\"https://api.test\"`) и фикстуру `users_url(base_url)` — возвращает `base_url + \"/users\"`. Тест `test_url(users_url)` проверяет результат.",
+                  "starter_code": "import pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_url\") == \"passed\", res\n    src = open(\"solution.py\", encoding=\"utf-8\").read().replace(\" \", \"\")\n    assert \"defusers_url(base_url)\" in src, \"users_url должна получать base_url параметром\"\n",
+                  "solution": "import pytest\n\n\n@pytest.fixture\ndef base_url():\n    return \"https://api.test\"\n\n\n@pytest.fixture\ndef users_url(base_url):\n    return base_url + \"/users\"\n\n\ndef test_url(users_url):\n    assert users_url == \"https://api.test/users\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-fixtures-e3",
+                  "type": "code",
+                  "prompt": "Фикстура с уборкой: создай фикстуру `cart`, которая создаёт пустой список, отдаёт его через `yield`, а **после** теста очищает (`cart.clear()`) и добавляет в глобальный список `LOG` строку `\"cart cleared\"`. Тест `test_add(cart)` добавляет товар и проверяет длину корзины.",
+                  "starter_code": "import pytest\n\nLOG = []\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_add\") == \"passed\", res\n    assert sys.modules[\"solution\"].LOG == [\"cart cleared\"], f\"Уборка после теста не выполнена: {sys.modules['solution'].LOG}\"\n",
+                  "solution": "import pytest\n\nLOG = []\n\n\n@pytest.fixture\ndef cart():\n    items = []\n    yield items\n    items.clear()\n    LOG.append(\"cart cleared\")\n\n\ndef test_add(cart):\n    cart.append(\"чай\")\n    assert len(cart) == 1\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "Код после yield выполняется после теста — даже если тест упал.",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-fixtures-e4",
+                  "type": "command",
+                  "prompt": "В каком порядке выведутся строки? Введи их через пробел.",
+                  "code": "@pytest.fixture\ndef db():\n    print(\"setup\")\n    yield \"conn\"\n    print(\"teardown\")\n\ndef test_query(db):\n    print(\"test\")\n\n$ pytest -s -q\n",
+                  "expected_output": "setup test teardown",
+                  "solution": "setup test teardown",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-fixtures-e5",
+                  "type": "code",
+                  "prompt": "Каждый тест должен получать **свежие** данные. Создай фикстуру `order`, которая возвращает новый словарь `{\"items\": [], \"status\": \"new\"}`. Напиши **два** теста: `test_add_item(order)` добавляет товар в `items` и проверяет длину `1`, `test_empty(order)` проверяет, что `items` пуст.",
+                  "starter_code": "import pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"test_add_item\": \"passed\", \"test_empty\": \"passed\"}, res\n",
+                  "solution": "import pytest\n\n\n@pytest.fixture\ndef order():\n    return {\"items\": [], \"status\": \"new\"}\n\n\ndef test_add_item(order):\n    order[\"items\"].append(\"чай\")\n    assert len(order[\"items\"]) == 1\n\n\ndef test_empty(order):\n    assert order[\"items\"] == []\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-fixtures-e6",
+                  "type": "code",
+                  "prompt": "Фикстура-**фабрика**: создай фикстуру `make_user`, которая возвращает **функцию** `make(name, role=\"qa\")`, создающую словарь `{\"name\": ..., \"role\": ...}`. Тест `test_two_users(make_user)` создаёт двух разных пользователей и проверяет их роли (`\"qa\"` и `\"admin\"`).",
+                  "starter_code": "import pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_two_users\") == \"passed\", res\n",
+                  "solution": "import pytest\n\n\n@pytest.fixture\ndef make_user():\n    def make(name, role=\"qa\"):\n        return {\"name\": name, \"role\": role}\n    return make\n\n\ndef test_two_users(make_user):\n    anna = make_user(\"anna\")\n    boss = make_user(\"boss\", role=\"admin\")\n    assert anna[\"role\"] == \"qa\"\n    assert boss[\"role\"] == \"admin\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-fixtures-e7",
+                  "type": "command",
+                  "prompt": "Какая ошибка будет у теста? Введи слово из вывода pytest, которое её описывает (`fixture ... not found`): введи имя ненайденной фикстуры.",
+                  "code": "@pytest.fixture\ndef user():\n    return {\"name\": \"anna\"}\n\ndef test_name(usr):\n    assert usr[\"name\"] == \"anna\"\n",
+                  "expected_output": "usr",
+                  "solution": "usr",
+                  "hint": "pytest ищет фикстуру по имени параметра.",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-fixtures-e8",
+                  "type": "code",
+                  "prompt": "Фикстура `api` должна «логиниться» перед тестом и «разлогиниваться» после, **даже если тест упал**. Реализуй её через `yield`: до — `EVENTS.append(\"login\")`, после — `EVENTS.append(\"logout\")`, отдаёт строку `\"token\"`. Напиши тесты `test_ok(api)` (проверяет, что токен равен `\"token\"`) и `test_fails(api)` — намеренно падающий (`assert False`).",
+                  "starter_code": "import pytest\n\nEVENTS = []\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"test_ok\": \"passed\", \"test_fails\": \"failed\"}, res\n    events = sys.modules[\"solution\"].EVENTS\n    assert events == [\"login\", \"logout\", \"login\", \"logout\"], f\"logout должен быть и после упавшего теста: {events}\"\n",
+                  "solution": "import pytest\n\nEVENTS = []\n\n\n@pytest.fixture\ndef api():\n    EVENTS.append(\"login\")\n    yield \"token\"\n    EVENTS.append(\"logout\")\n\n\ndef test_ok(api):\n    assert api == \"token\"\n\n\ndef test_fails(api):\n    assert False\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПочти каждому тесту нужна подготовка: тестовый пользователь, клиент API, открытый браузер, чистая база. Копировать подготовку в каждый тест — плохо. **Фикстура** описывает подготовку один раз, а pytest сам передаёт результат в тесты, которым он нужен, и сам убирает за собой.\n\n## Фикстура и её использование\n\n```py\nimport pytest\n\n\n@pytest.fixture\ndef user():\n    return {\"name\": \"anna\", \"role\": \"qa\"}\n\n\ndef test_role(user):\n    assert user[\"role\"] == \"qa\"\n```\n\n- `@pytest.fixture` превращает функцию в фикстуру.\n- Тест **называет её параметром**: pytest видит параметр `user`, находит фикстуру с таким именем, вызывает её и подставляет результат. Вызывать `user()` самому не нужно.\n- Каждый тест получает **свой** свежий результат (по умолчанию фикстура вызывается заново для каждого теста) — тесты не влияют друг на друга.\n- Опечатка в имени параметра → `fixture 'usr' not found` со списком доступных фикстур.\n\n## Фикстуры из фикстур\n\n```py\n@pytest.fixture\ndef base_url():\n    return \"https://api.test\"\n\n\n@pytest.fixture\ndef users_url(base_url):\n    return base_url + \"/users\"\n```\n\n- Фикстура тоже может запрашивать другие фикстуры параметрами — получается цепочка зависимостей.\n\n## Подготовка и уборка: yield\n\n```py\n@pytest.fixture\ndef api():\n    token = login()          # подготовка (setup)\n    yield token              # значение для теста\n    logout(token)            # уборка (teardown)\n```\n\n- Код до `yield` выполняется перед тестом, после — после теста, **даже если тест упал**.\n- Порядок для теста с такой фикстурой: setup → тест → teardown.\n- Так закрывают браузеры, удаляют тестовые данные, откатывают транзакции.\n\n## Фабрика\n\n```py\n@pytest.fixture\ndef make_user():\n    def make(name, role=\"qa\"):\n        return {\"name\": name, \"role\": role}\n    return make\n\n\ndef test_two_users(make_user):\n    anna = make_user(\"anna\")\n    boss = make_user(\"boss\", role=\"admin\")\n    assert anna[\"role\"] != boss[\"role\"]\n```\n\n- Фикстура возвращает **функцию**: тест сам создаёт столько объектов, сколько нужно, с нужными параметрами.\n\n## Итог\n\n- `@pytest.fixture` + имя фикстуры в параметрах теста.\n- По умолчанию — свежее значение на каждый тест.\n- `yield`: до — setup, после — teardown (выполняется всегда).\n- Фикстуры могут зависеть от фикстур; фабрика возвращает функцию.",
+              "quiz": [
+                {
+                  "q": "Как тест получает фикстуру?",
+                  "options": [
+                    "Вызывает user()",
+                    "Указывает её имя параметром",
+                    "Импортирует",
+                    "Через global"
+                  ],
+                  "answer": 1,
+                  "explain": "pytest подставит результат сам."
+                },
+                {
+                  "q": "Когда выполняется код после `yield` в фикстуре?",
+                  "options": [
+                    "Перед тестом",
+                    "После теста, даже если он упал",
+                    "Только при успехе",
+                    "Никогда"
+                  ],
+                  "answer": 1,
+                  "explain": "Это teardown."
+                },
+                {
+                  "q": "Сколько раз по умолчанию вызывается фикстура для 3 тестов, которые её используют?",
+                  "options": [
+                    "1",
+                    "3",
+                    "0",
+                    "Зависит от порядка"
+                  ],
+                  "answer": 1,
+                  "explain": "scope=\"function\" — на каждый тест."
+                }
+              ]
+            },
+            {
+              "slug": "pyt-scope",
+              "title": "Область видимости, autouse и conftest.py",
+              "theory": "```py\n@pytest.fixture(scope=\"session\")   # function|class|module|package|session\ndef token(): ...\n\n@pytest.fixture(autouse=True)      # для всех тестов\ndef clean(): ...\n\n# conftest.py — фикстуры без импорта для папки и вложенных\ndef pytest_addoption(parser):\n    parser.addoption(\"--env\", default=\"dev\")\n\n@pytest.fixture\ndef env(request):\n    return request.config.getoption(\"--env\")\n```",
+              "exercises": [
+                {
+                  "slug": "pyt-scope-e1",
+                  "type": "code",
+                  "prompt": "Подключение к базе дорогое: создавай его **один раз на модуль**. Создай фикстуру `db` со `scope=\"module\"`, которая при каждом создании добавляет `\"connect\"` в `CALLS` и возвращает строку `\"db\"`. Напиши три теста `test_a`, `test_b`, `test_c`, использующие `db`.",
+                  "starter_code": "import pytest\n\nCALLS = []\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"test_a\": \"passed\", \"test_b\": \"passed\", \"test_c\": \"passed\"}, res\n    calls = sys.modules[\"solution\"].CALLS\n    assert calls == [\"connect\"], f\"Фикстура должна создаваться один раз, а создавалась {len(calls)}\"\n",
+                  "solution": "import pytest\n\nCALLS = []\n\n\n@pytest.fixture(scope=\"module\")\ndef db():\n    CALLS.append(\"connect\")\n    return \"db\"\n\n\ndef test_a(db):\n    assert db == \"db\"\n\n\ndef test_b(db):\n    assert db == \"db\"\n\n\ndef test_c(db):\n    assert db == \"db\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-scope-e2",
+                  "type": "code",
+                  "prompt": "Фикстура с `autouse=True` применяется ко **всем** тестам без явного параметра. Создай такую фикстуру `reset_state`, которая перед каждым тестом очищает глобальный словарь `STATE` (`STATE.clear()`). Тесты `test_first` и `test_second` (без параметров!) должны оба проверять, что `STATE` пуст, и затем записывать в него ключ.",
+                  "starter_code": "import pytest\n\nSTATE = {}\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"test_first\": \"passed\", \"test_second\": \"passed\"}, res\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"autouse=True\" in src.replace(\" \", \"\"), \"Нужна фикстура с autouse=True\"\n    assert \"def test_first()\" in src and \"def test_second()\" in src, \"Тесты без параметров\"\n",
+                  "solution": "import pytest\n\nSTATE = {}\n\n\n@pytest.fixture(autouse=True)\ndef reset_state():\n    STATE.clear()\n\n\ndef test_first():\n    assert STATE == {}\n    STATE[\"a\"] = 1\n\n\ndef test_second():\n    assert STATE == {}\n    STATE[\"b\"] = 2\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-scope-e3",
+                  "type": "command",
+                  "prompt": "Сколько раз выполнится код фикстуры за прогон, если в модуле 5 тестов её используют? Введи число.",
+                  "code": "@pytest.fixture\ndef browser():\n    return start_browser()\n",
+                  "expected_output": "5",
+                  "solution": "5",
+                  "hint": "scope по умолчанию — function.",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-scope-e4",
+                  "type": "command",
+                  "prompt": "Какое значение `scope` сделает фикстуру общей для **всего прогона**? Введи строку без кавычек.",
+                  "code": "",
+                  "expected_output": "session",
+                  "solution": "session",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-scope-e5",
+                  "type": "command",
+                  "prompt": "Как называется файл, фикстуры из которого автоматически доступны всем тестам в его папке и вложенных? Введи имя.",
+                  "code": "",
+                  "expected_output": "conftest.py",
+                  "solution": "conftest.py",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-scope-e6",
+                  "type": "code",
+                  "prompt": "Твой код станет файлом `conftest.py`. Опиши в нём фикстуру `base_url`, которая возвращает `\"https://stage.example.com\"`. Проверка создаст рядом файл тестов, который использует эту фикстуру **без импорта**.",
+                  "starter_code": "import pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport pytest, shutil, os\n\n\n_RUNS = []\n\n\ndef run_with_conftest(test_code, *args):\n    # Каждый запуск — в своей папке: иначе pytest возьмёт из sys.modules прошлые conftest и тесты.\n    _RUNS.append(1)\n    folder = f\"ct{len(_RUNS)}\"\n    os.makedirs(folder, exist_ok=True)\n    shutil.copy(\"solution.py\", f\"{folder}/conftest.py\")\n    with open(f\"{folder}/test_generated_{len(_RUNS)}.py\", \"w\", encoding=\"utf-8\") as f:\n        f.write(test_code)\n    for name in [m for m in sys.modules if m == \"conftest\" or m.startswith(\"test_generated\")]:\n        del sys.modules[name]\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", folder, *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_conftest():\n    code, res = run_with_conftest(\n        \"def test_url(base_url):\\n    assert base_url == 'https://stage.example.com'\\n\")\n    assert res == {\"test_url\": \"passed\"}, res\n",
+                  "solution": "import pytest\n\n\n@pytest.fixture\ndef base_url():\n    return \"https://stage.example.com\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-scope-e7",
+                  "type": "code",
+                  "prompt": "Твой код станет `conftest.py`. Опиши фикстуру `session_token` со `scope=\"session\"`, которая при каждом создании добавляет `\"auth\"` в глобальный список `AUTH_CALLS` и возвращает `\"t-1\"`. Проверка создаст **несколько** тестов, использующих фикстуру, и убедится, что авторизация была один раз.",
+                  "starter_code": "import pytest\n\nAUTH_CALLS = []\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport pytest, shutil, os\n\n\n_RUNS = []\n\n\ndef run_with_conftest(test_code, *args):\n    # Каждый запуск — в своей папке: иначе pytest возьмёт из sys.modules прошлые conftest и тесты.\n    _RUNS.append(1)\n    folder = f\"ct{len(_RUNS)}\"\n    os.makedirs(folder, exist_ok=True)\n    shutil.copy(\"solution.py\", f\"{folder}/conftest.py\")\n    with open(f\"{folder}/test_generated_{len(_RUNS)}.py\", \"w\", encoding=\"utf-8\") as f:\n        f.write(test_code)\n    for name in [m for m in sys.modules if m == \"conftest\" or m.startswith(\"test_generated\")]:\n        del sys.modules[name]\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", folder, *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_conftest():\n    tests = (\n        \"import conftest\\n\"\n        \"def test_a(session_token):\\n    assert session_token == 't-1'\\n\"\n        \"def test_b(session_token):\\n    assert session_token == 't-1'\\n\"\n        \"def test_calls(session_token):\\n    assert conftest.AUTH_CALLS == ['auth'], conftest.AUTH_CALLS\\n\"\n    )\n    code, res = run_with_conftest(tests)\n    assert res == {\"test_a\": \"passed\", \"test_b\": \"passed\", \"test_calls\": \"passed\"}, res\n",
+                  "solution": "import pytest\n\nAUTH_CALLS = []\n\n\n@pytest.fixture(scope=\"session\")\ndef session_token():\n    AUTH_CALLS.append(\"auth\")\n    return \"t-1\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-scope-e8",
+                  "type": "code",
+                  "prompt": "Твой код станет `conftest.py`. Добавь в pytest **свою опцию командной строки** `--env` (по умолчанию `\"dev\"`) через хук `pytest_addoption(parser)` и фикстуру `env(request)`, которая возвращает её значение (`request.config.getoption(\"--env\")`). Проверка запустит тесты с `--env stage`.",
+                  "starter_code": "import pytest\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\nimport pytest, shutil, os\n\n\n_RUNS = []\n\n\ndef run_with_conftest(test_code, *args):\n    # Каждый запуск — в своей папке: иначе pytest возьмёт из sys.modules прошлые conftest и тесты.\n    _RUNS.append(1)\n    folder = f\"ct{len(_RUNS)}\"\n    os.makedirs(folder, exist_ok=True)\n    shutil.copy(\"solution.py\", f\"{folder}/conftest.py\")\n    with open(f\"{folder}/test_generated_{len(_RUNS)}.py\", \"w\", encoding=\"utf-8\") as f:\n        f.write(test_code)\n    for name in [m for m in sys.modules if m == \"conftest\" or m.startswith(\"test_generated\")]:\n        del sys.modules[name]\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", folder, *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_conftest():\n    code, res = run_with_conftest(\"def test_env(env):\\n    assert env == 'stage'\\n\", \"--env\", \"stage\")\n    assert res == {\"test_env\": \"passed\"}, res\n    code, res = run_with_conftest(\"def test_env(env):\\n    assert env == 'dev'\\n\")\n    assert res == {\"test_env\": \"passed\"}, \"Значение по умолчанию — dev\"\n",
+                  "solution": "import pytest\n\n\ndef pytest_addoption(parser):\n    parser.addoption(\"--env\", default=\"dev\", help=\"стенд для тестов\")\n\n\n@pytest.fixture\ndef env(request):\n    return request.config.getoption(\"--env\")\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "parser.addoption('--env', default='dev')",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОткрыть браузер или авторизоваться в API — долго. Делать это перед каждым из 500 тестов — непозволительно. **Scope** (область видимости) задаёт, как часто создаётся фикстура. А `conftest.py` делает фикстуры доступными всем тестам проекта.\n\n## scope\n\n```py\n@pytest.fixture(scope=\"session\")\ndef auth_token():\n    return login(\"qa\", \"secret\")\n\n\n@pytest.fixture(scope=\"module\")\ndef db():\n    conn = connect()\n    yield conn\n    conn.close()\n```\n\n- `function` (по умолчанию) — на каждый тест.\n- `class` — на класс тестов, `module` — на файл, `package` — на пакет.\n- `session` — один раз на весь прогон.\n- Фикстура с широким scope не может зависеть от фикстуры с узким (session от function) — pytest выдаст ошибку.\n- Осторожно с изменяемыми объектами в session-фикстурах: если тест их меняет, это увидят следующие тесты.\n\n## autouse\n\n```py\n@pytest.fixture(autouse=True)\ndef clean_state():\n    STATE.clear()\n```\n\n- Применяется ко всем тестам в зоне видимости **без** упоминания в параметрах. Удобно для общей подготовки: очистка, логирование, скриншот при падении.\n\n## conftest.py\n\n```bash\ntests/\n  conftest.py          # фикстуры для всех тестов\n  api/\n    conftest.py        # фикстуры только для tests/api\n    test_users.py\n  ui/\n    test_login.py\n```\n\n- Фикстуры из `conftest.py` доступны всем тестам в этой папке и вложенных — **без импорта**.\n- Вложенный `conftest.py` может добавлять свои фикстуры или переопределять общие.\n- Туда же кладут хуки pytest — например, свои опции командной строки.\n\n## Своя опция командной строки\n\n```py\n# conftest.py\ndef pytest_addoption(parser):\n    parser.addoption(\"--env\", default=\"dev\", help=\"стенд\")\n\n\n@pytest.fixture(scope=\"session\")\ndef env(request):\n    return request.config.getoption(\"--env\")\n```\n\n```bash\n$ pytest --env stage\n```\n\n- `pytest_addoption` — хук, в котором регистрируют опции.\n- `request` — встроенная фикстура с информацией о тесте и конфиге; `request.config.getoption` читает значение.\n\n## Итог\n\n- `scope`: function, class, module, package, session.\n- `autouse=True` — для всех тестов без параметра.\n- `conftest.py` — общие фикстуры и хуки, без импорта.\n- `pytest_addoption` + `request.config.getoption` — свои флаги.",
+              "quiz": [
+                {
+                  "q": "Какой scope создаёт фикстуру один раз за весь прогон?",
+                  "options": [
+                    "function",
+                    "module",
+                    "session",
+                    "global"
+                  ],
+                  "answer": 2,
+                  "explain": "Для авторизации, браузера и т.п."
+                },
+                {
+                  "q": "Где разместить фикстуры, чтобы они были доступны всем тестам папки без импорта?",
+                  "options": [
+                    "fixtures.py",
+                    "conftest.py",
+                    "__init__.py",
+                    "pytest.ini"
+                  ],
+                  "answer": 1,
+                  "explain": "Pytest загружает conftest.py сам."
+                },
+                {
+                  "q": "Что делает `autouse=True`?",
+                  "options": [
+                    "Ускоряет",
+                    "Применяет фикстуру ко всем тестам без параметра",
+                    "Кэширует",
+                    "Отключает фикстуру"
+                  ],
+                  "answer": 1,
+                  "explain": "Не нужно указывать её в каждом тесте."
+                }
+              ]
+            },
+            {
+              "slug": "pyt-param",
+              "title": "Параметризация",
+              "theory": "```py\n@pytest.mark.parametrize(\"value, expected\", [(\"a@b.ru\", True), (\"x\", False)],\n                         ids=[\"valid\", \"no_at\"])\ndef test_email(value, expected): ...\n\n@pytest.mark.parametrize(\"b\", [\"chrome\", \"firefox\"])\n@pytest.mark.parametrize(\"lang\", [\"ru\", \"en\"])     # 2 × 2 = 4 теста\ndef test_home(b, lang): ...\n\npytest.param(2.675, 2.68, marks=pytest.mark.xfail)\n@pytest.fixture(params=[\"admin\", \"qa\"])            # request.param\n```",
+              "exercises": [
+                {
+                  "slug": "pyt-param-e1",
+                  "type": "code",
+                  "prompt": "Проверь функцию `is_valid_email` на наборе данных с помощью `@pytest.mark.parametrize`. Тест `test_email(value, expected)` с случаями:\n\n- `\"a@b.ru\"` → `True`;\n- `\"no-at.ru\"` → `False`;\n- `\"@b.ru\"` → `False`;\n- `\"a@\"` → `False`.",
+                  "starter_code": "import pytest\n\n\ndef is_valid_email(value):\n    name, sep, domain = value.partition(\"@\")\n    return bool(name and sep and \".\" in domain)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert len(res) == 4 and all(r == \"passed\" for r in res.values()), f\"Нужно 4 проходящих случая: {res}\"\n    assert all(name.startswith(\"test_email[\") for name in res), res\n\ndef test_catches_bugs():\n    for bug in (lambda v: \"@\" in v, lambda v: True, lambda v: \".\" in v):\n        code, res = run_pytest(patch={\"is_valid_email\": bug})\n        assert code == 1, \"Параметризованный тест пропустил ошибку\"\n",
+                  "solution": "import pytest\n\n\ndef is_valid_email(value):\n    name, sep, domain = value.partition(\"@\")\n    return bool(name and sep and \".\" in domain)\n\n\n@pytest.mark.parametrize(\"value, expected\", [\n    (\"a@b.ru\", True),\n    (\"no-at.ru\", False),\n    (\"@b.ru\", False),\n    (\"a@\", False),\n])\ndef test_email(value, expected):\n    assert is_valid_email(value) == expected\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-param-e2",
+                  "type": "code",
+                  "prompt": "Дай случаям понятные имена через `ids`. Параметризуй тест `test_status(code, ok)` для функции `is_success(code)`: `200 → True`, `201 → True`, `404 → False`, `500 → False` с именами `ok`, `created`, `not_found`, `server_error`.",
+                  "starter_code": "import pytest\n\n\ndef is_success(code):\n    return 200 <= code < 300\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    expected = {f\"test_status[{i}]\": \"passed\" for i in [\"ok\", \"created\", \"not_found\", \"server_error\"]}\n    assert res == expected, res\n",
+                  "solution": "import pytest\n\n\ndef is_success(code):\n    return 200 <= code < 300\n\n\n@pytest.mark.parametrize(\"code, ok\", [(200, True), (201, True), (404, False), (500, False)],\n                         ids=[\"ok\", \"created\", \"not_found\", \"server_error\"])\ndef test_status(code, ok):\n    assert is_success(code) == ok\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-param-e3",
+                  "type": "command",
+                  "prompt": "Сколько тестов соберёт pytest? Введи число.",
+                  "code": "@pytest.mark.parametrize(\"browser\", [\"chrome\", \"firefox\"])\n@pytest.mark.parametrize(\"lang\", [\"ru\", \"en\", \"de\"])\ndef test_home(browser, lang):\n    ...\n",
+                  "expected_output": "6",
+                  "solution": "6",
+                  "hint": "Два декоратора — все комбинации.",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-param-e4",
+                  "type": "command",
+                  "prompt": "Как будет называться тест для второго случая? Введи имя целиком.",
+                  "code": "@pytest.mark.parametrize(\"a, b, total\", [(1, 1, 2), (2, 3, 5)])\ndef test_add(a, b, total):\n    assert a + b == total\n",
+                  "expected_output": "test_add[2-3-5]",
+                  "solution": "test_add[2-3-5]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-param-e5",
+                  "type": "code",
+                  "prompt": "Параметризуй **две** переменные отдельными декораторами, чтобы получились все комбинации: тест `test_price(qty, discount)` для `qty` из `[1, 5]` и `discount` из `[0, 10]` проверяет, что `total(100, qty, discount)` больше `0` и не больше `100 * qty`.",
+                  "starter_code": "import pytest\n\n\ndef total(price, qty, discount):\n    return price * qty * (100 - discount) / 100\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert len(res) == 4 and all(v == \"passed\" for v in res.values()), res\n    assert open(\"solution.py\", encoding=\"utf-8\").read().count(\"@pytest.mark.parametrize\") >= 2, \"Нужно два декоратора parametrize\"\n\ndef test_catches_bug():\n    code, res = run_pytest(patch={\"total\": lambda p, q, d: p * q * (100 + d) / 100})\n    assert code == 1, \"Тест должен ловить неверную скидку\"\n",
+                  "solution": "import pytest\n\n\ndef total(price, qty, discount):\n    return price * qty * (100 - discount) / 100\n\n\n@pytest.mark.parametrize(\"qty\", [1, 5])\n@pytest.mark.parametrize(\"discount\", [0, 10])\ndef test_price(qty, discount):\n    result = total(100, qty, discount)\n    assert 0 < result <= 100 * qty\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-param-e6",
+                  "type": "code",
+                  "prompt": "Данные часто лежат отдельно от теста. Есть список `CASES` из словарей. Параметризуй тест `test_login(case)` так, чтобы каждый словарь был отдельным случаем, а `ids` брались из поля `\"name\"`. Тест проверяет, что `login(case[\"user\"], case[\"password\"]) == case[\"expected\"]`.",
+                  "starter_code": "import pytest\n\nCASES = [\n    {\"name\": \"valid\", \"user\": \"anna\", \"password\": \"secret\", \"expected\": 200},\n    {\"name\": \"wrong_password\", \"user\": \"anna\", \"password\": \"x\", \"expected\": 401},\n    {\"name\": \"empty_user\", \"user\": \"\", \"password\": \"secret\", \"expected\": 400},\n]\n\n\ndef login(user, password):\n    if not user:\n        return 400\n    return 200 if password == \"secret\" else 401\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"test_login[valid]\": \"passed\", \"test_login[wrong_password]\": \"passed\", \"test_login[empty_user]\": \"passed\"}, res\n\ndef test_catches_bug():\n    code, res = run_pytest(patch={\"login\": lambda u, p: 200})\n    assert code == 1, \"Тест должен ловить сломанный login\"\n",
+                  "solution": "import pytest\n\nCASES = [\n    {\"name\": \"valid\", \"user\": \"anna\", \"password\": \"secret\", \"expected\": 200},\n    {\"name\": \"wrong_password\", \"user\": \"anna\", \"password\": \"x\", \"expected\": 401},\n    {\"name\": \"empty_user\", \"user\": \"\", \"password\": \"secret\", \"expected\": 400},\n]\n\n\ndef login(user, password):\n    if not user:\n        return 400\n    return 200 if password == \"secret\" else 401\n\n\n@pytest.mark.parametrize(\"case\", CASES, ids=[c[\"name\"] for c in CASES])\ndef test_login(case):\n    assert login(case[\"user\"], case[\"password\"]) == case[\"expected\"]\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-param-e7",
+                  "type": "code",
+                  "prompt": "Отдельный случай можно пометить как ожидаемо падающий: `pytest.param(..., marks=pytest.mark.xfail)`. Параметризуй `test_round(value, expected)` для `round_price`: `(1.234, 1.23)`, `(2.5, 2.5)`, а случай `(2.675, 2.68)` пометь `xfail` (из-за двоичного представления float он даёт `2.67`).",
+                  "starter_code": "import pytest\n\n\ndef round_price(value):\n    return round(value, 2)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    values = sorted(res.values())\n    assert values == [\"passed\", \"passed\", \"skipped\"], f\"Нужно 2 passed и 1 xfail: {res}\"\n    assert \"pytest.param\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй pytest.param\"\n",
+                  "solution": "import pytest\n\n\ndef round_price(value):\n    return round(value, 2)\n\n\n@pytest.mark.parametrize(\"value, expected\", [\n    (1.234, 1.23),\n    (2.5, 2.5),\n    pytest.param(2.675, 2.68, marks=pytest.mark.xfail(reason=\"float: 2.675 хранится как 2.67499…\")),\n])\ndef test_round(value, expected):\n    assert round_price(value) == expected\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "xfail в отчёте засчитывается как «ожидаемо упал», не как провал.",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-param-e8",
+                  "type": "code",
+                  "prompt": "Параметризовать можно и фикстуру: `@pytest.fixture(params=[...])` + `request.param`. Создай фикстуру `role` с параметрами `\"admin\"`, `\"qa\"`, `\"guest\"` и тест `test_can_view(role)`, проверяющий, что `can_view(role)` истинно для всех ролей. Получится 3 теста.",
+                  "starter_code": "import pytest\n\n\ndef can_view(role):\n    return role in (\"admin\", \"qa\", \"guest\")\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"test_can_view[admin]\": \"passed\", \"test_can_view[qa]\": \"passed\", \"test_can_view[guest]\": \"passed\"}, res\n\ndef test_catches_bug():\n    code, res = run_pytest(patch={\"can_view\": lambda r: r != \"guest\"})\n    assert res.get(\"test_can_view[guest]\") == \"failed\", res\n",
+                  "solution": "import pytest\n\n\ndef can_view(role):\n    return role in (\"admin\", \"qa\", \"guest\")\n\n\n@pytest.fixture(params=[\"admin\", \"qa\", \"guest\"])\ndef role(request):\n    return request.param\n\n\ndef test_can_view(role):\n    assert can_view(role)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОдну и ту же проверку часто нужно выполнить на многих данных: десять вариантов email, пять ролей, все граничные значения. Копировать тест десять раз — плохо. **Параметризация** запускает один тест на наборе данных, и каждый набор — отдельный тест в отчёте.\n\n## parametrize\n\n```py\n@pytest.mark.parametrize(\"value, expected\", [\n    (\"a@b.ru\", True),\n    (\"no-at.ru\", False),\n    (\"@b.ru\", False),\n])\ndef test_email(value, expected):\n    assert is_valid_email(value) == expected\n```\n\n- Первый аргумент — имена параметров строкой через запятую.\n- Второй — список наборов (кортежей), по одному на тест.\n- В отчёте: `test_email[a@b.ru-True]`, `test_email[no-at.ru-False]`… — упадёт только конкретный случай.\n\n## Понятные имена: ids\n\n```py\n@pytest.mark.parametrize(\"code, ok\", [(200, True), (404, False)], ids=[\"ok\", \"not_found\"])\ndef test_status(code, ok):\n    assert is_success(code) == ok\n```\n\n- `ids` — список имён или функция. В отчёте `test_status[ok]` вместо `test_status[200-True]`.\n- Данные из словарей: `ids=[c[\"name\"] for c in CASES]`.\n\n## Все комбинации\n\n```py\n@pytest.mark.parametrize(\"browser\", [\"chrome\", \"firefox\"])\n@pytest.mark.parametrize(\"lang\", [\"ru\", \"en\", \"de\"])\ndef test_home(browser, lang):\n    ...\n```\n\n- Два декоратора — декартово произведение: 2 × 3 = 6 тестов.\n\n## Отдельный случай с маркером\n\n```py\n@pytest.mark.parametrize(\"value, expected\", [\n    (1.234, 1.23),\n    pytest.param(2.675, 2.68, marks=pytest.mark.xfail(reason=\"float\")),\n])\ndef test_round(value, expected):\n    assert round(value, 2) == expected\n```\n\n- `pytest.param(..., marks=..., id=...)` — пометить отдельный набор (xfail, skip) или дать ему имя.\n\n## Параметризованная фикстура\n\n```py\n@pytest.fixture(params=[\"admin\", \"qa\", \"guest\"])\ndef role(request):\n    return request.param\n\n\ndef test_can_view(role):\n    assert can_view(role)\n```\n\n- Каждый тест, использующий фикстуру, запустится для каждого параметра: `test_can_view[admin]`, `[qa]`, `[guest]`.\n\n## Итог\n\n- `@pytest.mark.parametrize(\"a, b\", [(…), (…)])` — тест на наборе данных.\n- `ids=` — имена случаев; два декоратора — все комбинации.\n- `pytest.param(..., marks=...)` — маркер для одного случая.\n- `@pytest.fixture(params=[...])` + `request.param`.",
+              "quiz": [
+                {
+                  "q": "Сколько тестов создадут два декоратора parametrize по 2 и 3 значения?",
+                  "options": [
+                    "5",
+                    "6",
+                    "2",
+                    "3"
+                  ],
+                  "answer": 1,
+                  "explain": "Все комбинации."
+                },
+                {
+                  "q": "Зачем нужен `ids`?",
+                  "options": [
+                    "Ускорить",
+                    "Дать случаям понятные имена в отчёте",
+                    "Пропустить случаи",
+                    "Задать порядок"
+                  ],
+                  "answer": 1,
+                  "explain": "test_status[ok] понятнее, чем test_status[200-True]."
+                },
+                {
+                  "q": "Как пометить xfail только один набор данных?",
+                  "options": [
+                    "@pytest.mark.xfail на тесте",
+                    "pytest.param(..., marks=pytest.mark.xfail)",
+                    "ids=\"xfail\"",
+                    "Нельзя"
+                  ],
+                  "answer": 1,
+                  "explain": "Маркер на конкретный случай."
+                }
+              ]
+            },
+            {
+              "slug": "pyt-builtin",
+              "title": "Встроенные фикстуры: tmp_path, monkeypatch, capsys",
+              "theory": "```py\ndef test_file(tmp_path):\n    p = tmp_path / \"a.txt\"; p.write_text(\"x\")\n\ndef test_env(monkeypatch):\n    monkeypatch.setenv(\"BASE_URL\", \"http://x\")\n    monkeypatch.setattr(module, \"fetch\", lambda: 503)\n\ndef test_print(capsys):\n    greet(\"Аня\")\n    assert capsys.readouterr().out == \"Привет, Аня!\\n\"\n# caplog, request, pytest --fixtures\n```",
+              "exercises": [
+                {
+                  "slug": "pyt-builtin-e1",
+                  "type": "code",
+                  "prompt": "Функция `save_report(path, text)` пишет отчёт в файл. Напиши тест `test_save(tmp_path)`: сохрани отчёт в `tmp_path / \"report.txt\"` и проверь содержимое файла.",
+                  "starter_code": "import pytest\n\n\ndef save_report(path, text):\n    with open(path, \"w\", encoding=\"utf-8\") as f:\n        f.write(text)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_save\") == \"passed\", res\n    assert \"tmp_path\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй tmp_path\"\n\ndef test_catches_bug():\n    def bad(path, text):\n        with open(path, \"w\", encoding=\"utf-8\") as f:\n            f.write(text.upper())\n    code, res = run_pytest(patch={\"save_report\": bad})\n    assert code == 1, \"Тест должен проверять содержимое файла\"\n",
+                  "solution": "import pytest\n\n\ndef save_report(path, text):\n    with open(path, \"w\", encoding=\"utf-8\") as f:\n        f.write(text)\n\n\ndef test_save(tmp_path):\n    path = tmp_path / \"report.txt\"\n    save_report(path, \"passed: 5\")\n    assert path.read_text(encoding=\"utf-8\") == \"passed: 5\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-builtin-e2",
+                  "type": "code",
+                  "prompt": "Функция `greet(name)` печатает приветствие. Напиши тест `test_greet(capsys)`, который перехватывает вывод и проверяет, что напечатано `\"Привет, Аня!\\n\"`.",
+                  "starter_code": "import pytest\n\n\ndef greet(name):\n    print(f\"Привет, {name}!\")\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_greet\") == \"passed\", res\n    assert \"readouterr\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй capsys.readouterr()\"\n\ndef test_catches_bug():\n    code, res = run_pytest(patch={\"greet\": lambda n: print(f\"Hello, {n}\")})\n    assert code == 1, \"Тест должен проверять напечатанный текст\"\n",
+                  "solution": "import pytest\n\n\ndef greet(name):\n    print(f\"Привет, {name}!\")\n\n\ndef test_greet(capsys):\n    greet(\"Аня\")\n    assert capsys.readouterr().out == \"Привет, Аня!\\n\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-builtin-e3",
+                  "type": "code",
+                  "prompt": "Функция `base_url()` читает адрес стенда из переменной окружения `BASE_URL` (по умолчанию `http://localhost`). Напиши тест `test_env(monkeypatch)`: установи переменную через `monkeypatch.setenv` и проверь результат. Переменная не должна «протечь» в другие тесты — monkeypatch сам её уберёт.",
+                  "starter_code": "import os\nimport pytest\n\n\ndef base_url():\n    return os.environ.get(\"BASE_URL\", \"http://localhost\")\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_env\") == \"passed\", res\n    assert \"setenv\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй monkeypatch.setenv\"\n    assert \"BASE_URL\" not in os.environ, \"Переменная протекла наружу\"\n",
+                  "solution": "import os\nimport pytest\n\n\ndef base_url():\n    return os.environ.get(\"BASE_URL\", \"http://localhost\")\n\n\ndef test_env(monkeypatch):\n    monkeypatch.setenv(\"BASE_URL\", \"https://stage.example.com\")\n    assert base_url() == \"https://stage.example.com\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-builtin-e4",
+                  "type": "code",
+                  "prompt": "Функция `status_text()` вызывает медленный `fetch_status()` (в тесте — «сеть»). Подмени `fetch_status` через `monkeypatch.setattr` на функцию, возвращающую `503`, и проверь, что `status_text()` вернёт `\"недоступен\"`. Тест — `test_down(monkeypatch)`.",
+                  "starter_code": "import sys\nimport pytest\n\n\ndef fetch_status():\n    raise RuntimeError(\"нет сети в тестах!\")\n\n\ndef status_text():\n    return \"работает\" if fetch_status() == 200 else \"недоступен\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_down\") == \"passed\", res\n    assert \"setattr\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй monkeypatch.setattr\"\n",
+                  "solution": "import sys\nimport pytest\n\n\ndef fetch_status():\n    raise RuntimeError(\"нет сети в тестах!\")\n\n\ndef status_text():\n    return \"работает\" if fetch_status() == 200 else \"недоступен\"\n\n\ndef test_down(monkeypatch):\n    monkeypatch.setattr(sys.modules[__name__], \"fetch_status\", lambda: 503)\n    assert status_text() == \"недоступен\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "monkeypatch.setattr(sys.modules[__name__], 'fetch_status', ...) — подменить функцию в текущем модуле.",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-builtin-e5",
+                  "type": "command",
+                  "prompt": "Какой фикстурой получить временную папку, уникальную для каждого теста?",
+                  "code": "",
+                  "expected_output": "tmp_path",
+                  "solution": "tmp_path",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-builtin-e6",
+                  "type": "command",
+                  "prompt": "Какой фикстурой проверить, что функция напечатала текст в stdout?",
+                  "code": "",
+                  "expected_output": "capsys",
+                  "solution": "capsys",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-builtin-e7",
+                  "type": "command",
+                  "prompt": "Покажи список всех доступных фикстур (встроенных и твоих) командой pytest.",
+                  "code": "",
+                  "expected_output": "pytest --fixtures\npython -m pytest --fixtures",
+                  "solution": "pytest --fixtures",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-builtin-e8",
+                  "type": "code",
+                  "prompt": "Функция `load_config(path)` читает JSON-конфиг. Напиши **два** теста:\n\n- `test_load(tmp_path)` — запиши файл `config.json` с `{\"url\": \"http://x\"}` и проверь результат;\n- `test_missing(tmp_path)` — для несуществующего файла функция выбрасывает `FileNotFoundError`.",
+                  "starter_code": "import json\nimport pytest\n\n\ndef load_config(path):\n    with open(path, encoding=\"utf-8\") as f:\n        return json.load(f)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"test_load\": \"passed\", \"test_missing\": \"passed\"}, res\n\ndef test_catches_bugs():\n    def swallow(path):\n        try:\n            with open(path, encoding=\"utf-8\") as f:\n                return json.load(f)\n        except FileNotFoundError:\n            return {}\n    code, res = run_pytest(patch={\"load_config\": swallow})\n    assert res.get(\"test_missing\") == \"failed\", \"test_missing должен ловить проглоченную ошибку\"\n    code, res = run_pytest(patch={\"load_config\": lambda p: {}})\n    assert res.get(\"test_load\") == \"failed\", \"test_load должен проверять содержимое\"\n",
+                  "solution": "import json\nimport pytest\n\n\ndef load_config(path):\n    with open(path, encoding=\"utf-8\") as f:\n        return json.load(f)\n\n\ndef test_load(tmp_path):\n    path = tmp_path / \"config.json\"\n    path.write_text(json.dumps({\"url\": \"http://x\"}), encoding=\"utf-8\")\n    assert load_config(path) == {\"url\": \"http://x\"}\n\n\ndef test_missing(tmp_path):\n    with pytest.raises(FileNotFoundError):\n        load_config(tmp_path / \"nope.json\")\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 25
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nУ pytest есть готовые фикстуры для частых задач: временные файлы, подмена переменных окружения и функций, перехват вывода. Они избавляют от ручной уборки и делают тесты изолированными.\n\n## tmp_path: временная папка\n\n```py\ndef test_save(tmp_path):\n    path = tmp_path / \"report.txt\"\n    save_report(path, \"passed: 5\")\n    assert path.read_text(encoding=\"utf-8\") == \"passed: 5\"\n```\n\n- `tmp_path` — `pathlib.Path` к уникальной пустой папке для **этого** теста. Не нужно думать об уборке и конфликтах между тестами.\n- `tmp_path_factory` — то же для session-фикстур.\n\n## monkeypatch: подмены\n\n```py\ndef test_env(monkeypatch):\n    monkeypatch.setenv(\"BASE_URL\", \"https://stage.example.com\")\n    assert base_url() == \"https://stage.example.com\"\n\n\ndef test_down(monkeypatch):\n    monkeypatch.setattr(service, \"fetch_status\", lambda: 503)\n    assert service.status_text() == \"недоступен\"\n```\n\n- `setenv` / `delenv` — переменные окружения.\n- `setattr(объект, \"имя\", значение)` — подменить атрибут: функцию модуля, метод класса, константу. Так отрезают сеть, время, случайность.\n- `setitem(словарь, ключ, значение)` — подменить элемент словаря.\n- После теста **всё возвращается как было** — подмены не протекают.\n\n## capsys: вывод\n\n```py\ndef test_greet(capsys):\n    greet(\"Аня\")\n    captured = capsys.readouterr()\n    assert captured.out == \"Привет, Аня!\\n\"\n    assert captured.err == \"\"\n```\n\n- `readouterr()` возвращает то, что напечатано с прошлого вызова: `.out` — stdout, `.err` — stderr.\n- `caplog` — то же для модуля `logging`: `caplog.text`, `caplog.records`.\n\n## request\n\n- `request` — информация о текущем тесте: `request.node.name` (имя теста), `request.param` (для параметризованных фикстур), `request.config` (конфиг и опции).\n\n## Список фикстур\n\n```bash\n$ pytest --fixtures\n```\n\n- Все доступные фикстуры с описаниями: встроенные, из плагинов и из твоих `conftest.py`.\n\n## Итог\n\n- `tmp_path` — временная папка на тест.\n- `monkeypatch.setenv/setattr/setitem` — подмены с автоматическим откатом.\n- `capsys.readouterr().out` — напечатанное; `caplog` — логи.\n- `request` — данные о тесте; `pytest --fixtures` — список фикстур.",
+              "quiz": [
+                {
+                  "q": "Что вернёт `tmp_path`?",
+                  "options": [
+                    "Строку /tmp",
+                    "Уникальную временную папку для теста (Path)",
+                    "Текущую папку",
+                    "Путь к тесту"
+                  ],
+                  "answer": 1,
+                  "explain": "Своя папка на каждый тест."
+                },
+                {
+                  "q": "Что происходит с подменами monkeypatch после теста?",
+                  "options": [
+                    "Остаются",
+                    "Откатываются автоматически",
+                    "Сохраняются в файл",
+                    "Зависят от scope"
+                  ],
+                  "answer": 1,
+                  "explain": "Тесты изолированы."
+                },
+                {
+                  "q": "Какой фикстурой проверить напечатанный текст?",
+                  "options": [
+                    "tmp_path",
+                    "monkeypatch",
+                    "capsys",
+                    "request"
+                  ],
+                  "answer": 2,
+                  "explain": "capsys.readouterr().out."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "pyt-m3",
+          "title": "Маркеры, параллельность и настройка",
+          "icon": "🏷️",
+          "description": "skip, skipif, xfail и свои маркеры, pytest-xdist, pytest.ini и pyproject, хорошие тесты",
+          "lessons": [
+            {
+              "slug": "pyt-marks",
+              "title": "Маркеры: skip, skipif, xfail и свои",
+              "theory": "```py\n@pytest.mark.skip(reason=\"...\")\n@pytest.mark.skipif(sys.platform == \"win32\", reason=\"...\")\n@pytest.mark.xfail(reason=\"BUG-42\")\n@pytest.mark.smoke                  # свой маркер\n# pytest -m smoke  ·  -m \"not slow\"  ·  -m \"api and not slow\"\n# pytest.ini: markers = smoke: быстрые проверки\n```",
+              "exercises": [
+                {
+                  "slug": "pyt-marks-e1",
+                  "type": "code",
+                  "prompt": "Тест `test_new_feature` проверяет ещё не готовую функцию. Пропусти его маркером `skip` с причиной `\"фича в разработке\"`. Второй тест `test_ready` должен выполняться и проходить.",
+                  "starter_code": "import pytest\n\n\ndef ready():\n    return True\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"test_new_feature\": \"skipped\", \"test_ready\": \"passed\"}, res\n    assert \"reason=\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Укажи reason\"\n",
+                  "solution": "import pytest\n\n\ndef ready():\n    return True\n\n\n@pytest.mark.skip(reason=\"фича в разработке\")\ndef test_new_feature():\n    assert False\n\n\ndef test_ready():\n    assert ready()\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-marks-e2",
+                  "type": "code",
+                  "prompt": "Тест `test_unix_path` имеет смысл только не в Windows. Пропусти его через `skipif`, если `sys.platform` начинается с `\"win\"`. Сам тест проверяет, что `join_path(\"a\", \"b\") == \"a/b\"`.",
+                  "starter_code": "import sys\nimport pytest\n\n\ndef join_path(*parts):\n    return \"/\".join(parts)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"test_unix_path\": \"passed\"}, res\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"skipif\" in src and \"sys.platform\" in src, \"Используй skipif с условием на sys.platform\"\n",
+                  "solution": "import sys\nimport pytest\n\n\ndef join_path(*parts):\n    return \"/\".join(parts)\n\n\n@pytest.mark.skipif(sys.platform.startswith(\"win\"), reason=\"только Unix\")\ndef test_unix_path():\n    assert join_path(\"a\", \"b\") == \"a/b\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-marks-e3",
+                  "type": "code",
+                  "prompt": "Известный баг: `discount(100, 150)` возвращает отрицательную цену. Напиши тест `test_big_discount`, который проверяет, что цена не ниже 0, и пометь его `xfail` с причиной `\"BUG-42\"` — пока баг не исправлен, тест «ожидаемо падает» и не краснит прогон.",
+                  "starter_code": "import pytest\n\n\ndef discount(price, percent):\n    return price * (100 - percent) / 100\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"test_big_discount\": \"skipped\"}, f\"Тест должен быть xfail: {res}\"\n    assert code == 0, \"xfail не должен ронять прогон\"\n    assert \"BUG-42\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Укажи причину BUG-42\"\n\ndef test_turns_green_when_fixed():\n    code, res = run_pytest(patch={\"discount\": lambda p, pc: max(0, p * (100 - pc) / 100)})\n    assert res == {\"test_big_discount\": \"passed\"}, f\"Когда баг исправят, тест должен пройти (xpass): {res}\"\n",
+                  "solution": "import pytest\n\n\ndef discount(price, percent):\n    return price * (100 - percent) / 100\n\n\n@pytest.mark.xfail(reason=\"BUG-42\")\ndef test_big_discount():\n    assert discount(100, 150) >= 0\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "xfail засчитывается как пропуск; если тест вдруг пройдёт — это xpass.",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-marks-e4",
+                  "type": "code",
+                  "prompt": "Пометь тесты своими маркерами: `test_login` и `test_logout` — `@pytest.mark.smoke`, `test_report` — `@pytest.mark.slow`. Проверка запустит `pytest -m smoke` и убедится, что выполнились только smoke-тесты.",
+                  "starter_code": "import pytest\n\n\ndef test_login():\n    assert True\n\n\ndef test_logout():\n    assert True\n\n\ndef test_report():\n    assert True\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest(\"-m\", \"smoke\", \"-p\", \"no:warnings\")\n    assert res == {\"test_login\": \"passed\", \"test_logout\": \"passed\"}, f\"-m smoke должен выбрать 2 теста: {res}\"\n    code, res = run_pytest(\"-m\", \"slow\", \"-p\", \"no:warnings\")\n    assert res == {\"test_report\": \"passed\"}, res\n",
+                  "solution": "import pytest\n\n\n@pytest.mark.smoke\ndef test_login():\n    assert True\n\n\n@pytest.mark.smoke\ndef test_logout():\n    assert True\n\n\n@pytest.mark.slow\ndef test_report():\n    assert True\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-marks-e5",
+                  "type": "command",
+                  "prompt": "Запусти только тесты с маркером `smoke`.",
+                  "code": "",
+                  "expected_output": "pytest -m smoke\npytest -m 'smoke'\npytest -m \"smoke\"\npython -m pytest -m smoke",
+                  "solution": "pytest -m smoke",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-marks-e6",
+                  "type": "command",
+                  "prompt": "Запусти все тесты, **кроме** помеченных `slow`.",
+                  "code": "",
+                  "expected_output": "pytest -m 'not slow'\npytest -m \"not slow\"\npython -m pytest -m 'not slow'",
+                  "solution": "pytest -m 'not slow'",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-marks-e7",
+                  "type": "command",
+                  "prompt": "Сколько тестов **пропущено** (skip)? Введи число.",
+                  "code": "$ pytest -q\n..s.xs.                                                                  [100%]\n4 passed, 2 skipped, 1 xfailed in 0.05s\n",
+                  "expected_output": "2",
+                  "solution": "2",
+                  "hint": "s — skipped, x — xfailed.",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-marks-e8",
+                  "type": "command",
+                  "prompt": "Какую строку добавить в секцию `markers` файла `pytest.ini`, чтобы зарегистрировать маркер `smoke` с описанием «быстрые проверки» (без предупреждения PytestUnknownMarkWarning)?",
+                  "code": "",
+                  "expected_output": "smoke: быстрые проверки\nsmoke:быстрые проверки",
+                  "solution": "smoke: быстрые проверки",
+                  "hint": "",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nНе все тесты нужно запускать всегда. Smoke-набор — после каждого коммита за минуту, полный регресс — ночью. Тест на неготовую фичу — пропустить. Тест на известный баг — не должен «краснить» прогон, пока баг не исправят. Для этого есть **маркеры**.\n\n## skip и skipif\n\n```py\n@pytest.mark.skip(reason=\"фича в разработке\")\ndef test_new_feature():\n    ...\n\n\n@pytest.mark.skipif(sys.platform.startswith(\"win\"), reason=\"только Unix\")\ndef test_unix_path():\n    ...\n```\n\n- `skip` — всегда пропускать; `reason` попадёт в отчёт.\n- `skipif(условие, reason=...)` — пропускать, если условие истинно: платформа, версия Python, стенд.\n- Внутри теста: `pytest.skip(\"причина\")` — пропустить по ходу выполнения.\n\n## xfail: известный баг\n\n```py\n@pytest.mark.xfail(reason=\"BUG-42: отрицательная цена\")\ndef test_big_discount():\n    assert discount(100, 150) >= 0\n```\n\n- Тест ожидаемо падает: в отчёте `x` (xfailed), прогон остаётся зелёным.\n- Когда баг исправят, тест пройдёт — будет `X` (xpassed), напоминание снять маркер. `strict=True` превратит xpass в падение.\n\n## Свои маркеры\n\n```py\n@pytest.mark.smoke\ndef test_login():\n    ...\n\n\n@pytest.mark.slow\n@pytest.mark.api\ndef test_report():\n    ...\n```\n\n```bash\n$ pytest -m smoke\n$ pytest -m \"not slow\"\n$ pytest -m \"api and not slow\"\n```\n\n- Маркер — просто метка с любым именем. `-m выражение` отбирает тесты по меткам (`and`, `or`, `not`).\n- Чтобы не было предупреждения `PytestUnknownMarkWarning`, маркеры регистрируют в настройках:\n\n```bash\n[pytest]\nmarkers =\n    smoke: быстрые проверки\n    slow: долгие тесты\n```\n\n- `--strict-markers` превращает незарегистрированный маркер в ошибку — защита от опечаток.\n\n## Итог\n\n- `skip`, `skipif(условие)` — пропустить; `reason` — всегда.\n- `xfail(reason=...)` — известный баг: `x` не роняет прогон.\n- Свои маркеры + `pytest -m \"smoke and not slow\"`.\n- Регистрируй маркеры в `markers`.",
+              "quiz": [
+                {
+                  "q": "Чем xfail отличается от skip?",
+                  "options": [
+                    "Ничем",
+                    "xfail-тест выполняется и ожидаемо падает, skip не выполняется",
+                    "skip выполняется",
+                    "xfail удаляет тест"
+                  ],
+                  "answer": 1,
+                  "explain": "Если xfail-тест пройдёт — будет xpass."
+                },
+                {
+                  "q": "Как запустить всё, кроме медленных тестов?",
+                  "options": [
+                    "pytest -k slow",
+                    "pytest -m \"not slow\"",
+                    "pytest --skip slow",
+                    "pytest -x slow"
+                  ],
+                  "answer": 1,
+                  "explain": "-m — выражение по маркерам."
+                },
+                {
+                  "q": "Зачем регистрировать маркеры?",
+                  "options": [
+                    "Для скорости",
+                    "Чтобы не было предупреждений и ловить опечатки",
+                    "Иначе не работают",
+                    "Для Allure"
+                  ],
+                  "answer": 1,
+                  "explain": "--strict-markers сделает опечатку ошибкой."
+                }
+              ]
+            },
+            {
+              "slug": "pyt-xdist",
+              "title": "Параллельный запуск: pytest-xdist",
+              "theory": "```bash\npip install pytest-xdist\npytest -n 4                  # 4 воркера\npytest -n auto               # по числу ядер\npytest -n 4 --dist loadscope # модуль — на одном воркере\n# порядок случаен · общее состояние запрещено\n# PYTEST_XDIST_WORKER=gw0… / фикстура worker_id\n```",
+              "exercises": [
+                {
+                  "slug": "pyt-xdist-e1",
+                  "type": "command",
+                  "prompt": "Установи плагин для параллельного запуска тестов.",
+                  "code": "",
+                  "expected_output": "pip install pytest-xdist\npython -m pip install pytest-xdist\nuv add --dev pytest-xdist\nuv add pytest-xdist --dev",
+                  "solution": "pip install pytest-xdist",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-xdist-e2",
+                  "type": "command",
+                  "prompt": "Запусти тесты в 4 параллельных процессах.",
+                  "code": "",
+                  "expected_output": "pytest -n 4\npytest -n4\npython -m pytest -n 4\npytest --numprocesses 4\npytest --numprocesses=4",
+                  "solution": "pytest -n 4",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-xdist-e3",
+                  "type": "command",
+                  "prompt": "Запусти тесты в стольких процессах, сколько ядер у процессора.",
+                  "code": "",
+                  "expected_output": "pytest -n auto\npython -m pytest -n auto\npytest --numprocesses=auto\npytest --numprocesses auto\npytest -n logical",
+                  "solution": "pytest -n auto",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-xdist-e4",
+                  "type": "command",
+                  "prompt": "Запусти параллельно так, чтобы все тесты **одного модуля** выполнялись на одном воркере (нужно, если у них общая module-фикстура).",
+                  "code": "",
+                  "expected_output": "pytest -n 4 --dist loadscope\npytest -n 4 --dist=loadscope\npytest --dist loadscope -n 4\npytest -n auto --dist loadscope\npytest -n auto --dist=loadscope\npytest -n 4 --dist loadfile\npytest -n auto --dist loadfile",
+                  "solution": "pytest -n 4 --dist loadscope",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-xdist-e5",
+                  "type": "command",
+                  "prompt": "Сколько воркеров запущено? Введи число.",
+                  "code": "$ pytest -n auto\n4 workers [120 items]\n........................................................................ [ 60%]\n................................................                         [100%]\n120 passed in 8.31s\n",
+                  "expected_output": "4",
+                  "solution": "4",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-xdist-e6",
+                  "type": "code",
+                  "prompt": "Тесты, которые делят общее изменяемое состояние, при параллельном запуске ломаются. Исправь тесты: сейчас `test_add` и `test_count` используют общий глобальный список `CART`. Сделай фикстуру `cart`, возвращающую **новый** список, и перепиши оба теста на неё, чтобы они были независимы и проходили в любом порядке и параллельно.",
+                  "starter_code": "import pytest\n\nCART = []\n\n\ndef test_add():\n    CART.append(\"чай\")\n    assert CART == [\"чай\"]\n\n\ndef test_count():\n    assert len(CART) == 0\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"test_add\": \"passed\", \"test_count\": \"passed\"}, res\n    import re\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert re.search(r\"def test_add\\(\\s*cart\", src) and re.search(r\"def test_count\\(\\s*cart\", src), \"Тесты должны получать фикстуру cart\"\n\ndef test_parallel():\n    code, res = run_pytest(\"-n\", \"2\")\n    assert res.get(\"test_add\") == \"passed\" and res.get(\"test_count\") == \"passed\", f\"Параллельно тесты тоже должны проходить: {res}\"\n",
+                  "solution": "import pytest\n\n\n@pytest.fixture\ndef cart():\n    return []\n\n\ndef test_add(cart):\n    cart.append(\"чай\")\n    assert cart == [\"чай\"]\n\n\ndef test_count(cart):\n    assert len(cart) == 0\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-xdist-e7",
+                  "type": "command",
+                  "prompt": "Можно ли рассчитывать на **порядок** выполнения тестов при `pytest -n 4`? Ответь `да` или `нет`.",
+                  "code": "",
+                  "expected_output": "нет",
+                  "solution": "нет",
+                  "hint": "Тесты раздаются воркерам по мере освобождения.",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-xdist-e8",
+                  "type": "command",
+                  "prompt": "Как узнать в фикстуре номер текущего воркера xdist? Введи имя переменной окружения, которую выставляет xdist.",
+                  "code": "",
+                  "expected_output": "PYTEST_XDIST_WORKER",
+                  "solution": "PYTEST_XDIST_WORKER",
+                  "hint": "Значения вида gw0, gw1…; удобно для уникальных тестовых данных на воркер.",
+                  "xp": 15
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nUI-тесты и тесты API тратят время на ожидание сети и браузера. Прогон на 40 минут в 4 потока займёт около 10. Плагин **pytest-xdist** запускает тесты параллельно в нескольких процессах-воркерах.\n\n## Запуск\n\n```bash\n$ pip install pytest-xdist\n$ pytest -n 4\n$ pytest -n auto\n4 workers [120 items]\n........................................................................ [ 60%]\n................................................                         [100%]\n120 passed in 8.31s\n```\n\n- `-n 4` — четыре воркера (отдельных процесса Python); `-n auto` — по числу ядер процессора.\n- Тесты раздаются воркерам по мере освобождения, поэтому **порядок не гарантирован**.\n\n## Распределение\n\n```bash\n$ pytest -n 4 --dist loadscope\n$ pytest -n 4 --dist loadfile\n```\n\n- По умолчанию (`load`) тесты раздаются по одному.\n- `loadscope` — все тесты одного модуля (или класса) — на одном воркере. Нужно, когда у них общая module- или class-фикстура: она не будет создаваться на каждом воркере заново.\n- `loadfile` — по файлам.\n\n## Главное правило: независимость\n\n```py\nCART = []          # плохо: общее состояние\n\n\n@pytest.fixture\ndef cart():        # хорошо: свежие данные на тест\n    return []\n```\n\n- Каждый воркер — отдельный процесс: общие глобальные переменные **не общие** между воркерами, а порядок тестов случаен. Тест, который рассчитывает на результат другого теста, при параллельном запуске падает.\n- Session-фикстура создаётся **на каждом воркере** свой раз.\n- Уникальные данные: воркер узнаёт свой номер из переменной окружения `PYTEST_XDIST_WORKER` (`gw0`, `gw1`…) или фикстуры `worker_id` — удобно для имён тестовых пользователей.\n\n## Итог\n\n- `pytest -n 4` / `-n auto` — параллельно.\n- `--dist loadscope` / `loadfile` — группировка.\n- Тесты должны быть независимы: нет общего состояния, нет зависимости от порядка.\n- `PYTEST_XDIST_WORKER` / `worker_id` — номер воркера.",
+              "quiz": [
+                {
+                  "q": "Что делает `pytest -n auto`?",
+                  "options": [
+                    "Выбирает тесты автоматически",
+                    "Запускает столько воркеров, сколько ядер",
+                    "Перезапускает упавшие",
+                    "Отключает xdist"
+                  ],
+                  "answer": 1,
+                  "explain": "Параллельный запуск."
+                },
+                {
+                  "q": "Почему общий глобальный список ломает тесты при xdist?",
+                  "options": [
+                    "xdist его удаляет",
+                    "Воркеры — разные процессы, а порядок случаен",
+                    "Списки запрещены",
+                    "Не ломает"
+                  ],
+                  "answer": 1,
+                  "explain": "Тесты должны быть независимы."
+                },
+                {
+                  "q": "Когда нужен `--dist loadscope`?",
+                  "options": [
+                    "Всегда",
+                    "Когда тестам модуля нужна общая module-фикстура",
+                    "Для скорости UI",
+                    "Для отчётов"
+                  ],
+                  "answer": 1,
+                  "explain": "Модуль целиком — на одном воркере."
+                }
+              ]
+            },
+            {
+              "slug": "pyt-config",
+              "title": "Настройка: pytest.ini и pyproject.toml",
+              "theory": "```bash\n[tool.pytest.ini_options]      # pyproject.toml\ntestpaths = [\"tests\"]\naddopts = \"-v --tb=short -ra\"\nmarkers = [\"smoke: быстрые проверки\"]\nfilterwarnings = [\"error\"]\n# pytest --collect-only -q     # что соберётся\n# pytest -o addopts=\"\"         # без addopts\n```",
+              "exercises": [
+                {
+                  "slug": "pyt-config-e1",
+                  "type": "command",
+                  "prompt": "Как называется секция pytest в файле `pyproject.toml`? Введи заголовок.",
+                  "code": "",
+                  "expected_output": "[tool.pytest.ini_options]",
+                  "solution": "[tool.pytest.ini_options]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-config-e2",
+                  "type": "command",
+                  "prompt": "Какую строку добавить в секцию настроек pytest, чтобы тесты искались только в папке `tests`?",
+                  "code": "",
+                  "expected_output": "testpaths = [\"tests\"]\ntestpaths = ['tests']\ntestpaths = tests",
+                  "solution": "testpaths = [\"tests\"]",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-config-e3",
+                  "type": "command",
+                  "prompt": "Какую строку добавить, чтобы pytest **всегда** запускался с флагами `-v --tb=short`?",
+                  "code": "",
+                  "expected_output": "addopts = \"-v --tb=short\"\naddopts = '-v --tb=short'\naddopts = -v --tb=short",
+                  "solution": "addopts = \"-v --tb=short\"",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-config-e4",
+                  "type": "command",
+                  "prompt": "С какими флагами на самом деле запустится pytest? Введи их через пробел (сначала из настроек).",
+                  "code": "[tool.pytest.ini_options]\naddopts = \"-v -n 2\"\n\n$ pytest -x\n",
+                  "expected_output": "-v -n 2 -x",
+                  "solution": "-v -n 2 -x",
+                  "hint": "addopts добавляется перед флагами из командной строки.",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-config-e5",
+                  "type": "command",
+                  "prompt": "Покажи, какие тесты pytest **найдёт**, не запуская их.",
+                  "code": "",
+                  "expected_output": "pytest --collect-only\npytest --co\npytest --collect-only -q\npytest --co -q",
+                  "solution": "pytest --collect-only",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-config-e6",
+                  "type": "command",
+                  "prompt": "Запусти pytest, **временно отключив** addopts из конфига (флаг переопределения опций `-o`).",
+                  "code": "",
+                  "expected_output": "pytest -o addopts=\"\"\npytest -o addopts=''\npytest -o addopts=",
+                  "solution": "pytest -o addopts=\"\"",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-config-e7",
+                  "type": "command",
+                  "prompt": "Какую строку добавить в настройки, чтобы любые предупреждения превращались в ошибки (правило для `filterwarnings`)? Введи значение правила.",
+                  "code": "",
+                  "expected_output": "error",
+                  "solution": "error",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-config-e8",
+                  "type": "command",
+                  "prompt": "Какой минимальной версии pytest требует проект? Введи номер.",
+                  "code": "[tool.pytest.ini_options]\nminversion = \"8.0\"\ntestpaths = [\"tests\"]\nmarkers = [\"smoke: быстрые проверки\", \"slow: долгие тесты\"]\n",
+                  "expected_output": "8.0",
+                  "solution": "8.0",
+                  "hint": "",
+                  "xp": 10
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nОдни и те же флаги (`-v`, `-n 4`, путь к тестам, маркеры) неудобно писать при каждом запуске, и их легко забыть в CI. Настройки pytest хранят в файле проекта — у всех и везде одинаковые.\n\n## Где хранить\n\n```bash\n# pyproject.toml\n[tool.pytest.ini_options]\nminversion = \"8.0\"\ntestpaths = [\"tests\"]\naddopts = \"-v --tb=short -ra\"\nmarkers = [\n    \"smoke: быстрые проверки\",\n    \"slow: долгие тесты\",\n]\nfilterwarnings = [\"error\"]\n```\n\n- В `pyproject.toml` — секция `[tool.pytest.ini_options]`. Альтернатива — файл `pytest.ini` с секцией `[pytest]` (там списки пишутся с новой строки, без кавычек).\n- `testpaths` — где искать тесты (быстрее и без случайных файлов).\n- `addopts` — флаги, которые добавляются к **каждому** запуску, перед флагами из командной строки.\n- `markers` — регистрация маркеров.\n- `filterwarnings = [\"error\"]` — превращать предупреждения в ошибки (ловит устаревшие вызовы библиотек).\n- `minversion` — минимальная версия pytest.\n\n## Как взаимодействуют настройки и командная строка\n\n```bash\n$ pytest -x\n# на самом деле: pytest -v --tb=short -ra -x\n$ pytest -o addopts=\"\"\n```\n\n- `addopts` подставляется первым, потом твои флаги.\n- `-o ключ=значение` — переопределить настройку на один запуск. `-o addopts=\"\"` — запустить без неё.\n\n## Что будет запущено\n\n```bash\n$ pytest --collect-only -q\ntests/test_api.py::test_status\ntests/test_api.py::test_users[admin]\ntests/test_api.py::test_users[qa]\n3 tests collected in 0.02s\n```\n\n- `--collect-only` (`--co`) — показать найденные тесты, не запуская. Удобно проверить `-k`, `-m` и параметризацию.\n\n## Итог\n\n- `[tool.pytest.ini_options]` в `pyproject.toml` или `[pytest]` в `pytest.ini`.\n- `testpaths`, `addopts`, `markers`, `filterwarnings`, `minversion`.\n- `addopts` + флаги командной строки; `-o` — переопределить.\n- `--collect-only` — что соберётся.",
+              "quiz": [
+                {
+                  "q": "Где лежат настройки pytest в pyproject.toml?",
+                  "options": [
+                    "[pytest]",
+                    "[tool.pytest.ini_options]",
+                    "[tool.pytest]",
+                    "[project.pytest]"
+                  ],
+                  "answer": 1,
+                  "explain": "В pytest.ini — просто [pytest]."
+                },
+                {
+                  "q": "Что делает `addopts`?",
+                  "options": [
+                    "Добавляет тесты",
+                    "Добавляет флаги к каждому запуску",
+                    "Устанавливает плагины",
+                    "Удаляет флаги"
+                  ],
+                  "answer": 1,
+                  "explain": "Подставляются перед флагами из командной строки."
+                },
+                {
+                  "q": "Как посмотреть, какие тесты будут запущены, не запуская их?",
+                  "options": [
+                    "pytest --dry",
+                    "pytest --collect-only",
+                    "pytest -n 0",
+                    "pytest --list"
+                  ],
+                  "answer": 1,
+                  "explain": "Или --co."
+                }
+              ]
+            },
+            {
+              "slug": "pyt-practice",
+              "title": "Практика: хорошие тесты",
+              "theory": "```py\ndef test_checkout_empties_cart():\n    cart = Cart(); cart.add(100)      # Arrange\n    total = cart.checkout()           # Act\n    assert total == 100               # Assert\n    assert cart.items == []\n# границы: 17 18 99 100 · негативные случаи · структура целиком\n# изоляция: фикстуры, фейки, время параметром\n# pytest --durations=5 · flaky → чинить причину\n```",
+              "exercises": [
+                {
+                  "slug": "pyt-practice-e1",
+                  "type": "code",
+                  "prompt": "Тест в стиле **AAA** (Arrange — Act — Assert). Напиши `test_checkout` для класса `Cart`: подготовь корзину с товарами по 100 и 250 (Arrange), вызови `checkout()` (Act), проверь, что вернулось `350` и корзина стала пустой (Assert).",
+                  "starter_code": "import pytest\n\n\nclass Cart:\n    def __init__(self):\n        self.items = []\n\n    def add(self, price):\n        self.items.append(price)\n\n    def checkout(self):\n        total = sum(self.items)\n        self.items.clear()\n        return total\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_checkout\") == \"passed\", res\n\ndef test_catches_bugs():\n    class NoClear(sys.modules[\"solution\"].Cart):\n        def checkout(self):\n            return sum(self.items)\n    class WrongSum(sys.modules[\"solution\"].Cart):\n        def checkout(self):\n            total = max(self.items)\n            self.items.clear()\n            return total\n    for bug in (NoClear, WrongSum):\n        code, res = run_pytest(patch={\"Cart\": bug})\n        assert code == 1, f\"Тест пропустил ошибку ({bug.__name__})\"\n",
+                  "solution": "import pytest\n\n\nclass Cart:\n    def __init__(self):\n        self.items = []\n\n    def add(self, price):\n        self.items.append(price)\n\n    def checkout(self):\n        total = sum(self.items)\n        self.items.clear()\n        return total\n\n\ndef test_checkout():\n    cart = Cart()\n    cart.add(100)\n    cart.add(250)\n\n    total = cart.checkout()\n\n    assert total == 350\n    assert cart.items == []\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-practice-e2",
+                  "type": "code",
+                  "prompt": "Граничные значения: функция `can_register(age)` разрешает регистрацию с 18 до 99 лет включительно. Напиши параметризованный тест `test_age(age, expected)`, покрывающий **обе границы с обеих сторон**: 17, 18, 99, 100.",
+                  "starter_code": "import pytest\n\n\ndef can_register(age):\n    return 18 <= age <= 99\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert len(res) >= 4 and all(v == \"passed\" for v in res.values()), res\n\ndef test_catches_boundary_bugs():\n    bugs = [lambda a: 18 < a <= 99, lambda a: 18 <= a < 99, lambda a: 17 <= a <= 99, lambda a: 18 <= a <= 100]\n    for i, bug in enumerate(bugs):\n        code, res = run_pytest(patch={\"can_register\": bug})\n        assert code == 1, f\"Тест пропустил ошибку на границе (вариант {i + 1})\"\n",
+                  "solution": "import pytest\n\n\ndef can_register(age):\n    return 18 <= age <= 99\n\n\n@pytest.mark.parametrize(\"age, expected\", [(17, False), (18, True), (99, True), (100, False)])\ndef test_age(age, expected):\n    assert can_register(age) == expected\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-practice-e3",
+                  "type": "code",
+                  "prompt": "Тест не должен зависеть от реального времени. Функция `greeting(now)` принимает время параметром. Напиши параметризованный тест `test_greeting(hour, expected)` для часов `9 → \"Доброе утро\"`, `15 → \"Добрый день\"`, `22 → \"Добрый вечер\"`, создавая `datetime(2024, 3, 8, hour)`.",
+                  "starter_code": "from datetime import datetime\nimport pytest\n\n\ndef greeting(now):\n    if now.hour < 12:\n        return \"Доброе утро\"\n    if now.hour < 18:\n        return \"Добрый день\"\n    return \"Добрый вечер\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert len(res) == 3 and all(v == \"passed\" for v in res.values()), res\n\ndef test_catches_bug():\n    code, res = run_pytest(patch={\"greeting\": lambda now: \"Доброе утро\"})\n    assert code == 1, \"Тест должен ловить неправильное приветствие\"\n",
+                  "solution": "from datetime import datetime\nimport pytest\n\n\ndef greeting(now):\n    if now.hour < 12:\n        return \"Доброе утро\"\n    if now.hour < 18:\n        return \"Добрый день\"\n    return \"Добрый вечер\"\n\n\n@pytest.mark.parametrize(\"hour, expected\", [(9, \"Доброе утро\"), (15, \"Добрый день\"), (22, \"Добрый вечер\")])\ndef test_greeting(hour, expected):\n    assert greeting(datetime(2024, 3, 8, hour)) == expected\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-practice-e4",
+                  "type": "code",
+                  "prompt": "Замени обращение к «сети» подделкой. Класс `UserService` получает клиента в конструкторе. Напиши фейковый класс `FakeClient` с методом `get(path)`, который для `\"/users/1\"` возвращает `{\"id\": 1, \"name\": \"anna\"}`, и тест `test_name`, проверяющий, что `UserService(FakeClient()).name(1) == \"anna\"`.",
+                  "starter_code": "import pytest\n\n\nclass UserService:\n    def __init__(self, client):\n        self.client = client\n\n    def name(self, user_id):\n        return self.client.get(f\"/users/{user_id}\")[\"name\"]\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_name\") == \"passed\", res\n    assert \"class FakeClient\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Нужен класс FakeClient\"\n\ndef test_catches_bug():\n    class Broken(sys.modules[\"solution\"].UserService):\n        def name(self, user_id):\n            return self.client.get(f\"/users/{user_id + 1}\").get(\"name\")\n    code, res = run_pytest(patch={\"UserService\": Broken})\n    assert code == 1, \"Тест должен ловить запрос не того пользователя\"\n",
+                  "solution": "import pytest\n\n\nclass UserService:\n    def __init__(self, client):\n        self.client = client\n\n    def name(self, user_id):\n        return self.client.get(f\"/users/{user_id}\")[\"name\"]\n\n\nclass FakeClient:\n    def get(self, path):\n        data = {\"/users/1\": {\"id\": 1, \"name\": \"anna\"}}\n        return data.get(path, {})\n\n\ndef test_name():\n    assert UserService(FakeClient()).name(1) == \"anna\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 20
+                },
+                {
+                  "slug": "pyt-practice-e5",
+                  "type": "command",
+                  "prompt": "Тест проходит при запуске в одиночку, но падает в общем прогоне. Как называют такой тест? Введи одно слово латиницей.",
+                  "code": "",
+                  "expected_output": "flaky",
+                  "solution": "flaky",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-practice-e6",
+                  "type": "command",
+                  "prompt": "Перезапусти только упавшие в прошлый раз тесты, а после них — все остальные (флаг «сначала упавшие»).",
+                  "code": "",
+                  "expected_output": "pytest --ff\npytest --failed-first",
+                  "solution": "pytest --ff",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-practice-e7",
+                  "type": "command",
+                  "prompt": "Покажи 5 самых медленных тестов после прогона.",
+                  "code": "",
+                  "expected_output": "pytest --durations=5\npytest --durations 5",
+                  "solution": "pytest --durations=5",
+                  "hint": "",
+                  "xp": 10
+                },
+                {
+                  "slug": "pyt-practice-e8",
+                  "type": "code",
+                  "prompt": "Итоговое задание. Для функции `validate_password(pw)` (возвращает список ошибок) напиши набор тестов:\n\n- параметризованный `test_valid(pw)` для двух хороших паролей: `\"Secret123\"` и `\"Qwerty2024x\"` (ошибок нет);\n- параметризованный `test_invalid(pw, error)` для случаев: `\"Ab1\"` → `\"короткий\"`, `\"secret123\"` → `\"нет заглавной\"`, `\"SecretPass\"` → `\"нет цифры\"` (ошибка есть в списке);\n- `test_none` — `validate_password(None)` выбрасывает `TypeError`.",
+                  "starter_code": "import pytest\n\n\ndef validate_password(pw):\n    if not isinstance(pw, str):\n        raise TypeError(\"пароль должен быть строкой\")\n    errors = []\n    if len(pw) < 8:\n        errors.append(\"короткий\")\n    if not any(c.isupper() for c in pw):\n        errors.append(\"нет заглавной\")\n    if not any(c.isdigit() for c in pw):\n        errors.append(\"нет цифры\")\n    return errors\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    module = importlib.import_module(\"solution\")\n    for name, value in (patch or {}).items():\n        setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    names = sorted(res)\n    assert sum(n.startswith(\"test_valid[\") for n in names) == 2, names\n    assert sum(n.startswith(\"test_invalid[\") for n in names) == 3, names\n    assert res.get(\"test_none\") == \"passed\" and all(v == \"passed\" for v in res.values()), res\n\ndef test_catches_bugs():\n    real = sys.modules[\"solution\"].validate_password\n    def no_len(pw):\n        return [e for e in real(pw) if e != \"короткий\"]\n    def no_upper(pw):\n        return [e for e in real(pw) if e != \"нет заглавной\"]\n    def no_digit(pw):\n        return [e for e in real(pw) if e != \"нет цифры\"]\n    def no_type(pw):\n        return [] if pw is None else real(pw)\n    def too_strict(pw):\n        return real(pw) + [\"слабый\"]\n    for bug in (no_len, no_upper, no_digit, no_type, too_strict):\n        code, res = run_pytest(patch={\"validate_password\": bug})\n        assert code == 1, f\"Тесты пропустили ошибку ({bug.__name__})\"\n",
+                  "solution": "import pytest\n\n\ndef validate_password(pw):\n    if not isinstance(pw, str):\n        raise TypeError(\"пароль должен быть строкой\")\n    errors = []\n    if len(pw) < 8:\n        errors.append(\"короткий\")\n    if not any(c.isupper() for c in pw):\n        errors.append(\"нет заглавной\")\n    if not any(c.isdigit() for c in pw):\n        errors.append(\"нет цифры\")\n    return errors\n\n\n@pytest.mark.parametrize(\"pw\", [\"Secret123\", \"Qwerty2024x\"])\ndef test_valid(pw):\n    assert validate_password(pw) == []\n\n\n@pytest.mark.parametrize(\"pw, error\", [(\"Ab1\", \"короткий\"), (\"secret123\", \"нет заглавной\"), (\"SecretPass\", \"нет цифры\")])\ndef test_invalid(pw, error):\n    assert error in validate_password(pw)\n\n\ndef test_none():\n    with pytest.raises(TypeError):\n        validate_password(None)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
+                  "hint": "",
+                  "xp": 30
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nНаписать тест, который проходит, легко. Написать тест, который **находит баги**, понятен коллегам и не «флакает», — навык. Соберём главные правила.\n\n## Структура AAA\n\n```py\ndef test_checkout():\n    cart = Cart()               # Arrange — подготовка\n    cart.add(100)\n    cart.add(250)\n\n    total = cart.checkout()     # Act — действие\n\n    assert total == 350         # Assert — проверки\n    assert cart.items == []\n```\n\n- Три блока, разделённые пустой строкой. Одно действие на тест; проверок может быть несколько, но все про это действие.\n- Имя теста описывает сценарий: `test_checkout_empties_cart`, а не `test_1`.\n\n## Что проверять\n\n- **Граничные значения**: для «18–99 лет» — 17, 18, 99, 100. Ошибки чаще всего на краях (`<` вместо `<=`).\n- **Классы эквивалентности**: из множества похожих значений достаточно одного представителя.\n- **Негативные случаи**: неверный тип, пустое значение, слишком длинное, недостаточно прав — и что ошибка понятная.\n- **Структуру ответа целиком**, а не одно поле.\n\n## Изоляция\n\n- Тест не зависит от других тестов и от порядка запуска: данные — через фикстуры, уборка — после `yield`.\n- Не зависит от времени, сети, случайности: передавай время параметром, подменяй сеть фейками (`monkeypatch`, свой `FakeClient`), фиксируй `random.seed`.\n- Такой тест можно запускать параллельно (`-n auto`) и повторять сколько угодно.\n\n## Flaky-тесты\n\n- **Flaky** («мигающий») — тест, который то проходит, то падает без изменений в коде. Причины: зависимость от порядка, гонки при ожиданиях в UI, реальное время, общие тестовые данные, нестабильный стенд.\n- Лечить причину, а не перезапускать. Временная мера — плагин `pytest-rerunfailures` (`--reruns 2`), но flaky-тест нужно завести как задачу.\n- `pytest --durations=5` — самые медленные тесты: кандидаты на оптимизацию.\n\n## Проверка качества тестов\n\nВ заданиях этой темы твои тесты запускались на «сломанных» версиях кода. Это **мутационное тестирование**: если после внесённой ошибки все тесты по-прежнему зелёные, тесты слабые. Для проектов есть инструмент `mutmut`.\n\n## Итог\n\n- AAA, одно действие на тест, говорящие имена.\n- Границы, классы эквивалентности, негативные случаи, структура целиком.\n- Изоляция: фикстуры, фейки, никакого реального времени и сети.\n- Flaky — чинить причину; `--durations` — медленные тесты.",
+              "quiz": [
+                {
+                  "q": "Что означает AAA?",
+                  "options": [
+                    "Assert, Assert, Assert",
+                    "Arrange, Act, Assert",
+                    "API, Auth, Assert",
+                    "Async, Await, Assert"
+                  ],
+                  "answer": 1,
+                  "explain": "Подготовка, действие, проверки."
+                },
+                {
+                  "q": "Какие значения проверить для правила «от 18 до 99 включительно»?",
+                  "options": [
+                    "50",
+                    "18 и 99",
+                    "17, 18, 99, 100",
+                    "0 и 1000"
+                  ],
+                  "answer": 2,
+                  "explain": "Обе границы с обеих сторон."
+                },
+                {
+                  "q": "Что делать с flaky-тестом?",
+                  "options": [
+                    "Удалить",
+                    "Перезапускать до зелёного",
+                    "Найти и устранить причину нестабильности",
+                    "Пометить skip навсегда"
+                  ],
+                  "answer": 2,
+                  "explain": "Перезапуск прячет проблему."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
