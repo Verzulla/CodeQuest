@@ -7,4 +7,4 @@ sudo -u codequest git -C "$APP" pull --ff-only
 sudo -u codequest "$APP/.venv/bin/pip" install -q -r "$APP/requirements.txt"
 sudo -u codequest -H bash -c "cd $APP && .venv/bin/python -m app.cli sync"   # новый контент из content/
 systemctl restart codequest
-echo "Обновлено: $(git -C "$APP" log -1 --format='%h %s')"
+echo "Обновлено: $(sudo -u codequest git -C "$APP" log -1 --format='%h %s')"
