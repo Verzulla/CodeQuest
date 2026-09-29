@@ -41,7 +41,7 @@
 
 | Режим | Что это | Когда |
 |---|---|---|
-| `docker` (по умолчанию) | одноразовый контейнер `codequest-runner` (Python 3.12 + pytest, pytest-xdist, pydantic — `deploy/runner/Dockerfile`) на каждый запуск: без сети, read-only ФС (кроме `/tmp` 16 МБ в памяти), пользователь `nobody`, без capabilities, 256 МБ памяти, 1 CPU, до 64 процессов, 5 секунд | сервер в интернете |
+| `docker` (по умолчанию) | одноразовый контейнер `codequest-runner` (Python 3.12 + pytest, pytest-xdist, pydantic, allure-pytest, requests, responses, httpx, jsonschema и pwfake — учебный Playwright без браузера; `deploy/runner/Dockerfile`) на каждый запуск: без сети, read-only ФС (кроме `/tmp` 16 МБ в памяти), пользователь `nobody`, без capabilities, 256 МБ памяти, 1 CPU, до 64 процессов, 5 секунд | сервер в интернете |
 | `local` | дочерний `python -I` с лимитом времени, **без изоляции** | `./run.sh`, тесты, `app.cli validate/sync` |
 
 Запуск в контейнере занимает ~0,25 с. Одновременно выполняется не больше `CODEQUEST_MAX_RUNS` (4)
@@ -49,6 +49,7 @@
 
 ```bash
 .venv/bin/python -m app.cli sandbox-check   # собрать образ песочницы и проверить изоляцию — перед открытием сервера
+.venv/bin/pip install -e deploy/runner/pwfake   # локально: учебный Playwright для проверки UI-заданий в режиме local
 ```
 
 Процессу сервера нужен доступ к Docker (`docker` в PATH). Доступ к Docker-демону равен root-доступу к хосту:
