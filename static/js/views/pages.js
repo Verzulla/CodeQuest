@@ -13,7 +13,7 @@ export async function renderReview(view, start) {
   if (start) { location.hash = "#/review"; return; }
   const s = store.state;
   const heartsNote = s.hearts_enabled && s.hearts < s.max_hearts
-    ? `<p><b>❤️ Каждый правильный ответ здесь возвращает сердечко.</b></p>` : "";
+    ? `<p><b>❤️ Исправленное задание вернёт сердечки, потерянные на нём.</b></p>` : "";
   const mistakesCard = mistakes.length
     ? `<div class="card empty"><div class="big">🩹</div><h2>Работа над ошибками</h2>
       <p class="muted">${mistakes.length} ${plural(mistakes.length, "задание ждёт", "задания ждут", "заданий ждут")} реванша.

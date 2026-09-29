@@ -121,7 +121,7 @@ export function runSession(view, opts) {
       ${hasTheory || cheatOf() ? `<button class="btn ghost small" id="theory-btn" title="Шпаргалка урока">📖</button>` : ""}
       ${store.state.hearts_enabled && opts.mode === "lesson"
         ? `<span class="pill heart">❤️ ${store.state.hearts}</span>`
-        : opts.mode === "review" ? `<span class="pill heart" title="В повторении сердечки не тратятся, а восстанавливаются">❤️ +</span>`
+        : opts.mode === "review" ? `<span class="pill heart" title="В повторении сердечки не тратятся; исправленное задание возвращает сердечки, потерянные на нём">❤️ +</span>`
         : training ? `<span class="pill" title="В тренировке ошибки не тратят сердечки">🏋️</span>` : ""}
     </div>`;
 
@@ -420,8 +420,8 @@ export function runSession(view, opts) {
 
   function noHearts() {
     const m = modal(`<div class="big">💔</div><h2>Сердечки закончились</h2>
-      <p class="muted">Потренируйся в «Повторении» — каждый правильный ответ там возвращает ❤️. Или подожди: сердечко восстанавливается каждые 30 минут.</p>
-      <div class="btns"><a class="btn blue" href="#/review" data-a="r">Повторение (+❤️)</a>
+      <p class="muted">Со временем они не восстанавливаются. Исправь свои ошибки в «Работе над ошибками» — каждое исправленное задание вернёт сердечки, потерянные на нём.</p>
+      <div class="btns"><a class="btn blue" href="#/review" data-a="r">Работа над ошибками (+❤️)</a>
       <a class="btn ghost" href="${opts.backHash || "#/"}" data-a="h">К урокам темы</a></div>`);
     m.root.querySelectorAll("a").forEach((a) => a.addEventListener("click", m.close));
   }

@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS exercise_progress (
     solved_at     TEXT,
     mistakes      INTEGER NOT NULL DEFAULT 0,
     in_review     INTEGER NOT NULL DEFAULT 0,
+    hearts_lost   INTEGER NOT NULL DEFAULT 0,   -- сколько сердечек стоило; вернутся при исправлении
     last_answer   TEXT NOT NULL DEFAULT '',   -- последнее верное решение
     draft         TEXT NOT NULL DEFAULT '',   -- недописанный ответ (автосохранение)
     PRIMARY KEY (user_id, exercise_slug)
@@ -198,6 +199,7 @@ MIGRATIONS = [
     ("lessons", "quiz", "TEXT NOT NULL DEFAULT '[]'"),             # «Проверь себя»: JSON-список вопросов
     ("user_state", "sequential_lessons", "INTEGER NOT NULL DEFAULT 1"),  # уроки по порядку (замки)
     ("user_state", "onboarded", "INTEGER NOT NULL DEFAULT 1"),  # приветствие: старым аккаунтам не показываем
+    ("exercise_progress", "hearts_lost", "INTEGER NOT NULL DEFAULT 0"),  # сердечки, потерянные на задании
 ]
 
 
@@ -248,6 +250,10 @@ def init_db() -> None:
             existing = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
             if column not in existing:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+                if column == "hearts_lost":
+                    # Сердечки больше не восстанавливаются со временем, а сколько их потеряно на старых
+                    # ошибках, неизвестно — чтобы никто не застрял без сердечек, один раз заполняем их.
+                    conn.execute("UPDATE user_state SET hearts = 5")
         _migrate_exercise_types(conn)
 
 

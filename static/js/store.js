@@ -1,5 +1,5 @@
 // Глобальное состояние игрока (XP, сердечки, streak…) и его отображение.
-import { api, esc, toast, fmtTime, plural } from "./util.js";
+import { api, esc, toast, plural } from "./util.js";
 
 export const store = { state: null, user: null, listeners: new Set() };
 
@@ -45,7 +45,7 @@ export function statusStrip(s = store.state) {
     : s.streak_at_risk ? "Под угрозой — позанимайся!" : `${s.streak} ${plural(s.streak, "день", "дня", "дней")} подряд`;
   const hearts = s.hearts_enabled
     ? `<div class="ss-item"><b>❤️ Сердечки</b><div class="ss-hearts">${"❤️".repeat(s.hearts)}${"🤍".repeat(s.max_hearts - s.hearts)}</div>
-        <small class="muted">${s.hearts < s.max_hearts && s.next_heart_in != null ? `+1 через ${fmtTime(s.next_heart_in)}` : "Все на месте"}</small></div>`
+        <small class="muted">${s.hearts < s.max_hearts ? "Вернёшь в работе над ошибками" : "Все на месте"}</small></div>`
     : `<div class="ss-item"><b>❤️ Сердечки</b><div class="ss-hearts">∞</div><small class="muted">Выключены</small></div>`;
   return `
     <div class="ss-item"><b>🎯 Цель дня</b>
@@ -72,8 +72,8 @@ function renderRail() {
     ? (s.streak_at_risk ? "Серия под угрозой — позанимайся сегодня!" : `${s.streak} ${plural(s.streak, "день", "дня", "дней")} подряд`)
     : "Реши задание, чтобы начать серию";
   let heartsText = "";
-  if (s.hearts_enabled && s.hearts < s.max_hearts && s.next_heart_in != null) {
-    heartsText = `<small class="muted">Следующее ❤️ через ${fmtTime(s.next_heart_in)}</small>`;
+  if (s.hearts_enabled && s.hearts < s.max_hearts) {
+    heartsText = `<small class="muted">Сердечки возвращаются в <a href="#/review">работе над ошибками</a></small>`;
   }
   rail.innerHTML = `
     <div class="statbar">${pills(s)}</div>
@@ -107,9 +107,8 @@ export function announce(events) {
     else if (e.type === "goal_met") toast("🎯", "Дневная цель выполнена!", `${e.goal} XP`);
     else if (e.type === "freeze_earned") toast("🧊", "Заморозка серии получена", "Спасёт серию, если пропустишь день");
     else if (e.type === "freeze_used") toast("🧊", "Серия спасена заморозкой!");
-    else if (e.type === "heart_restored") toast("❤️", "+1 сердечко");
+    else if (e.type === "heart_restored") toast("❤️", `+${e.amount || 1} ${plural(e.amount || 1, "сердечко", "сердечка", "сердечек")}`, "Ошибка исправлена");
   }
 }
 
 // Раз в 30 секунд обновляем таймер сердечек
-setInterval(() => { if (store.state?.next_heart_in != null) refreshState().catch(() => {}); }, 30000);

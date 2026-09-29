@@ -7,7 +7,6 @@ import sqlite3
 from datetime import date, datetime, timedelta
 
 MAX_HEARTS = 5
-HEART_REGEN = timedelta(minutes=30)
 MAX_FREEZES = 2
 XP_PRACTICE = 2          # повторное решение уже решённого задания
 XP_REVIEW_FIX = 5        # исправил ошибку в режиме «Работа над ошибками»
@@ -71,27 +70,6 @@ def _day_add(conn, uid: int, column: str, amount: int) -> None:
     )
 
 
-def refresh_hearts(conn, uid: int) -> None:
-    st = _state(conn, uid)
-    if st["hearts"] >= MAX_HEARTS:
-        return
-    t = now()
-    if not st["hearts_updated_at"]:
-        conn.execute("UPDATE user_state SET hearts_updated_at = ? WHERE user_id = ?",
-                     (t.isoformat(), uid))
-        return
-    updated = datetime.fromisoformat(st["hearts_updated_at"])
-    gained = int((t - updated) / HEART_REGEN)
-    if gained <= 0:
-        return
-    hearts = min(MAX_HEARTS, st["hearts"] + gained)
-    new_updated = t if hearts == MAX_HEARTS else updated + gained * HEART_REGEN
-    conn.execute(
-        "UPDATE user_state SET hearts = ?, hearts_updated_at = ? WHERE user_id = ?",
-        (hearts, new_updated.isoformat(), uid),
-    )
-
-
 def _displayed_streak(st) -> tuple[int, bool]:
     """(streak, at_risk). Streak обнуляется только если пропуск не покрыть заморозками."""
     if not st["last_active_date"]:
@@ -107,16 +85,11 @@ def _displayed_streak(st) -> tuple[int, bool]:
 
 
 def get_state(conn, uid: int) -> dict:
-    refresh_hearts(conn, uid)
     st = _state(conn, uid)
     streak, at_risk = _displayed_streak(st)
     day = conn.execute(
         "SELECT xp FROM daily_activity WHERE user_id = ? AND day = ?", (uid, today().isoformat())
     ).fetchone()
-    next_heart_in = None
-    if st["hearts"] < MAX_HEARTS and st["hearts_updated_at"]:
-        nxt = datetime.fromisoformat(st["hearts_updated_at"]) + HEART_REGEN
-        next_heart_in = max(0, int((nxt - now()).total_seconds()))
     return {
         "xp": st["xp"],
         **level_info(st["xp"]),
@@ -125,7 +98,6 @@ def get_state(conn, uid: int) -> dict:
         "hearts_enabled": bool(st["hearts_enabled"]),
         "sequential_lessons": bool(st["sequential_lessons"]),
         "onboarded": bool(st["onboarded"]),
-        "next_heart_in": next_heart_in,
         "streak": streak,
         "streak_at_risk": at_risk,
         "longest_streak": st["longest_streak"],
@@ -204,12 +176,12 @@ class NoHearts(Exception):
 def record_answer(conn, uid: int, ex: sqlite3.Row, correct: bool, answer: str, mode: str) -> list:
     """mode:
     'lesson'   — обычное прохождение: ошибка стоит сердечко и попадает в повторение;
-    'review'   — работа над ошибками/тренировка: сердечки не тратятся, а возвращаются;
+    'review'   — работа над ошибками: сердечки не тратятся; исправленное задание возвращает
+                 столько сердечек, сколько на нём было потеряно (со временем они не восстанавливаются);
     'practice' — «решить заново» уже решённое задание: ошибка ничего не отнимает;
     'warmup'   — тренировка на непройденном материале: задание не засчитывается и прогресс урока
                  не меняется, верный ответ даёт только XP_PRACTICE, ошибка ничего не отнимает."""
     events: list = []
-    refresh_hearts(conn, uid)
     if mode == "warmup":
         _bump(conn, uid, "attempts")
         if correct:
@@ -254,13 +226,15 @@ def record_answer(conn, uid: int, ex: sqlite3.Row, correct: bool, answer: str, m
 
         if mode == "review" and prog["in_review"]:
             conn.execute(
-                "UPDATE exercise_progress SET in_review = 0 WHERE user_id = ? AND exercise_slug = ?",
+                "UPDATE exercise_progress SET in_review = 0, hearts_lost = 0 "
+                "WHERE user_id = ? AND exercise_slug = ?",
                 key,
             )
             _bump(conn, uid, "review_fixed")
-        if mode == "review" and hearts_on and st["hearts"] < MAX_HEARTS:
-            conn.execute("UPDATE user_state SET hearts = hearts + 1 WHERE user_id = ?", (uid,))
-            events.append({"type": "heart_restored"})
+            back = min(prog["hearts_lost"], MAX_HEARTS - st["hearts"]) if hearts_on else 0
+            if back > 0:
+                conn.execute("UPDATE user_state SET hearts = hearts + ? WHERE user_id = ?", (back, uid))
+                events.append({"type": "heart_restored", "amount": back})
         if 0 <= now().hour < 5:
             _bump(conn, uid, "night_solves")
         _day_add(conn, uid, "solved", 1)
@@ -274,13 +248,11 @@ def record_answer(conn, uid: int, ex: sqlite3.Row, correct: bool, answer: str, m
         )
         _day_add(conn, uid, "mistakes", 1)
         if mode == "lesson" and hearts_on:
-            if st["hearts"] >= MAX_HEARTS:
-                conn.execute(
-                    "UPDATE user_state SET hearts_updated_at = ? WHERE user_id = ?",
-                    (now().isoformat(), uid),
-                )
             conn.execute("UPDATE user_state SET hearts = MAX(0, hearts - 1) WHERE user_id = ?",
                          (uid,))
+            # запоминаем, сколько сердечек стоило задание: исправив его в повторении, их вернёшь
+            conn.execute("UPDATE exercise_progress SET hearts_lost = hearts_lost + 1 "
+                         "WHERE user_id = ? AND exercise_slug = ?", key)
             events.append({"type": "heart_lost"})
 
     events += check_achievements(conn, uid)

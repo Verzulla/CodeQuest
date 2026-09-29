@@ -238,7 +238,7 @@ def rules():
             "topic": game.XP_TOPIC,
         },
         "levels": [{"level": n, "xp": game.level_threshold(n)} for n in range(1, 11)],
-        "hearts": {"max": game.MAX_HEARTS, "regen_minutes": int(game.HEART_REGEN.total_seconds() // 60)},
+        "hearts": {"max": game.MAX_HEARTS},
         "freezes": {"max": game.MAX_FREEZES, "every_days": 7},
         "run_timeout_sec": runner.TIMEOUT_SEC,
         "achievements": [

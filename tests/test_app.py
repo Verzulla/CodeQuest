@@ -160,25 +160,35 @@ def test_hearts_lost_and_blocked(client):
         r = client.post(f"/api/exercises/{ex_id}/check", json={"answer": "nope"}).json()
         assert r["state"]["hearts"] == 4 - i
     assert client.post(f"/api/exercises/{ex_id}/check", json={"answer": "nope"}).status_code == 409
-    # в повторении можно отвечать и без сердечек, правильный ответ возвращает сердечко
+    # в повторении можно отвечать и без сердечек; исправленное задание возвращает все потерянные на нём
     review = client.get("/api/review").json()
     assert review["kind"] == "mistakes" and review["exercises"][0]["id"] == ex_id
     from app.db import transaction
     with transaction() as conn:
         ans = conn.execute("SELECT expected_output FROM exercises WHERE id = ?", (ex_id,)).fetchone()[0]
+    wrong = client.post(f"/api/exercises/{ex_id}/check", json={"answer": "nope", "mode": "review"}).json()
+    assert wrong["state"]["hearts"] == 0, "ошибка в повторении сердечко не тратит"
     r = client.post(f"/api/exercises/{ex_id}/check", json={"answer": ans, "mode": "review"}).json()
-    assert r["correct"] and r["state"]["hearts"] == 1 and r["state"]["review_count"] == 0
+    assert r["correct"] and r["state"]["hearts"] == 5 and r["state"]["review_count"] == 0
+    assert {"type": "heart_restored", "amount": 5} in r["events"]
 
 
-def test_hearts_regenerate(client, clock):
-    ex_id = client.get(f"/api/lessons/{first_lessons(client)[0]['id']}").json()["exercises"][0]["id"]
-    client.post(f"/api/exercises/{ex_id}/check", json={"answer": "x"})
-    client.post(f"/api/exercises/{ex_id}/check", json={"answer": "x"})
-    assert client.get("/api/state").json()["hearts"] == 3
-    clock.t += timedelta(minutes=31)
-    assert client.get("/api/state").json()["hearts"] == 4
-    clock.t += timedelta(hours=5)
-    assert client.get("/api/state").json()["hearts"] == 5
+def test_hearts_do_not_regenerate_and_fix_returns_what_was_lost(client, clock):
+    exs = client.get(f"/api/lessons/{first_lessons(client)[0]['id']}").json()["exercises"]
+    a, b = exs[0]["id"], exs[1]["id"]
+    client.post(f"/api/exercises/{a}/check", json={"answer": "x"})
+    client.post(f"/api/exercises/{a}/check", json={"answer": "x"})
+    client.post(f"/api/exercises/{b}/check", json={"answer": "x"})
+    assert client.get("/api/state").json()["hearts"] == 2
+    clock.t += timedelta(days=2)
+    assert client.get("/api/state").json()["hearts"] == 2, "со временем сердечки не восстанавливаются"
+    from app.db import transaction
+    with transaction() as conn:
+        ans = {i: conn.execute("SELECT expected_output FROM exercises WHERE id = ?", (i,)).fetchone()[0] for i in (a, b)}
+    assert client.post(f"/api/exercises/{a}/check", json={"answer": ans[a], "mode": "review"}).json()["state"]["hearts"] == 4
+    assert client.post(f"/api/exercises/{b}/check", json={"answer": ans[b], "mode": "review"}).json()["state"]["hearts"] == 5
+    again = client.post(f"/api/exercises/{a}/check", json={"answer": ans[a], "mode": "review"}).json()
+    assert not any(e["type"] == "heart_restored" for e in again["events"]), "повторное решение сердечек не даёт"
 
 
 def test_hearts_disabled(client):
