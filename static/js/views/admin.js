@@ -56,8 +56,8 @@ function drawTree(view, tree) {
   const box = view.querySelector("#tree");
   box.innerHTML = `
     <div class="row" style="margin-bottom:10px">
-      <button class="btn small blue" id="imp">⬆ Импорт JSON</button>
-      <button class="btn small ghost" id="exp">⬇ Экспорт</button>
+      <button class="btn small blue" id="imp">⬇ Импорт JSON</button>
+      <button class="btn small ghost" id="exp">⬆ Экспорт</button>
     </div>
     <ul>${html}<li class="add" data-add="topics">+ новую тему</li></ul>`;
 
@@ -88,7 +88,7 @@ function drawTree(view, tree) {
 function drawForm(view, tree) {
   const box = view.querySelector("#form");
   if (!sel) {
-    box.innerHTML = `<div class="card">${HELP}</div>`;
+    box.innerHTML = `<div class="card md">${HELP}</div>`;
     return;
   }
   const it = sel.isNew ? defaults(sel.kind) : find(tree, sel.kind, sel.id);
@@ -274,6 +274,7 @@ const HELP = md(`## Как наполнять приложение
 ### Типы заданий
 - ⌨️ **Написать код** — ученик пишет программу, она запускается и проверяется тестами.
 - 👁 **Что выведет код?** — ученик читает программу и вводит её вывод.
+- $ **Терминал** — ученик вводит команду одной строкой; допустимые варианты — по одному на строку, \`re:…\` — регулярное выражение.
 
 ### Как писать тесты
 \`\`\`
