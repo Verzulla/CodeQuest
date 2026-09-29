@@ -63,18 +63,17 @@ export async function renderTraining(view) {
     view.innerHTML = `<div class="topbar path-top">${pills()}</div>
       <div class="settings">
         <h1 class="section-title">🏋️ Тренировка</h1>
-        <div class="train-cols">
-          <div class="card"><div class="row"><h3 style="margin:0">✅ Пройденные</h3><div class="spacer"></div>${allBtn(passed, "all-passed")}</div>
-            <p class="muted" style="margin:8px 0 12px">Темы, где пройден хотя бы один урок. Задания — из пройденных уроков.</p>
-            ${passed.length ? `<div class="choice">${passed.map(topicBtn).join("")}</div>
-              <label class="check-row"><input type="checkbox" id="unfinished" ${unfinished ? "checked" : ""}>
-                <span><b>Включать непройденные уроки этих тем</b><br><small class="muted">Их задания — разминка: не засчитываются</small></span></label>`
-              : `<p class="muted" style="margin:0">Пока нет — пройди хотя бы один урок.</p>`}
-          </div>
-          <div class="card"><div class="row"><h3 style="margin:0">🆕 Ещё не пройденные</h3><div class="spacer"></div>${allBtn(fresh, "all-fresh")}</div>
-            <p class="muted" style="margin:8px 0 12px">Разминка на новом материале: задания из любых уроков темы. Не засчитываются — прогресс уроков не меняется.</p>
-            ${fresh.length ? `<div class="choice train-scroll">${fresh.map(topicBtn).join("")}</div>` : `<p class="muted" style="margin:0">Все темы уже начаты 🎉</p>`}
-          </div>
+        <div class="card"><h3 style="margin-top:0">Темы</h3>
+          <div class="row"><b>✅ Пройденные</b><div class="spacer"></div>${allBtn(passed, "all-passed")}</div>
+          <p class="muted" style="margin:6px 0 12px">Темы, где пройден хотя бы один урок. Задания — из пройденных уроков.</p>
+          ${passed.length ? `<div class="choice">${passed.map(topicBtn).join("")}</div>
+            <label class="check-row"><input type="checkbox" id="unfinished" ${unfinished ? "checked" : ""}>
+              <span><b>Включать непройденные уроки этих тем</b><br><small class="muted">Их задания — разминка: не засчитываются</small></span></label>`
+            : `<p class="muted" style="margin:0">Пока нет — пройди хотя бы один урок.</p>`}
+          <div class="train-sep"></div>
+          <div class="row"><b>🆕 Ещё не пройденные</b><div class="spacer"></div>${allBtn(fresh, "all-fresh")}</div>
+          <p class="muted" style="margin:6px 0 12px">Разминка на новом материале: задания из любых уроков темы. Не засчитываются — прогресс уроков не меняется.</p>
+          ${fresh.length ? `<div class="choice train-scroll">${fresh.map(topicBtn).join("")}</div>` : `<p class="muted" style="margin:0">Все темы уже начаты 🎉</p>`}
         </div>
         <div class="card"><h3>Сколько заданий</h3>
           <p class="muted" style="margin:-4px 0 12px">В выбранных темах доступно <b>${available}</b> ${plural(available, "задание", "задания", "заданий")}.</p>
