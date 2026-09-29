@@ -709,3 +709,18 @@ def test_old_exercises_table_gets_command_type(tmp_path, monkeypatch):
     with db.transaction() as conn:
         assert conn.execute("SELECT slug FROM exercises").fetchone()["slug"] == "old-e1"
         conn.execute("INSERT INTO exercises (lesson_id, slug, type, prompt) VALUES (1, 'new-e1', 'command', 'pwd?')")
+
+
+def test_admin_can_grant_and_revoke_admin(client):
+    other = new_client(client, "bob")
+    assert other.get("/api/admin/users").status_code == 403
+    users = client.get("/api/admin/users").json()
+    assert users == [{"username": "tester", "is_admin": True}, {"username": "bob", "is_admin": False}]
+    assert other.post("/api/admin/users/role", json={"username": "bob", "is_admin": True}).status_code == 403
+    r = client.post("/api/admin/users/role", json={"username": "BOB", "is_admin": True})
+    assert r.status_code == 200 and r.json() == {"username": "bob", "is_admin": True}
+    assert other.get("/api/admin/users").status_code == 200
+    assert client.post("/api/admin/users/role", json={"username": "nobody", "is_admin": True}).status_code == 404
+    assert client.post("/api/admin/users/role", json={"username": "tester", "is_admin": False}).status_code == 400
+    assert client.post("/api/admin/users/role", json={"username": "bob", "is_admin": False}).json()["is_admin"] is False
+    assert other.get("/api/admin/users").status_code == 403

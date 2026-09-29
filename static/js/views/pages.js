@@ -120,6 +120,40 @@ function installCard() {
   return `<div class="card form"><h3>📱 Приложение на телефоне</h3>${body}</div>`;
 }
 
+// ---------- Настройки: администраторы (видно только администратору) ----------
+function bindAdmins(view) {
+  const form = view.querySelector("#admins-form");
+  const list = view.querySelector("#admins-list");
+  const err = view.querySelector("#admins-error");
+  const fail = (msg) => { err.textContent = msg; err.hidden = false; };
+  const load = async () => {
+    try {
+      const admins = (await api("/admin/users")).filter((x) => x.is_admin);
+      list.innerHTML = admins.map((a) => `<div class="account-row" style="padding:4px 0">
+          <div style="flex:1;min-width:0"><b>${esc(a.username)}</b>${a.username === store.user.username ? ` <small class="muted">(это ты)</small>` : ""}</div>
+          ${a.username === store.user.username ? "" : `<button class="btn ghost small" type="button" data-revoke="${esc(a.username)}">Снять права</button>`}
+        </div>`).join("");
+      list.querySelectorAll("[data-revoke]").forEach((b) => b.onclick = () => setRole(b.dataset.revoke, false));
+    } catch (e) { list.textContent = e.message; }
+  };
+  const setRole = async (username, isAdmin) => {
+    err.hidden = true;
+    try {
+      const r = await api("/admin/users/role", { method: "POST", body: { username, is_admin: isAdmin } });
+      toast("🛡️", r.username, isAdmin ? "Теперь администратор" : "Права администратора сняты");
+      form.username.value = "";
+      load();
+    } catch (e) { fail(e.message); }
+  };
+  form.onsubmit = (e) => {
+    e.preventDefault();
+    const name = form.username.value.trim();
+    if (!name) return fail("Введи ник пользователя");
+    setRole(name, true);
+  };
+  load();
+}
+
 // ---------- Настройки ----------
 const GOALS = [[10, "Легко"], [20, "Нормально"], [30, "Серьёзно"], [50, "Интенсив"], [100, "Хардкор"]];
 
@@ -148,6 +182,14 @@ export function renderSettings(view) {
           <button class="btn ghost small" id="logout">Выйти</button>
         </div>
       </div>
+      ${u.is_admin ? `<form class="card form" id="admins-form" novalidate><h3>🛡️ Администраторы</h3>
+        <p class="muted" style="margin:0">Администратор может менять контент в разделе «Контент» и назначать других администраторов.</p>
+        <div class="row" style="gap:10px;flex-wrap:wrap">
+          <input class="input" name="username" placeholder="Ник пользователя" maxlength="64" autocomplete="off" style="flex:1;min-width:160px">
+          <button class="btn blue small" type="submit">Сделать администратором</button></div>
+        <p class="auth-error" id="admins-error" hidden></p>
+        <div id="admins-list" class="muted">Загрузка…</div>
+      </form>` : ""}
       <form class="card form" id="pw-form" novalidate><h3>🔑 Смена пароля</h3>
         <label>Текущий пароль<input class="input" type="password" name="current" autocomplete="current-password" maxlength="128"></label>
         <label>Новый пароль<small>Не меньше 6 символов. На других устройствах придётся войти заново.</small>
@@ -185,6 +227,7 @@ export function renderSettings(view) {
       await api("/auth/logout", { method: "POST" }).catch(() => {});
       window.dispatchEvent(new Event("cq:unauthorized"));
     };
+    if (u.is_admin) bindAdmins(view);
     const pw = view.querySelector("#pw-form");
     pw.onsubmit = async (e) => {
       e.preventDefault();

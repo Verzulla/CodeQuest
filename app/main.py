@@ -489,6 +489,32 @@ def reset_progress(_body: ResetIn, user: User):
 
 # =================== Админка ===================
 
+@app.get("/api/admin/users")
+def admin_users(_admin: Admin):
+    with transaction() as conn:
+        rows = conn.execute("SELECT username, is_admin FROM users ORDER BY is_admin DESC, username_key").fetchall()
+    return [{"username": r["username"], "is_admin": bool(r["is_admin"])} for r in rows]
+
+
+class AdminRoleIn(BaseModel):
+    username: str = Field(min_length=1, max_length=64)
+    is_admin: bool
+
+
+@app.post("/api/admin/users/role")
+def admin_set_role(body: AdminRoleIn, admin: Admin):
+    with transaction() as conn:
+        target = auth.find_user(conn, body.username.strip())
+        if target and target["id"] == admin["id"] and not body.is_admin:
+            raise HTTPException(400, "Нельзя снять права администратора с самого себя")
+        try:
+            user = auth.set_admin(conn, body.username.strip(), body.is_admin)
+        except auth.AuthError as e:
+            raise HTTPException(e.status, e.message) from None
+    logging.getLogger("codequest").info("admin %s: «%s» is_admin=%s", admin["username"], user["username"], body.is_admin)
+    return {"username": user["username"], "is_admin": body.is_admin}
+
+
 @app.get("/api/admin/tree")
 def admin_tree(_admin: Admin):
     with transaction() as conn:
