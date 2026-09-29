@@ -46,7 +46,7 @@ MAX_OUTPUT = 10_000              # сколько напечатанного п�
 MAX_RESULT_BYTES = 1_000_000     # больше от харнесса не читаем
 MEMORY_MB = 256
 DOCKER_GRACE_SEC = 5             # запас на старт контейнера
-DEFAULT_IMAGE = "codequest-runner:4"   # собирается из deploy/runner/Dockerfile
+DEFAULT_IMAGE = "codequest-runner:5"   # собирается из deploy/runner/Dockerfile
 
 TIMEOUT_MSG = f"Код выполнялся дольше {TIMEOUT_SEC} секунд — возможно, бесконечный цикл?"
 MEMORY_MSG = f"Программа заняла больше {MEMORY_MB} МБ памяти — возможно, бесконечно растущий список?"

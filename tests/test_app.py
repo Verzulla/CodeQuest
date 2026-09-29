@@ -525,7 +525,7 @@ def test_password_stored_hashed(client):
 
 def test_topics_have_groups(client):
     groups = [t["group"] for t in client.get("/api/path").json()]
-    assert groups[0] == "Python" and "Тестирование и DevOps" in groups
+    assert groups[0] == "Python" and "Тестирование" in groups
 
 
 def test_continue_banner(client):
