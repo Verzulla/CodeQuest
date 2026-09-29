@@ -51,13 +51,14 @@ systemctl stop codequest && install -o codequest -g codequest -m 644 /tmp/codequ
 ## 4. Первый вход
 
 Открой `https://твой-домен` и **зарегистрируйся первым** — первый аккаунт становится администратором.
+Других администраторов он назначает в «Настройках» → «🛡️ Администраторы».
 На телефоне: Chrome → ⋮ → «Установить приложение», Safari → «Поделиться» → «На экран „Домой“».
 
 ## Дальше
 
 | Задача | Команда (на сервере, от root) |
 |---|---|
-| Обновить до последней версии из GitHub | `bash /opt/codequest/deploy/update.sh` |
+| Обновить до последней версии из GitHub | `bash /opt/codequest/deploy/update.sh` (бэкап → код → зависимости → образ песочницы → темы → перезапуск; дождись строки «Обновлено: …», синхронизация тем идёт несколько минут) |
 | Логи | `journalctl -u codequest -f` |
 | Перезапуск | `systemctl restart codequest` |
 | Аккаунты | `sudo -u codequest -H bash -c "cd /opt/codequest && .venv/bin/python -m app.cli users"` |
