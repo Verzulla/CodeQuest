@@ -401,9 +401,7 @@ def _text_matches(actual, expected, exact):
 
 class Page:
     def __init__(self, app=None, base_url="http://app.test"):
-        self.app = app or _DEFAULT_APP
-        if self.app is None:
-            raise Error("pwfake: у страницы нет приложения (App)")
+        self.app = app or _DEFAULT_APP   # без приложения доступен только set_content()
         self.base_url = base_url.rstrip("/")
         self.clock = 0           # фейковое время, мс
         self.default_timeout = DEFAULT_TIMEOUT
@@ -426,6 +424,8 @@ class Page:
         return urljoin(self._url if self._url != "about:blank" else self.base_url + "/", url)
 
     def _load(self, method, url, form=None, remember=True):
+        if self.app is None:
+            raise Error("pwfake: у страницы нет приложения (App) — переходы невозможны, есть только set_content(). В тестах объяви фикстуру app, которая возвращает App сайта")
         full = self._resolve(url)
         parts = urlsplit(full)
         response = self.app.handle(method, parts.path or "/", dict(parse_qsl(parts.query)), form)
@@ -455,6 +455,12 @@ class Page:
         if self._history:
             url = self._history.pop()
             self._load("GET", url, remember=False)
+
+    def set_content(self, html, **_):
+        """Показать готовый HTML — как page.set_content() в Playwright."""
+        self._root = parse_html(html)
+        self._loaded_at = self.clock
+        self.status = 200
 
     def title(self):
         for node in self._root.elements():
@@ -793,7 +799,8 @@ class Locator:
     def input_value(self, timeout=None):
         node = self._one(timeout, need_visible=False, action="input_value")
         if node.tag == "select":
-            chosen = [o for o in node.elements() if o.tag == "option" and "selected" in o.attrs]
+            options = [o for o in node.elements() if o.tag == "option"]
+            chosen = [o for o in options if "selected" in o.attrs] or options[:1]   # как в браузере: иначе первый
             return chosen[0].attrs.get("value", chosen[0].text()) if chosen else ""
         return node.attrs.get("value", "")
 

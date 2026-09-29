@@ -3,6 +3,8 @@ import re
 
 import pytest
 
+pytest_plugins = ["pytester"]
+
 pwfake = pytest.importorskip("pwfake.sync_api")
 from pwfake.sync_api import App, Redirect, Page, expect, sync_playwright, set_app, Error, TimeoutError  # noqa: E402
 
@@ -138,3 +140,22 @@ def test_sync_playwright_default_app():
         assert pg.get_by_role("button", name="Войти").is_enabled()
         browser.close()
     set_app(None)
+
+
+def test_pytest_plugin_page_fixture(pytester):
+    pytester.makepyfile("""
+        import pytest
+        from pwfake.sync_api import App, expect
+
+        @pytest.fixture
+        def app():
+            app = App()
+            app.route("/")(lambda r: "<title>Главная</title><h1>Привет</h1>")
+            return app
+
+        def test_home(page):
+            page.goto("/")
+            expect(page).to_have_title("Главная")
+            expect(page.get_by_role("heading")).to_have_text("Привет")
+    """)
+    pytester.runpytest("-p", "no:cacheprovider").assert_outcomes(passed=1)
