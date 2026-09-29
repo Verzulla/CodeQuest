@@ -724,3 +724,11 @@ def test_admin_can_grant_and_revoke_admin(client):
     assert client.post("/api/admin/users/role", json={"username": "tester", "is_admin": False}).status_code == 400
     assert client.post("/api/admin/users/role", json={"username": "bob", "is_admin": False}).json()["is_admin"] is False
     assert other.get("/api/admin/users").status_code == 403
+
+
+def test_welcome_shown_once_to_new_users(client):
+    assert client.get("/api/state").json()["onboarded"] is False
+    assert client.post("/api/onboarding/done").json()["onboarded"] is True
+    assert client.get("/api/state").json()["onboarded"] is True
+    other = new_client(client, "newbie")
+    assert other.get("/api/state").json()["onboarded"] is False, "у каждого нового аккаунта — своё приветствие"

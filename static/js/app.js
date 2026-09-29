@@ -1,5 +1,5 @@
 // Точка входа: хэш-роутер и загрузка состояния.
-import { api, esc, toast } from "./util.js";
+import { api, esc, modal, toast } from "./util.js";
 import { store, refreshState } from "./store.js";
 import { renderAuth } from "./views/auth.js";
 import { renderCatalog, renderTopic } from "./views/path.js";
@@ -71,6 +71,26 @@ async function enter(user) {
   document.getElementById("nav-admin").hidden = !user.is_admin;
   await refreshState();
   route();
+  if (store.state && store.state.onboarded === false) showWelcome();
+}
+
+// Приветствие нового пользователя: один раз сразу после регистрации (флаг хранится на сервере).
+function showWelcome() {
+  const m = modal(`<div class="big">🦉</div><h2>Добро пожаловать в CodeQuest!</h2>
+    <p class="muted">Хочешь за пару минут узнать, как всё устроено: уроки и задания, опыт и уровни,
+    серия дней, сердечки и награды?</p>
+    <div class="btns"><button class="btn" id="welcome-yes">Посмотреть, как всё устроено</button>
+      <button class="btn ghost" id="welcome-later">Позже</button></div>
+    <p class="muted" style="margin:14px 0 0;font-size:13px">Раздел «О приложении» всегда есть в меню — 💡.</p>`);
+  const done = (goAbout) => {
+    m.close();
+    store.state.onboarded = true;
+    api("/onboarding/done", { method: "POST" }).catch(() => {});
+    if (goAbout) location.hash = "#/about";
+  };
+  m.root.querySelector("#welcome-yes").onclick = () => done(true);
+  m.root.querySelector("#welcome-later").onclick = () => done(false);
+  document.getElementById("overlay").onclick = (e) => { if (e.target.id === "overlay") done(false); };
 }
 
 function serverDown(e) {

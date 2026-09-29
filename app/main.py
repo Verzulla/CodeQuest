@@ -475,6 +475,15 @@ def settings(body: SettingsIn, user: User):
         return game.get_state(conn, uid)
 
 
+@app.post("/api/onboarding/done")
+def onboarding_done(user: User):
+    """Приветствие новичка показано — больше не показывать (на любом устройстве)."""
+    with transaction() as conn:
+        game.get_state(conn, user["id"])
+        conn.execute("UPDATE user_state SET onboarded = 1 WHERE user_id = ?", (user["id"],))
+        return game.get_state(conn, user["id"])
+
+
 class ResetIn(BaseModel):
     confirm: Literal["RESET"]
 
