@@ -509,16 +509,20 @@ def achievements(user: User):
         return {"achievements": game.achievements_view(conn, user["id"]), "trophies": trophies}
 
 
+ACTIVITY_DAYS = 365
+
+
 @app.get("/api/stats")
 def stats(user: User):
     uid = user["id"]
     with transaction() as conn:
         s = game.stats(conn, uid)
-        start = game.today() - timedelta(days=7 * 20 - 1)
+        # Год активности; период календаря (месяц … год) выбирается на странице.
+        start = game.today() - timedelta(days=ACTIVITY_DAYS - 1)
         days = {r["day"]: dict(r) for r in conn.execute(
             "SELECT * FROM daily_activity WHERE user_id = ? AND day >= ?", (uid, start.isoformat()))}
         activity = []
-        for i in range(7 * 20):
+        for i in range(ACTIVITY_DAYS):
             d = (start + timedelta(days=i)).isoformat()
             row = days.get(d, {})
             activity.append({"day": d, "xp": row.get("xp", 0), "goal_met": bool(row.get("goal_met"))})

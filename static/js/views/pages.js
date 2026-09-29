@@ -174,16 +174,33 @@ const medal = (icon, title, earned, extra = "") => `
     <div class="m">${esc(icon)}</div>${esc(title)}</div>`;
 
 // ---------- Статистика ----------
+const ACTIVITY_PERIODS = [[30, "Месяц"], [91, "3 месяца"], [182, "Полгода"], [365, "Год"]];
+const ACTIVITY_KEY = "cq-activity-period";
+
 export async function renderStats(view) {
   const d = await api("/stats");
   const st = d.state;
-  const max = Math.max(1, ...d.activity.map((a) => a.xp));
-  const level = (xp) => (xp === 0 ? 0 : xp < max / 3 ? 1 : xp < (2 * max) / 3 ? 2 : 3);
+  let period = 91;
+  try { period = Number(localStorage.getItem(ACTIVITY_KEY)) || 91; } catch { /* ок */ }
+  if (!ACTIVITY_PERIODS.some(([days]) => days === period)) period = 91;
   const last14 = d.activity.slice(-14);
   const max14 = Math.max(1, ...last14.map((a) => a.xp));
-  // выравниваем heatmap так, чтобы столбцы были неделями (пн — первая строка)
-  const first = new Date(d.activity[0].day);
-  const pad = (first.getDay() + 6) % 7;
+
+  // Календарь за выбранный период: столбец — неделя (пн — первая строка), яркость — относительно максимума периода.
+  const heatmap = () => {
+    const days = d.activity.slice(-period);
+    const max = Math.max(1, ...days.map((a) => a.xp));
+    const level = (xp) => (xp === 0 ? 0 : xp < max / 3 ? 1 : xp < (2 * max) / 3 ? 2 : 3);
+    const pad = (new Date(days[0].day).getDay() + 6) % 7;
+    const active = days.filter((a) => a.xp > 0).length;
+    const goals = days.filter((a) => a.goal_met).length;
+    const cell = period <= 30 ? 32 : period <= 91 ? 24 : 14;   // короткий период — клетки крупнее
+    return `<div class="heatmap" style="--cell:${cell}px">${"<i style='visibility:hidden'></i>".repeat(pad)}${days.map((a) =>
+      `<i data-l="${level(a.xp)}" class="${a.goal_met ? "goal" : ""}" title="${a.day}: ${a.xp} XP${a.goal_met ? " · цель выполнена" : ""}"></i>`).join("")}</div>
+      <small class="muted">Активных дней: <b>${active}</b> из ${days.length} · цель выполнена: <b>${goals}</b>.
+      Золотая рамка — день, когда выполнена дневная цель.</small>`;
+  };
+
   view.innerHTML = `
     <h1 class="section-title">📊 Статистика</h1>
     <div class="stat-grid">
@@ -197,15 +214,25 @@ export async function renderStats(view) {
       ${stat("🎯", d.accuracy == null ? "—" : d.accuracy + "%", "точность")}
     </div>
     <div class="card" style="margin-bottom:16px">
-      <h3>Активность за 20 недель</h3>
-      <div class="heatmap">${"<i style='visibility:hidden'></i>".repeat(pad)}${d.activity.map((a) =>
-        `<i data-l="${level(a.xp)}" class="${a.goal_met ? "goal" : ""}" title="${a.day}: ${a.xp} XP${a.goal_met ? " · цель выполнена" : ""}"></i>`).join("")}</div>
-      <small class="muted">Золотая рамка — день, когда выполнена дневная цель</small>
+      <div class="row" style="flex-wrap:wrap;gap:10px;margin-bottom:12px"><h3 style="margin:0">Активность</h3><div class="spacer"></div>
+        <div class="seg-switch">${ACTIVITY_PERIODS.map(([days, label]) =>
+          `<button data-period="${days}" class="${days === period ? "on" : ""}">${label}</button>`).join("")}</div></div>
+      <div id="heat">${heatmap()}</div>
     </div>
     <div class="card"><h3>XP за последние 14 дней</h3>
       <div class="xpbars">${last14.map((a, i) => `<div class="${i === 13 ? "today" : ""}" title="${a.day}: ${a.xp} XP">
         ${a.xp || ""}<span style="height:${Math.round((100 * a.xp) / max14)}%"></span>${new Date(a.day).getDate()}</div>`).join("")}</div>
     </div>`;
+  view.querySelectorAll("[data-period]").forEach((b) => b.onclick = () => {
+    period = Number(b.dataset.period);
+    try { localStorage.setItem(ACTIVITY_KEY, String(period)); } catch { /* ок */ }
+    view.querySelectorAll("[data-period]").forEach((x) => x.classList.toggle("on", x === b));
+    view.querySelector("#heat").innerHTML = heatmap();
+    const hm = view.querySelector(".heatmap");
+    hm.scrollLeft = hm.scrollWidth;          // длинный календарь — сразу к свежим неделям
+  });
+  const hm = view.querySelector(".heatmap");
+  hm.scrollLeft = hm.scrollWidth;
 }
 
 const stat = (icon, value, label) =>
