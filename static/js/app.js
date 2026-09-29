@@ -4,7 +4,7 @@ import { store, refreshState } from "./store.js";
 import { renderAuth } from "./views/auth.js";
 import { renderCatalog, renderTopic } from "./views/path.js";
 import { renderLesson } from "./views/lesson.js";
-import { renderReview, renderAwards, renderStats, renderSettings } from "./views/pages.js";
+import { renderReview, renderTraining, renderAwards, renderStats, renderSettings } from "./views/pages.js";
 import { renderAdmin } from "./views/admin.js";
 import { renderAbout } from "./views/about.js";
 
@@ -17,6 +17,7 @@ const ROUTES = [
   [/^lesson\/(\d+)$/, null, (v, m) => renderLesson(v, Number(m[1]))],
   [/^review$/, "review", (v) => renderReview(v, false)],
   [/^review\/start$/, null, (v) => renderReview(v, true)],
+  [/^training$/, "review", (v) => renderTraining(v)],
   [/^awards$/, "awards", (v) => renderAwards(v)],
   [/^stats$/, "stats", (v) => renderStats(v)],
   [/^settings$/, "settings", (v) => renderSettings(v)],

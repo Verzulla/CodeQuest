@@ -732,3 +732,25 @@ def test_welcome_shown_once_to_new_users(client):
     assert client.get("/api/state").json()["onboarded"] is True
     other = new_client(client, "newbie")
     assert other.get("/api/state").json()["onboarded"] is False, "у каждого нового аккаунта — своё приветствие"
+
+
+def test_training_uses_only_completed_lessons(client):
+    assert client.get("/api/training/topics").json() == []
+    lessons = first_lessons(client)
+    solve_lesson(client, lessons[0]["id"])
+    topics = client.get("/api/training/topics").json()
+    assert len(topics) == 1
+    topic = topics[0]
+    lesson = client.get(f"/api/lessons/{lessons[0]['id']}").json()
+    assert topic["available"] == len(lesson["exercises"])
+
+    r = client.post("/api/training/start", json={"topics": [topic["slug"]], "count": 3}).json()
+    assert len(r["exercises"]) == min(3, topic["available"]) and r["available"] == topic["available"]
+    lesson_ids = {e["id"] for e in lesson["exercises"]}
+    for ex in r["exercises"]:
+        assert ex["id"] in lesson_ids and ex["solved"] is False and ex["answer"] == ""
+        assert "cheat" in ex and ex["lesson_title"] == lesson["title"]
+    big = client.post("/api/training/start", json={"topics": [topic["slug"]], "count": 100}).json()
+    assert len(big["exercises"]) == topic["available"], "не больше, чем есть"
+    assert client.post("/api/training/start", json={"topics": ["nope"], "count": 5}).status_code == 400
+    assert client.post("/api/training/start", json={"topics": [topic["slug"]], "count": 0}).status_code == 422

@@ -6,28 +6,110 @@ import { runSession } from "./lesson.js";
 // ---------- Повторение ----------
 export async function renderReview(view, start) {
   const data = await api("/review");
-  if (start && data.exercises.length) {
-    return runSession(view, { mode: "review", title: "Повторение", theory: "", color: "var(--blue)", exercises: data.exercises });
+  const mistakes = data.kind === "mistakes" ? data.exercises : [];
+  if (start && mistakes.length) {
+    return runSession(view, { mode: "review", title: "Повторение", theory: "", color: "var(--blue)", exercises: mistakes });
   }
+  if (start) { location.hash = "#/review"; return; }
   const s = store.state;
   const heartsNote = s.hearts_enabled && s.hearts < s.max_hearts
     ? `<p><b>❤️ Каждый правильный ответ здесь возвращает сердечко.</b></p>` : "";
-  let body;
-  if (!data.exercises.length) {
-    body = `<div class="big">🌱</div><h2>Пока нечего повторять</h2>
-      <p class="muted">Реши несколько заданий на карте — сюда попадут твои ошибки и пройденный материал.</p>
-      <a class="btn" href="#/">На карту</a>`;
-  } else if (data.kind === "mistakes") {
-    body = `<div class="big">🩹</div><h2>Работа над ошибками</h2>
-      <p class="muted">${data.exercises.length} ${plural(data.exercises.length, "задание ждёт", "задания ждут", "заданий ждут")} реванша.
+  const mistakesCard = mistakes.length
+    ? `<div class="card empty"><div class="big">🩹</div><h2>Работа над ошибками</h2>
+      <p class="muted">${mistakes.length} ${plural(mistakes.length, "задание ждёт", "задания ждут", "заданий ждут")} реванша.
       За каждую исправленную ошибку — +5 XP. Сердечки здесь не тратятся.</p>${heartsNote}
-      <a class="btn blue" href="#/review/start">Начать</a>`;
-  } else {
-    body = `<div class="big">🏋️</div><h2>Ошибок нет — ты молодец!</h2>
-      <p class="muted">Можно закрепить пройденное: ${data.exercises.length} случайных решённых заданий.</p>${heartsNote}
-      <a class="btn blue" href="#/review/start">Тренировка</a>`;
+      <a class="btn blue" href="#/review/start">Начать</a></div>`
+    : `<div class="card empty"><div class="big">🩹</div><h2>Ошибок нет — ты молодец!</h2>
+      <p class="muted">Задания, в которых ты ошибёшься, попадут сюда — чтобы вернуться к ним и исправить.</p></div>`;
+  const trainingCard = `<div class="card empty"><div class="big">🏋️</div><h2>Тренировка</h2>
+      <p class="muted">Случайные задания из уроков, которые ты уже прошёл, — чтобы закрепить материал.
+      Выбираешь темы и сколько заданий решить. Ошибки не тратят сердечки.</p>
+      <a class="btn" href="#/training">Настроить тренировку</a></div>`;
+  view.innerHTML = `<div class="topbar path-top">${pills()}</div><div style="display:grid;gap:16px">${mistakesCard}${trainingCard}</div>`;
+}
+
+// ---------- Тренировка: случайные задания из пройденных уроков выбранных тем ----------
+const TRAIN_KEY = "cq-training";       // выбор тем и размер сессии — удобство конкретного браузера
+const TRAIN_SIZES = [10, 20, 30];
+const TRAIN_MAX = 100;
+
+export async function renderTraining(view) {
+  const topics = await api("/training/topics");
+  if (!topics.length) {
+    view.innerHTML = `<div class="topbar path-top">${pills()}</div><div class="card empty"><div class="big">🌱</div>
+      <h2>Пока нечего тренировать</h2><p class="muted">Пройди хотя бы один урок — его задания появятся в тренировке.</p>
+      <a class="btn" href="#/">На карту</a></div>`;
+    return;
   }
-  view.innerHTML = `<div class="topbar path-top">${pills()}</div><div class="card empty">${body}</div>`;
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(TRAIN_KEY) || "{}"); } catch { /* пусто */ }
+  const known = new Set(topics.map((t) => t.slug));
+  const selected = new Set((saved.topics || []).filter((slug) => known.has(slug)));
+  if (!selected.size) topics.forEach((t) => selected.add(t.slug));
+  let count = Number.isInteger(saved.count) && saved.count >= 1 ? Math.min(saved.count, TRAIN_MAX) : 10;
+  let custom = !TRAIN_SIZES.includes(count);
+
+  const draw = () => {
+    const available = topics.filter((t) => selected.has(t.slug)).reduce((a, t) => a + t.available, 0);
+    const will = Math.min(count, available);
+    view.innerHTML = `<div class="topbar path-top">${pills()}</div>
+      <div class="settings">
+        <h1 class="section-title">🏋️ Тренировка</h1>
+        <div class="card"><div class="row"><h3 style="margin:0">Темы</h3><div class="spacer"></div>
+          <button class="btn ghost small" id="all">${selected.size === topics.length ? "Снять все" : "Выбрать все"}</button></div>
+          <p class="muted" style="margin:8px 0 12px">Только темы, где пройден хотя бы один урок. Задания берутся из пройденных уроков.</p>
+          <div class="choice">${topics.map((t) => `<button data-topic="${esc(t.slug)}" class="${selected.has(t.slug) ? "on" : ""}">
+            ${esc(t.icon)} ${esc(t.title)}<br><small class="muted">${t.available} ${plural(t.available, "задание", "задания", "заданий")}</small></button>`).join("")}</div></div>
+        <div class="card"><h3>Сколько заданий</h3>
+          <div class="choice">${TRAIN_SIZES.map((n) => `<button data-size="${n}" class="${!custom && count === n ? "on" : ""}">${n}</button>`).join("")}
+            <button data-size="custom" class="${custom ? "on" : ""}">Своё</button></div>
+          ${custom ? `<label style="display:block;margin-top:12px">Количество (1–${TRAIN_MAX})
+            <input class="input" id="custom" type="number" min="1" max="${TRAIN_MAX}" value="${count}" inputmode="numeric"></label>` : ""}
+        </div>
+        <div class="card empty">
+          <p class="muted" style="margin:0 0 12px">${available
+            ? `Будет ${will} ${plural(will, "задание", "задания", "заданий")} вперемешку${will < count ? ` — в выбранных темах пока столько решённых` : ""}. Ошибки не тратят сердечки, правильный ответ — +2 XP. Кнопка 📖 — шпаргалка урока.`
+            : "Выбери хотя бы одну тему."}</p>
+          <button class="btn blue wide" id="start" ${available ? "" : "disabled"}>Начать тренировку</button>
+        </div>
+      </div>`;
+    view.querySelectorAll("[data-topic]").forEach((b) => b.onclick = () => {
+      const slug = b.dataset.topic;
+      selected.has(slug) ? selected.delete(slug) : selected.add(slug);
+      draw();
+    });
+    view.querySelector("#all").onclick = () => {
+      if (selected.size === topics.length) selected.clear(); else topics.forEach((t) => selected.add(t.slug));
+      draw();
+    };
+    view.querySelectorAll("[data-size]").forEach((b) => b.onclick = () => {
+      if (b.dataset.size === "custom") { custom = true; draw(); view.querySelector("#custom").focus(); return; }
+      custom = false; count = Number(b.dataset.size); draw();
+    });
+    const input = view.querySelector("#custom");
+    if (input) input.onchange = () => {
+      const v = Math.round(Number(input.value));
+      count = Number.isFinite(v) ? Math.min(TRAIN_MAX, Math.max(1, v)) : 10;
+      draw();
+    };
+    view.querySelector("#start").onclick = start;
+  };
+
+  const start = async () => {
+    const input = view.querySelector("#custom");
+    if (input) count = Math.min(TRAIN_MAX, Math.max(1, Math.round(Number(input.value)) || 10));
+    try { localStorage.setItem(TRAIN_KEY, JSON.stringify({ topics: [...selected], count })); } catch { /* ок */ }
+    const btn = view.querySelector("#start");
+    btn.disabled = true;
+    try {
+      const r = await api("/training/start", { method: "POST", body: { topics: [...selected], count } });
+      runSession(view, { mode: "training", title: "Тренировка", color: "var(--purple)", exercises: r.exercises });
+    } catch (e) {
+      btn.disabled = false;
+      toast("⚠️", "Не удалось начать", e.message);
+    }
+  };
+  draw();
 }
 
 // ---------- Награды ----------

@@ -46,6 +46,9 @@ export function runSession(view, opts) {
   const FULL = -2;                 // полный урок, открытый из задания через 📖 (с возвратом к заданию)
   let returnTo = null;             // задание, из которого открыли полный урок
   const allSolved = () => items.every((it) => it.solved);
+  const training = opts.mode === "training";   // случайные решённые задания: шпаргалка — своя у каждого задания
+  const exitHash = () => (opts.mode === "review" ? "#/review" : training ? "#/training" : (opts.backHash || "#/"));
+  const cheatOf = () => (training && cur >= 0 && cur < n ? (items[cur].ex.cheat || "").trim() : "");
   document.body.classList.add("focus");
   view.style.setProperty("--tc", opts.color || "var(--green)");
 
@@ -109,16 +112,17 @@ export function runSession(view, opts) {
     <div class="lesson-top">
       <button class="close" title="Выйти" id="quit">✕</button>
       <div class="segs">${hasTheory ? segHtml(-1) : ""}${items.map((_, i) => segHtml(i)).join("")}${quiz.length ? segHtml(n) : ""}</div>
-      ${hasTheory ? `<button class="btn ghost small" id="theory-btn" title="Шпаргалка и урок">📖</button>` : ""}
+      ${hasTheory || cheatOf() ? `<button class="btn ghost small" id="theory-btn" title="Шпаргалка урока">📖</button>` : ""}
       ${store.state.hearts_enabled && opts.mode === "lesson"
         ? `<span class="pill heart">❤️ ${store.state.hearts}</span>`
-        : opts.mode === "review" ? `<span class="pill heart" title="В повторении сердечки не тратятся, а восстанавливаются">❤️ +</span>` : ""}
+        : opts.mode === "review" ? `<span class="pill heart" title="В повторении сердечки не тратятся, а восстанавливаются">❤️ +</span>`
+        : training ? `<span class="pill" title="В тренировке ошибки не тратят сердечки">🏋️</span>` : ""}
     </div>`;
 
   const bindTop = () => {
     $("#quit", view).onclick = () => {
       flushDraft();
-      const leave = () => { location.hash = opts.mode === "review" ? "#/review" : (opts.backHash || "#/"); };
+      const leave = () => { location.hash = exitHash(); };
       if (opts.mode !== "lesson") return leave();
       const m = modal(`<div class="big">👋</div><h2>Выйти из урока?</h2>
         <p class="muted">Прогресс сохранён: решённые задания и недописанные ответы останутся на месте, в следующий раз продолжишь отсюда.</p>
@@ -133,6 +137,17 @@ export function runSession(view, opts) {
     });
     const tb = $("#theory-btn", view);
     if (tb) tb.onclick = () => {
+      if (training) {
+        const ex = items[cur].ex;
+        const m = modal(`<h2 style="margin-top:0">📝 Шпаргалка</h2>
+          <p class="muted" style="margin-top:-6px">${esc(ex.topic_title || "")} · ${esc(ex.lesson_title || "")}</p>
+          <div class="theory md" style="text-align:left;max-height:60vh;overflow:auto">${md(cheatOf(), { runnable: true })}</div>
+          <div class="btns"><button class="btn" data-a="ok">Понятно</button></div>`);
+        m.root.style.maxWidth = "720px";
+        bindRunnable(m.root);
+        m.root.querySelector('[data-a="ok"]').onclick = m.close;
+        return;
+      }
       if (!hasCheat) { returnTo = cur >= 0 && cur < n ? cur : null; goTo(FULL); return; }
       const m = modal(`<h2 style="margin-top:0">📝 Шпаргалка</h2>
         <div class="theory md" style="text-align:left;max-height:60vh;overflow:auto">${md(opts.theory, { runnable: true })}</div>
@@ -214,6 +229,7 @@ export function runSession(view, opts) {
     view.innerHTML = `${top()}
       <div class="lesson-body">
         <div class="ex-kind ${item.solved || ex.solved ? "" : "new"}">Задание ${i + 1} из ${n} · ${kindLabel}</div>
+        ${training ? `<div class="muted" style="font-size:13px;margin:-4px 0 8px">${esc(ex.topic_title || "")} · ${esc(ex.lesson_title || "")}</div>` : ""}
         ${viewSolved ? `<div class="solved-banner"><span>✅ Задание решено — это твоё решение</span>
           <button class="btn ghost small" id="redo">↺ Решить заново</button></div>` : ""}
         ${item.redo ? `<div class="solved-banner redo"><span>↺ Решаешь заново — ошибки здесь не отнимают сердечки, статус «решено» сохранится</span></div>` : ""}
@@ -315,7 +331,7 @@ export function runSession(view, opts) {
       const btn = $("#check", view);
       btn.disabled = true;
       btn.textContent = isCode ? "⏳ Тестирую…" : "…";
-      const mode = opts.mode === "review" ? "review" : item.redo ? "practice" : "lesson";
+      const mode = opts.mode === "review" ? "review" : training || item.redo ? "practice" : "lesson";
       const answer = getAnswer();
       let r;
       try {
@@ -352,7 +368,7 @@ export function runSession(view, opts) {
         $("#cont", view).onclick = proceed;
       } else {
         sound("bad");
-        if (mode !== "practice") { s.mistakes++; item.failed = true; }
+        if (mode !== "practice" || training) { s.mistakes++; item.failed = true; }
         $("#sol", view).hidden = false;
         view.querySelector(".lesson-body").classList.add("shake");
         const detail = isCode
@@ -471,7 +487,7 @@ export function runSession(view, opts) {
     const rewards = s.events.filter((e) => ["trophy", "achievement", "level_up", "perfect"].includes(e.type));
     const hero = rewards.some((e) => e.type === "trophy" && e.kind === "topic") ? "🏆"
       : rewards.some((e) => e.type === "trophy") ? "🏅" : s.mistakes === 0 ? "💎" : "🎉";
-    const title = opts.mode === "review" ? "Повторение завершено!"
+    const title = opts.mode === "review" ? "Повторение завершено!" : training ? "Тренировка завершена!"
       : s.mistakes === 0 ? "Идеально! Без ошибок!" : "Урок пройден!";
     view.innerHTML = `<div class="finish">
       <div class="hero">${hero}</div><h1>${title}</h1>
@@ -484,7 +500,7 @@ export function runSession(view, opts) {
       <button class="btn wide" id="done">Продолжить</button></div>`;
     sound("done");
     confetti();
-    $("#done", view).onclick = () => { location.hash = opts.mode === "review" ? "#/review" : (opts.backHash || "#/"); };
+    $("#done", view).onclick = () => { location.hash = exitHash(); };
     $("#done", view).focus();
   }
 

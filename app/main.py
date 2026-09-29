@@ -420,6 +420,55 @@ def review(user: User):
         return {"kind": kind, "exercises": [_public_exercise(e, progress) for e in rows]}
 
 
+# Тренировка: случайные задания из пройденных уроков выбранных тем.
+_TRAINING_SQL = (
+    "SELECT e.*, l.title AS lesson_title, l.theory AS lesson_theory, t.slug AS topic_slug, t.title AS topic_title "
+    "FROM exercises e JOIN lessons l ON l.id = e.lesson_id JOIN modules m ON m.id = l.module_id "
+    "JOIN topics t ON t.id = m.topic_id "
+    "JOIN lesson_completions lc ON lc.lesson_slug = l.slug AND lc.user_id = ? "
+    "JOIN exercise_progress ep ON ep.exercise_slug = e.slug AND ep.user_id = ? AND ep.solved = 1"
+)
+TRAINING_MAX = 100
+
+
+@app.get("/api/training/topics")
+def training_topics(user: User):
+    """Темы, где пройден хотя бы один урок, и сколько решённых заданий в их пройденных уроках."""
+    uid = user["id"]
+    with transaction() as conn:
+        rows = conn.execute(
+            f"SELECT t.slug, t.title, t.icon, t.color, t.group_name, COUNT(*) AS available FROM ({_TRAINING_SQL}) x "
+            "JOIN topics t ON t.slug = x.topic_slug GROUP BY t.id ORDER BY t.position, t.id", (uid, uid)
+        ).fetchall()
+    return [{"slug": r["slug"], "title": r["title"], "icon": r["icon"], "color": r["color"],
+             "group": r["group_name"], "available": r["available"]} for r in rows]
+
+
+class TrainingIn(BaseModel):
+    topics: list[str] = Field(min_length=1, max_length=200)
+    count: int = Field(ge=1, le=TRAINING_MAX)
+
+
+@app.post("/api/training/start")
+def training_start(body: TrainingIn, user: User):
+    uid = user["id"]
+    with transaction() as conn:
+        progress = _progress(conn, uid)
+        marks = ", ".join("?" * len(body.topics))
+        rows = conn.execute(f"{_TRAINING_SQL} WHERE t.slug IN ({marks})", (uid, uid, *body.topics)).fetchall()
+    if not rows:
+        raise HTTPException(400, "В выбранных темах пока нет пройденных уроков")
+    picked = random.sample(rows, min(body.count, len(rows)))
+    exercises = []
+    for e in picked:
+        item = _public_exercise(e, progress)
+        # В тренировке задание решается с чистого листа, а к нему — шпаргалка его урока.
+        item.update(solved=False, answer="", draft="", cheat=e["lesson_theory"],
+                    lesson_title=e["lesson_title"], topic_title=e["topic_title"])
+        exercises.append(item)
+    return {"exercises": exercises, "available": len(rows)}
+
+
 @app.get("/api/achievements")
 def achievements(user: User):
     with transaction() as conn:
