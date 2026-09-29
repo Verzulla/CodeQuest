@@ -48,6 +48,12 @@ export function runSession(view, opts) {
   const allSolved = () => items.every((it) => it.solved);
   const training = opts.mode === "training";   // случайные решённые задания: шпаргалка — своя у каждого задания
   const exitHash = () => (opts.mode === "review" ? "#/review" : training ? "#/training" : (opts.backHash || "#/"));
+  // Сессия может идти по тому же адресу, куда выходим (тренировка — #/training): тогда hashchange не
+  // случится сам, и экран нужно перерисовать явно.
+  const leaveTo = (hash) => {
+    if (location.hash === hash) window.dispatchEvent(new HashChangeEvent("hashchange"));
+    else location.hash = hash;
+  };
   const cheatOf = () => (training && cur >= 0 && cur < n ? (items[cur].ex.cheat || "").trim() : "");
   document.body.classList.add("focus");
   view.style.setProperty("--tc", opts.color || "var(--green)");
@@ -122,7 +128,7 @@ export function runSession(view, opts) {
   const bindTop = () => {
     $("#quit", view).onclick = () => {
       flushDraft();
-      const leave = () => { location.hash = exitHash(); };
+      const leave = () => leaveTo(exitHash());
       if (opts.mode !== "lesson") return leave();
       const m = modal(`<div class="big">👋</div><h2>Выйти из урока?</h2>
         <p class="muted">Прогресс сохранён: решённые задания и недописанные ответы останутся на месте, в следующий раз продолжишь отсюда.</p>
@@ -500,7 +506,7 @@ export function runSession(view, opts) {
       <button class="btn wide" id="done">Продолжить</button></div>`;
     sound("done");
     confetti();
-    $("#done", view).onclick = () => { location.hash = exitHash(); };
+    $("#done", view).onclick = () => leaveTo(exitHash());
     $("#done", view).focus();
   }
 

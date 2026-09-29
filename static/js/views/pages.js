@@ -61,14 +61,18 @@ export async function renderTraining(view) {
           <div class="choice">${topics.map((t) => `<button data-topic="${esc(t.slug)}" class="${selected.has(t.slug) ? "on" : ""}">
             ${esc(t.icon)} ${esc(t.title)}<br><small class="muted">${t.available} ${plural(t.available, "задание", "задания", "заданий")}</small></button>`).join("")}</div></div>
         <div class="card"><h3>Сколько заданий</h3>
-          <div class="choice">${TRAIN_SIZES.map((n) => `<button data-size="${n}" class="${!custom && count === n ? "on" : ""}">${n}</button>`).join("")}
+          <p class="muted" style="margin:-4px 0 12px">В выбранных темах доступно <b>${available}</b> ${plural(available, "задание", "задания", "заданий")}.</p>
+          <div class="choice">${TRAIN_SIZES.map((n) => `<button data-size="${n}" class="${!custom && count === n ? "on" : ""} ${n > available ? "dim" : ""}"
+            ${n > available ? `title="Сейчас доступно только ${available}"` : ""}>${n}</button>`).join("")}
             <button data-size="custom" class="${custom ? "on" : ""}">Своё</button></div>
           ${custom ? `<label style="display:block;margin-top:12px">Количество (1–${TRAIN_MAX})
             <input class="input" id="custom" type="number" min="1" max="${TRAIN_MAX}" value="${count}" inputmode="numeric"></label>` : ""}
         </div>
         <div class="card empty">
           <p class="muted" style="margin:0 0 12px">${available
-            ? `Будет ${will} ${plural(will, "задание", "задания", "заданий")} вперемешку${will < count ? ` — в выбранных темах пока столько решённых` : ""}. Ошибки не тратят сердечки, правильный ответ — +2 XP. Кнопка 📖 — шпаргалка урока.`
+            ? `${will < count
+                ? `Выбрано ${count}, а пройденных заданий в этих темах пока ${available} — тренировка будет из ${will}. Пройди больше уроков или добавь темы, и выбор вырастет.<br>`
+                : `Будет ${will} ${plural(will, "задание", "задания", "заданий")} вперемешку. `}Ошибки не тратят сердечки, правильный ответ — +2 XP. Кнопка 📖 — шпаргалка урока.`
             : "Выбери хотя бы одну тему."}</p>
           <button class="btn blue wide" id="start" ${available ? "" : "disabled"}>Начать тренировку</button>
         </div>
