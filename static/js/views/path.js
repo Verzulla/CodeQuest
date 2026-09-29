@@ -1,5 +1,6 @@
 // «Учиться»: каталог тем (сгруппированный) → страница темы с дорожкой уроков.
-import { api, esc, sound, plural, toast } from "../util.js";
+import { api, esc, md, sound, plural, toast } from "../util.js";
+import { bindRunnable } from "../runnable.js";
 import { pills, statusStrip } from "../store.js";
 
 const OFFSETS = [0, 44, 70, 44, 0, -44, -70, -44]; // зигзаг дорожки
@@ -75,7 +76,8 @@ export async function renderTopic(view, topicId) {
   view.innerHTML = `
     <div class="topbar path-top">${pills()}</div>
     <div class="topic-head" style="--tc:${esc(t.color)}">
-      <a class="btn ghost small" href="#/">← Все темы</a>
+      <div class="th-actions"><a class="btn ghost small" href="#/">← Все темы</a>
+        <a class="btn ghost small" href="#/topic/${t.id}/theory">📚 Теория темы</a></div>
       <div class="th-title"><span>${esc(t.icon)}</span><div><h1>${esc(t.title)}</h1>
         <div class="th-meta"><div class="bar"><i style="width:${pct}%"></i></div><small class="muted">${t.completed} / ${t.total} ${plural(t.total, "урок", "урока", "уроков")}${t.trophy ? " · 🏆 тема пройдена" : ""}</small></div></div></div>
     </div>
@@ -84,6 +86,63 @@ export async function renderTopic(view, topicId) {
 
   view.querySelectorAll(".node").forEach((n) => n.onclick = () => openLesson(n.closest(".node-wrap")));
   view.querySelector(".node-wrap.current .node")?.scrollIntoView({ block: "center", behavior: "smooth" });
+}
+
+// ---------- Теория темы: все уроки подряд, как учебник ----------
+const THEORY_KEY = "cq-theory-view";   // «full» или «short» — удобство конкретного браузера
+
+export async function renderTopicTheory(view, topicId) {
+  const [data, topics] = await Promise.all([api(`/topics/${topicId}/theory`), api("/path")]);
+  const status = {};                   // для ссылок «к заданиям»: закрытый урок открыть нельзя
+  for (const t of topics) for (const m of t.modules) for (const l of m.lessons) status[l.id] = l.status;
+  let mode = "full";
+  try { if (localStorage.getItem(THEORY_KEY) === "short") mode = "short"; } catch { /* ок */ }
+  let num = 0;
+  const lessons = data.modules.flatMap((m) => m.lessons.map((l) => ({ ...l, n: ++num })));
+
+  const draw = () => {
+    const toc = data.modules.map((m, mi) => `<div class="toc-mod"><b>${esc(m.icon)} Модуль ${mi + 1}. ${esc(m.title)}</b>
+      <ol>${m.lessons.map((l) => {
+        const n = lessons.find((x) => x.id === l.id).n;
+        return `<li value="${n}"><button class="link" data-goto="${l.id}">${esc(l.title)}</button>${status[l.id] === "done" ? " ✓" : ""}</li>`;
+      }).join("")}</ol></div>`).join("");
+    const body = data.modules.map((m, mi) => `<h2 class="theory-mod">${esc(m.icon)} Модуль ${mi + 1}. ${esc(m.title)}</h2>
+      ${m.lessons.map((l) => {
+        const n = lessons.find((x) => x.id === l.id).n;
+        const text = mode === "short" ? (l.theory || l.theory_full) : (l.theory_full || l.theory);
+        const go = status[l.id] === "locked"
+          ? `<span class="muted">🔒 Задания откроются после предыдущего урока</span>`
+          : `<a class="btn small" href="#/lesson/${l.id}">Перейти к заданиям →</a>`;
+        return `<article class="card theory-lesson" id="theory-${l.id}">
+          <div class="ex-kind">Урок ${n}${status[l.id] === "done" ? " · ✓ пройден" : ""}</div>
+          <h2 style="margin-top:4px">${esc(l.title)}</h2>
+          <div class="theory md ${mode === "full" ? "full" : ""}">${md(text || "_Теории пока нет._", { runnable: true })}</div>
+          <div class="theory-foot"><button class="btn ghost small" data-toc>↑ К содержанию</button><div class="spacer"></div>${go}</div></article>`;
+      }).join("")}`).join("");
+    view.innerHTML = `<div class="topbar path-top">${pills()}</div>
+      <div class="topic-theory" style="--tc:${esc(data.color)}">
+        <div class="th-actions"><a class="btn ghost small" href="#/topic/${data.id}">← К урокам</a></div>
+        <h1 class="section-title">📚 ${esc(data.icon)} ${esc(data.title)}</h1>
+        <div class="choice theory-mode">
+          <button data-mode="full" class="${mode === "full" ? "on" : ""}">📖 Полная теория</button>
+          <button data-mode="short" class="${mode === "short" ? "on" : ""}">📝 Только шпаргалки</button></div>
+        <div class="card theory-toc"><h3 style="margin-top:0">Содержание</h3>${toc}</div>
+        ${body}
+      </div>`;
+    bindRunnable(view);
+    view.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => {
+      mode = b.dataset.mode;
+      try { localStorage.setItem(THEORY_KEY, mode); } catch { /* ок */ }
+      const y = window.scrollY;
+      draw();
+      window.scrollTo(0, y);
+    });
+    view.querySelectorAll("[data-toc]").forEach((b) => b.onclick = () =>
+      view.querySelector(".theory-toc").scrollIntoView({ behavior: "smooth", block: "start" }));
+    view.querySelectorAll("[data-goto]").forEach((b) => b.onclick = () =>
+      document.getElementById(`theory-${b.dataset.goto}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  };
+  draw();
 }
 
 function unit(m, mi) {

@@ -774,3 +774,13 @@ def test_training_warmup_does_not_count(client):
     assert bad["state"]["hearts"] == hearts
     assert not any(t["passed"] for t in client.get("/api/training/topics").json()), "разминка не засчитывает задания"
     assert client.get("/api/review").json()["kind"] != "mistakes", "ошибка в разминке не попадает в повторение"
+
+def test_topic_theory_includes_locked_lessons(client):
+    topic = client.get("/api/path").json()[0]
+    data = client.get(f"/api/topics/{topic['id']}/theory").json()
+    lessons = [l for m in data["modules"] for l in m["lessons"]]
+    assert data["title"] == topic["title"] and len(lessons) == sum(len(m["lessons"]) for m in topic["modules"])
+    locked = [l for m in topic["modules"] for l in m["lessons"] if l["status"] == "locked"]
+    assert locked, "в новой теме есть закрытые уроки"
+    assert all(l["theory_full"] or l["theory"] for l in lessons), "теория есть и у закрытых уроков"
+    assert client.get("/api/topics/999999/theory").status_code == 404

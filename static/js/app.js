@@ -2,7 +2,7 @@
 import { api, esc, modal, toast } from "./util.js";
 import { store, refreshState } from "./store.js";
 import { renderAuth } from "./views/auth.js";
-import { renderCatalog, renderTopic } from "./views/path.js";
+import { renderCatalog, renderTopic, renderTopicTheory } from "./views/path.js";
 import { renderLesson } from "./views/lesson.js";
 import { renderReview, renderTraining, renderAwards, renderStats, renderSettings } from "./views/pages.js";
 import { renderAdmin } from "./views/admin.js";
@@ -14,6 +14,7 @@ try { document.documentElement.dataset.theme = localStorage.getItem("cq-theme") 
 const ROUTES = [
   [/^$/, "path", (v) => renderCatalog(v)],
   [/^topic\/(\d+)$/, "path", (v, m) => renderTopic(v, Number(m[1]))],
+  [/^topic\/(\d+)\/theory$/, "path", (v, m) => renderTopicTheory(v, Number(m[1]))],
   [/^lesson\/(\d+)$/, null, (v, m) => renderLesson(v, Number(m[1]))],
   [/^review$/, "review", (v) => renderReview(v, false)],
   [/^review\/start$/, null, (v) => renderReview(v, true)],

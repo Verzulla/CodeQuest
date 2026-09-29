@@ -254,6 +254,20 @@ def continue_learning(user: User):
         return content.continue_target(conn, user["id"])
 
 
+@app.get("/api/topics/{topic_id}/theory")
+def topic_theory(topic_id: int, _user: User):
+    """Вся теория темы — учебник: модули → уроки с полной теорией и шпаргалкой. Замки не учитываются:
+    читать вперёд можно, закрыты только задания."""
+    with transaction() as conn:
+        t = _get(conn, "topics", topic_id)
+        modules = []
+        for m in conn.execute("SELECT * FROM modules WHERE topic_id = ? ORDER BY position, id", (topic_id,)):
+            lessons = [{"id": l["id"], "title": l["title"], "theory": l["theory"], "theory_full": l["theory_full"]}
+                       for l in conn.execute("SELECT * FROM lessons WHERE module_id = ? ORDER BY position, id", (m["id"],))]
+            modules.append({"title": m["title"], "icon": m["icon"], "lessons": lessons})
+    return {"id": t["id"], "title": t["title"], "icon": t["icon"], "color": t["color"], "modules": modules}
+
+
 @app.get("/api/path")
 def path(user: User):
     with transaction() as conn:
