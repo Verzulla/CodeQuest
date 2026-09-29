@@ -56,6 +56,9 @@ export async function renderTraining(view) {
     ? `<button class="btn ghost small" id="${id}">${list.every((t) => selected.has(t.slug)) ? "Снять все" : "Выбрать все"}</button>` : "";
 
   const draw = () => {
+    // Экран перерисовывается целиком — сохраняем прокрутку списка тем и страницы, чтобы клик не сбивал её.
+    const listScroll = view.querySelector(".train-scroll")?.scrollTop || 0;
+    const pageScroll = window.scrollY;
     const chosen = topics.filter((t) => selected.has(t.slug));
     const available = chosen.reduce((a, t) => a + tasksOf(t), 0);
     const warmup = chosen.reduce((a, t) => a + warmupOf(t), 0);
@@ -116,6 +119,9 @@ export async function renderTraining(view) {
       draw();
     };
     view.querySelector("#start").onclick = start;
+    const list = view.querySelector(".train-scroll");
+    if (list) list.scrollTop = listScroll;
+    window.scrollTo(0, pageScroll);
   };
 
   const start = async () => {
