@@ -3,7 +3,7 @@
     python -m app.cli validate content/py-vars.json   # проверить пакет
     python -m app.cli import   content/py-vars.json   # загрузить в БД
     python -m app.cli export   backup.json            # выгрузить весь контент
-    python -m app.cli sync                            # привести БД к content/: загрузить все пакеты
+    python -m app.cli sync [--validate]               # привести БД к content/: загрузить все пакеты
                                                       # в порядке content/ORDER и удалить темы,
                                                       # которых больше нет среди пакетов
     python -m app.cli sandbox-check                   # собрать образ docker-песочницы и проверить изоляцию
@@ -73,10 +73,13 @@ def validate(pkg: content.Package) -> list[str]:
 CONTENT_DIR = Path(__file__).resolve().parent.parent / "content"
 
 
-def sync() -> int:
+def sync(check: bool = False) -> int:
+    """Привести БД к content/. Пакеты проверяются при сборке (build + validate), поэтому здесь по
+    умолчанию только разбор схемы: полная проверка — тысячи запусков песочницы, на слабом сервере
+    это десятки минут. sync --validate прогоняет её перед загрузкой."""
     files = content.content_files(CONTENT_DIR)
     pkgs = [(f, content.Package.model_validate_json(f.read_text(encoding="utf-8"))) for f in files]
-    problems = [f"{f.name}: {p}" for f, pkg in pkgs for p in validate(pkg)]
+    problems = [f"{f.name}: {p}" for f, pkg in pkgs for p in validate(pkg)] if check else []
     if problems:
         print(f"❌ Синхронизация отменена, проблем: {len(problems)}")
         for p in problems:
@@ -167,9 +170,9 @@ def main(argv: list[str]) -> int:
     # Контент из репозитория доверенный: проверяем его без контейнеров — в сотни раз быстрее.
     # Чтобы валидировать в docker-песочнице, задай CODEQUEST_SANDBOX=docker явно.
     os.environ.setdefault("CODEQUEST_SANDBOX", "local")
-    if argv == ["sync"]:
+    if argv in (["sync"], ["sync", "--validate"]):
         init_db()
-        return sync()
+        return sync(check=len(argv) == 2)
     if argv == ["sandbox-check"]:
         return sandbox_check()
     if argv == ["users"]:
