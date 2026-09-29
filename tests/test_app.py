@@ -735,22 +735,42 @@ def test_welcome_shown_once_to_new_users(client):
 
 
 def test_training_uses_only_completed_lessons(client):
-    assert client.get("/api/training/topics").json() == []
+    topics = client.get("/api/training/topics").json()
+    assert topics and not any(t["passed"] for t in topics) and all(t["total"] > 0 for t in topics)
     lessons = first_lessons(client)
     solve_lesson(client, lessons[0]["id"])
     topics = client.get("/api/training/topics").json()
-    assert len(topics) == 1
-    topic = topics[0]
+    passed = [t for t in topics if t["passed"]]
+    assert len(passed) == 1
+    topic = passed[0]
     lesson = client.get(f"/api/lessons/{lessons[0]['id']}").json()
-    assert topic["available"] == len(lesson["exercises"])
+    assert topic["available"] == len(lesson["exercises"]) < topic["total"]
 
     r = client.post("/api/training/start", json={"topics": [topic["slug"]], "count": 3}).json()
     assert len(r["exercises"]) == min(3, topic["available"]) and r["available"] == topic["available"]
     lesson_ids = {e["id"] for e in lesson["exercises"]}
     for ex in r["exercises"]:
-        assert ex["id"] in lesson_ids and ex["solved"] is False and ex["answer"] == ""
+        assert ex["id"] in lesson_ids and ex["solved"] is False and ex["answer"] == "" and ex["warmup"] is False
         assert "cheat" in ex and ex["lesson_title"] == lesson["title"]
     big = client.post("/api/training/start", json={"topics": [topic["slug"]], "count": 100}).json()
     assert len(big["exercises"]) == topic["available"], "не больше, чем есть"
+    wide = client.post("/api/training/start", json={"topics": [topic["slug"]], "count": 100, "include_unfinished": True}).json()
+    assert wide["available"] == topic["total"] and any(e["warmup"] for e in wide["exercises"])
     assert client.post("/api/training/start", json={"topics": ["nope"], "count": 5}).status_code == 400
     assert client.post("/api/training/start", json={"topics": [topic["slug"]], "count": 0}).status_code == 422
+
+
+def test_training_warmup_does_not_count(client):
+    fresh = next(t for t in client.get("/api/training/topics").json() if not t["passed"])
+    r = client.post("/api/training/start", json={"topics": [fresh["slug"]], "count": 1}).json()
+    ex = r["exercises"][0]
+    assert ex["warmup"] is True
+    answer = client.get(f"/api/exercises/{ex['id']}/solution").json()["solution"]
+    xp = client.get("/api/state").json()["xp"]
+    res = client.post(f"/api/exercises/{ex['id']}/check", json={"answer": answer, "mode": "warmup"}).json()
+    assert res["correct"] and res["state"]["xp"] == xp + 2
+    hearts = res["state"]["hearts"]
+    bad = client.post(f"/api/exercises/{ex['id']}/check", json={"answer": "wrong", "mode": "warmup"}).json()
+    assert bad["state"]["hearts"] == hearts
+    assert not any(t["passed"] for t in client.get("/api/training/topics").json()), "разминка не засчитывает задания"
+    assert client.get("/api/review").json()["kind"] != "mistakes", "ошибка в разминке не попадает в повторение"

@@ -35,35 +35,51 @@ const TRAIN_MAX = 100;
 
 export async function renderTraining(view) {
   const topics = await api("/training/topics");
-  if (!topics.length) {
-    view.innerHTML = `<div class="topbar path-top">${pills()}</div><div class="card empty"><div class="big">🌱</div>
-      <h2>Пока нечего тренировать</h2><p class="muted">Пройди хотя бы один урок — его задания появятся в тренировке.</p>
-      <a class="btn" href="#/">На карту</a></div>`;
-    return;
-  }
+  const passed = topics.filter((t) => t.passed);
+  const fresh = topics.filter((t) => !t.passed);
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(TRAIN_KEY) || "{}"); } catch { /* пусто */ }
   const known = new Set(topics.map((t) => t.slug));
   const selected = new Set((saved.topics || []).filter((slug) => known.has(slug)));
-  if (!selected.size) topics.forEach((t) => selected.add(t.slug));
+  if (!selected.size) passed.forEach((t) => selected.add(t.slug));   // по умолчанию — все пройденные
+  let unfinished = saved.include_unfinished === true;
   let count = Number.isInteger(saved.count) && saved.count >= 1 ? Math.min(saved.count, TRAIN_MAX) : 10;
   let custom = !TRAIN_SIZES.includes(count);
 
+  // Сколько заданий даст тема при текущих настройках и сколько из них — разминка (не засчитывается).
+  const tasksOf = (t) => (!t.passed || unfinished ? t.total : t.available);
+  const warmupOf = (t) => (!t.passed ? t.total : unfinished ? t.total - t.available : 0);
+  const n = (k) => `${k} ${plural(k, "задание", "задания", "заданий")}`;
+  const topicBtn = (t) => `<button data-topic="${esc(t.slug)}" class="${selected.has(t.slug) ? "on" : ""}">
+      ${esc(t.icon)} ${esc(t.title)}<br><small class="muted">${n(tasksOf(t))}</small></button>`;
+  const allBtn = (list, id) => list.length
+    ? `<button class="btn ghost small" id="${id}">${list.every((t) => selected.has(t.slug)) ? "Снять все" : "Выбрать все"}</button>` : "";
+
   const draw = () => {
-    const available = topics.filter((t) => selected.has(t.slug)).reduce((a, t) => a + t.available, 0);
+    const chosen = topics.filter((t) => selected.has(t.slug));
+    const available = chosen.reduce((a, t) => a + tasksOf(t), 0);
+    const warmup = chosen.reduce((a, t) => a + warmupOf(t), 0);
     const will = Math.min(count, available);
     view.innerHTML = `<div class="topbar path-top">${pills()}</div>
       <div class="settings">
         <h1 class="section-title">🏋️ Тренировка</h1>
-        <div class="card"><div class="row"><h3 style="margin:0">Темы</h3><div class="spacer"></div>
-          <button class="btn ghost small" id="all">${selected.size === topics.length ? "Снять все" : "Выбрать все"}</button></div>
-          <p class="muted" style="margin:8px 0 12px">Только темы, где пройден хотя бы один урок. Задания берутся из пройденных уроков.</p>
-          <div class="choice">${topics.map((t) => `<button data-topic="${esc(t.slug)}" class="${selected.has(t.slug) ? "on" : ""}">
-            ${esc(t.icon)} ${esc(t.title)}<br><small class="muted">${t.available} ${plural(t.available, "задание", "задания", "заданий")}</small></button>`).join("")}</div></div>
+        <div class="train-cols">
+          <div class="card"><div class="row"><h3 style="margin:0">✅ Пройденные</h3><div class="spacer"></div>${allBtn(passed, "all-passed")}</div>
+            <p class="muted" style="margin:8px 0 12px">Темы, где пройден хотя бы один урок. Задания — из пройденных уроков.</p>
+            ${passed.length ? `<div class="choice">${passed.map(topicBtn).join("")}</div>
+              <label class="check-row"><input type="checkbox" id="unfinished" ${unfinished ? "checked" : ""}>
+                <span><b>Включать непройденные уроки этих тем</b><br><small class="muted">Их задания — разминка: не засчитываются</small></span></label>`
+              : `<p class="muted" style="margin:0">Пока нет — пройди хотя бы один урок.</p>`}
+          </div>
+          <div class="card"><div class="row"><h3 style="margin:0">🆕 Ещё не пройденные</h3><div class="spacer"></div>${allBtn(fresh, "all-fresh")}</div>
+            <p class="muted" style="margin:8px 0 12px">Разминка на новом материале: задания из любых уроков темы. Не засчитываются — прогресс уроков не меняется.</p>
+            ${fresh.length ? `<div class="choice train-scroll">${fresh.map(topicBtn).join("")}</div>` : `<p class="muted" style="margin:0">Все темы уже начаты 🎉</p>`}
+          </div>
+        </div>
         <div class="card"><h3>Сколько заданий</h3>
           <p class="muted" style="margin:-4px 0 12px">В выбранных темах доступно <b>${available}</b> ${plural(available, "задание", "задания", "заданий")}.</p>
-          <div class="choice">${TRAIN_SIZES.map((n) => `<button data-size="${n}" class="${!custom && count === n ? "on" : ""} ${n > available ? "dim" : ""}"
-            ${n > available ? `title="Сейчас доступно только ${available}"` : ""}>${n}</button>`).join("")}
+          <div class="choice">${TRAIN_SIZES.map((k) => `<button data-size="${k}" class="${!custom && count === k ? "on" : ""} ${k > available ? "dim" : ""}"
+            ${k > available ? `title="Сейчас доступно только ${available}"` : ""}>${k}</button>`).join("")}
             <button data-size="custom" class="${custom ? "on" : ""}">Своё</button></div>
           ${custom ? `<label style="display:block;margin-top:12px">Количество (1–${TRAIN_MAX})
             <input class="input" id="custom" type="number" min="1" max="${TRAIN_MAX}" value="${count}" inputmode="numeric"></label>` : ""}
@@ -71,8 +87,8 @@ export async function renderTraining(view) {
         <div class="card empty">
           <p class="muted" style="margin:0 0 12px">${available
             ? `${will < count
-                ? `Выбрано ${count}, а пройденных заданий в этих темах пока ${available} — тренировка будет из ${will}. Пройди больше уроков или добавь темы, и выбор вырастет.<br>`
-                : `Будет ${will} ${plural(will, "задание", "задания", "заданий")} вперемешку. `}Ошибки не тратят сердечки, правильный ответ — +2 XP. Кнопка 📖 — шпаргалка урока.`
+                ? `Выбрано ${count}, а заданий в этих темах пока ${available} — тренировка будет из ${will}. Добавь темы или пройди больше уроков, и выбор вырастет.<br>`
+                : `Будет ${n(will)} вперемешку. `}${warmup ? `Из них могут попасться задания разминки — они не засчитываются. ` : ""}Ошибки не тратят сердечки, правильный ответ — +2 XP. Кнопка 📖 — шпаргалка урока.`
             : "Выбери хотя бы одну тему."}</p>
           <button class="btn blue wide" id="start" ${available ? "" : "disabled"}>Начать тренировку</button>
         </div>
@@ -82,10 +98,14 @@ export async function renderTraining(view) {
       selected.has(slug) ? selected.delete(slug) : selected.add(slug);
       draw();
     });
-    view.querySelector("#all").onclick = () => {
-      if (selected.size === topics.length) selected.clear(); else topics.forEach((t) => selected.add(t.slug));
+    const toggleAll = (list) => {
+      if (list.every((t) => selected.has(t.slug))) list.forEach((t) => selected.delete(t.slug));
+      else list.forEach((t) => selected.add(t.slug));
       draw();
     };
+    view.querySelector("#all-passed")?.addEventListener("click", () => toggleAll(passed));
+    view.querySelector("#all-fresh")?.addEventListener("click", () => toggleAll(fresh));
+    view.querySelector("#unfinished")?.addEventListener("change", (e) => { unfinished = e.target.checked; draw(); });
     view.querySelectorAll("[data-size]").forEach((b) => b.onclick = () => {
       if (b.dataset.size === "custom") { custom = true; draw(); view.querySelector("#custom").focus(); return; }
       custom = false; count = Number(b.dataset.size); draw();
@@ -102,11 +122,13 @@ export async function renderTraining(view) {
   const start = async () => {
     const input = view.querySelector("#custom");
     if (input) count = Math.min(TRAIN_MAX, Math.max(1, Math.round(Number(input.value)) || 10));
-    try { localStorage.setItem(TRAIN_KEY, JSON.stringify({ topics: [...selected], count })); } catch { /* ок */ }
+    try {
+      localStorage.setItem(TRAIN_KEY, JSON.stringify({ topics: [...selected], count, include_unfinished: unfinished }));
+    } catch { /* ок */ }
     const btn = view.querySelector("#start");
     btn.disabled = true;
     try {
-      const r = await api("/training/start", { method: "POST", body: { topics: [...selected], count } });
+      const r = await api("/training/start", { method: "POST", body: { topics: [...selected], count, include_unfinished: unfinished } });
       runSession(view, { mode: "training", title: "Тренировка", color: "var(--purple)", exercises: r.exercises });
     } catch (e) {
       btn.disabled = false;

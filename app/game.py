@@ -205,9 +205,17 @@ def record_answer(conn, uid: int, ex: sqlite3.Row, correct: bool, answer: str, m
     """mode:
     'lesson'   — обычное прохождение: ошибка стоит сердечко и попадает в повторение;
     'review'   — работа над ошибками/тренировка: сердечки не тратятся, а возвращаются;
-    'practice' — «решить заново» уже решённое задание: ошибка ничего не отнимает."""
+    'practice' — «решить заново» уже решённое задание: ошибка ничего не отнимает;
+    'warmup'   — тренировка на непройденном материале: задание не засчитывается и прогресс урока
+                 не меняется, верный ответ даёт только XP_PRACTICE, ошибка ничего не отнимает."""
     events: list = []
     refresh_hearts(conn, uid)
+    if mode == "warmup":
+        _bump(conn, uid, "attempts")
+        if correct:
+            _bump(conn, uid, "correct")
+            add_xp(conn, uid, XP_PRACTICE, events, "practice")
+        return events
     st = _state(conn, uid)
     hearts_on = bool(st["hearts_enabled"])
     if mode == "lesson" and hearts_on and st["hearts"] <= 0:

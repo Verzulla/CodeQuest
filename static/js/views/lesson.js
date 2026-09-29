@@ -235,7 +235,7 @@ export function runSession(view, opts) {
     view.innerHTML = `${top()}
       <div class="lesson-body">
         <div class="ex-kind ${item.solved || ex.solved ? "" : "new"}">Задание ${i + 1} из ${n} · ${kindLabel}</div>
-        ${training ? `<div class="muted" style="font-size:13px;margin:-4px 0 8px">${esc(ex.topic_title || "")} · ${esc(ex.lesson_title || "")}</div>` : ""}
+        ${training ? `<div class="muted" style="font-size:13px;margin:-4px 0 8px">${esc(ex.topic_title || "")} · ${esc(ex.lesson_title || "")}${ex.warmup ? ` · <b title="Урок ещё не пройден — задание не засчитывается">🆕 разминка</b>` : ""}</div>` : ""}
         ${viewSolved ? `<div class="solved-banner"><span>✅ Задание решено — это твоё решение</span>
           <button class="btn ghost small" id="redo">↺ Решить заново</button></div>` : ""}
         ${item.redo ? `<div class="solved-banner redo"><span>↺ Решаешь заново — ошибки здесь не отнимают сердечки, статус «решено» сохранится</span></div>` : ""}
@@ -337,7 +337,7 @@ export function runSession(view, opts) {
       const btn = $("#check", view);
       btn.disabled = true;
       btn.textContent = isCode ? "⏳ Тестирую…" : "…";
-      const mode = opts.mode === "review" ? "review" : training || item.redo ? "practice" : "lesson";
+      const mode = opts.mode === "review" ? "review" : training && ex.warmup ? "warmup" : training || item.redo ? "practice" : "lesson";
       const answer = getAnswer();
       let r;
       try {
