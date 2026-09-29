@@ -358,7 +358,7 @@ def check(ex_id: int, body: CheckIn, user: User):
     elif ex["type"] == "command":
         correct = runner.command_matches(body.answer, ex["expected_output"])
     else:
-        correct = runner.normalize_output(body.answer) == runner.normalize_output(ex["expected_output"])
+        correct = runner.output_matches(body.answer, ex["expected_output"])
     with transaction() as conn:
         try:
             events = game.record_answer(conn, user["id"], ex, correct, body.answer, body.mode)

@@ -794,3 +794,24 @@ def test_topic_theory_includes_locked_lessons(client):
     assert locked, "в новой теме есть закрытые уроки"
     assert all(l["theory_full"] or l["theory"] for l in lessons), "теория есть и у закрытых уроков"
     assert client.get("/api/topics/999999/theory").status_code == 404
+
+
+@pytest.mark.parametrize("answer, expected, ok", [
+    ('["a", "b", "c"]', "['a', 'b', 'c']", True),       # кавычки не важны
+    ("['a','b','c']", "['a', 'b', 'c']", True),         # пробелы после запятых — тоже
+    ('{"k": 1}', "{'k': 1}", True),
+    ("{'x', 'y'}", "{'y', 'x'}", True),                 # порядок элементов множества
+    ('"hi"', "'hi'", True),
+    ("x\n['a']", 'x\n["a"]', True),                     # построчно
+    ("hello", "hello  ", True),
+    ("1", "True", False),                               # тип важен
+    ("1", "1.0", False),
+    ("16", "0x10", False),                              # числа — только текстом
+    ("[1, 2]", "(1, 2)", False),
+    ('"hello"', "hello", False),                        # кавычек в выводе не было
+    ("{'b': 1, 'a': 2}", "{'a': 2, 'b': 1}", False),    # словарь печатается в порядке вставки
+    ("5", "    5", False),                              # отступ важен
+    ("['a', 'b']", "['a', 'b', 'c']", False),
+])
+def test_output_matches_by_value(answer, expected, ok):
+    assert runner.output_matches(answer, expected) is ok

@@ -27,6 +27,7 @@
     OUTPUT          — всё, что код напечатал при запуске
     capture(f, *a)  — вызвать f(*a) и вернуть напечатанное
 """
+import ast
 import json
 import logging
 import os
@@ -341,3 +342,42 @@ def normalize_output(text: str) -> str:
     while lines and not lines[-1]:
         lines.pop()
     return "\n".join(lines)
+
+
+def _canonical(value):
+    """Значение Python → форма для сравнения «по смыслу»: тип учитывается (True ≠ 1, 1.0 ≠ 1),
+    а запись — нет (кавычки, пробелы). Множества сравниваются без учёта порядка, словари — с порядком
+    (print выводит их в порядке вставки)."""
+    if isinstance(value, (list, tuple)):
+        return (type(value).__name__, [_canonical(v) for v in value])
+    if isinstance(value, dict):
+        return ("dict", [(_canonical(k), _canonical(v)) for k, v in value.items()])
+    if isinstance(value, (set, frozenset)):
+        return (type(value).__name__, sorted(repr(_canonical(v)) for v in value))
+    return (type(value).__name__, repr(value))
+
+
+def _same_value(answer_line: str, expected_line: str) -> bool:
+    """Обе строки — запись одного и того же значения Python (["a"] и ['a'], {"k":1} и {'k': 1}).
+    Только для коллекций и строк в кавычках: числа, True/None и отступы сравниваются как текст
+    (иначе «1» совпало бы с «0x1», а «    5» из f"{n:>5}" — с «5»). Отступ в начале строки
+    ломает literal_eval, так что он по-прежнему обязан совпадать."""
+    try:
+        expected = ast.literal_eval(expected_line)
+        if not isinstance(expected, (list, tuple, dict, set, frozenset, str)):
+            return False
+        return _canonical(ast.literal_eval(answer_line)) == _canonical(expected)
+    except (ValueError, SyntaxError, TypeError, MemoryError, RecursionError):
+        return False
+
+
+def output_matches(answer: str, expected: str) -> bool:
+    """Задание «что выведет программа»: построчно; строка засчитывается, если совпадает текстом
+    или записывает то же значение Python (кавычки ' и ", пробелы после запятых не важны)."""
+    got, want = normalize_output(answer), normalize_output(expected)
+    if got == want:
+        return True
+    got_lines, want_lines = got.split("\n"), want.split("\n")
+    if len(got_lines) != len(want_lines):
+        return False
+    return all(g == w or _same_value(g, w) for g, w in zip(got_lines, want_lines))
