@@ -489,12 +489,16 @@ export function renderSettings(view) {
     view.innerHTML = `<div class="topbar path-top">${pills()}</div>
       <h1 class="section-title">Настройки</h1>
       <div class="settings set-one">
-        <div class="card set-profile">
-          <button class="avatar-btn" id="ava-pick" title="Сменить аватарку">${avatarHtml(u)}<span class="ava-edit">${ic("pen")}</span></button>
-          <div class="grow"><b>${esc(u.username)}</b><small class="muted">${u.is_admin ? "администратор · " : ""}уровень ${s.level}</small>
-            <div class="ava-links"><button class="link" id="ava-pick2">${u.avatar ? "Сменить аватарку" : "Поставить аватарку"}</button>
-              ${u.avatar ? `<button class="link muted" id="ava-del">Убрать</button>` : ""}</div></div>
-          <button class="btn ghost small" id="logout" title="Выйти">${ic("logout")}<span>Выйти</span></button>
+        <div class="set-hero">${owl("wave", "bob")}
+          <div class="sh-top">
+            <button class="avatar-btn" id="ava-pick" title="Сменить аватарку">${avatarHtml(u)}<span class="ava-edit">${ic("pen")}</span></button>
+            <div class="grow"><b>${esc(u.username)}</b><small>${u.is_admin ? "администратор" : "ученик"}</small>
+              <div class="ava-links"><button class="link" id="ava-pick2">${u.avatar ? "Сменить аватарку" : "Поставить аватарку"}</button>
+                ${u.avatar ? `<button class="link" id="ava-del">Убрать</button>` : ""}</div></div>
+            <button class="sh-out" id="logout" title="Выйти">${ic("logout")}</button>
+          </div>
+          <div class="sh-lvl"><div class="bar"><i style="width:${Math.round((100 * s.level_xp) / s.level_size)}%"></i></div>
+            <div class="sh-lvl-t"><span>Уровень ${s.level}</span><span>${s.level_xp} / ${s.level_size} XP</span></div></div>
           <input type="file" id="ava-file" accept="image/png,image/jpeg,image/webp,image/gif,image/heic" hidden></div>
         <div class="card mob-links">
           <a href="#/about">${ic("i-info")}<span>О приложении</span>${chev}</a>
@@ -512,7 +516,7 @@ export function renderSettings(view) {
         ${setRow(ic("heart", "si"), "Сердечки", "Ошибка в уроке стоит сердечко, вернуть — в работе над ошибками", toggle("hearts", s.hearts_enabled))}
         ${setRow(ic("unlock", "si ok"), "Открыть все уроки", "Любой урок доступен сразу, без прохождения предыдущих", toggle("sequential", !s.sequential_lessons))}
         ${setRow(ic(s.theme === "dark" ? "moon" : "sun", "si blue"), "Тёмная тема", "", toggle("theme", s.theme === "dark"))}
-        ${setRow(ic("sound", "si ok"), "Звуки", "", toggle("sound", soundOn()))}
+        ${setRow(ic("sound", "si teal"), "Звуки", "", toggle("sound", soundOn()))}
         ${installCard()}
         <h3 class="set-sec">Аккаунт</h3>
         <button class="card set-row link-row" id="pw-open">${ic("key", "si")}<div class="grow"><b>Сменить пароль</b></div>${chev}</button>
