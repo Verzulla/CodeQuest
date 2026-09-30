@@ -1,5 +1,5 @@
 // Управление контентом: дерево тем/модулей/уроков/заданий, формы, импорт/экспорт JSON.
-import { api, esc, modal, toast, md } from "../util.js";
+import { api, esc, modal, toast, md, ic } from "../util.js";
 import { createEditor } from "../editor.js";
 import { glyph } from "../glyphs.js";
 
@@ -39,21 +39,22 @@ function find(tree, kind, id) {
 }
 
 function drawTree(view, tree) {
-  const item = (kind, it, label, children = "") => {
+  const item = (kind, it, icon, label, children = "") => {
     const key = `${kind}:${it.id}`;
     const hasKids = kind !== "exercises";
     const isOpen = open.has(key);
     const isSel = sel && !sel.isNew && sel.kind === kind && sel.id === it.id;
     return `<li><div class="t-item ${isSel ? "sel" : ""}" data-kind="${kind}" data-id="${it.id}">
-        ${hasKids ? `<span data-toggle="${key}" style="width:14px">${isOpen ? "▾" : "▸"}</span>` : `<span style="width:14px"></span>`}
-        <span class="lbl">${label}</span></div>
+        ${hasKids ? `<span class="t-tog" data-toggle="${key}">${isOpen ? "▾" : "▸"}</span>` : `<span class="t-tog"></span>`}
+        <span class="t-ico">${icon}</span><span class="lbl">${label}</span></div>
       ${hasKids && isOpen ? `<ul>${children}<li class="add" data-add="${CHILD[kind]}" data-parent="${it.id}">+ ${LABEL[CHILD[kind]]}</li></ul>` : ""}</li>`;
   };
-  const html = tree.map((t) => item("topics", t, `${glyph(t, 22)} ${esc(t.title)}`,
-    t.modules.map((m) => item("modules", m, `${esc(m.title)}`,
-      m.lessons.map((l) => item("lessons", l, `${esc(l.title)}`,
-        l.exercises.map((e, i) => item("exercises", e,
-          `<span class="kind">${e.type === "code" ? "код" : e.type === "command" ? "$" : "вывод"} ${i + 1}.</span> ${esc(e.prompt.replace(/[`*#]/g, "").slice(0, 60))}`)).join(""))).join(""))).join(""))).join("");
+  const EX_ICON = { code: "code", command: "term", output: "eye" };
+  const html = tree.map((t) => item("topics", t, glyph(t, 24), esc(t.title),
+    t.modules.map((m, mi) => item("modules", m, `<span class="t-num" style="--tc:${esc(t.color)}">${mi + 1}</span>`, esc(m.title),
+      m.lessons.map((l) => item("lessons", l, ic("book"), esc(l.title),
+        l.exercises.map((e, i) => item("exercises", e, ic(EX_ICON[e.type] || "eye", `t-ex ${e.type}`),
+          `<span class="kind">${i + 1}.</span> ${esc(e.prompt.replace(/[`*#]/g, "").slice(0, 60))}`)).join(""))).join(""))).join(""))).join("");
   const box = view.querySelector("#tree");
   box.innerHTML = `
     <div class="row" style="margin-bottom:10px">
