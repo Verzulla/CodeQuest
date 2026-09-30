@@ -1,6 +1,7 @@
 // Управление контентом: дерево тем/модулей/уроков/заданий, формы, импорт/экспорт JSON.
 import { api, esc, modal, toast, md } from "../util.js";
 import { createEditor } from "../editor.js";
+import { glyph } from "../glyphs.js";
 
 const LABEL = { topics: "тему", modules: "модуль", lessons: "урок", exercises: "задание" };
 const CHILD = { topics: "modules", modules: "lessons", lessons: "exercises" };
@@ -12,7 +13,7 @@ const open = new Set(JSON.parse(sessionStorage.getItem("cq-admin-open") || "[]")
 
 export async function renderAdmin(view) {
   document.body.classList.add("wide");
-  view.innerHTML = `<h1 class="section-title">🛠️ Контент</h1>
+  view.innerHTML = `<h1 class="section-title">Контент</h1>
     <div class="admin"><div class="card tree" id="tree"></div><div id="form"></div></div>`;
   await refresh(view);
 }
@@ -48,11 +49,11 @@ function drawTree(view, tree) {
         <span class="lbl">${label}</span></div>
       ${hasKids && isOpen ? `<ul>${children}<li class="add" data-add="${CHILD[kind]}" data-parent="${it.id}">+ ${LABEL[CHILD[kind]]}</li></ul>` : ""}</li>`;
   };
-  const html = tree.map((t) => item("topics", t, `${esc(t.icon)} ${esc(t.title)}`,
-    t.modules.map((m) => item("modules", m, `${esc(m.icon)} ${esc(m.title)}`,
-      m.lessons.map((l) => item("lessons", l, `📄 ${esc(l.title)}`,
+  const html = tree.map((t) => item("topics", t, `${glyph(t, 22)} ${esc(t.title)}`,
+    t.modules.map((m) => item("modules", m, `${esc(m.title)}`,
+      m.lessons.map((l) => item("lessons", l, `${esc(l.title)}`,
         l.exercises.map((e, i) => item("exercises", e,
-          `<span class="kind">${e.type === "code" ? "⌨️" : "👁"} ${i + 1}.</span> ${esc(e.prompt.replace(/[`*#]/g, "").slice(0, 60))}`)).join(""))).join(""))).join(""))).join("");
+          `<span class="kind">${e.type === "code" ? "код" : e.type === "command" ? "$" : "вывод"} ${i + 1}.</span> ${esc(e.prompt.replace(/[`*#]/g, "").slice(0, 60))}`)).join(""))).join(""))).join(""))).join("");
   const box = view.querySelector("#tree");
   box.innerHTML = `
     <div class="row" style="margin-bottom:10px">
@@ -110,26 +111,26 @@ function drawForm(view, tree) {
     + f("theory_full", "Урок (markdown)", `<textarea class="input" name="theory_full" style="min-height:360px">${esc(it.theory_full || "")}</textarea>`,
       "основной экран теории перед заданиями; # заголовки, **жирный**, `код`, списки; блоки ```python получают кнопки «Запустить» и «Изменить», ```yaml / ```bash — просто подсветка")
     + f("theory", "Шпаргалка (markdown)", `<textarea class="input" name="theory" style="min-height:220px">${esc(it.theory)}</textarea>`,
-      "коротко главное: свёрнута под уроком и открывается кнопкой 📖 во время заданий (если урока нет — показывается вместо него)")
+      "коротко главное: свёрнута под уроком и открывается кнопкой с книжкой во время заданий (если урока нет — показывается вместо него)")
     + f("quiz", "Проверь себя (JSON)", `<textarea class="input" name="quiz" style="min-height:200px">${esc(prettyQuiz(it.quiz))}</textarea>`,
       'после всех заданий, без штрафов. Формат: [{"q": "вопрос", "options": ["А", "Б"], "answer": 0, "explain": "почему"}]');
   if (k === "exercises") fields = `
     <div class="row">${f("type", "Тип", `<select class="input" name="type">
-        <option value="code" ${it.type === "code" ? "selected" : ""}>⌨️ Написать код (проверка тестами)</option>
-        <option value="output" ${it.type === "output" ? "selected" : ""}>👁 Что выведет код?</option>
-        <option value="command" ${it.type === "command" ? "selected" : ""}>🖥 Терминал (команда)</option></select>`)}
+        <option value="code" ${it.type === "code" ? "selected" : ""}>Написать код (проверка тестами)</option>
+        <option value="output" ${it.type === "output" ? "selected" : ""}>Что выведет код?</option>
+        <option value="command" ${it.type === "command" ? "selected" : ""}>Терминал (команда)</option></select>`)}
       ${f("xp", "XP", `<input class="input" type="number" min="1" max="100" name="xp" value="${it.xp}" style="width:90px">`)}</div>
     ${f("prompt", "Условие (markdown)", area("prompt", "prose"))}
     <div data-for="code">
       ${f("starter_code", "Заготовка кода", code("starter_code"), "то, что увидит ученик в редакторе")}
       ${f("tests", "Тесты", code("tests"), "функции test_*; доступны имена из кода ученика, OUTPUT и capture(f, *args)")}
       ${f("solution", "Эталонное решение", code("solution"), "показывается по кнопке «Показать решение»")}
-      <div><button class="btn small blue" type="button" id="validate">🧪 Прогнать эталон через тесты</button></div>
+      <div><button class="btn small blue" type="button" id="validate">Прогнать эталон через тесты</button></div>
     </div>
     <div data-for="output">
       ${f("code", "Код программы", code("code"))}
       ${f("expected_output", "Ожидаемый вывод", area("expected_output"))}
-      <div><button class="btn small blue" type="button" id="compute">⚙️ Вычислить вывод из кода</button></div>
+      <div><button class="btn small blue" type="button" id="compute">Вычислить вывод из кода</button></div>
     </div>
     <div data-for="command"><p class="muted">Задания «Терминал» (варианты ответа, контекст, эталон) описываются в файлах контента <code>content/src</code> через <code>cmd(...)</code> и загружаются командой sync.</p></div>
     <div id="vres"></div>
@@ -173,12 +174,12 @@ function drawForm(view, tree) {
       } else {
         await api(`/admin/${k}/${sel.id}`, { method: "PUT", body: data });
       }
-      toast("💾", "Сохранено");
+      toast("check", "Сохранено");
       refresh(view);
-    } catch (e) { toast("⚠️", "Не сохранилось", e.message); }
+    } catch (e) { toast("warn", "Не сохранилось", e.message); }
   };
   box.querySelector("#del")?.addEventListener("click", () => {
-    const m = modal(`<div class="big">🗑️</div><h2>Удалить ${LABEL[k]}?</h2>
+    const m = modal(`<h2>Удалить ${LABEL[k]}?</h2>
       <p class="muted">${k !== "exercises" ? "Всё вложенное тоже будет удалено. " : ""}Прогресс по удалённым заданиям перестанет учитываться.</p>
       <div class="btns"><button class="btn red" id="y">Удалить</button><button class="btn ghost" id="n">Отмена</button></div>`);
     m.root.querySelector("#n").onclick = m.close;
@@ -196,10 +197,10 @@ function drawForm(view, tree) {
   box.querySelector("#validate")?.addEventListener("click", async () => {
     const d = collect();
     const r = await api("/admin/validate", { method: "POST", body: { type: "code", tests: d.tests, solution: d.solution } });
-    const lines = r.tests.map((t) => `${t.passed ? "✔" : "✘"} ${t.name}${t.message ? " — " + t.message : ""}`);
+    const lines = r.tests.map((t) => `${t.passed ? "✓" : "×"} ${t.name}${t.message ? " — " + t.message : ""}`);
     if (r.error) lines.unshift("Ошибка: " + r.error);
     if (!r.tests.length && !r.error) lines.push("Не найдено ни одной функции test_*");
-    box.querySelector("#vres").innerHTML = `<div class="result-box ${r.passed ? "ok" : "fail"}">${r.passed ? "✅ Эталон проходит все тесты\n" : "❌ Эталон НЕ проходит тесты\n"}${esc(lines.join("\n"))}</div>`;
+    box.querySelector("#vres").innerHTML = `<div class="result-box ${r.passed ? "ok" : "fail"}">${r.passed ? "Эталон проходит все тесты\n" : "Эталон НЕ проходит тесты\n"}${esc(lines.join("\n"))}</div>`;
   });
   box.querySelector("#compute")?.addEventListener("click", async () => {
     const r = await api("/admin/validate", { method: "POST", body: { type: "output", code: editors.code.value } });
@@ -208,7 +209,7 @@ function drawForm(view, tree) {
       return;
     }
     box.querySelector('[name="expected_output"]').value = r.stdout.replace(/\n$/, "");
-    box.querySelector("#vres").innerHTML = `<div class="result-box ok">✅ Вывод вычислен и подставлен</div>`;
+    box.querySelector("#vres").innerHTML = `<div class="result-box ok">Вывод вычислен и подставлен</div>`;
   });
 }
 
@@ -241,15 +242,15 @@ function importDialog(view) {
   m.root.querySelector("#cancel").onclick = m.close;
   m.root.querySelector("#go").onclick = async () => {
     let pkg;
-    try { pkg = JSON.parse(ta.value); } catch { return toast("⚠️", "Это не JSON", "Проверь скобки и кавычки"); }
+    try { pkg = JSON.parse(ta.value); } catch { return toast("warn", "Это не JSON", "Проверь скобки и кавычки"); }
     try {
       const r = await api("/admin/import", { method: "POST", body: pkg });
       m.close();
-      toast("✅", "Импорт завершён", `создано ${r.created}, обновлено ${r.updated}`);
+      toast("okc", "Импорт завершён", `создано ${r.created}, обновлено ${r.updated}`);
       refresh(view);
     } catch (e) {
       const detail = Array.isArray(e.data?.detail) ? e.data.detail.slice(0, 3).map((d) => `${d.loc.join(".")}: ${d.msg}`).join("; ") : e.message;
-      toast("⚠️", "Ошибка импорта", detail);
+      toast("warn", "Ошибка импорта", detail);
     }
   };
 }
@@ -272,8 +273,8 @@ const HELP = md(`## Как наполнять приложение
 в папке \`content/\`, проверит каждое задание и загрузит его. Можно и вручную: «Импорт JSON».
 
 ### Типы заданий
-- ⌨️ **Написать код** — ученик пишет программу, она запускается и проверяется тестами.
-- 👁 **Что выведет код?** — ученик читает программу и вводит её вывод.
+- **Написать код** — ученик пишет программу, она запускается и проверяется тестами.
+- **Что выведет код?** — ученик читает программу и вводит её вывод.
 - $ **Терминал** — ученик вводит команду одной строкой; допустимые варианты — по одному на строку, \`re:…\` — регулярное выражение.
 
 ### Как писать тесты
