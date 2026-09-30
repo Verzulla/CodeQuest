@@ -2,7 +2,7 @@
 import { api, esc, md, highlight, sound, modal, confetti, burst, toast, fmtTime, ic, owl, plural, goBack, $ } from "../util.js";
 import { createEditor } from "../editor.js";
 import { achMini } from "../achievements.js";
-import { attachKeybar } from "../keybar.js";
+import { keybarHtml, bindKeybar } from "../keybar.js";
 import { bindRunnable } from "../runnable.js";
 import { store, setState, announce } from "../store.js";
 
@@ -336,15 +336,15 @@ export function runSession(view, opts) {
     const dots = `<span class="dots"><i></i><i></i><i></i></span>`;
     const work = isCode
       ? `<div class="code-card"><div class="cc-head">${dots}<span class="cc-name">${fileName}</span><span class="spacer"></span>
-          <button class="act run" id="run">${ic("play")}Запустить</button></div><div id="ed"></div></div>`
+          <button class="act run" id="run">${ic("play")}Запустить</button></div><div id="ed"></div>${viewSolved ? "" : keybarHtml()}</div>`
       : isCmd
       ? `<div class="code-card term">${ex.code ? `<div class="cc-head">${dots}<span class="cc-name">${fileName}</span></div><pre class="code-view term">${esc(ex.code)}</pre>` : ""}
           <div class="term-input"><span class="term-prompt">$</span>
             <input class="answer code" id="answer" placeholder="команда или ответ"
-              spellcheck="false" autocomplete="off" autocapitalize="off"></div></div>`
+              spellcheck="false" autocomplete="off" autocapitalize="off"></div>${viewSolved ? "" : keybarHtml()}</div>`
       : `<div class="code-card"><div class="cc-head">${dots}<span class="cc-name">${fileName}</span></div><pre class="code-view">${highlight(ex.code)}</pre></div>
         <div class="kind out-label">Твой ответ — что появится на экране</div>
-        <textarea class="answer code" id="answer" placeholder="Каждую строку вывода — с новой строки" spellcheck="false"></textarea>`;
+        <div class="answer-card"><textarea class="answer code" id="answer" placeholder="Каждую строку вывода — с новой строки" spellcheck="false"></textarea>${viewSolved ? "" : keybarHtml()}</div>`;
     view.innerHTML = `${top()}
       <div class="lesson-body ex-layout${isCode ? " split" : ""}">
         <div class="ex-left">
@@ -386,7 +386,7 @@ export function runSession(view, opts) {
     if (isCode) {
       editor = createEditor($("#ed", view), initial, { onSubmit: () => $("#check", view)?.click(), onChange: onEdit });
       editor.textarea.readOnly = viewSolved;
-      attachKeybar(editor.textarea);
+      bindKeybar(view.querySelector(".ex-right"), editor.textarea);
       if (!viewSolved) editor.focus();
       $("#run", view).onclick = async () => {
         const btn = $("#run", view);
@@ -400,7 +400,7 @@ export function runSession(view, opts) {
       answerEl = $("#answer", view);
       answerEl.value = initial;
       answerEl.readOnly = viewSolved;
-      attachKeybar(answerEl);
+      bindKeybar(view.querySelector(".ex-right"), answerEl);
       if (!viewSolved) answerEl.focus();
       answerEl.oninput = () => onEdit(answerEl.value);
       answerEl.onkeydown = (e) => {
