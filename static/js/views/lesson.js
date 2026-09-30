@@ -357,7 +357,7 @@ export function runSession(view, opts) {
           <div class="tools">
             ${ex.hint && !viewSolved ? `<button class="act hint" id="hint">${ic("bulb")}Подсказка</button>` : ""}
             ${hasTheory || cheatOf() ? `<button class="act cheat" id="cheat-chip">${ic("book")}Шпаргалка</button>` : ""}
-            <button class="act" id="sol" ${item.failed || item.solved ? "" : "hidden"}>${ic("eye")}${item.solved ? "Эталонное решение" : "Показать решение"}</button>
+            <button class="act" id="sol">${ic("eye")}${item.solved ? "Эталонное решение" : "Показать решение"}</button>
             ${isCode && !viewSolved ? `<button class="act" id="reset" title="Вернуть заготовку">${ic("refresh")}Сбросить</button>` : ""}
           </div>
           <div id="hintbox"></div>
@@ -412,7 +412,18 @@ export function runSession(view, opts) {
     $("#hint", view)?.addEventListener("click", () => {
       $("#hintbox", view).innerHTML = `<div class="hintbox"><div class="kind">${ic("bulb")}Подсказка</div>${md(ex.hint)}</div>`;
     });
-    $("#sol", view).onclick = async () => {
+    // До первой попытки решение показываем не сразу — сначала предупреждение
+    $("#sol", view).onclick = () => {
+      if (item.failed || item.solved || item.peeked) return showSolution();
+      $("#hintbox", view).innerHTML = `<div class="hintbox warn-sol"><div class="kind">${ic("warn")}Точно подсмотреть?</div>
+        Попробуй сначала сам — даже неверная попытка покажет, где застрял, а решение без попытки забывается быстрее.
+        Если подсмотришь, задание не засчитается «с первой попытки».
+        <div class="row"><button class="btn main small" id="try-self">Попробую сам</button>
+        <button class="btn ghost small" id="peek">${ic("eye")}Всё равно показать</button></div></div>`;
+      $("#try-self", view).onclick = () => { $("#hintbox", view).innerHTML = ""; (isCode ? editor.textarea : answerEl)?.focus(); };
+      $("#peek", view).onclick = () => { item.peeked = true; showSolution(); };
+    };
+    const showSolution = async () => {
       const { solution, explain } = await api(`/exercises/${ex.id}/solution`);
       // Разбор по строкам: код строки, под ним — что она делает; `…` в тексте — как код.
       const inl = (t) => esc(t).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>");
@@ -481,7 +492,7 @@ export function runSession(view, opts) {
         burst(btn);
         if (!item.solved) {
           s.solvedNow++;
-          if (!item.failed) s.firstTry++;
+          if (!item.failed && !item.peeked) s.firstTry++;
         }
         item.solved = true;
         item.redo = false;
@@ -489,7 +500,7 @@ export function runSession(view, opts) {
         clearTimeout(draftTimer); draftPending = null;   // сервер сам очистил черновик
         if (isCode) editor.textarea.readOnly = true; else answerEl.readOnly = true;
         footer.className = "footer good";
-        const firstTry = !item.failed && !(item.redo);
+        const firstTry = !item.failed && !item.peeked && !(item.redo);
         footer.innerHTML = `<div class="inner">${owl("happy", "hop", "")}<div class="verdict">
           <div>${praise()}<div class="detail">${gained ? `+${gained} XP` : "Решено"}${firstTry && gained ? " · с первой попытки" : ""}</div></div></div>
           <div class="spacer"></div><button class="btn main" id="cont">${nextTodo(i) === -1 ? (opts.mode === "lesson" ? endLabel() : "Готово") : "Продолжить"}</button></div>`;
