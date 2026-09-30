@@ -27,6 +27,8 @@ export async function renderLesson(view, id) {
   });
 }
 
+const THEORY_MODE_KEY = "cq-theory-mode";   // «steps» или «page» — удобство конкретного браузера
+
 export function runSession(view, opts) {
   // Пройденный урок открывается «с чистого листа» (повтор), незаконченный — с места, где остановился.
   const replay = opts.mode === "lesson" && opts.completed;
@@ -42,6 +44,24 @@ export function runSession(view, opts) {
   const hasCheat = opts.mode === "lesson" && !!(opts.theory || "").trim();
   const hasFull = opts.mode === "lesson" && !!(opts.theoryFull || "").trim();
   const hasTheory = hasCheat || hasFull;
+  // Шаги теории: разделы «## …» полного урока (текст раздела — без изменений) + шпаргалка последним шагом.
+  const steps = [];
+  if (hasFull) {
+    let head = "";
+    for (const part of opts.theoryFull.replace(/\r\n/g, "\n").split(/^(?=## )/m)) {
+      const m = part.match(/^## (.+)\n?([\s\S]*)$/);
+      if (!m) { head += part; continue; }
+      steps.push({ title: m[1].trim(), body: (steps.length ? "" : head) + m[2] });
+    }
+    if (!steps.length) steps.push({ title: opts.title, body: opts.theoryFull });
+  }
+  if (hasCheat) steps.push({ title: "Шпаргалка", body: opts.theory, cheat: true });
+  let theoryStep = 0;
+  const theoryMode = () => {
+    let m = null;
+    try { m = localStorage.getItem(THEORY_MODE_KEY); } catch { /* ок */ }
+    return m === "steps" || m === "page" ? m : window.innerWidth <= 700 ? "steps" : "page";
+  };
   // «Проверь себя» — после всех заданий; страницы вопросов идут следом за заданиями: cur = n + k.
   const quiz = opts.mode === "lesson" ? (opts.quiz || []) : [];
   const quizAnswers = quiz.map(() => null);
@@ -142,6 +162,7 @@ export function runSession(view, opts) {
     <div class="lesson-top">
       <button class="close" title="Выйти" id="quit">${ic("xmark")}</button>
       <div class="segs">${hasTheory ? segHtml(-1) : ""}${items.map((_, i) => segHtml(i)).join("")}${quiz.length ? segHtml(n) : ""}</div>
+      ${cur === -1 && steps.length > 1 ? `<button class="tb" id="mode-btn" title="${theoryMode() === "steps" ? "Одной страницей" : "Шагами"}">${ic(theoryMode() === "steps" ? "pageI" : "stepsI")}</button>` : ""}
       ${hasTheory || cheatOf() ? `<button class="tb" id="theory-btn" title="Шпаргалка урока">${ic("book")}</button>` : ""}
       ${store.state.hearts_enabled && opts.mode === "lesson"
         ? `<span class="hp">${ic("heart")}${store.state.hearts}</span>`
@@ -198,6 +219,7 @@ export function runSession(view, opts) {
 
   function goTo(i) {
     flushDraft();
+    if (i === -1) theoryStep = cur >= 0 && cur < n ? steps.length - 1 : cur === -1 ? theoryStep : 0;
     cur = i;
     if (i >= 0 && i < n) reached = Math.max(reached, i);
     window.scrollTo(0, 0);
@@ -220,18 +242,69 @@ export function runSession(view, opts) {
   const cheatBlock = () => hasFull && hasCheat
     ? `<details class="cheat"><summary>${ic("book")}Шпаргалка — коротко всё главное из урока</summary>
         <div class="theory md">${md(opts.theory, { runnable: true })}</div></details>` : "";
+  // Теория шагами: один раздел «## …» полного урока = один шаг, текст без правок; последний шаг — шпаргалка.
+  // Или одной страницей (статья с оглавлением разделов). Выбор запоминается в браузере.
   function showTheory() {
     s.theorySeen = true;
+    theoryMode() === "steps" && steps.length > 1 ? showTheoryStep() : showTheoryPage();
+  }
+  const bindMode = () => {
+    const b = $("#mode-btn", view);
+    if (b) b.onclick = () => {
+      try { localStorage.setItem(THEORY_MODE_KEY, theoryMode() === "steps" ? "page" : "steps"); } catch { /* ок */ }
+      window.scrollTo(0, 0);
+      showTheory();
+    };
+  };
+  const goLabel = () => (anySolved || s.solvedNow ? "К заданиям →" : "Поехали!");
+
+  function showTheoryPage() {
+    const secs = hasFull ? steps.filter((st) => !st.cheat) : [];
+    const toc = secs.length > 1 ? `<aside class="th-toc card"><b>Разделы урока</b>${secs.map((st, k) =>
+      `<button class="toc-link" data-sec="${k}"><i>${k + 1}</i>${esc(st.title)}</button>`).join("")}
+      ${hasCheat && hasFull ? `<button class="toc-link cheat-link" data-sec="cheat">${ic("book")}Шпаргалка</button>` : ""}</aside>` : "";
     view.innerHTML = `${top()}
-      <div class="lesson-body"><div class="kind">Урок</div><h1>${esc(opts.title)}</h1>
-      <div class="theory md full">${md(hasFull ? opts.theoryFull : opts.theory, { runnable: true })}</div>
-      ${cheatBlock()}</div>
+      <div class="lesson-body th-page ${toc ? "with-toc" : ""}"><div class="th-article">
+        <div class="th-first">${owl("think", "tilt")}</div>
+        <div class="kind">Урок</div><h1>${esc(opts.title)}</h1>
+        <div class="theory md full">${md(hasFull ? opts.theoryFull : opts.theory, { runnable: true })}</div>
+        ${cheatBlock()}</div>${toc}</div>
       <div class="footer"><div class="inner"><div class="spacer"></div>
-        <button class="btn" id="go">${anySolved || s.solvedNow ? "Дальше →" : "Поехали!"}</button></div></div>`;
+        <button class="btn main" id="go">${goLabel()}</button></div></div>`;
     bindTop();
+    bindMode();
     bindRunnable(view);
+    const heads = [...view.querySelectorAll(".theory.full > h3")];
+    view.querySelectorAll("[data-sec]").forEach((b) => b.onclick = () => {
+      const el = b.dataset.sec === "cheat" ? view.querySelector("details.cheat") : heads[Number(b.dataset.sec)];
+      if (el?.tagName === "DETAILS") el.open = true;
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
     $("#go", view).onclick = () => goTo(0);
-    $("#go", view).focus();
+  }
+
+  function showTheoryStep() {
+    const k = Math.min(theoryStep, steps.length - 1);
+    const st = steps[k];
+    const last = k === steps.length - 1;
+    view.innerHTML = `${top()}
+      <div class="lesson-body th-step">
+        <div class="kind">${esc(opts.title)} · шаг ${k + 1} из ${steps.length}</div>
+        <div class="step-dots">${steps.map((_, j) => `<button class="${j < k ? "done" : j === k ? "cur" : ""}" data-step="${j}" title="Шаг ${j + 1}"></button>`).join("")}</div>
+        ${k === 0 ? `<div class="th-first">${owl("think", "tilt")}</div>` : ""}
+        <h1 class="step-title">${st.cheat ? `${ic("book")}` : ""}${esc(st.title)}</h1>
+        <div class="theory md full">${md(st.body, { runnable: true })}</div>
+      </div>
+      <div class="footer"><div class="inner">
+        ${k > 0 ? `<button class="btn ghost" id="step-back">← Назад</button>` : ""}<div class="spacer"></div>
+        <button class="btn main" id="go">${last ? goLabel() : "Дальше →"}</button></div></div>`;
+    bindTop();
+    bindMode();
+    bindRunnable(view);
+    const to = (j) => { theoryStep = j; window.scrollTo(0, 0); showTheoryStep(); };
+    $("#step-back", view)?.addEventListener("click", () => to(k - 1));
+    view.querySelectorAll("[data-step]").forEach((b) => b.onclick = () => to(Number(b.dataset.step)));
+    $("#go", view).onclick = () => (last ? goTo(0) : to(k + 1));
   }
 
   // ---------- Полный урок, открытый из задания ----------
