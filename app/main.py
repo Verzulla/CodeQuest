@@ -219,7 +219,8 @@ def _get(conn, table: str, id_: int):
 @app.get("/api/state")
 def state(user: User):
     with transaction() as conn:
-        return game.get_state(conn, user["id"])
+        notice = game.settle_streak(conn, user["id"])
+        return {**game.get_state(conn, user["id"]), "notice": notice}
 
 
 @app.get("/api/rules")
@@ -534,7 +535,8 @@ def stats(user: User):
         for i in range(ACTIVITY_DAYS):
             d = (start + timedelta(days=i)).isoformat()
             row = days.get(d, {})
-            activity.append({"day": d, "xp": row.get("xp", 0), "goal_met": bool(row.get("goal_met"))})
+            activity.append({"day": d, "xp": row.get("xp", 0), "goal_met": bool(row.get("goal_met")),
+                             "frozen": bool(row.get("frozen")) and not row.get("xp")})
         s["accuracy"] = round(100 * s["correct"] / s["attempts"]) if s["attempts"] else None
         s["activity"] = activity
         s["state"] = game.get_state(conn, uid)

@@ -226,18 +226,34 @@ def test_hearts_disabled(client):
 
 def test_streak_freeze_and_break(client, clock):
     lessons = first_lessons(client)
-    solve_lesson(client, lessons[0]["id"])            # день 1
+    solve_lesson(client, lessons[0]["id"])            # день 1 (суббота 10.01)
     clock.t += timedelta(days=1)
-    solve_lesson(client, lessons[1]["id"])            # день 2
-    assert client.get("/api/state").json()["streak"] == 2
-    clock.t += timedelta(days=2)                      # пропуск одного дня: сгорает заморозка
+    solve_lesson(client, lessons[1]["id"])            # день 2 (воскресенье)
     st = client.get("/api/state").json()
-    assert st["streak"] == 2 and st["streak_at_risk"]
-    r = solve_lesson(client, lessons[2]["id"])
-    assert any(e["type"] == "freeze_used" for e in r["events"])
-    assert r["state"]["streak"] == 3 and r["state"]["freezes"] == 0
+    assert st["streak"] == 2 and st["notice"] is None and st["freeze_next"] == 5
+    clock.t += timedelta(days=2)                      # пропуск понедельника: при открытии тратится заморозка
+    st = client.get("/api/state").json()
+    assert st["notice"] == {"type": "freeze_used", "count": 1, "streak": 2, "freezes": 0, "max_freezes": 2, "next_in": 5}
+    assert st["streak"] == 2 and st["freezes"] == 0 and st["week"][0] == "frz"
+    assert client.get("/api/state").json()["notice"] is None, "окно — один раз"
+    r = solve_lesson(client, lessons[2]["id"])        # вторник: серия продолжается
+    assert not any(e["type"] == "freeze_used" for e in r["events"])
+    assert r["state"]["streak"] == 3 and r["state"]["week"][:2] == ["frz", "on"]
+    days = {a["day"]: a for a in client.get("/api/stats").json()["activity"]}
+    assert days["2026-01-12"]["frozen"] and not days["2026-01-13"]["frozen"]
     clock.t += timedelta(days=3)                      # заморозок нет — серия сгорает
-    assert client.get("/api/state").json()["streak"] == 0
+    st = client.get("/api/state").json()
+    assert st["notice"] == {"type": "streak_lost", "missed": 2, "had": 3, "freezes": 0, "record": 3}
+    assert st["streak"] == 0 and client.get("/api/state").json()["notice"] is None
+
+
+def test_freeze_used_on_activity_without_opening(client, clock):
+    """Если задание решено без открытия главной (/api/state), заморозка тратится при решении."""
+    lessons = first_lessons(client)
+    solve_lesson(client, lessons[0]["id"])
+    clock.t += timedelta(days=2)
+    r = solve_lesson(client, lessons[1]["id"])
+    assert any(e["type"] == "freeze_used" for e in r["events"]) and r["state"]["streak"] == 2
 
 
 def test_module_trophy(client):

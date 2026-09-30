@@ -1,6 +1,6 @@
 // Повторение, награды, статистика, настройки.
 import { api, esc, modal, soundOn, sound, plural, toast, ic, owl } from "../util.js";
-import { store, setState, pills } from "../store.js";
+import { store, setState, pills, weekRow, freezeBox } from "../store.js";
 import { runSession } from "./lesson.js";
 import { glyph } from "../glyphs.js";
 import { achBadge } from "../achievements.js";
@@ -231,14 +231,15 @@ export async function renderStats(view) {
     const pad = (new Date(days[0].day).getDay() + 6) % 7;
     const active = days.filter((a) => a.xp > 0).length;
     const goals = days.filter((a) => a.goal_met).length;
+    const frozen = days.filter((a) => a.frozen).length;
     const cell = period <= 30 ? 32 : period <= 91 ? 24 : 14;   // короткий период — клетки крупнее
     return `<div class="heatmap" style="--cell:${cell}px">${"<i style='visibility:hidden'></i>".repeat(pad)}${days.map((a) =>
-      `<i data-l="${level(a.xp)}" class="${a.goal_met ? "goal" : ""}" title="${a.day}: ${a.xp} XP${a.goal_met ? " · цель выполнена" : ""}"></i>`).join("")}</div>
-      <small class="muted">Активных дней: <b>${active}</b> из ${days.length} · цель выполнена: <b>${goals}</b>.
-      Золотая рамка — день, когда выполнена дневная цель.</small>`;
+      a.frozen ? `<i class="fz" title="${a.day}: спасено заморозкой"></i>`
+        : `<i data-l="${level(a.xp)}" class="${a.goal_met ? "goal" : ""}" title="${a.day}: ${a.xp} XP${a.goal_met ? " · цель выполнена" : ""}"></i>`).join("")}</div>
+      <div class="hm-legend"><span><i class="l3"></i>занимался</span><span><i class="goal"></i>цель выполнена</span><span><i class="fz"></i>спасено заморозкой</span><span><i></i>пропуск</span></div>
+      <small class="muted">Активных дней: <b>${active}</b> из ${days.length} · цель выполнена: <b>${goals}</b>${frozen ? ` · спасено заморозкой: <b>${frozen}</b>` : ""}.</small>`;
   };
 
-  const WEEK = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
   const avg14 = Math.round(last14.reduce((n, a) => n + a.xp, 0) / 14);
   const num = (n) => Number(n).toLocaleString("ru-RU");
   view.innerHTML = `<div class="topbar path-top">${pills()}</div>
@@ -248,8 +249,9 @@ export async function renderStats(view) {
         <svg class="i st-flame ${st.streak ? "glowP" : ""}"><use href="#ic-flame"/></svg>
         <div class="st-days">${st.streak}</div>
         <div class="st-days-l">${plural(st.streak, "день", "дня", "дней")} подряд</div>
-        <div class="week">${(st.week || []).map((on, i) => `<i class="${on ? "on" : ""}">${WEEK[i]}</i>`).join("")}</div>
-        <div class="muted st-rec">Рекорд ${st.longest_streak} · ${ic("snow")} ${st.freezes} ${plural(st.freezes, "заморозка", "заморозки", "заморозок")}</div>
+        ${weekRow(st)}
+        <div class="muted st-rec">Рекорд ${st.longest_streak} ${plural(st.longest_streak, "день", "дня", "дней")}</div>
+        ${freezeBox(st)}
       </div>
       <div class="st-grid">
         ${rec("Всего XP", num(d.xp), "#ffd54a")}${rec("Уровень", d.level, "#c68bff")}

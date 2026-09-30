@@ -84,6 +84,46 @@ def _displayed_streak(st) -> tuple[int, bool]:
     return 0, False
 
 
+def _mark_frozen(conn, uid: int, last: date, missed: int) -> None:
+    """Отмечает пропущенные дни после last как спасённые заморозкой (для недели и календаря)."""
+    for k in range(1, missed + 1):
+        conn.execute(
+            "INSERT INTO daily_activity (user_id, day, frozen) VALUES (?, ?, 1) "
+            "ON CONFLICT(user_id, day) DO UPDATE SET frozen = 1",
+            (uid, (last + timedelta(days=k)).isoformat()),
+        )
+
+
+def freeze_next_in(streak: int, freezes: int) -> int | None:
+    """Через сколько дней серии будет новая заморозка (None — копилка полна)."""
+    if freezes >= MAX_FREEZES:
+        return None
+    return 7 - streak % 7 if streak % 7 else 7
+
+
+def settle_streak(conn, uid: int) -> dict | None:
+    """При открытии приложения: пропущенные дни сразу покрываются заморозками (или серия сгорает),
+    чтобы показать человеку, что произошло. Возвращает событие для окна — один раз."""
+    st = _state(conn, uid)
+    if not st["last_active_date"] or not st["streak"]:
+        return None
+    last = date.fromisoformat(st["last_active_date"])
+    missed = (today() - last).days - 1
+    if missed <= 0:
+        return None
+    if missed <= st["freezes"]:
+        left = st["freezes"] - missed
+        _mark_frozen(conn, uid, last, missed)
+        # последний «активный» день — вчера: сегодняшнее занятие продолжит серию
+        conn.execute("UPDATE user_state SET freezes = ?, last_active_date = ? WHERE user_id = ?",
+                     (left, (today() - timedelta(days=1)).isoformat(), uid))
+        return {"type": "freeze_used", "count": missed, "streak": st["streak"], "freezes": left,
+                "max_freezes": MAX_FREEZES, "next_in": freeze_next_in(st["streak"], left)}
+    conn.execute("UPDATE user_state SET streak = 0 WHERE user_id = ?", (uid,))
+    return {"type": "streak_lost", "missed": missed, "had": st["streak"], "freezes": st["freezes"],
+            "record": st["longest_streak"]}
+
+
 def get_state(conn, uid: int) -> dict:
     st = _state(conn, uid)
     streak, at_risk = _displayed_streak(st)
@@ -91,8 +131,8 @@ def get_state(conn, uid: int) -> dict:
         "SELECT xp FROM daily_activity WHERE user_id = ? AND day = ?", (uid, today().isoformat())
     ).fetchone()
     monday = today() - timedelta(days=today().weekday())
-    active = {r["day"] for r in conn.execute(
-        "SELECT day FROM daily_activity WHERE user_id = ? AND day >= ? AND xp > 0", (uid, monday.isoformat()))}
+    week = {r["day"]: ("on" if r["xp"] > 0 else "frz" if r["frozen"] else "") for r in conn.execute(
+        "SELECT day, xp, frozen FROM daily_activity WHERE user_id = ? AND day >= ?", (uid, monday.isoformat()))}
     return {
         "xp": st["xp"],
         **level_info(st["xp"]),
@@ -107,7 +147,9 @@ def get_state(conn, uid: int) -> dict:
         "freezes": st["freezes"],
         "daily_goal": st["daily_goal"],
         "today_xp": day["xp"] if day else 0,
-        "week": [(monday + timedelta(days=i)).isoformat() in active for i in range(7)],  # занятия пн…вс этой недели
+        "week": [week.get((monday + timedelta(days=i)).isoformat(), "") for i in range(7)],  # пн…вс: on / frz / ""
+        "max_freezes": MAX_FREEZES,
+        "freeze_next": freeze_next_in(streak, st["freezes"]),
         "theme": st["theme"],
         "path_view": st["path_view"],
         "review_count": conn.execute(
@@ -135,6 +177,7 @@ def _touch_streak(conn, uid: int, events: list) -> None:
         elif 0 < missed <= freezes:
             freezes -= missed
             streak += 1
+            _mark_frozen(conn, uid, last, missed)
             events.append({"type": "freeze_used", "count": missed})
         else:
             streak = 1

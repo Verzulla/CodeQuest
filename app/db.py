@@ -152,6 +152,7 @@ CREATE TABLE IF NOT EXISTS daily_activity (
     solved          INTEGER NOT NULL DEFAULT 0,
     mistakes        INTEGER NOT NULL DEFAULT 0,
     goal_met        INTEGER NOT NULL DEFAULT 0,
+    frozen          INTEGER NOT NULL DEFAULT 0,   -- пропуск, который спасла заморозка
     PRIMARY KEY (user_id, day)
 );
 
@@ -202,6 +203,7 @@ MIGRATIONS = [
     ("user_state", "onboarded", "INTEGER NOT NULL DEFAULT 1"),  # приветствие: старым аккаунтам не показываем
     ("exercise_progress", "hearts_lost", "INTEGER NOT NULL DEFAULT 0"),  # сердечки, потерянные на задании
     ("user_state", "path_view", "TEXT NOT NULL DEFAULT 'zigzag'"),  # вид дорожки уроков (редизайн)
+    ("daily_activity", "frozen", "INTEGER NOT NULL DEFAULT 0"),      # день, спасённый заморозкой
 ]
 
 

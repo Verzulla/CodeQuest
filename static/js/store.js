@@ -1,11 +1,12 @@
 // Глобальное состояние игрока (XP, сердечки, streak…) и его отображение.
-import { api, esc, toast, plural, ic, owl } from "./util.js";
+import { api, esc, toast, plural, ic, owl, modal } from "./util.js";
 import { achIconName } from "./achievements.js";
 
 export const store = { state: null, user: null, listeners: new Set() };
 
 export function setState(state) {
   store.state = state;
+  if (state.notice) showStreakNotice(state.notice);
   document.documentElement.dataset.theme = state.theme;
   document.getElementById("theme-color")?.setAttribute("content", state.theme === "dark" ? "#0b0f0d" : "#f3f6f0");
   try { localStorage.setItem("cq-theme", state.theme); } catch { /* ok */ }
@@ -39,6 +40,63 @@ export function pills(s = store.state) {
 
 const fmtNum = (n) => n.toLocaleString("ru-RU");
 const WEEK = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+const days = (n) => `${n} ${plural(n, "день", "дня", "дней")}`;
+
+// Неделя серии: занимался — оранжевый, спасено заморозкой — голубой со снежинкой, сегодня — пунктир.
+export function weekRow(s) {
+  const todayIdx = (new Date().getDay() + 6) % 7;
+  return `<div class="week">${(s.week || []).map((d, i) => d === "frz"
+    ? `<i class="frz ${i === todayIdx ? "today" : ""}" title="Спасено заморозкой">${ic("snow")}</i>`
+    : `<i class="${d === "on" ? "on" : ""} ${i === todayIdx ? "today" : ""}">${WEEK[i]}</i>`).join("")}</div>`;
+}
+
+// Копилка заморозок: ячейки, когда будет следующая, подсказка «?».
+export function freezeBox(s) {
+  const max = s.max_freezes || 2;
+  const slots = Array.from({ length: max }, (_, i) => `<span class="slot ${i < s.freezes ? "on" : ""}">${i < s.freezes ? ic("snow") : ""}</span>`).join("");
+  const next = s.freeze_next == null
+    ? `<div class="frz-next">Копилка полна: больше ${max === 2 ? "двух" : max} заморозок не хранится</div>`
+    : `<div class="frz-next">Новая заморозка через <b>${days(s.freeze_next)}</b> серии</div>
+       <div class="frz-bar"><i style="width:${Math.round((100 * (7 - s.freeze_next)) / 7)}%"></i></div>`;
+  return `<div class="frz-box">
+    <div class="frz-row">${ic("snow", "frz-ico")}Заморозки<button class="q" type="button" data-frz-help aria-label="Как работают заморозки">?</button>
+      <span class="slots">${slots}</span></div>
+    ${next}
+    <div class="frz-pop" hidden><b>Заморозка спасает серию</b>, если пропустил день.
+      <ul><li>Тратится сама, когда ты возвращаешься: один пропущенный день — одна заморозка.</li>
+        <li>Новую дают за каждые <b>7 дней</b> серии, хранить можно до <b>${max}</b>.</li>
+        <li>Пропустил больше дней, чем есть заморозок, — серия начнётся заново.</li></ul></div>
+  </div>`;
+}
+// «?» у заморозок — показать/скрыть подсказку (делегирование: карточки перерисовываются).
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-frz-help]");
+  if (!b) return;
+  const pop = b.closest(".frz-box").querySelector(".frz-pop");
+  pop.hidden = !pop.hidden;
+  b.classList.toggle("on", !pop.hidden);
+});
+
+// Окно при возвращении: заморозка спасла серию или серия сгорела. Приходит с сервера один раз.
+function showStreakNotice(n) {
+  setTimeout(() => {
+    if (document.querySelector(".modal")) return;          // не перекрываем приветствие новичка
+    const snow = (used) => `<span class="${used ? "used" : ""}">${ic("snow")}</span>`;
+    const m = n.type === "freeze_used"
+      ? modal(`${owl("happy", "bob")}
+        <div class="snowbig">${Array.from({ length: n.count }, () => snow(true)).join("")}${Array.from({ length: n.freezes }, () => snow(false)).join("")}</div>
+        <h2>Серия спасена!</h2>
+        <p class="muted">${n.count === 1 ? "Вчера ты не занимался" : `Ты пропустил ${days(n.count)}`} — ${n.count === 1 ? "заморозка сохранила" : "заморозки сохранили"} твою серию <b class="hl-streak">${days(n.streak)}</b>.</p>
+        <p class="muted">${n.freezes ? `Осталось заморозок: ${n.freezes}.` : "Заморозок больше нет."}${n.next_in ? ` Новую дадут через ${days(n.next_in)} серии.` : ""}</p>
+        <div class="btns"><button class="btn" data-ok>Продолжить серию</button></div>`)
+      : modal(`${owl("sad", "breathe")}<h2>Серия сгорела</h2>
+        <p class="muted">Ты пропустил ${days(n.missed)}, а ${n.freezes ? `заморозок было ${n.freezes}` : "заморозок не было"}.
+        Серия начинается заново — рекорд <b class="hl-streak">${days(n.record)}</b> остаётся в статистике.</p>
+        <div class="btns"><button class="btn" data-ok>Начать новую серию</button></div>`);
+    m.root.classList.add(n.type === "freeze_used" ? "modal-frz" : "modal-lost");
+    m.root.querySelector("[data-ok]").onclick = m.close;
+  }, 400);
+}
 const heartRow = (s) => ic("heart").repeat(s.hearts) + ic("heartE").repeat(s.max_hearts - s.hearts);
 
 // Компактная сводка для телефона и планшета: там боковой колонки нет (см. .status-strip в CSS).
@@ -76,8 +134,6 @@ function renderRail() {
   const streakSub = s.streak
     ? (s.streak_at_risk ? "под угрозой — позанимайся сегодня!" : `серия · рекорд ${s.longest_streak}`)
     : "реши задание, чтобы начать серию";
-  const week = (s.week || []).map((on, i) => `<i class="${on ? "on" : ""}">${WEEK[i]}</i>`).join("");
-  const freezes = s.freezes ? `<small class="muted rail-freeze">${ic("snow")}Заморозки: ${s.freezes} — спасут серию при пропуске</small>` : "";
   const hearts = s.hearts_enabled
     ? `<div class="card rcard"><div class="rc-head"><b>Сердечки</b><span class="muted">${s.hearts} / ${s.max_hearts}</span></div>
         <div class="rail-hearts">${heartRow(s)}</div>
@@ -93,7 +149,7 @@ function renderRail() {
       ${goalPct >= 100 ? `<div class="goal-done">${ic("target")}Выполнено!</div>` : `<div class="bar gold"><i style="width:${goalPct}%"></i></div>`}</div>
     <div class="card rcard"><div class="rail-streak"><svg class="i ${s.streak ? "glowP" : "cold"}"><use href="#ic-flame"/></svg>
       <div><b>${s.streak} ${plural(s.streak, "день", "дня", "дней")}</b><div class="muted">${esc(streakSub)}</div></div></div>
-      <div class="week">${week}</div>${freezes}</div>
+      ${weekRow(s)}${freezeBox(s)}</div>
     <div class="card rcard"><div class="rc-head"><b>Уровень ${s.level}</b><span class="muted">${s.level_xp} / ${s.level_size} XP</span></div>
       <div class="bar purple"><i style="width:${lvlPct}%"></i></div></div>
     ${hearts}
