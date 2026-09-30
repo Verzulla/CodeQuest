@@ -26,7 +26,8 @@
                   "code": "def f():\n    try:\n        return \"из try\"\n    finally:\n        print(\"finally\")\n\nprint(f())\n",
                   "expected_output": "finally\nиз try",
                   "hint": "Сначала выполнится finally, и только потом функция вернёт значение.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`finally` выполняется даже при `return`: значение уже вычислено, но функция вернёт его только после `finally`.\", \"lines\": [[\"return \\\"из try\\\"\", \"Результат готов, выход отложен.\"], [\"print(\\\"finally\\\")\", \"Печатается раньше результата.\"], [\"print(f())\", \"Потом печатается возвращённое.\"]], \"mistake\": \"Думать, что `return` пропускает `finally`.\"}"
                 },
                 {
                   "slug": "ctx-m1-l1-e2",
@@ -35,7 +36,8 @@
                   "code": "try:\n    print(\"начало\")\n    1 / 0\n    print(\"не дойдём\")\nexcept ZeroDivisionError:\n    print(\"поймали\")\nfinally:\n    print(\"уборка\")\n",
                   "expected_output": "начало\nпоймали\nуборка",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Ошибка прерывает `try`, срабатывает `except`, и в конце — `finally`.\", \"lines\": [[\"1 / 0\", \"Отсюда — в `except`.\"], [\"print(\\\"не дойдём\\\")\", \"Пропущено.\"], [\"print(\\\"уборка\\\")\", \"Всегда.\"]], \"mistake\": \"Ожидать «не дойдём».\"}"
                 },
                 {
                   "slug": "ctx-m1-l1-e3",
@@ -44,7 +46,8 @@
                   "code": "with open(\"notes.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"первая\\n\")\n    f.write(\"вторая\\n\")\nprint(f.closed)\n\nwith open(\"notes.txt\", encoding=\"utf-8\") as f:\n    print(f.read().splitlines())\n",
                   "expected_output": "True\n['первая', 'вторая']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`with` закрывает файл сам при выходе из блока.\", \"lines\": [[\"print(f.closed)\", \"Блок закончился — закрыт.\"], [\"print(f.read().splitlines())\", \"Строки без `\\\\n`.\"]], \"mistake\": \"Ожидать `False`.\"}"
                 },
                 {
                   "slug": "ctx-m1-l1-e4",
@@ -54,7 +57,8 @@
                   "tests": "def test_file():\n    save_lines(\"out.txt\", [\"a\", \"b\", \"c\"])\n    with open(\"out.txt\", encoding=\"utf-8\") as f:\n        content = f.read()\n    assert content.splitlines() == [\"a\", \"b\", \"c\"], f\"В файле: {content!r}\"\n",
                   "solution": "def save_lines(path, lines):\n    with open(path, \"w\", encoding=\"utf-8\") as f:\n        for line in lines:\n            f.write(line + \"\\n\")\n",
                   "hint": "Режим `\"w\"` — запись. Не забудь `\"\\n\"` после каждой строки.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Файл открыт в `with` — закроется сам. Каждой строке — свой `\\\\n`.\", \"lines\": [[\"with open(path, \\\"w\\\", encoding=\\\"utf-8\\\") as f:\", \"Перезапись.\"], [\"f.write(line + \\\"\\\\n\\\")\", \"Перевод строки после каждой.\"]], \"mistake\": \"Режим `\\\"a\\\"` — старое содержимое останется.\"}"
                 },
                 {
                   "slug": "ctx-m1-l1-e5",
@@ -64,7 +68,8 @@
                   "tests": "def test_count():\n    with open(\"log.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"1\\n2\\n3\\n\")\n    assert count_lines(\"log.txt\") == 3, f\"Получено {count_lines('log.txt')}\"\n",
                   "solution": "def count_lines(path):\n    with open(path, encoding=\"utf-8\") as f:\n        return sum(1 for _ in f)\n",
                   "hint": "Файл итерируемый: `for line in f` перебирает строки.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Файл — перебираемый объект строк; считаем их без загрузки в память.\", \"lines\": [[\"return sum(1 for _ in f)\", \"По единице на строку; `return` в `with` безопасен.\"]], \"mistake\": \"`len(f)` — у файла нет длины.\"}"
                 },
                 {
                   "slug": "ctx-m1-l1-e6",
@@ -74,7 +79,8 @@
                   "tests": "def test_ok():\n    log = []\n    assert safe_divide(10, 2, log) == 5, \"10 / 2 = 5\"\n    assert log == [\"done\"], \"После успешного деления в log должно быть 'done'\"\n\ndef test_zero():\n    log = []\n    assert safe_divide(1, 0, log) is None, \"Деление на ноль → None\"\n    assert log == [\"done\"], \"И при ошибке в log должно быть 'done'\"\n",
                   "solution": "def safe_divide(a, b, log):\n    try:\n        return a / b\n    except ZeroDivisionError:\n        return None\n    finally:\n        log.append(\"done\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`finally` срабатывает и при обычном `return`, и после `except`.\", \"lines\": [[\"return a / b\", \"Успех.\"], [\"except ZeroDivisionError:\\n        return None\", \"Деление на ноль.\"], [\"finally:\\n        log.append(\\\"done\\\")\", \"В любом случае.\"]], \"mistake\": \"Писать в журнал в `try` и `except` по отдельности — легко забыть одну ветку.\"}"
                 },
                 {
                   "slug": "ctx-m1-l1-e7",
@@ -83,7 +89,8 @@
                   "code": "def check(x):\n    try:\n        if x < 0:\n            return \"отрицательное\"\n        return \"ок\"\n    finally:\n        print(\"проверено\", x)\n\nprint(check(-1))\nfor i in range(3):\n    try:\n        if i == 1:\n            break\n    finally:\n        print(\"итерация\", i)\n",
                   "expected_output": "проверено -1\nотрицательное\nитерация 0\nитерация 1",
                   "hint": "finally выполняется при любом выходе из try — return, break, исключение.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`finally` срабатывает при `return` и при `break` — перед тем, как управление уйдёт.\", \"lines\": [[\"return \\\"отрицательное\\\"\", \"Сначала `finally`.\"], [\"break\", \"Перед выходом из цикла — `finally`.\"], [\"print(\\\"итерация\\\", i)\", \"Для 0 и 1; до 2 не дошли.\"]], \"mistake\": \"Не ждать «итерация 1» — `finally` сработал и при `break`.\"}"
                 },
                 {
                   "slug": "ctx-m1-l1-e8",
@@ -93,7 +100,8 @@
                   "tests": "def test_values():\n    log = []\n    assert run_with_cleanup(lambda: 42, lambda: log.append(\"clean\")) == 42 and log == [\"clean\"], \"Успешный вызов\"\n    def boom():\n        raise ValueError(\"упс\")\n    try:\n        run_with_cleanup(boom, lambda: log.append(\"clean2\"))\n    except ValueError:\n        assert log == [\"clean\", \"clean2\"], \"cleanup и при ошибке\"\n        return\n    assert False, \"Исключение должно пробрасываться\"\n",
                   "solution": "def run_with_cleanup(action, cleanup):\n    try:\n        return action()\n    finally:\n        cleanup()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`try/finally` без `except`: уборка гарантирована, а ошибка летит дальше.\", \"lines\": [[\"return action()\", \"Результат или исключение.\"], [\"finally:\\n        cleanup()\", \"В любом случае.\"]], \"mistake\": \"Добавить `except: pass` — ошибка будет проглочена.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nМногие ресурсы нужно не только взять, но и обязательно **отдать**: закрыть файл, закрыть соединение с базой, выйти из браузера, удалить тестового пользователя. Если между «взял» и «отдал» случится ошибка, уборка не выполнится — и ресурсы «утекут». **Контекстный менеджер** и оператор `with` гарантируют уборку в любом случае.\n\n## try/finally: уборка всегда\n\n```python\ntry:\n    print(\"начало\")\n    1 / 0\n    print(\"не дойдём\")\nexcept ZeroDivisionError:\n    print(\"поймали\")\nfinally:\n    print(\"уборка\")\n```\n\n- `finally` выполняется **всегда**: и после успешного `try`, и после исключения (пойманного или нет).\n- Вывод: `начало`, `поймали`, `уборка`.\n\n## finally при return и break\n\n```python\ndef f():\n    try:\n        return \"из try\"\n    finally:\n        print(\"finally\")\n\nprint(f())\nfor i in range(3):\n    try:\n        if i == 1:\n            break\n    finally:\n        print(\"итерация\", i)\n```\n\n- Даже `return` не обходит `finally`: сначала выполнится `finally`, потом функция вернёт значение.\n- То же с `break` и `continue`.\n- Вывод: `finally`, `из try`, `итерация 0`, `итерация 1`.\n\n## Ручная уборка — многословно\n\n```python\nf = open(\"notes.txt\", \"w\", encoding=\"utf-8\")\ntry:\n    f.write(\"данные\")\nfinally:\n    f.close()\nprint(f.closed)\n```\n\n- Правильный, но громоздкий способ: открыть, всё остальное — в `try`, закрытие — в `finally`.\n- Вывод: `True`.\n\n## with делает то же короче\n\n```python\nwith open(\"notes.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"первая\\n\")\n    f.write(\"вторая\\n\")\nprint(f.closed)\n\nwith open(\"notes.txt\", encoding=\"utf-8\") as f:\n    print(f.read().splitlines())\n```\n\n- `with выражение as имя:` — выражение должно вернуть **контекстный менеджер**: объект, который умеет «войти» и «выйти».\n- При входе файл открыт, при выходе из блока (любом: обычном, по `return`, по исключению) — закрыт.\n- Это ровно тот же `try/finally`, только спрятанный внутрь объекта.\n- Вывод: `True`, `['первая', 'вторая']`.\n\n## Функция с гарантированной уборкой\n\n```python\ndef run_with_cleanup(action, cleanup):\n    try:\n        return action()\n    finally:\n        cleanup()\n\nlog = []\nprint(run_with_cleanup(lambda: 42, lambda: log.append(\"убрано\")), log)\n```\n\n- Шаблон «сделать и в любом случае убрать» — основа всех контекстных менеджеров.\n- Вывод: `42 ['убрано']`.\n\n## Итог\n\n- `finally` выполняется всегда: после успеха, ошибки, `return`, `break`.\n- `with` — короткая запись `try/finally` для объектов-менеджеров.\n- Файлы, соединения, блокировки — всегда через `with`.",
@@ -145,7 +153,8 @@
                   "code": "with open(\"a.txt\", \"w\", encoding=\"utf-8\") as fa, open(\"b.txt\", \"w\", encoding=\"utf-8\") as fb:\n    fa.write(\"A\")\n    fb.write(\"B\")\nprint(fa.closed, fb.closed)\nwith open(\"a.txt\", encoding=\"utf-8\") as fa, open(\"b.txt\", encoding=\"utf-8\") as fb:\n    print(fa.read() + fb.read())\n",
                   "expected_output": "True True\nAB",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Несколько менеджеров в одном `with` через запятую — закроются все.\", \"lines\": [[\"with open(\\\"a.txt\\\", \\\"w\\\", encoding=\\\"utf-8\\\") as fa, open(\\\"b.txt\\\", \\\"w\\\", encoding=\\\"utf-8\\\") as fb:\", \"Два файла сразу.\"], [\"print(fa.closed, fb.closed)\", \"Оба закрыты.\"], [\"print(fa.read() + fb.read())\", \"A + B.\"]], \"mistake\": \"Думать, что закрывается только последний.\"}"
                 },
                 {
                   "slug": "ctx-multi-e2",
@@ -154,7 +163,8 @@
                   "code": "class Box:\n    def __init__(self, name):\n        self.name = name\n\n    def __enter__(self):\n        print(\"открыл\", self.name)\n        return self\n\n    def __exit__(self, *args):\n        print(\"закрыл\", self.name)\n\nwith Box(\"А\") as a, Box(\"Б\") as b:\n    print(\"внутри\", a.name, b.name)\n",
                   "expected_output": "открыл А\nоткрыл Б\nвнутри А Б\nзакрыл Б\nзакрыл А",
                   "hint": "Закрываются в обратном порядке — как матрёшка.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Вход — слева направо, выход — в обратном порядке, как у вложенных `with`.\", \"lines\": [[\"with Box(\\\"А\\\") as a, Box(\\\"Б\\\") as b:\", \"Открыл А, открыл Б.\"], [\"print(\\\"внутри\\\", a.name, b.name)\", \"Тело.\"], [\"print(\\\"закрыл\\\", self.name)\", \"Сначала Б, потом А.\"]], \"mistake\": \"Ожидать «закрыл А» первым.\"}"
                 },
                 {
                   "slug": "ctx-multi-e3",
@@ -163,7 +173,8 @@
                   "code": "class Box:\n    def __init__(self, name, fail=False):\n        self.name = name\n        self.fail = fail\n\n    def __enter__(self):\n        if self.fail:\n            raise OSError(f\"не открыть {self.name}\")\n        print(\"открыл\", self.name)\n        return self\n\n    def __exit__(self, *args):\n        print(\"закрыл\", self.name)\n\ntry:\n    with Box(\"БД\") as db, Box(\"браузер\", fail=True) as br:\n        print(\"тест\")\nexcept OSError as e:\n    print(e)\n",
                   "expected_output": "открыл БД\nзакрыл БД\nне открыть браузер",
                   "hint": "Уже открытые менеджеры закрываются, даже если следующий не открылся.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Если второй менеджер не открылся, уже открытый первый всё равно закроется.\", \"lines\": [[\"with Box(\\\"БД\\\") as db, Box(\\\"браузер\\\", fail=True) as br:\", \"БД открыта, браузер падает.\"], [\"print(\\\"тест\\\")\", \"Не выполнится.\"], [\"print(e)\", \"Ошибка — после закрытия БД.\"]], \"mistake\": \"Ожидать, что БД останется открытой.\"}"
                 },
                 {
                   "slug": "ctx-multi-e4",
@@ -173,7 +184,8 @@
                   "tests": "def test_values():\n    with open(\"m1.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"один\\n\")\n    with open(\"m2.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"два\\n\")\n    merge_files(\"m1.txt\", \"m2.txt\", \"m3.txt\")\n    with open(\"m3.txt\", encoding=\"utf-8\") as f:\n        assert f.read() == \"один\\nдва\\n\", \"Неверное содержимое\"\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert src.count(\"with \") == 1, \"Нужен один оператор with\"\n",
                   "solution": "def merge_files(a, b, out):\n    with open(a, encoding=\"utf-8\") as fa, open(b, encoding=\"utf-8\") as fb, open(out, \"w\", encoding=\"utf-8\") as fo:\n        fo.write(fa.read())\n        fo.write(fb.read())\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Три файла в одном `with` — все закроются.\", \"lines\": [[\"with open(a, encoding=\\\"utf-8\\\") as fa, open(b, encoding=\\\"utf-8\\\") as fb, open(out, \\\"w\\\", encoding=\\\"utf-8\\\") as fo:\", \"Два на чтение, один на запись.\"], [\"fo.write(fa.read())\", \"Сначала `a`.\"], [\"fo.write(fb.read())\", \"Потом `b`.\"]], \"mistake\": \"Открыть `out` без `\\\"w\\\"` — режим чтения, запись упадёт.\"}"
                 },
                 {
                   "slug": "ctx-multi-e5",
@@ -183,7 +195,8 @@
                   "tests": "def test_values():\n    with open(\"c1.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"a\\nb\\nc\\nd\\n\")\n    with open(\"c2.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"a\\nX\\nc\\nY\\nлишнее\\n\")\n    assert compare_files(\"c1.txt\", \"c2.txt\") == [2, 4] and compare_files(\"c1.txt\", \"c1.txt\") == [], compare_files(\"c1.txt\", \"c2.txt\")\n",
                   "solution": "def compare_files(a, b):\n    with open(a, encoding=\"utf-8\") as fa, open(b, encoding=\"utf-8\") as fb:\n        return [n for n, (x, y) in enumerate(zip(fa, fb), start=1) if x != y]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`zip` по двум файлам идёт до конца короткого; `enumerate(start=1)` даёт номера.\", \"lines\": [[\"return [n for n, (x, y) in enumerate(zip(fa, fb), start=1) if x != y]\", \"Пара строк и номер.\"]], \"mistake\": \"Нумерация с 0.\"}"
                 },
                 {
                   "slug": "ctx-multi-e6",
@@ -193,7 +206,8 @@
                   "tests": "def test_values():\n    with open(\"lvl.log\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"INFO a\\nERROR b\\nINFO c\\nERROR d\\n\")\n    split_by_level(\"lvl.log\", \"err.log\", \"rest.log\")\n    with open(\"err.log\", encoding=\"utf-8\") as f:\n        assert f.read() == \"ERROR b\\nERROR d\\n\", \"Ошибки\"\n    with open(\"rest.log\", encoding=\"utf-8\") as f:\n        assert f.read() == \"INFO a\\nINFO c\\n\", \"Остальное\"\n",
                   "solution": "def split_by_level(src, errors_path, other_path):\n    with (\n        open(src, encoding=\"utf-8\") as fin,\n        open(errors_path, \"w\", encoding=\"utf-8\") as ferr,\n        open(other_path, \"w\", encoding=\"utf-8\") as fother,\n    ):\n        for line in fin:\n            if \"ERROR\" in line:\n                ferr.write(line)\n            else:\n                fother.write(line)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Скобки после `with` позволяют перечислить менеджеры на нескольких строках.\", \"lines\": [[\"open(errors_path, \\\"w\\\", encoding=\\\"utf-8\\\") as ferr,\", \"Файл ошибок.\"], [\"if \\\"ERROR\\\" in line:\\n                ferr.write(line)\", \"Строка уже с `\\\\n`.\"], [\"else:\\n                fother.write(line)\", \"Остальное.\"]], \"mistake\": \"Добавлять `\\\\n` — появятся пустые строки.\"}"
                 },
                 {
                   "slug": "ctx-multi-e7",
@@ -203,7 +217,8 @@
                   "tests": "def test_values():\n    log = []\n    nested(log)\n    assert log == [\"+outer\", \"+inner\", \"work\", \"-inner\", \"-outer\"], log\n",
                   "solution": "class Tracker:\n    def __init__(self, name, log):\n        self.name = name\n        self.log = log\n\n    def __enter__(self):\n        self.log.append(\"+\" + self.name)\n        return self\n\n    def __exit__(self, *args):\n        self.log.append(\"-\" + self.name)\n\n\ndef nested(log):\n    with Tracker(\"outer\", log), Tracker(\"inner\", log):\n        log.append(\"work\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Два менеджера в одном `with` — вложенность: outer входит первым и выходит последним.\", \"lines\": [[\"self.log.append(\\\"+\\\" + self.name)\", \"Вход.\"], [\"self.log.append(\\\"-\\\" + self.name)\", \"Выход.\"], [\"with Tracker(\\\"outer\\\", log), Tracker(\\\"inner\\\", log):\", \"+outer, +inner, …, -inner, -outer.\"], [\"log.append(\\\"work\\\")\", \"Середина.\"]], \"mistake\": \"Поменять порядок — `inner` окажется снаружи.\"}"
                 },
                 {
                   "slug": "ctx-multi-e8",
@@ -213,7 +228,8 @@
                   "tests": "def test_values():\n    with open(\"ra1.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"x\")\n    with open(\"ra2.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"y\")\n    assert read_all([\"ra1.txt\", \"нет.txt\", \"ra2.txt\"]) == [\"x\", None, \"y\"] and read_all([]) == [], \"Неверный результат\"\n",
                   "solution": "def read_all(paths):\n    result = []\n    for path in paths:\n        try:\n            with open(path, encoding=\"utf-8\") as f:\n                result.append(f.read())\n        except FileNotFoundError:\n            result.append(None)\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Число файлов заранее неизвестно — открываем по одному в цикле, каждый в своём `with`.\", \"lines\": [[\"for path in paths:\", \"По одному.\"], [\"result.append(f.read())\", \"Содержимое.\"], [\"except FileNotFoundError:\\n            result.append(None)\", \"Нет файла — `None`.\"]], \"mistake\": \"Открыть все сразу списком без `with` — забудешь закрыть.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЧасто нужно несколько ресурсов сразу: читать один файл и писать в другой, открыть браузер и соединение с базой. Их можно открыть в одном `with` — важно понимать, в каком порядке они откроются и закроются.\n\n## Несколько менеджеров через запятую\n\n```python\nwith open(\"a.txt\", \"w\", encoding=\"utf-8\") as fa, open(\"b.txt\", \"w\", encoding=\"utf-8\") as fb:\n    fa.write(\"A\")\n    fb.write(\"B\")\nprint(fa.closed, fb.closed)\nwith open(\"a.txt\", encoding=\"utf-8\") as fa, open(\"b.txt\", encoding=\"utf-8\") as fb:\n    print(fa.read() + fb.read())\n```\n\n- Менеджеры перечисляются через запятую, у каждого свой `as`.\n- После блока закрыты все.\n- Вывод: `True True`, `AB`.\n\n## Порядок: вход слева направо, выход — наоборот\n\n```python\nclass Box:\n    def __init__(self, name):\n        self.name = name\n\n    def __enter__(self):\n        print(\"открыл\", self.name)\n        return self\n\n    def __exit__(self, *args):\n        print(\"закрыл\", self.name)\n\nwith Box(\"А\") as a, Box(\"Б\") as b:\n    print(\"внутри\", a.name, b.name)\n```\n\n- `Box` — простой свой менеджер (как их писать — в следующем уроке).\n- Запись через запятую равна вложенным `with`: `with A: with B: ...`.\n- Закрытие в **обратном** порядке: последний открытый закрывается первым. Так `Б`, который мог зависеть от `А`, закроется раньше.\n- Вывод: `открыл А`, `открыл Б`, `внутри А Б`, `закрыл Б`, `закрыл А`.\n\n## Если второй не открылся\n\n```python\nclass Box:\n    def __init__(self, name, fail=False):\n        self.name = name\n        self.fail = fail\n\n    def __enter__(self):\n        if self.fail:\n            raise OSError(f\"не открыть {self.name}\")\n        print(\"открыл\", self.name)\n        return self\n\n    def __exit__(self, *args):\n        print(\"закрыл\", self.name)\n\ntry:\n    with Box(\"БД\") as db, Box(\"браузер\", fail=True) as br:\n        print(\"тест\")\nexcept OSError as e:\n    print(e)\n```\n\n- Первый менеджер уже открыт — он будет закрыт, хотя второй упал при открытии.\n- Тело блока не выполняется.\n- Вывод: `открыл БД`, `закрыл БД`, `не открыть браузер`.\n\n## Длинный with в скобках\n\n```python\nwith (\n    open(\"in.txt\", \"w\", encoding=\"utf-8\") as fin,\n    open(\"out.txt\", \"w\", encoding=\"utf-8\") as fout,\n):\n    fin.write(\"x\")\n    fout.write(\"y\")\nprint(fin.closed and fout.closed)\n```\n\n- С Python 3.10 менеджеры можно взять в скобки и расположить по одному на строке — удобно, когда строка слишком длинная.\n- Вывод: `True`.\n\n## Заранее неизвестное число файлов\n\n```python\npaths = [\"f1.txt\", \"f2.txt\"]\nfor i, p in enumerate(paths):\n    with open(p, \"w\", encoding=\"utf-8\") as f:\n        f.write(str(i))\n\ncontents = []\nfor p in paths:\n    with open(p, encoding=\"utf-8\") as f:\n        contents.append(f.read())\nprint(contents)\n```\n\n- Если файлы нужны по очереди — `with` внутри цикла.\n- Если нужны **одновременно**, а их число неизвестно, используют `ExitStack` (урок про готовые менеджеры).\n- Вывод: `['0', '1']`.\n\n## Итог\n\n- `with A() as a, B() as b:` — несколько менеджеров, как вложенные `with`.\n- Вход слева направо, выход — справа налево.\n- Если один не открылся, открытые раньше всё равно закроются.\n- Длинный список — в скобках, по одному на строке.",
@@ -265,7 +281,8 @@
                   "code": "class Tag:\n    def __init__(self, name):\n        self.name = name\n    def __enter__(self):\n        print(f\"<{self.name}>\")\n    def __exit__(self, *args):\n        print(f\"</{self.name}>\")\n\nwith Tag(\"div\"):\n    with Tag(\"p\"):\n        print(\"текст\")\n",
                   "expected_output": "<div>\n<p>\nтекст\n</p>\n</div>",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`__enter__` срабатывает при входе, `__exit__` — при выходе. Вложенные блоки — как вложенные теги.\", \"lines\": [[\"print(f\\\"<{self.name}>\\\")\", \"Открывающий.\"], [\"print(f\\\"</{self.name}>\\\")\", \"Закрывающий.\"], [\"print(\\\"текст\\\")\", \"В самой середине.\"]], \"mistake\": \"Закрыть `div` раньше `p`.\"}"
                 },
                 {
                   "slug": "ctx-m1-l2-e2",
@@ -274,7 +291,8 @@
                   "code": "class Quiet:\n    def __enter__(self):\n        return self\n    def __exit__(self, exc_type, exc, tb):\n        print(\"вышли, ошибка:\", exc_type.__name__ if exc_type else None)\n        return True\n\nwith Quiet():\n    raise ValueError(\"упс\")\nprint(\"программа продолжается\")\n",
                   "expected_output": "вышли, ошибка: ValueError\nпрограмма продолжается",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Если `__exit__` возвращает `True`, исключение подавляется и программа продолжается после `with`.\", \"lines\": [[\"print(\\\"вышли, ошибка:\\\", exc_type.__name__ if exc_type else None)\", \"Тип ошибки пришёл в `__exit__`.\"], [\"return True\", \"Ошибка проглочена.\"], [\"print(\\\"программа продолжается\\\")\", \"Выполнится.\"]], \"mistake\": \"Ожидать, что программа упадёт.\"}"
                 },
                 {
                   "slug": "ctx-m1-l2-e3",
@@ -283,7 +301,8 @@
                   "code": "class Conn:\n    def __enter__(self):\n        return \"соединение №1\"\n    def __exit__(self, *args):\n        return False\n\nwith Conn() as c:\n    print(c)\n",
                   "expected_output": "соединение №1",
                   "hint": "В переменную попадает то, что вернул __enter__.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"После `as` — то, что вернул `__enter__`, а не сам объект менеджера.\", \"lines\": [[\"return \\\"соединение №1\\\"\", \"Значение для `as`.\"], [\"print(c)\", \"Строка.\"]], \"mistake\": \"Ожидать объект `Conn`.\"}"
                 },
                 {
                   "slug": "ctx-m1-l2-e4",
@@ -293,7 +312,8 @@
                   "tests": "def test_opened_inside():\n    r = Resource()\n    with r as inside:\n        assert inside is r, \"__enter__ должен вернуть self\"\n        assert r.opened is True, \"Внутри with opened должен быть True\"\n    assert r.opened is False, \"После with opened должен стать False\"\n\ndef test_closed_on_error():\n    r = Resource()\n    try:\n        with r:\n            raise RuntimeError\n    except RuntimeError:\n        pass\n    assert r.opened is False, \"Ресурс должен закрыться даже при исключении\"\n",
                   "solution": "class Resource:\n    def __init__(self):\n        self.opened = False\n\n    def __enter__(self):\n        self.opened = True\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        self.opened = False\n        return False\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Два метода делают класс менеджером: вход и выход.\", \"lines\": [[\"self.opened = True\\n        return self\", \"Вход: объект — в `as`.\"], [\"self.opened = False\", \"Выход.\"], [\"return False\", \"Ошибки не глушим.\"]], \"mistake\": \"Забыть `return self` — в `as` окажется `None`.\"}"
                 },
                 {
                   "slug": "ctx-m1-l2-e5",
@@ -303,7 +323,8 @@
                   "tests": "def test_ignores():\n    with Ignore(KeyError):\n        {}[\"нет ключа\"]\n    # если дошли сюда — KeyError подавлен\n\ndef test_other_passes():\n    try:\n        with Ignore(KeyError):\n            1 / 0\n    except ZeroDivisionError:\n        return\n    assert False, \"ZeroDivisionError не должен подавляться\"\n",
                   "solution": "class Ignore:\n    def __init__(self, exc_class):\n        self.exc_class = exc_class\n\n    def __enter__(self):\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        return exc_type is not None and issubclass(exc_type, self.exc_class)\n",
                   "hint": "В `__exit__` верни True, только если `exc_type` — нужный класс (`issubclass`).",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`__exit__` возвращает `True` только для ошибки нужного типа.\", \"lines\": [[\"self.exc_class = exc_class\", \"Что глушить.\"], [\"return exc_type is not None and issubclass(exc_type, self.exc_class)\", \"Ошибка была и это наш тип (или наследник).\"]], \"mistake\": \"`issubclass(None, ...)` без проверки — `TypeError` при выходе без ошибки.\"}"
                 },
                 {
                   "slug": "ctx-m1-l2-e6",
@@ -313,7 +334,8 @@
                   "tests": "def test_normal():\n    ev = []\n    with Recorder(ev):\n        ev.append(\"body\")\n    assert ev == [\"enter\", \"body\", \"exit\"], f\"Получено {ev}\"\n\ndef test_error():\n    ev = []\n    try:\n        with Recorder(ev):\n            raise ValueError\n    except ValueError:\n        pass\n    else:\n        assert False, \"Исключение не должно подавляться\"\n    assert ev == [\"enter\", \"exit:ValueError\"], f\"Получено {ev}\"\n",
                   "solution": "class Recorder:\n    def __init__(self, events):\n        self.events = events\n\n    def __enter__(self):\n        self.events.append(\"enter\")\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        self.events.append(f\"exit:{exc_type.__name__}\" if exc_type else \"exit\")\n        return False\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"В `__exit__` видно, была ли ошибка: `exc_type` — её класс или `None`.\", \"lines\": [[\"self.events.append(\\\"enter\\\")\", \"Вход.\"], [\"self.events.append(f\\\"exit:{exc_type.__name__}\\\" if exc_type else \\\"exit\\\")\", \"С именем ошибки или без.\"], [\"return False\", \"Не глушим.\"]], \"mistake\": \"Писать `exc` вместо `exc_type.__name__` — получится текст сообщения.\"}"
                 },
                 {
                   "slug": "ctx-m1-l2-e7",
@@ -322,7 +344,8 @@
                   "code": "class Counter:\n    def __init__(self):\n        self.entered = 0\n\n    def __enter__(self):\n        self.entered += 1\n        return self\n\n    def __exit__(self, *args):\n        return False\n\nc = Counter()\nwith c:\n    pass\nwith c as same:\n    print(same is c, same.entered)\n",
                   "expected_output": "True 2",
                   "hint": "Один объект можно использовать в with несколько раз, если он это позволяет.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Менеджер — обычный объект; можно использовать его повторно. `__enter__` вернул `self` — `same` и `c` один объект.\", \"lines\": [[\"with c:\\n    pass\", \"entered = 1.\"], [\"with c as same:\", \"entered = 2.\"], [\"print(same is c, same.entered)\", \"Один и тот же объект.\"]], \"mistake\": \"Ожидать 1 — счётчик общий.\"}"
                 },
                 {
                   "slug": "ctx-m1-l2-e8",
@@ -332,7 +355,8 @@
                   "tests": "def test_values():\n    Indent.level = 0\n    log = []\n    with Indent(log) as a:\n        a.write(\"раз\")\n        with Indent(log) as b:\n            b.write(\"два\")\n        a.write(\"три\")\n    assert log == [\"  раз\", \"    два\", \"  три\"] and Indent.level == 0, log\n",
                   "solution": "class Indent:\n    level = 0\n\n    def __init__(self, log):\n        self.log = log\n\n    def __enter__(self):\n        Indent.level += 1\n        return self\n\n    def __exit__(self, *args):\n        Indent.level -= 1\n\n    def write(self, text):\n        self.log.append(\"  \" * Indent.level + text)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Уровень хранится в атрибуте класса — общий для всех вложенных менеджеров.\", \"lines\": [[\"level = 0\", \"Атрибут класса.\"], [\"Indent.level += 1\", \"Через имя класса, не `self`.\"], [\"Indent.level -= 1\", \"Выход.\"], [\"self.log.append(\\\"  \\\" * Indent.level + text)\", \"Отступ по уровню.\"]], \"mistake\": \"`self.level += 1` — создаст атрибут объекта, общий счётчик не изменится.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n`with` работает не только с файлами. Любой объект, у которого есть методы `__enter__` и `__exit__`, — контекстный менеджер. Написав их, ты сделаешь свой класс «самоубирающимся»: сессия API, соединение с базой, браузер, временные данные.\n\n## Протокол менеджера\n\n```python\nclass Tag:\n    def __init__(self, name):\n        self.name = name\n\n    def __enter__(self):\n        print(f\"<{self.name}>\")\n\n    def __exit__(self, *args):\n        print(f\"</{self.name}>\")\n\nwith Tag(\"div\"):\n    with Tag(\"p\"):\n        print(\"текст\")\n```\n\n- `with Tag(\"div\"):` — сначала создаётся объект, затем Python вызывает его `__enter__()`.\n- После блока — `__exit__(...)`, в любом случае.\n- `*args` — `__exit__` получает три аргумента об исключении (разберём в уроке про исключения), здесь они не нужны.\n- Вывод: `<div>`, `<p>`, `текст`, `</p>`, `</div>`.\n\n## Что попадает в as\n\n```python\nclass Conn:\n    def __enter__(self):\n        return \"соединение №1\"\n\n    def __exit__(self, *args):\n        return False\n\nwith Conn() as c:\n    print(c)\n```\n\n- В переменную после `as` попадает **то, что вернул `__enter__`** — не обязательно сам объект.\n- Чаще всего `__enter__` возвращает `self`, чтобы внутри блока пользоваться методами объекта.\n- Вывод: `соединение №1`.\n\n## Полноценный пример\n\n```python\nclass Resource:\n    def __init__(self, name, log):\n        self.name = name\n        self.log = log\n        self.opened = False\n\n    def __enter__(self):\n        self.opened = True\n        self.log.append(\"open \" + self.name)\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        self.opened = False\n        self.log.append(\"close \" + self.name)\n        return False\n\n    def use(self):\n        return f\"работаю с {self.name}\"\n\nlog = []\nwith Resource(\"db\", log) as r:\n    print(r.use(), r.opened)\nprint(r.opened, log)\n```\n\n- `__enter__` захватывает ресурс и возвращает `self`.\n- `__exit__` освобождает ресурс. `return False` — «исключения не глушить» (подробно — дальше).\n- Объект из `as` доступен и после блока, но уже в «закрытом» состоянии.\n- Вывод: `работаю с db True`, `False ['open db', 'close db']`.\n\n## Повторное использование\n\n```python\nclass Counter:\n    def __init__(self):\n        self.entered = 0\n\n    def __enter__(self):\n        self.entered += 1\n        return self\n\n    def __exit__(self, *args):\n        return False\n\nc = Counter()\nwith c:\n    pass\nwith c as same:\n    print(same is c, same.entered)\n```\n\n- В `with` можно передать уже созданный объект. Один объект может входить в `with` много раз — если его логика это позволяет. Файл, например, после закрытия заново не откроешь.\n- Вывод: `True 2`.\n\n## Итог\n\n- Менеджер — объект с `__enter__(self)` и `__exit__(self, exc_type, exc, tb)`.\n- `with obj as x:` — `x` = результат `__enter__` (обычно `self`).\n- `__exit__` вызывается всегда; `return False` — не глушить ошибки.",
@@ -384,7 +408,8 @@
                   "code": "class Show:\n    def __enter__(self):\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        print(exc_type, exc, tb is None)\n        return False\n\nwith Show():\n    print(\"без ошибки\")\n\ntry:\n    with Show():\n        int(\"x\")\nexcept ValueError:\n    print(\"ошибка полетела дальше\")\n",
                   "expected_output": "без ошибки\nNone None True\n<class 'ValueError'> invalid literal for int() with base 10: 'x' False\nошибка полетела дальше",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Без ошибки `__exit__` получает три `None`. С ошибкой — класс, объект и трассировку.\", \"lines\": [[\"print(exc_type, exc, tb is None)\", \"Три аргумента.\"], [\"print(\\\"без ошибки\\\")\", \"Сначала тело, потом `__exit__`.\"], [\"int(\\\"x\\\")\", \"`ValueError` — в `__exit__`, потом наружу.\"], [\"return False\", \"Не глушим.\"]], \"mistake\": \"Ожидать, что `__exit__` не вызывается при ошибке.\"}"
                 },
                 {
                   "slug": "ctx-exit-e2",
@@ -393,7 +418,8 @@
                   "code": "class IgnoreKey:\n    def __enter__(self):\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        return exc_type is not None and issubclass(exc_type, KeyError)\n\nwith IgnoreKey():\n    {}[\"нет\"]\nprint(\"KeyError заглушен\")\n\ntry:\n    with IgnoreKey():\n        [][0]\nexcept IndexError:\n    print(\"IndexError прошёл насквозь\")\n",
                   "expected_output": "KeyError заглушен\nIndexError прошёл насквозь",
                   "hint": "True из __exit__ — «исключение обработано», False/None — «пусть летит дальше».",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Глушим только `KeyError`; для остальных `__exit__` вернёт `False` — ошибка летит дальше.\", \"lines\": [[\"{}[\\\"нет\\\"]\", \"KeyError — подавлен.\"], [\"[][0]\", \"IndexError — не наш.\"], [\"except IndexError:\", \"Поймали снаружи.\"]], \"mistake\": \"Думать, что менеджер глушит всё.\"}"
                 },
                 {
                   "slug": "ctx-exit-e3",
@@ -402,7 +428,8 @@
                   "code": "class Log:\n    def __enter__(self):\n        print(\"вход\")\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        print(\"выход, ошибка:\", exc_type)\n\ndef find(items, target):\n    with Log():\n        for i, x in enumerate(items):\n            if x == target:\n                return i\n    return -1\n\nprint(find([\"a\", \"b\"], \"b\"))\n",
                   "expected_output": "вход\nвыход, ошибка: None\n1",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`return` изнутри `with` тоже вызывает `__exit__` — без ошибки.\", \"lines\": [[\"return i\", \"Выход из функции.\"], [\"print(\\\"выход, ошибка:\\\", exc_type)\", \"Перед возвратом.\"], [\"print(find([\\\"a\\\", \\\"b\\\"], \\\"b\\\"))\", \"Индекс 1.\"]], \"mistake\": \"Ожидать, что `return` пропустит `__exit__`.\"}"
                 },
                 {
                   "slug": "ctx-exit-e4",
@@ -412,7 +439,8 @@
                   "tests": "def test_values():\n    with Suppress(KeyError, ZeroDivisionError):\n        1 / 0\n    with Suppress(LookupError):\n        {}[\"x\"]\n    with Suppress(KeyError):\n        pass\n    try:\n        with Suppress(KeyError):\n            int(\"x\")\n    except ValueError:\n        return\n    assert False, \"ValueError должен пройти насквозь\"\n",
                   "solution": "class Suppress:\n    def __init__(self, *exc_types):\n        self.exc_types = exc_types\n\n    def __enter__(self):\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        return exc_type is not None and issubclass(exc_type, self.exc_types)\n",
                   "hint": "issubclass(класс, кортеж_классов) проверяет сразу несколько.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`issubclass` принимает кортеж классов — удобно для `*exc_types`.\", \"lines\": [[\"self.exc_types = exc_types\", \"Кортеж типов.\"], [\"return exc_type is not None and issubclass(exc_type, self.exc_types)\", \"Любой из них.\"]], \"mistake\": \"Забыть проверку на `None`.\"}"
                 },
                 {
                   "slug": "ctx-exit-e5",
@@ -422,7 +450,8 @@
                   "tests": "def test_values():\n    with Capture() as c:\n        1 / 0\n    assert type(c.error) is ZeroDivisionError, \"Ошибка сохранена\"\n    with Capture() as ok:\n        pass\n    assert ok.error is None, \"Без ошибки — None\"\n",
                   "solution": "class Capture:\n    def __init__(self):\n        self.error = None\n\n    def __enter__(self):\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        if exc_type is not None and issubclass(exc_type, Exception):\n            self.error = exc\n            return True\n        return False\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Ошибку сохраняем в атрибут и глушим. `BaseException` вроде `KeyboardInterrupt` не трогаем.\", \"lines\": [[\"self.error = None\", \"По умолчанию.\"], [\"if exc_type is not None and issubclass(exc_type, Exception):\", \"Обычная ошибка.\"], [\"self.error = exc\\n            return True\", \"Сохранить и заглушить.\"], [\"return False\", \"Иначе — не вмешиваемся.\"]], \"mistake\": \"Сохранять `exc_type` вместо самого исключения.\"}"
                 },
                 {
                   "slug": "ctx-exit-e6",
@@ -432,7 +461,8 @@
                   "tests": "def test_values():\n    log = []\n    with Status(log):\n        pass\n    try:\n        with Status(log):\n            raise TimeoutError\n    except TimeoutError:\n        pass\n    else:\n        assert False, \"Исключение не должно глушиться\"\n    assert log == [\"ok\", \"fail: TimeoutError\"], log\n",
                   "solution": "class Status:\n    def __init__(self, log):\n        self.log = log\n\n    def __enter__(self):\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        if exc_type is None:\n            self.log.append(\"ok\")\n        else:\n            self.log.append(f\"fail: {exc_type.__name__}\")\n        return False\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Запись результата без подавления ошибки.\", \"lines\": [[\"if exc_type is None:\\n            self.log.append(\\\"ok\\\")\", \"Успех.\"], [\"self.log.append(f\\\"fail: {exc_type.__name__}\\\")\", \"Имя ошибки.\"], [\"return False\", \"Ошибка летит дальше.\"]], \"mistake\": \"`return True` — тест перестанет падать.\"}"
                 },
                 {
                   "slug": "ctx-exit-e7",
@@ -442,7 +472,8 @@
                   "tests": "def test_values():\n    account = {\"balance\": 100}\n    with Transaction(account):\n        account[\"balance\"] -= 30\n    assert account == {\"balance\": 70}, \"Успешная транзакция\"\n    try:\n        with Transaction(account):\n            account[\"balance\"] -= 500\n            account[\"note\"] = \"x\"\n            raise ValueError(\"недостаточно средств\")\n    except ValueError:\n        pass\n    assert account == {\"balance\": 70}, f\"Откат: {account}\"\n",
                   "solution": "class Transaction:\n    def __init__(self, data):\n        self.data = data\n\n    def __enter__(self):\n        self.snapshot = dict(self.data)\n        return self.data\n\n    def __exit__(self, exc_type, exc, tb):\n        if exc_type is not None:\n            self.data.clear()\n            self.data.update(self.snapshot)\n        return False\n",
                   "hint": "data.clear() и data.update(копия) меняют тот же объект.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Снимок при входе, откат при ошибке. `clear` + `update` меняют тот же объект, а не создают новый.\", \"lines\": [[\"self.snapshot = dict(self.data)\", \"Копия.\"], [\"return self.data\", \"В `as` — сам словарь.\"], [\"self.data.clear()\\n            self.data.update(self.snapshot)\", \"Откат на месте.\"], [\"return False\", \"Пробрасываем.\"]], \"mistake\": \"`self.data = self.snapshot` — внешний словарь не изменится.\"}"
                 },
                 {
                   "slug": "ctx-exit-e8",
@@ -452,7 +483,8 @@
                   "tests": "def test_values():\n    with ExpectError(ZeroDivisionError) as e:\n        1 / 0\n    assert isinstance(e.value, ZeroDivisionError), \"Ошибка сохранена\"\n    try:\n        with ExpectError(KeyError):\n            pass\n    except AssertionError as err:\n        assert str(err) == \"не было KeyError\", str(err)\n    else:\n        assert False, \"Нужен AssertionError\"\n    try:\n        with ExpectError(KeyError):\n            int(\"x\")\n    except ValueError:\n        return\n    assert False, \"Чужая ошибка должна пройти\"\n",
                   "solution": "class ExpectError:\n    def __init__(self, exc_type):\n        self.exc_type = exc_type\n        self.value = None\n\n    def __enter__(self):\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        if exc_type is None:\n            raise AssertionError(f\"не было {self.exc_type.__name__}\")\n        if issubclass(exc_type, self.exc_type):\n            self.value = exc\n            return True\n        return False\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Как `pytest.raises`: нужной ошибки не было — тест падает; была — сохраняем и глушим; чужую — пропускаем.\", \"lines\": [[\"if exc_type is None:\\n            raise AssertionError(f\\\"не было {self.exc_type.__name__}\\\")\", \"Ожидали ошибку.\"], [\"if issubclass(exc_type, self.exc_type):\", \"Наш тип.\"], [\"self.value = exc\\n            return True\", \"Сохранить, заглушить.\"], [\"return False\", \"Чужая — наружу.\"]], \"mistake\": \"Путать `self.exc_type` (ожидаемый) и `exc_type` (случившийся).\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nГлавная сила `__exit__` — он **знает**, закончился ли блок ошибкой, и может на неё отреагировать: записать в лог, сделать скриншот, откатить изменения или даже заглушить ошибку. Так устроены `pytest.raises`, `contextlib.suppress`, транзакции в базах данных.\n\n## Аргументы __exit__\n\n```python\nclass Show:\n    def __enter__(self):\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        print(exc_type, exc, tb is None)\n        return False\n\nwith Show():\n    print(\"без ошибки\")\n\ntry:\n    with Show():\n        int(\"x\")\nexcept ValueError:\n    print(\"ошибка полетела дальше\")\n```\n\n- `exc_type` — класс исключения, `exc` — сам объект исключения, `tb` — трассировка (traceback).\n- Если блок завершился без ошибки — все три `None`.\n- Вывод: `без ошибки`, `None None True`, `<class 'ValueError'> invalid literal for int() with base 10: 'x' False`, `ошибка полетела дальше`.\n\n## Возвращаемое значение: глушить или нет\n\n```python\nclass IgnoreKey:\n    def __enter__(self):\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        return exc_type is not None and issubclass(exc_type, KeyError)\n\nwith IgnoreKey():\n    {}[\"нет\"]\nprint(\"KeyError заглушен\")\n\ntry:\n    with IgnoreKey():\n        [][0]\nexcept IndexError:\n    print(\"IndexError прошёл насквозь\")\n```\n\n- `__exit__` вернул **истину** → исключение считается обработанным, программа продолжается после `with`.\n- Вернул `False` или `None` (или ничего не вернул) → исключение летит дальше.\n- `issubclass(exc_type, KeyError)` — проверка типа ошибки с учётом наследников.\n- Глушить стоит только **конкретные** ожидаемые ошибки.\n- Вывод: `KeyError заглушен`, `IndexError прошёл насквозь`.\n\n## Реакция на ошибку без глушения\n\n```python\nclass Status:\n    def __init__(self, log):\n        self.log = log\n\n    def __enter__(self):\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        self.log.append(\"ok\" if exc_type is None else f\"fail: {exc_type.__name__}\")\n        return False\n\nlog = []\nwith Status(log):\n    pass\ntry:\n    with Status(log):\n        raise TimeoutError\nexcept TimeoutError:\n    pass\nprint(log)\n```\n\n- Записали результат и отпустили исключение дальше — вызывающий код о нём узнает.\n- Вывод: `['ok', 'fail: TimeoutError']`.\n\n## Откат изменений\n\n```python\nclass Transaction:\n    def __init__(self, data):\n        self.data = data\n\n    def __enter__(self):\n        self.snapshot = dict(self.data)\n        return self.data\n\n    def __exit__(self, exc_type, exc, tb):\n        if exc_type is not None:\n            self.data.clear()\n            self.data.update(self.snapshot)\n        return False\n\naccount = {\"balance\": 100}\ntry:\n    with Transaction(account):\n        account[\"balance\"] -= 500\n        raise ValueError(\"недостаточно средств\")\nexcept ValueError as e:\n    print(e, account)\n```\n\n- При входе делаем снимок, при ошибке восстанавливаем. Так работают транзакции в базах данных: всё или ничего.\n- `clear()` + `update()` меняют **тот же** словарь, поэтому изменения видны снаружи.\n- Вывод: `недостаточно средств {'balance': 100}`.\n\n## return внутри with\n\n```python\nclass Log:\n    def __enter__(self):\n        print(\"вход\")\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        print(\"выход, ошибка:\", exc_type)\n\ndef find(items, target):\n    with Log():\n        for i, x in enumerate(items):\n            if x == target:\n                return i\n    return -1\n\nprint(find([\"a\", \"b\"], \"b\"))\n```\n\n- `return` из середины блока — тоже выход: `__exit__` вызывается с `None`.\n- Вывод: `вход`, `выход, ошибка: None`, `1`.\n\n## Итог\n\n- `__exit__(self, exc_type, exc, tb)`: при успехе — три `None`.\n- Вернуть `True` — заглушить исключение; `False`/`None` — пропустить дальше.\n- Глуши только конкретные типы (`issubclass`).\n- `__exit__` подходит для логов, скриншотов, откатов.",
@@ -512,7 +544,8 @@
                   "code": "from contextlib import contextmanager\n\n@contextmanager\ndef step(name):\n    print(\"▶\", name)\n    yield\n    print(\"✔\", name)\n\nwith step(\"логин\"):\n    print(\"вводим пароль\")\n",
                   "expected_output": "▶ логин\nвводим пароль\n✔ логин",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`@contextmanager` делает менеджер из генератора: код до `yield` — вход, после — выход, а тело `with` выполняется на месте `yield`.\", \"lines\": [[\"print(\\\"▶\\\", name)\", \"Вход.\"], [\"yield\", \"Здесь выполняется тело `with`.\"], [\"print(\\\"✔\\\", name)\", \"Выход.\"]], \"mistake\": \"Ожидать тело `with` до «▶».\"}"
                 },
                 {
                   "slug": "ctx-m2-l1-e2",
@@ -521,7 +554,8 @@
                   "code": "from contextlib import contextmanager\n\n@contextmanager\ndef temp_user():\n    user = {\"name\": \"test_user\"}\n    print(\"создан\")\n    try:\n        yield user\n    finally:\n        print(\"удалён\")\n\ntry:\n    with temp_user() as u:\n        print(u[\"name\"])\n        raise RuntimeError(\"тест упал\")\nexcept RuntimeError as e:\n    print(\"ошибка:\", e)\n",
                   "expected_output": "создан\ntest_user\nудалён\nошибка: тест упал",
                   "hint": "finally выполнится до того, как исключение поймает внешний except.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Ошибка в теле `with` возникает на месте `yield`; `finally` вокруг `yield` гарантирует уборку.\", \"lines\": [[\"yield user\", \"В `as` — словарь.\"], [\"raise RuntimeError(\\\"тест упал\\\")\", \"Ошибка приходит в генератор.\"], [\"finally:\\n        print(\\\"удалён\\\")\", \"Уборка — до внешнего `except`.\"], [\"print(\\\"ошибка:\\\", e)\", \"Последней.\"]], \"mistake\": \"Ожидать «ошибка» раньше «удалён».\"}"
                 },
                 {
                   "slug": "ctx-m2-l1-e3",
@@ -531,7 +565,8 @@
                   "tests": "def test_output():\n    def body():\n        with tag(\"b\"):\n            print(\"жирный\")\n    assert capture(body).split() == [\"<b>\", \"жирный\", \"</b>\"], f\"Напечатано: {capture(body)!r}\"\n",
                   "solution": "from contextlib import contextmanager\n\n@contextmanager\ndef tag(name):\n    print(f\"<{name}>\")\n    yield\n    print(f\"</{name}>\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"До `yield` — открывающий тег, после — закрывающий.\", \"lines\": [[\"@contextmanager\", \"Генератор → менеджер.\"], [\"print(f\\\"<{name}>\\\")\", \"Вход.\"], [\"yield\", \"Тело `with`.\"], [\"print(f\\\"</{name}>\\\")\", \"Выход.\"]], \"mistake\": \"Забыть `yield` — `with` не сработает.\"}"
                 },
                 {
                   "slug": "ctx-m2-l1-e4",
@@ -541,7 +576,8 @@
                   "tests": "def test_normal():\n    data = [1]\n    with temp_list_item(data, 99) as v:\n        assert v == 99 and data == [1, 99], \"Внутри with значение должно быть в списке\"\n    assert data == [1], \"После with значение должно удалиться\"\n\ndef test_error():\n    data = []\n    try:\n        with temp_list_item(data, \"x\"):\n            raise ValueError\n    except ValueError:\n        pass\n    assert data == [], \"Даже при ошибке значение должно удалиться — используй try/finally\"\n",
                   "solution": "from contextlib import contextmanager\n\n@contextmanager\ndef temp_list_item(items, value):\n    items.append(value)\n    try:\n        yield value\n    finally:\n        items.remove(value)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Добавить, отдать, удалить — удаление в `finally`, чтобы сработало и при ошибке.\", \"lines\": [[\"items.append(value)\", \"Вход.\"], [\"yield value\", \"В `as`.\"], [\"finally:\\n        items.remove(value)\", \"Выход в любом случае.\"]], \"mistake\": \"Без `try/finally` — при ошибке элемент останется в списке.\"}"
                 },
                 {
                   "slug": "ctx-m2-l1-e5",
@@ -551,7 +587,8 @@
                   "tests": "def test_records():\n    res = []\n    with timer(res):\n        sum(range(10000))\n    assert len(res) == 1 and isinstance(res[0], float) and res[0] >= 0, f\"В results: {res}\"\n\ndef test_on_error():\n    res = []\n    try:\n        with timer(res):\n            raise KeyError\n    except KeyError:\n        pass\n    assert len(res) == 1, \"Время должно записаться и при ошибке\"\n",
                   "solution": "import time\nfrom contextlib import contextmanager\n\n@contextmanager\ndef timer(results):\n    start = time.perf_counter()\n    try:\n        yield\n    finally:\n        results.append(time.perf_counter() - start)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Отметка времени до `yield`, запись разницы — в `finally`.\", \"lines\": [[\"start = time.perf_counter()\", \"Вход.\"], [\"yield\", \"Тело блока.\"], [\"results.append(time.perf_counter() - start)\", \"Даже если блок упал.\"]], \"mistake\": \"Записать замер после `yield` без `finally` — при ошибке его не будет.\"}"
                 },
                 {
                   "slug": "ctx-m2-l1-e6",
@@ -560,7 +597,8 @@
                   "code": "from contextlib import contextmanager\n\n@contextmanager\ndef opened(name):\n    print(\"открываю\", name)\n    yield name.upper()\n    print(\"закрываю\", name)\n\nwith opened(\"db\") as handle:\n    print(\"работаю с\", handle)\nprint(handle)\n",
                   "expected_output": "открываю db\nработаю с DB\nзакрываю db\nDB",
                   "hint": "Значение после yield попадает в переменную после as.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"В `as` попадает значение `yield`. Переменная после `with` остаётся доступной.\", \"lines\": [[\"yield name.upper()\", \"`handle = \\\"DB\\\"`.\"], [\"print(\\\"закрываю\\\", name)\", \"После тела.\"], [\"print(handle)\", \"Переменная жива.\"]], \"mistake\": \"Ожидать `NameError` после блока.\"}"
                 },
                 {
                   "slug": "ctx-m2-l1-e7",
@@ -570,7 +608,8 @@
                   "tests": "def test_values():\n    log = []\n    with section(log, \"Вход\"):\n        log.append(\"шаг\")\n    assert log == [\"== Вход ==\", \"шаг\", \"== конец ==\"], log\n",
                   "solution": "from contextlib import contextmanager\n\n\n@contextmanager\ndef section(log, title):\n    log.append(f\"== {title} ==\")\n    yield\n    log.append(\"== конец ==\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Две записи в журнал вокруг `yield`.\", \"lines\": [[\"log.append(f\\\"== {title} ==\\\")\", \"Вход.\"], [\"yield\", \"Без значения.\"], [\"log.append(\\\"== конец ==\\\")\", \"Выход.\"]], \"mistake\": \"`yield title` — просили ничего не отдавать.\"}"
                 },
                 {
                   "slug": "ctx-m2-l1-e8",
@@ -580,7 +619,8 @@
                   "tests": "def test_values():\n    with collector() as items:\n        items.extend([3, 1, 2])\n        assert items == [3, 1, 2], \"Внутри блока — без сортировки\"\n    assert items == [1, 2, 3], items\n    with collector() as other:\n        pass\n    assert other == [] and other is not items, \"Каждый раз новый список\"\n",
                   "solution": "from contextlib import contextmanager\n\n\n@contextmanager\ndef collector():\n    items = []\n    yield items\n    items.sort()\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Отдаём список, блок наполняет его, после `yield` сортируем на месте.\", \"lines\": [[\"items = []\", \"Новый каждый раз.\"], [\"yield items\", \"В `as`.\"], [\"items.sort()\", \"Тот же объект.\"]], \"mistake\": \"`items = sorted(items)` — снаружи останется несортированный.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПисать класс с `__enter__` и `__exit__` ради простого «сделать до и после» — многословно. Модуль `contextlib` позволяет написать менеджер как **функцию** с `yield`: всё, что до `yield`, — вход, всё, что после, — выход.\n\n## @contextmanager\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef step(name):\n    print(\"▶\", name)\n    yield\n    print(\"✔\", name)\n\nwith step(\"логин\"):\n    print(\"вводим пароль\")\n```\n\nЧто делает каждая строка:\n\n- `from contextlib import contextmanager` — декоратор из стандартной библиотеки.\n- `@contextmanager` превращает функцию-генератор в контекстный менеджер.\n- Код до `yield` выполняется при входе в `with`.\n- На `yield` функция «замирает» — в это время выполняется тело блока `with`.\n- После блока функция продолжается с места `yield` — это выход.\n- `yield` в функции делает её **генератором** (подробно — в теме «Генераторы»). Здесь важно одно: `yield` должен выполниться ровно один раз.\n- Вывод: `▶ логин`, `вводим пароль`, `✔ логин`.\n\n## Значение для as\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef opened(name):\n    print(\"открываю\", name)\n    yield name.upper()\n    print(\"закрываю\", name)\n\nwith opened(\"db\") as handle:\n    print(\"работаю с\", handle)\nprint(handle)\n```\n\n- `yield значение` — это значение попадёт в переменную после `as` (как `return` из `__enter__`).\n- Вывод: `открываю db`, `работаю с DB`, `закрываю db`, `DB`.\n\n## Подготовка данных\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef collector():\n    items = []\n    yield items\n    items.sort()\n\nwith collector() as items:\n    items.extend([3, 1, 2])\n    print(\"внутри:\", items)\nprint(\"после:\", items)\n```\n\n- Менеджер создаёт объект, отдаёт его в блок, а после блока обрабатывает.\n- Вывод: `внутри: [3, 1, 2]`, `после: [1, 2, 3]`.\n\n## Временная ресурсная обёртка\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef temp_user():\n    user = {\"name\": \"test_user\"}\n    print(\"создан\")\n    try:\n        yield user\n    finally:\n        print(\"удалён\")\n\ntry:\n    with temp_user() as u:\n        print(u[\"name\"])\n        raise RuntimeError(\"тест упал\")\nexcept RuntimeError as e:\n    print(\"ошибка:\", e)\n```\n\n- Если внутри блока произошла ошибка, она «возникает» в точке `yield`. Без `try/finally` код после `yield` не выполнится.\n- `try: yield ... finally: уборка` — обязательный шаблон, когда уборка важна (подробно — в следующем уроке).\n- Вывод: `создан`, `test_user`, `удалён`, `ошибка: тест упал`.\n\n## Итог\n\n- `@contextmanager` + функция с одним `yield`.\n- До `yield` — вход, после — выход; `yield x` → `as x`.\n- Для надёжной уборки — `try/finally` вокруг `yield`.",
@@ -632,7 +672,8 @@
                   "code": "from contextlib import contextmanager\n\n@contextmanager\ndef resource():\n    print(\"взял\")\n    yield\n    print(\"вернул\")\n\ntry:\n    with resource():\n        raise ValueError(\"сбой\")\nexcept ValueError:\n    print(\"ошибка\")\n",
                   "expected_output": "взял\nошибка",
                   "hint": "Исключение возникает прямо в точке yield — код после yield не выполнится.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Без `try/finally` ошибка из тела прерывает генератор на `yield` — код после него не выполнится.\", \"lines\": [[\"yield\", \"Сюда прилетает `ValueError`.\"], [\"print(\\\"вернул\\\")\", \"Пропущено.\"], [\"print(\\\"ошибка\\\")\", \"Внешний `except`.\"]], \"mistake\": \"Ожидать «вернул».\"}"
                 },
                 {
                   "slug": "ctx-gen-errors-e2",
@@ -641,7 +682,8 @@
                   "code": "from contextlib import contextmanager\n\n@contextmanager\ndef resource():\n    print(\"взял\")\n    try:\n        yield\n    finally:\n        print(\"вернул\")\n\ntry:\n    with resource():\n        raise ValueError(\"сбой\")\nexcept ValueError:\n    print(\"ошибка\")\n",
                   "expected_output": "взял\nвернул\nошибка",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`finally` вокруг `yield` — уборка при любом исходе.\", \"lines\": [[\"try:\\n        yield\", \"Ошибка прилетает сюда.\"], [\"finally:\\n        print(\\\"вернул\\\")\", \"Выполнится.\"], [\"print(\\\"ошибка\\\")\", \"Потом — снаружи.\"]], \"mistake\": \"Ждать «ошибка» раньше «вернул».\"}"
                 },
                 {
                   "slug": "ctx-gen-errors-e3",
@@ -650,7 +692,8 @@
                   "code": "from contextlib import contextmanager\n\n@contextmanager\ndef soft(name):\n    try:\n        yield\n    except ZeroDivisionError as e:\n        print(f\"{name}: поймал {e}\")\n    else:\n        print(f\"{name}: без ошибок\")\n\nwith soft(\"A\"):\n    1 / 0\nwith soft(\"B\"):\n    pass\nprint(\"дальше\")\n",
                   "expected_output": "A: поймал division by zero\nB: без ошибок\nдальше",
                   "hint": "except вокруг yield работает как return True в __exit__.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`except` вокруг `yield` ловит ошибку тела и глушит её; `else` — если ошибки не было.\", \"lines\": [[\"except ZeroDivisionError as e:\\n        print(f\\\"{name}: поймал {e}\\\")\", \"A — поймал.\"], [\"else:\\n        print(f\\\"{name}: без ошибок\\\")\", \"B.\"], [\"print(\\\"дальше\\\")\", \"Ошибка заглушена — программа идёт дальше.\"]], \"mistake\": \"Ожидать, что ошибка полетит наружу.\"}"
                 },
                 {
                   "slug": "ctx-gen-errors-e4",
@@ -660,7 +703,8 @@
                   "tests": "def test_values():\n    pool = [\"conn1\", \"conn2\"]\n    with borrowed(pool) as c:\n        assert c == \"conn2\" and pool == [\"conn1\"], \"Взяли последний\"\n    assert pool == [\"conn1\", \"conn2\"], \"Вернули\"\n    try:\n        with borrowed(pool):\n            raise RuntimeError\n    except RuntimeError:\n        pass\n    assert pool == [\"conn1\", \"conn2\"], \"Вернули и после ошибки\"\n",
                   "solution": "from contextlib import contextmanager\n\n\n@contextmanager\ndef borrowed(pool):\n    item = pool.pop()\n    try:\n        yield item\n    finally:\n        pool.append(item)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Взять, отдать, обязательно вернуть — через `finally`.\", \"lines\": [[\"item = pool.pop()\", \"Берём последний.\"], [\"yield item\", \"В `as`.\"], [\"finally:\\n        pool.append(item)\", \"Возврат при любом исходе.\"]], \"mistake\": \"Без `finally` элемент потеряется при ошибке.\"}"
                 },
                 {
                   "slug": "ctx-gen-errors-e5",
@@ -670,7 +714,8 @@
                   "tests": "def test_values():\n    with ignore(KeyError, IndexError):\n        [][1]\n    with ignore(KeyError):\n        pass\n    try:\n        with ignore(KeyError):\n            1 / 0\n    except ZeroDivisionError:\n        return\n    assert False, \"Чужие ошибки не глушить\"\n",
                   "solution": "from contextlib import contextmanager\n\n\n@contextmanager\ndef ignore(*exc_types):\n    try:\n        yield\n    except exc_types:\n        pass\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`except` с кортежем типов вокруг `yield` — ошибки проглатываются.\", \"lines\": [[\"yield\", \"Тело.\"], [\"except exc_types:\\n        pass\", \"`exc_types` — кортеж.\"]], \"mistake\": \"`except *exc_types` — это другой синтаксис (группы исключений).\"}"
                 },
                 {
                   "slug": "ctx-gen-errors-e6",
@@ -680,7 +725,8 @@
                   "tests": "def test_values():\n    log = []\n    with step(log, \"открыть\"):\n        pass\n    try:\n        with step(log, \"войти\"):\n            assert False, \"нет кнопки\"\n    except AssertionError:\n        pass\n    else:\n        assert False, \"Ошибка должна пробрасываться\"\n    assert log == [\"PASS открыть\", \"FAIL войти: нет кнопки\"], log\n",
                   "solution": "from contextlib import contextmanager\n\n\n@contextmanager\ndef step(log, name):\n    try:\n        yield\n    except AssertionError as e:\n        log.append(f\"FAIL {name}: {e}\")\n        raise\n    log.append(f\"PASS {name}\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Провал — записать и пробросить `raise`; успех — записать после `try`.\", \"lines\": [[\"log.append(f\\\"FAIL {name}: {e}\\\")\", \"Текст ошибки.\"], [\"raise\", \"Тест должен упасть.\"], [\"log.append(f\\\"PASS {name}\\\")\", \"Сюда доходим только без ошибки.\"]], \"mistake\": \"Без `raise` — провал будет заглушён.\"}"
                 },
                 {
                   "slug": "ctx-gen-errors-e7",
@@ -690,7 +736,8 @@
                   "tests": "import os\n\ndef test_values():\n    with temp_file(\"tmp_ctx.txt\", \"данные\") as p:\n        assert open(p, encoding=\"utf-8\").read() == \"данные\", \"Файл создан\"\n    assert not os.path.exists(\"tmp_ctx.txt\"), \"Файл удалён\"\n    try:\n        with temp_file(\"tmp_ctx2.txt\", \"x\"):\n            raise ValueError\n    except ValueError:\n        pass\n    assert not os.path.exists(\"tmp_ctx2.txt\"), \"Удалён и после ошибки\"\n    with temp_file(\"tmp_ctx3.txt\", \"x\") as p:\n        os.remove(p)\n",
                   "solution": "import os\nfrom contextlib import contextmanager\n\n\n@contextmanager\ndef temp_file(path, text):\n    with open(path, \"w\", encoding=\"utf-8\") as f:\n        f.write(text)\n    try:\n        yield path\n    finally:\n        if os.path.exists(path):\n            os.remove(path)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Файл создаём до `try`, удаляем в `finally` — если он ещё существует.\", \"lines\": [[\"f.write(text)\", \"Создать.\"], [\"yield path\", \"В `as` — путь.\"], [\"if os.path.exists(path):\\n            os.remove(path)\", \"Блок мог сам удалить файл.\"]], \"mistake\": \"`os.remove` без проверки — ошибка, если файл уже удалён.\"}"
                 },
                 {
                   "slug": "ctx-gen-errors-e8",
@@ -700,7 +747,8 @@
                   "tests": "def test_values():\n    try:\n        with translate(KeyError, LookupError, \"нет пользователя\"):\n            {}[\"anna\"]\n    except LookupError as e:\n        assert str(e) == \"нет пользователя\" and isinstance(e.__cause__, KeyError) and type(e) is LookupError, \"Перевод ошибки\"\n    else:\n        assert False, \"Нужен LookupError\"\n    with translate(KeyError, LookupError, \"x\"):\n        pass\n",
                   "solution": "from contextlib import contextmanager\n\n\n@contextmanager\ndef translate(from_exc, to_exc, message):\n    try:\n        yield\n    except from_exc as e:\n        raise to_exc(message) from e\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Ловим одну ошибку и выбрасываем другую, сохраняя причину через `from e`.\", \"lines\": [[\"except from_exc as e:\", \"Исходная.\"], [\"raise to_exc(message) from e\", \"Новая, со ссылкой на старую.\"]], \"mistake\": \"`from None` — причина потеряется.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЕсли внутри блока `with` возникает исключение, Python «забрасывает» его в функцию-менеджер **в точку `yield`**. Если это не учесть, уборка после `yield` не выполнится. Зато с `try/except` вокруг `yield` менеджер может реагировать на ошибки: логировать, глушить, переводить в другие.\n\n## Без try уборка пропадает\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef resource():\n    print(\"взял\")\n    yield\n    print(\"вернул\")\n\ntry:\n    with resource():\n        raise ValueError(\"сбой\")\nexcept ValueError:\n    print(\"ошибка\")\n```\n\n- Ошибка из блока возникает на строке `yield`. Код после неё не выполняется — «вернул» не напечатано. Ресурс утёк!\n- Вывод: `взял`, `ошибка`.\n\n## try/finally спасает\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef resource():\n    print(\"взял\")\n    try:\n        yield\n    finally:\n        print(\"вернул\")\n\ntry:\n    with resource():\n        raise ValueError(\"сбой\")\nexcept ValueError:\n    print(\"ошибка\")\n```\n\n- `finally` выполнится и при успехе, и при ошибке. Исключение после этого полетит дальше.\n- Вывод: `взял`, `вернул`, `ошибка`.\n- Правило: если после `yield` есть уборка — оберни `yield` в `try/finally`.\n\n## Поймать и заглушить\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef soft(name):\n    try:\n        yield\n    except ZeroDivisionError as e:\n        print(f\"{name}: поймал {e}\")\n    else:\n        print(f\"{name}: без ошибок\")\n\nwith soft(\"A\"):\n    1 / 0\nwith soft(\"B\"):\n    pass\nprint(\"дальше\")\n```\n\n- `except` вокруг `yield` ловит ошибку из блока. Если не выбросить её снова — она **заглушена** (как `return True` в `__exit__`).\n- `else` — выполняется, если ошибки не было.\n- Вывод: `A: поймал division by zero`, `B: без ошибок`, `дальше`.\n\n## Записать и пробросить\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef step(log, name):\n    try:\n        yield\n    except AssertionError as e:\n        log.append(f\"FAIL {name}: {e}\")\n        raise\n    log.append(f\"PASS {name}\")\n\nlog = []\nwith step(log, \"открыть\"):\n    pass\ntry:\n    with step(log, \"войти\"):\n        assert False, \"нет кнопки\"\nexcept AssertionError:\n    pass\nprint(log)\n```\n\n- `raise` без аргументов — пробросить ту же ошибку дальше, тест всё равно упадёт.\n- Код после `try/except` выполнится только при успехе.\n- Вывод: `['PASS открыть', 'FAIL войти: нет кнопки']`.\n\n## Перевести ошибку\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef translate(from_exc, to_exc, message):\n    try:\n        yield\n    except from_exc as e:\n        raise to_exc(message) from e\n\ntry:\n    with translate(KeyError, LookupError, \"нет пользователя\"):\n        {}[\"anna\"]\nexcept LookupError as e:\n    print(type(e).__name__, e, type(e.__cause__).__name__)\n```\n\n- `raise новая from старая` — выбросить понятную ошибку, сохранив исходную в `__cause__`.\n- `except from_exc` — в `except` можно подставить переменную с классом ошибки.\n- Вывод: `LookupError нет пользователя KeyError`.\n\n## Итог\n\n- Ошибка из блока появляется в точке `yield`.\n- `try/finally` вокруг `yield` — обязательная уборка.\n- `except` без повторного `raise` — глушит; с `raise` — пробрасывает.\n- `raise X from e` — перевести ошибку.",
@@ -752,7 +800,8 @@
                   "code": "from contextlib import suppress\n\nwith suppress(KeyError):\n    print(\"до\")\n    {}[\"x\"]\n    print(\"после\")\nprint(\"дальше\")\n",
                   "expected_output": "до\nдальше",
                   "hint": "После исключения остаток блока with не выполняется.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`suppress` глушит указанную ошибку, но остаток блока после неё пропускается.\", \"lines\": [[\"{}[\\\"x\\\"]\", \"KeyError — выход из блока.\"], [\"print(\\\"после\\\")\", \"Не выполнится.\"], [\"print(\\\"дальше\\\")\", \"Программа продолжается.\"]], \"mistake\": \"Ожидать «после» — `suppress` не возобновляет блок.\"}"
                 },
                 {
                   "slug": "ctx-m2-l2-e2",
@@ -761,7 +810,8 @@
                   "code": "import io\nfrom contextlib import redirect_stdout\n\nbuf = io.StringIO()\nwith redirect_stdout(buf):\n    print(\"секрет\")\nprint(\"перехвачено:\", buf.getvalue().strip())\n",
                   "expected_output": "перехвачено: секрет",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`redirect_stdout` временно отправляет `print` в другой файлоподобный объект.\", \"lines\": [[\"with redirect_stdout(buf):\", \"`print` пишет в `buf`.\"], [\"print(\\\"секрет\\\")\", \"На экран не попадёт.\"], [\"print(\\\"перехвачено:\\\", buf.getvalue().strip())\", \"После блока — снова на экран.\"]], \"mistake\": \"Ожидать «секрет» отдельной строкой.\"}"
                 },
                 {
                   "slug": "ctx-m2-l2-e3",
@@ -770,7 +820,8 @@
                   "code": "from contextlib import contextmanager, ExitStack\n\n@contextmanager\ndef res(name):\n    print(\"открыл\", name)\n    yield\n    print(\"закрыл\", name)\n\nwith ExitStack() as stack:\n    for name in [\"БД\", \"браузер\"]:\n        stack.enter_context(res(name))\n    print(\"тест\")\n",
                   "expected_output": "открыл БД\nоткрыл браузер\nтест\nзакрыл браузер\nзакрыл БД",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`ExitStack` — динамический набор менеджеров; закрывает их в обратном порядке.\", \"lines\": [[\"stack.enter_context(res(name))\", \"Вход в каждый.\"], [\"print(\\\"тест\\\")\", \"Тело.\"], [\"print(\\\"закрыл\\\", name)\", \"Браузер, потом БД.\"]], \"mistake\": \"Ожидать закрытие в порядке открытия.\"}"
                 },
                 {
                   "slug": "ctx-m2-l2-e4",
@@ -780,7 +831,8 @@
                   "tests": "def test_output():\n    def hello():\n        print(\"привет\")\n        print(\"мир\")\n    assert get_output(hello) == \"привет\\nмир\\n\", f\"Получено {get_output(hello)!r}\"\n",
                   "solution": "import io\nfrom contextlib import redirect_stdout\n\ndef get_output(func):\n    buf = io.StringIO()\n    with redirect_stdout(buf):\n        func()\n    return buf.getvalue()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Перехват вывода: буфер + `redirect_stdout`.\", \"lines\": [[\"buf = io.StringIO()\", \"Куда писать.\"], [\"with redirect_stdout(buf):\\n        func()\", \"Всё, что напечатает `func`.\"], [\"return buf.getvalue()\", \"Строка с `\\\\n`.\"]], \"mistake\": \"`.strip()` — просили ровно то, что напечатано.\"}"
                 },
                 {
                   "slug": "ctx-m2-l2-e5",
@@ -790,7 +842,8 @@
                   "tests": "def test_parse():\n    assert parse_ints([\"1\", \"abc\", \"30\", \"\", \"-4\"]) == [1, 30, -4], f\"Получено {parse_ints(['1', 'abc', '30', '', '-4'])}\"\n",
                   "solution": "from contextlib import suppress\n\ndef parse_ints(strings):\n    result = []\n    for s in strings:\n        with suppress(ValueError):\n            result.append(int(s))\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`suppress` внутри цикла: неудачная строка пропускается, цикл идёт дальше.\", \"lines\": [[\"with suppress(ValueError):\", \"Для каждой строки отдельно.\"], [\"result.append(int(s))\", \"Если `int` упал — `append` не выполнится.\"]], \"mistake\": \"`suppress` вокруг цикла — первый мусор остановит всё.\"}"
                 },
                 {
                   "slug": "ctx-m2-l2-e6",
@@ -799,7 +852,8 @@
                   "code": "import io\nimport sys\nfrom contextlib import redirect_stderr\n\nerr = io.StringIO()\nwith redirect_stderr(err):\n    print(\"предупреждение\", file=sys.stderr)\n    print(\"обычный вывод\")\nprint(\"stderr:\", err.getvalue().strip())\n",
                   "expected_output": "обычный вывод\nstderr: предупреждение",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`redirect_stderr` перехватывает только поток ошибок; обычный `print` идёт на экран.\", \"lines\": [[\"print(\\\"предупреждение\\\", file=sys.stderr)\", \"В буфер.\"], [\"print(\\\"обычный вывод\\\")\", \"На экран — сразу.\"], [\"print(\\\"stderr:\\\", err.getvalue().strip())\", \"Потом содержимое буфера.\"]], \"mistake\": \"Думать, что перехватится и обычный вывод.\"}"
                 },
                 {
                   "slug": "ctx-m2-l2-e7",
@@ -809,7 +863,8 @@
                   "tests": "def test_values():\n    for i in range(3):\n        with open(f\"es{i}.txt\", \"w\", encoding=\"utf-8\") as f:\n            f.write(str(i))\n    assert open_all([f\"es{i}.txt\" for i in range(3)]) == [\"0\", \"1\", \"2\"] and open_all([]) == [], \"Неверный результат\"\n    assert \"ExitStack\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй ExitStack\"\n",
                   "solution": "from contextlib import ExitStack\n\n\ndef open_all(paths):\n    with ExitStack() as stack:\n        files = [stack.enter_context(open(p, encoding=\"utf-8\")) for p in paths]\n        return [f.read() for f in files]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Число файлов заранее неизвестно — `ExitStack` открывает все и закроет при выходе.\", \"lines\": [[\"files = [stack.enter_context(open(p, encoding=\\\"utf-8\\\")) for p in paths]\", \"Каждый файл — под управлением стека.\"], [\"return [f.read() for f in files]\", \"Читаем, пока открыты.\"]], \"mistake\": \"Читать после выхода из `with` — файлы закрыты.\"}"
                 },
                 {
                   "slug": "ctx-m2-l2-e8",
@@ -819,7 +874,8 @@
                   "tests": "def test_values():\n    log = []\n    with_cleanups([lambda: log.append(\"a\"), lambda: log.append(\"b\"), lambda: log.append(\"c\")])\n    assert log == [\"c\", \"b\", \"a\"], log\n",
                   "solution": "from contextlib import ExitStack\n\n\ndef with_cleanups(actions):\n    with ExitStack() as stack:\n        for action in actions:\n            stack.callback(action)\n",
                   "hint": "stack.callback(функция) — вызвать её при выходе из with.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`callback` регистрирует функцию на выход; вызываются в обратном порядке.\", \"lines\": [[\"for action in actions:\\n            stack.callback(action)\", \"Регистрация.\"]], \"mistake\": \"Вызвать `action()` сразу — нужна регистрация, а не вызов.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nВ `contextlib` уже есть готовые менеджеры для частых задач: игнорировать ожидаемую ошибку, перехватить вывод функции, открыть заранее неизвестное число ресурсов. Их полезно знать, чтобы не писать свои.\n\n## suppress: игнорировать ошибку\n\n```python\nfrom contextlib import suppress\n\nwith suppress(KeyError):\n    print(\"до\")\n    {}[\"x\"]\n    print(\"после\")\nprint(\"дальше\")\n```\n\n- `suppress(Тип1, Тип2, ...)` глушит перечисленные исключения.\n- Блок прерывается в месте ошибки — «после» не напечатается, выполнение продолжится после `with`.\n- Короткая замена `try: ... except KeyError: pass`.\n- Вывод: `до`, `дальше`.\n\n## Удалить, если есть\n\n```python\nimport os\nfrom contextlib import suppress\n\nwith suppress(FileNotFoundError):\n    os.remove(\"возможно_нет.txt\")\nprint(\"ок\")\n```\n\n- Типичное применение: удалить файл, которого может не быть.\n- Вывод: `ок`.\n\n## redirect_stdout и redirect_stderr\n\n```python\nimport io\nimport sys\nfrom contextlib import redirect_stdout, redirect_stderr\n\nbuf = io.StringIO()\nwith redirect_stdout(buf):\n    print(\"секрет\")\nprint(\"перехвачено:\", buf.getvalue().strip())\n\nerr = io.StringIO()\nwith redirect_stderr(err):\n    print(\"предупреждение\", file=sys.stderr)\nprint(\"stderr:\", err.getvalue().strip())\n```\n\n- `redirect_stdout(файл)` — всё, что печатается внутри блока, уходит в указанный «файл», а не на экран.\n- `io.StringIO()` — файл в памяти; `getvalue()` — перехваченный текст.\n- `redirect_stderr` — то же для потока ошибок (`sys.stderr`).\n- Так в тестах проверяют, что функция напечатала правильный текст.\n- Вывод: `перехвачено: секрет`, `stderr: предупреждение`.\n\n## ExitStack: много менеджеров\n\n```python\nfrom contextlib import contextmanager, ExitStack\n\n@contextmanager\ndef res(name):\n    print(\"открыл\", name)\n    yield name\n    print(\"закрыл\", name)\n\nwith ExitStack() as stack:\n    for name in [\"БД\", \"браузер\"]:\n        stack.enter_context(res(name))\n    print(\"тест\")\n```\n\n- `ExitStack` — «стопка» менеджеров. `stack.enter_context(менеджер)` входит в него и запоминает, что нужно выйти.\n- При выходе из `with ExitStack()` все менеджеры закрываются **в обратном порядке**.\n- Нужен, когда количество ресурсов заранее неизвестно (список файлов, набор сервисов).\n- Вывод: `открыл БД`, `открыл браузер`, `тест`, `закрыл браузер`, `закрыл БД`.\n\n## ExitStack.callback\n\n```python\nfrom contextlib import ExitStack\n\nlog = []\nwith ExitStack() as stack:\n    stack.callback(log.append, \"удалить пользователя\")\n    stack.callback(log.append, \"закрыть браузер\")\n    log.append(\"тест\")\nprint(log)\n```\n\n- `callback(функция, *аргументы)` — зарегистрировать функцию уборки. Вызовутся при выходе, в обратном порядке.\n- Вывод: `['тест', 'закрыть браузер', 'удалить пользователя']`.\n\n## Итог\n\n- `suppress(*типы)` — игнорировать ошибки.\n- `redirect_stdout(buf)` / `redirect_stderr(buf)` — перехват вывода.\n- `ExitStack`: `enter_context(cm)`, `callback(f, *args)`; выход в обратном порядке.",
@@ -871,7 +927,8 @@
                   "code": "from contextlib import closing\n\nclass Connection:\n    def __init__(self):\n        self.open = True\n\n    def query(self):\n        return \"данные\"\n\n    def close(self):\n        self.open = False\n        print(\"соединение закрыто\")\n\nwith closing(Connection()) as conn:\n    print(conn.query())\nprint(conn.open)\n",
                   "expected_output": "данные\nсоединение закрыто\nFalse",
                   "hint": "closing превращает любой объект с методом close() в менеджер.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`closing` делает менеджер из объекта с методом `close()`: при выходе вызовет его.\", \"lines\": [[\"with closing(Connection()) as conn:\", \"В `as` — сам объект.\"], [\"print(conn.query())\", \"Работа.\"], [\"print(conn.open)\", \"`close` уже вызван.\"]], \"mistake\": \"Ожидать `True`.\"}"
                 },
                 {
                   "slug": "ctx-stdlib-e2",
@@ -880,7 +937,8 @@
                   "code": "from contextlib import nullcontext\n\ndef process(data, lock=None):\n    with lock if lock is not None else nullcontext():\n        return sum(data)\n\nprint(process([1, 2, 3]))\nwith nullcontext(\"значение\") as v:\n    print(v)\n",
                   "expected_output": "6\nзначение",
                   "hint": "nullcontext — менеджер, который ничего не делает. Удобен как заглушка.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`nullcontext` — менеджер-пустышка: ничего не делает, в `as` отдаёт переданное значение.\", \"lines\": [[\"with lock if lock is not None else nullcontext():\", \"Нет замка — пустышка.\"], [\"with nullcontext(\\\"значение\\\") as v:\", \"`v` — само значение.\"]], \"mistake\": \"Писать два варианта кода — с `with` и без.\"}"
                 },
                 {
                   "slug": "ctx-stdlib-e3",
@@ -889,7 +947,8 @@
                   "code": "import os\nfrom contextlib import chdir\nfrom decimal import Decimal, localcontext\nfrom pathlib import Path\n\nPath(\"work/inner\").mkdir(parents=True, exist_ok=True)\nstart = os.getcwd()\nwith chdir(\"work\"):\n    print(sorted(os.listdir(\".\")))\nprint(os.getcwd() == start)\n\nwith localcontext() as ctx:\n    ctx.prec = 3\n    print(Decimal(1) / Decimal(7))\nprint(Decimal(1) / Decimal(7))\n",
                   "expected_output": "['inner']\nTrue\n0.143\n0.1428571428571428571428571429",
                   "hint": "Оба менеджера временно меняют состояние и восстанавливают его.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`chdir` временно меняет текущую папку, `localcontext` — точность `Decimal`. После блока всё возвращается.\", \"lines\": [[\"with chdir(\\\"work\\\"):\", \"Внутри — папка `work`.\"], [\"print(os.getcwd() == start)\", \"Вернулись.\"], [\"ctx.prec = 3\", \"Три значащие цифры.\"], [\"print(Decimal(1) / Decimal(7))\", \"Снаружи — снова 28 цифр.\"]], \"mistake\": \"Ожидать, что точность останется 3.\"}"
                 },
                 {
                   "slug": "ctx-stdlib-e4",
@@ -899,7 +958,8 @@
                   "tests": "def test_values():\n    b = Browser()\n    assert use_browser(b, lambda br: \"title\") == \"title\" and not b.alive, \"Результат и quit\"\n    b2 = Browser()\n    try:\n        use_browser(b2, lambda br: 1 / 0)\n    except ZeroDivisionError:\n        pass\n    assert not b2.alive, \"quit и при ошибке\"\n",
                   "solution": "class Browser:\n    def __init__(self):\n        self.alive = True\n\n    def quit(self):\n        self.alive = False\n\n\ndef use_browser(browser, action):\n    try:\n        return action(browser)\n    finally:\n        browser.quit()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Нет подходящего менеджера — `try/finally` делает то же самое.\", \"lines\": [[\"return action(browser)\", \"Работа.\"], [\"finally:\\n        browser.quit()\", \"Гарантированно.\"]], \"mistake\": \"Вызвать `quit` после `return` — строка не выполнится.\"}"
                 },
                 {
                   "slug": "ctx-stdlib-e5",
@@ -909,7 +969,8 @@
                   "tests": "def test_values():\n    class Conn:\n        closed = False\n        def read(self):\n            return \"ответ\"\n        def close(self):\n            self.closed = True\n    c = Conn()\n    assert fetch(c) == \"ответ\" and c.closed, \"Прочитано и закрыто\"\n    assert \"closing\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй closing\"\n",
                   "solution": "from contextlib import closing\n\n\ndef fetch(conn):\n    with closing(conn) as c:\n        return c.read()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`closing(conn)` вызовет `conn.close()` при выходе.\", \"lines\": [[\"with closing(conn) as c:\", \"Менеджер из объекта.\"], [\"return c.read()\", \"Закроется после возврата.\"]], \"mistake\": \"`with conn:` — у объекта нет `__enter__`.\"}"
                 },
                 {
                   "slug": "ctx-stdlib-e6",
@@ -919,7 +980,8 @@
                   "tests": "import os\n\ndef test_values():\n    if os.path.exists(\"sum.log\"):\n        os.remove(\"sum.log\")\n    assert maybe_log([1, 2]) == 3 and not os.path.exists(\"sum.log\"), \"Без файла\"\n    assert maybe_log([5, 5], \"sum.log\") == 10, \"С файлом\"\n    with open(\"sum.log\", encoding=\"utf-8\") as f:\n        assert f.read() == \"сумма: 10\\n\", \"Содержимое\"\n    assert \"nullcontext\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй nullcontext\"\n",
                   "solution": "from contextlib import nullcontext\n\n\ndef maybe_log(data, log_file=None):\n    total = sum(data)\n    cm = open(log_file, \"a\", encoding=\"utf-8\") if log_file else nullcontext()\n    with cm as f:\n        if f is not None:\n            f.write(f\"сумма: {total}\\n\")\n    return total\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Выбираем менеджер заранее: файл или пустышку. У пустышки в `as` — `None`.\", \"lines\": [[\"cm = open(log_file, \\\"a\\\", encoding=\\\"utf-8\\\") if log_file else nullcontext()\", \"Один из двух.\"], [\"with cm as f:\", \"Один `with`.\"], [\"if f is not None:\\n            f.write(f\\\"сумма: {total}\\\\n\\\")\", \"Пишем, только если есть файл.\"]], \"mistake\": \"Писать без проверки — `None.write`.\"}"
                 },
                 {
                   "slug": "ctx-stdlib-e7",
@@ -929,7 +991,8 @@
                   "tests": "import os\nfrom pathlib import Path\n\ndef test_values():\n    Path(\"li/x\").mkdir(parents=True, exist_ok=True)\n    Path(\"li/b.txt\").write_text(\"\", encoding=\"utf-8\")\n    start = os.getcwd()\n    assert list_in(\"li\") == [\"b.txt\", \"x\"] and os.getcwd() == start, \"Неверный результат\"\n",
                   "solution": "import os\nfrom contextlib import chdir\n\n\ndef list_in(folder):\n    with chdir(folder):\n        return sorted(os.listdir(\".\"))\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`chdir` вернёт папку сама — даже при ошибке и при `return`.\", \"lines\": [[\"with chdir(folder):\", \"Временно.\"], [\"return sorted(os.listdir(\\\".\\\"))\", \"Содержимое текущей.\"]], \"mistake\": \"`os.chdir` без возврата — сломает остальные тесты.\"}"
                 },
                 {
                   "slug": "ctx-stdlib-e8",
@@ -939,7 +1002,8 @@
                   "tests": "from decimal import getcontext\n\ndef test_values():\n    before = getcontext().prec\n    assert precise_div(1, 3, 5) == \"0.33333\" and precise_div(2, 3, 2) == \"0.67\" and precise_div(10, 4, 10) == \"2.5\", precise_div(1, 3, 5)\n    assert getcontext().prec == before, \"Глобальная точность не меняется\"\n",
                   "solution": "from decimal import Decimal, localcontext, getcontext\n\n\ndef precise_div(a, b, digits):\n    with localcontext() as ctx:\n        ctx.prec = digits\n        return str(Decimal(a) / Decimal(b))\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`localcontext` меняет точность только внутри блока.\", \"lines\": [[\"ctx.prec = digits\", \"Значащие цифры.\"], [\"return str(Decimal(a) / Decimal(b))\", \"Строка результата.\"]], \"mistake\": \"`getcontext().prec = digits` — изменит точность для всей программы.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nКонтекстные менеджеры встречаются по всей стандартной библиотеке. Знать их — значит писать короче и надёжнее: закрыть объект без `__exit__`, временно сменить папку или точность вычислений, подставить «пустой» менеджер.\n\n## closing: для объектов с close()\n\n```python\nfrom contextlib import closing\n\nclass Connection:\n    def __init__(self):\n        self.open = True\n\n    def query(self):\n        return \"данные\"\n\n    def close(self):\n        self.open = False\n        print(\"соединение закрыто\")\n\nwith closing(Connection()) as conn:\n    print(conn.query())\nprint(conn.open)\n```\n\n- У многих старых объектов есть метод `close()`, но нет `__enter__`/`__exit__`.\n- `closing(obj)` делает из них менеджер: при выходе вызовет `obj.close()`.\n- Если метод называется иначе (`quit()`, `disconnect()`), используй `try/finally` или свой менеджер.\n- Вывод: `данные`, `соединение закрыто`, `False`.\n\n## nullcontext: менеджер-заглушка\n\n```python\nfrom contextlib import nullcontext\n\ndef process(data, lock=None):\n    with lock if lock is not None else nullcontext():\n        return sum(data)\n\nprint(process([1, 2, 3]))\nwith nullcontext(\"значение\") as v:\n    print(v)\n```\n\n- `nullcontext()` ничего не делает при входе и выходе. Нужен, когда менеджер то есть, то нет, — чтобы не писать код дважды.\n- `nullcontext(x)` отдаёт `x` в `as`.\n- Вывод: `6`, `значение`.\n\n## chdir: временно сменить папку\n\n```python\nimport os\nfrom contextlib import chdir\nfrom pathlib import Path\n\nPath(\"work/inner\").mkdir(parents=True, exist_ok=True)\nstart = os.getcwd()\nwith chdir(\"work\"):\n    print(sorted(os.listdir(\".\")))\nprint(os.getcwd() == start)\n```\n\n- `chdir(путь)` (Python 3.11+) — сменить текущую папку на время блока и вернуть обратно.\n- `os.getcwd()` — текущая рабочая папка.\n- Вывод: `['inner']`, `True`.\n\n## localcontext: временная точность\n\n```python\nfrom decimal import Decimal, localcontext\n\nwith localcontext() as ctx:\n    ctx.prec = 3\n    print(Decimal(1) / Decimal(7))\nprint(Decimal(1) / Decimal(7))\n```\n\n- `Decimal` — точные десятичные числа (для денег). `prec` — число значащих цифр.\n- `localcontext()` меняет настройки только внутри блока.\n- Вывод: `0.143`, `0.1428571428571428571428571429`.\n\n## Другие менеджеры, которые стоит знать\n\n```py\nopen(...)                          # файлы\ntempfile.TemporaryDirectory()      # временная папка\nthreading.Lock()                   # блокировка для потоков\nsqlite3.connect(...)               # транзакция БД (commit/rollback)\nrequests.Session()                 # HTTP-сессия\nunittest.mock.patch(...)           # подмена объекта в тестах\npytest.raises(...)                 # ожидаемое исключение\n```\n\n- Общее правило: если у объекта есть «открыть/закрыть» или «начать/закончить» — скорее всего, он поддерживает `with`.\n\n## Итог\n\n- `closing(obj)` — вызовет `obj.close()`.\n- `nullcontext(x)` — пустой менеджер.\n- `chdir(path)`, `localcontext()` — временная смена состояния.\n- Многие объекты библиотек — менеджеры: используй `with`.",
@@ -999,7 +1063,8 @@
                   "code": "from contextlib import contextmanager\n\nconfig = {\"debug\": False, \"url\": \"prod\"}\n\n@contextmanager\ndef override(settings, **changes):\n    old = dict(settings)\n    settings.update(changes)\n    try:\n        yield settings\n    finally:\n        settings.clear()\n        settings.update(old)\n\nwith override(config, debug=True, url=\"test\"):\n    print(config)\nprint(config)\n",
                   "expected_output": "{'debug': True, 'url': 'test'}\n{'debug': False, 'url': 'prod'}",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Временная настройка: запомнить, изменить, в `finally` вернуть. `clear` + `update` меняют тот же словарь.\", \"lines\": [[\"old = dict(settings)\", \"Копия.\"], [\"settings.update(changes)\", \"Изменения.\"], [\"settings.clear()\\n        settings.update(old)\", \"Откат.\"], [\"print(config)\", \"Внутри — test, снаружи — prod.\"]], \"mistake\": \"`old = settings` — это не копия, откатывать будет нечего.\"}"
                 },
                 {
                   "slug": "ctx-state-e2",
@@ -1008,7 +1073,8 @@
                   "code": "from contextlib import contextmanager\n\nclass Api:\n    base_url = \"https://prod.example\"\n\n@contextmanager\ndef patched(obj, name, value):\n    old = getattr(obj, name)\n    setattr(obj, name, value)\n    try:\n        yield\n    finally:\n        setattr(obj, name, old)\n\nwith patched(Api, \"base_url\", \"http://localhost:8000\"):\n    print(Api.base_url)\nprint(Api.base_url)\n",
                   "expected_output": "http://localhost:8000\nhttps://prod.example",
                   "hint": "getattr/setattr читают и пишут атрибут по имени-строке. Так устроен unittest.mock.patch.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`getattr`/`setattr` читают и меняют атрибут по имени-строке — так подменяют настройки в тестах.\", \"lines\": [[\"old = getattr(obj, name)\", \"Оригинал.\"], [\"setattr(obj, name, value)\", \"Подмена.\"], [\"setattr(obj, name, old)\", \"Возврат в `finally`.\"]], \"mistake\": \"Ожидать, что localhost останется после блока.\"}"
                 },
                 {
                   "slug": "ctx-state-e3",
@@ -1017,7 +1083,8 @@
                   "code": "import os\nfrom contextlib import contextmanager\n\n@contextmanager\ndef env(**values):\n    old = {k: os.environ.get(k) for k in values}\n    os.environ.update(values)\n    try:\n        yield\n    finally:\n        for k, v in old.items():\n            if v is None:\n                del os.environ[k]\n            else:\n                os.environ[k] = v\n\nwith env(STAND=\"stage\"):\n    print(os.environ[\"STAND\"])\nprint(os.environ.get(\"STAND\"))\n",
                   "expected_output": "stage\nNone",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Запоминаем старые значения переменных окружения; не было переменной — после блока удаляем её.\", \"lines\": [[\"old = {k: os.environ.get(k) for k in values}\", \"`None` — переменной не было.\"], [\"os.environ.update(values)\", \"Установка.\"], [\"if v is None:\\n                del os.environ[k]\", \"Не было — удаляем.\"], [\"print(os.environ.get(\\\"STAND\\\"))\", \"`get` без ошибки — `None`.\"]], \"mistake\": \"Оставить переменную — она «протечёт» в следующие тесты.\"}"
                 },
                 {
                   "slug": "ctx-state-e4",
@@ -1027,7 +1094,8 @@
                   "tests": "def test_values():\n    d = {\"a\": 1}\n    with temp_value(d, \"a\", 99):\n        assert d == {\"a\": 99}, \"Внутри\"\n    with temp_value(d, \"b\", 2):\n        assert d == {\"a\": 1, \"b\": 2}, \"Новый ключ\"\n    assert d == {\"a\": 1}, f\"После: {d}\"\n    try:\n        with temp_value(d, \"a\", 5):\n            raise ValueError\n    except ValueError:\n        pass\n    assert d == {\"a\": 1}, \"Восстановление после ошибки\"\n",
                   "solution": "from contextlib import contextmanager\n\n_MISSING = object()\n\n\n@contextmanager\ndef temp_value(data, key, value):\n    old = data.get(key, _MISSING)\n    data[key] = value\n    try:\n        yield data\n    finally:\n        if old is _MISSING:\n            del data[key]\n        else:\n            data[key] = old\n",
                   "hint": "Уникальный объект-маркер отличает «ключа не было» от «значение было None».",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Маркер `_MISSING` отличает «ключа не было» от «значение было `None`».\", \"lines\": [[\"_MISSING = object()\", \"Уникальный объект-метка.\"], [\"old = data.get(key, _MISSING)\", \"Старое значение или метка.\"], [\"if old is _MISSING:\\n            del data[key]\", \"Ключа не было — убрать.\"], [\"data[key] = old\", \"Иначе вернуть.\"]], \"mistake\": \"`data.get(key)` — не отличить отсутствие ключа от значения `None`.\"}"
                 },
                 {
                   "slug": "ctx-state-e5",
@@ -1037,7 +1105,8 @@
                   "tests": "def test_values():\n    class Settings:\n        timeout = 30\n    with patch_attr(Settings, \"timeout\", 1) as old:\n        assert Settings.timeout == 1 and old == 30, \"Внутри\"\n    assert Settings.timeout == 30, \"После\"\n    try:\n        with patch_attr(Settings, \"timeout\", 2):\n            raise KeyError\n    except KeyError:\n        pass\n    assert Settings.timeout == 30, \"После ошибки\"\n",
                   "solution": "from contextlib import contextmanager\n\n\n@contextmanager\ndef patch_attr(obj, name, value):\n    old = getattr(obj, name)\n    setattr(obj, name, value)\n    try:\n        yield old\n    finally:\n        setattr(obj, name, old)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Подмена атрибута с возвратом; в `as` — старое значение.\", \"lines\": [[\"old = getattr(obj, name)\", \"Запомнить.\"], [\"setattr(obj, name, value)\", \"Подменить.\"], [\"yield old\", \"Старое — в `as`.\"], [\"setattr(obj, name, old)\", \"Вернуть в `finally`.\"]], \"mistake\": \"`yield value` — просили старое.\"}"
                 },
                 {
                   "slug": "ctx-state-e6",
@@ -1047,7 +1116,8 @@
                   "tests": "def test_values():\n    g = greeting.__globals__\n    with fake_function(g, \"now\", lambda: 9):\n        assert greeting() == \"утро\", \"Подделка 9 часов\"\n    with fake_function(g, \"now\", lambda: 15):\n        assert greeting() == \"день\", \"Подделка 15 часов\"\n    assert g[\"now\"].__name__ == \"now\", \"Оригинал восстановлен\"\n",
                   "solution": "from contextlib import contextmanager\n\n\ndef now():\n    import datetime\n    return datetime.datetime.now().hour\n\n\ndef greeting():\n    return \"утро\" if now() < 12 else \"день\"\n\n\n@contextmanager\ndef fake_function(module_dict, name, replacement):\n    original = module_dict[name]\n    module_dict[name] = replacement\n    try:\n        yield\n    finally:\n        module_dict[name] = original\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Функции ищут имена в глобальном словаре модуля при вызове — подмена в `globals()` меняет поведение `greeting`.\", \"lines\": [[\"original = module_dict[name]\", \"Оригинал.\"], [\"module_dict[name] = replacement\", \"Подделка.\"], [\"module_dict[name] = original\", \"Возврат в `finally`.\"]], \"mistake\": \"Забыть `finally` — упавший тест оставит подделку для остальных.\"}"
                 },
                 {
                   "slug": "ctx-state-e7",
@@ -1057,7 +1127,8 @@
                   "tests": "def test_values():\n    data = [1, 2, 3]\n    with Frozen(data) as d:\n        d.append(4)\n        d.remove(1)\n        assert d is data and data == [2, 3, 4], \"Внутри меняется\"\n    assert data == [1, 2, 3], f\"После: {data}\"\n",
                   "solution": "class Frozen:\n    def __init__(self, items):\n        self.items = items\n\n    def __enter__(self):\n        self.saved = list(self.items)\n        return self.items\n\n    def __exit__(self, exc_type, exc, tb):\n        self.items[:] = self.saved\n        return False\n",
                   "hint": "items[:] = saved заменяет содержимое того же списка.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Снимок списка при входе; при выходе срез `[:]` заменяет содержимое того же объекта.\", \"lines\": [[\"self.saved = list(self.items)\", \"Копия.\"], [\"return self.items\", \"В `as` — сам список.\"], [\"self.items[:] = self.saved\", \"Тот же объект, старое содержимое.\"]], \"mistake\": \"`self.items = self.saved` — внешний список не изменится.\"}"
                 },
                 {
                   "slug": "ctx-state-e8",
@@ -1067,7 +1138,8 @@
                   "tests": "import os\n\ndef test_values():\n    os.environ[\"CQ_A\"] = \"old\"\n    os.environ.pop(\"CQ_B\", None)\n    with env_vars(CQ_A=\"new\", CQ_B=\"added\"):\n        assert os.environ[\"CQ_A\"] == \"new\" and os.environ[\"CQ_B\"] == \"added\", \"Внутри\"\n    assert os.environ[\"CQ_A\"] == \"old\" and \"CQ_B\" not in os.environ, \"После\"\n",
                   "solution": "import os\nfrom contextlib import contextmanager\n\n\n@contextmanager\ndef env_vars(**values):\n    old = {key: os.environ.get(key) for key in values}\n    os.environ.update(values)\n    try:\n        yield\n    finally:\n        for key, value in old.items():\n            if value is None:\n                os.environ.pop(key, None)\n            else:\n                os.environ[key] = value\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Сохраняем старые значения, ставим новые, в `finally` возвращаем или удаляем.\", \"lines\": [[\"old = {key: os.environ.get(key) for key in values}\", \"Что было.\"], [\"os.environ.update(values)\", \"Новые.\"], [\"os.environ.pop(key, None)\", \"Не было — удалить (без ошибки).\"], [\"os.environ[key] = value\", \"Было — вернуть.\"]], \"mistake\": \"Удалять все переменные из `values` — затрёшь существовавшие.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nВ тестах постоянно нужно **временно** что-то поменять: включить отладочный режим, подставить тестовый адрес API, задать переменную окружения, подменить функцию. После теста всё должно вернуться как было — иначе следующий тест получит «грязное» состояние и упадёт непонятно почему. Контекстный менеджер — идеальный инструмент: «поменять → блок → вернуть».\n\n## Временная настройка в словаре\n\n```python\nfrom contextlib import contextmanager\n\nconfig = {\"debug\": False, \"url\": \"prod\"}\n\n@contextmanager\ndef override(settings, **changes):\n    old = dict(settings)\n    settings.update(changes)\n    try:\n        yield settings\n    finally:\n        settings.clear()\n        settings.update(old)\n\nwith override(config, debug=True, url=\"test\"):\n    print(config)\nprint(config)\n```\n\n- `dict(settings)` — снимок до изменений.\n- `**changes` — любые именованные аргументы собираются в словарь.\n- `finally` восстанавливает снимок в **тот же** объект — даже если тест упал.\n- Вывод: `{'debug': True, 'url': 'test'}`, `{'debug': False, 'url': 'prod'}`.\n\n## Подмена атрибута\n\n```python\nfrom contextlib import contextmanager\n\nclass Api:\n    base_url = \"https://prod.example\"\n\n@contextmanager\ndef patched(obj, name, value):\n    old = getattr(obj, name)\n    setattr(obj, name, value)\n    try:\n        yield old\n    finally:\n        setattr(obj, name, old)\n\nwith patched(Api, \"base_url\", \"http://localhost:8000\"):\n    print(Api.base_url)\nprint(Api.base_url)\n```\n\n- `getattr(obj, \"имя\")` / `setattr(obj, \"имя\", значение)` — прочитать и записать атрибут, имя которого задано строкой.\n- Именно так устроен `unittest.mock.patch` — главный инструмент подмены в Python-тестах.\n- Вывод: `http://localhost:8000`, `https://prod.example`.\n\n## Ключа не было\n\n```python\nfrom contextlib import contextmanager\n\n_MISSING = object()\n\n@contextmanager\ndef temp_value(data, key, value):\n    old = data.get(key, _MISSING)\n    data[key] = value\n    try:\n        yield\n    finally:\n        if old is _MISSING:\n            del data[key]\n        else:\n            data[key] = old\n\nd = {\"a\": None}\nwith temp_value(d, \"a\", 1), temp_value(d, \"b\", 2):\n    print(d)\nprint(d)\n```\n\n- Если ключа раньше не было, после блока его нужно **удалить**, а не записать `None`.\n- `_MISSING = object()` — уникальный объект-маркер. Его не спутать ни с каким настоящим значением, даже с `None`.\n- Вывод: `{'a': 1, 'b': 2}`, `{'a': None}`.\n\n## Переменные окружения\n\n```python\nimport os\nfrom contextlib import contextmanager\n\n@contextmanager\ndef env(**values):\n    old = {k: os.environ.get(k) for k in values}\n    os.environ.update(values)\n    try:\n        yield\n    finally:\n        for k, v in old.items():\n            if v is None:\n                del os.environ[k]\n            else:\n                os.environ[k] = v\n\nwith env(STAND=\"stage\"):\n    print(os.environ[\"STAND\"])\nprint(os.environ.get(\"STAND\"))\n```\n\n- `os.environ` — словарь переменных окружения процесса. Конфигурацию тестов (стенд, токены) часто передают через них.\n- Вывод: `stage`, `None`.\n- В pytest то же делает фикстура `monkeypatch`: `monkeypatch.setenv(\"STAND\", \"stage\")`.\n\n## Итог\n\n- Шаблон: запомнить → изменить → `try: yield` → `finally: восстановить`.\n- `getattr`/`setattr` — подмена атрибутов по имени.\n- Отсутствующий ключ — маркер `object()`, после блока удалить.\n- В реальных тестах: `unittest.mock.patch`, `monkeypatch`.",
@@ -1119,7 +1191,8 @@
                   "code": "import time\nfrom contextlib import contextmanager\n\n@contextmanager\ndef stopwatch(results, name):\n    start = time.perf_counter()\n    try:\n        yield\n    finally:\n        results[name] = time.perf_counter() - start\n\nresults = {}\nwith stopwatch(results, \"пауза\"):\n    time.sleep(0.05)\nprint(list(results), 0.04 < results[\"пауза\"] < 1)\n",
                   "expected_output": "['пауза'] True",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Секундомер пишет время в словарь по имени; проверяем диапазон, а не точное число.\", \"lines\": [[\"results[name] = time.perf_counter() - start\", \"В `finally`.\"], [\"print(list(results), 0.04 < results[\\\"пауза\\\"] < 1)\", \"Ключ и разумный диапазон.\"]], \"mistake\": \"Сравнивать время на равенство с 0.05.\"}"
                 },
                 {
                   "slug": "ctx-timing-e2",
@@ -1128,7 +1201,8 @@
                   "code": "import time\n\nclass Timer:\n    def __enter__(self):\n        self.start = time.perf_counter()\n        self.elapsed = None\n        return self\n\n    def __exit__(self, *args):\n        self.elapsed = time.perf_counter() - self.start\n        return False\n\nwith Timer() as t:\n    print(\"внутри:\", t.elapsed)\n    time.sleep(0.02)\nprint(\"после:\", t.elapsed > 0.01)\n",
                   "expected_output": "внутри: None\nпосле: True",
                   "hint": "Объект из as доступен и после блока.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`elapsed` заполняется только в `__exit__`; внутри блока он ещё `None`.\", \"lines\": [[\"self.elapsed = None\", \"До выхода.\"], [\"print(\\\"внутри:\\\", t.elapsed)\", \"None.\"], [\"self.elapsed = time.perf_counter() - self.start\", \"На выходе.\"], [\"print(\\\"после:\\\", t.elapsed > 0.01)\", \"Спали 0.02.\"]], \"mistake\": \"Ожидать число внутри блока.\"}"
                 },
                 {
                   "slug": "ctx-timing-e3",
@@ -1137,7 +1211,8 @@
                   "code": "from contextlib import contextmanager\n\ndepth = 0\n\n@contextmanager\ndef step(name):\n    global depth\n    print(\"  \" * depth + \"▶ \" + name)\n    depth += 1\n    try:\n        yield\n    finally:\n        depth -= 1\n\nwith step(\"оформление заказа\"):\n    with step(\"корзина\"):\n        pass\n    with step(\"оплата\"):\n        with step(\"ввод карты\"):\n            pass\n",
                   "expected_output": "▶ оформление заказа\n  ▶ корзина\n  ▶ оплата\n    ▶ ввод карты",
                   "hint": "Так выглядят шаги в Allure: with allure.step('...').",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Глобальная глубина растёт при входе и уменьшается в `finally` — получается дерево шагов.\", \"lines\": [[\"print(\\\"  \\\" * depth + \\\"▶ \\\" + name)\", \"Отступ по глубине.\"], [\"depth += 1\", \"Вложенные — глубже.\"], [\"depth -= 1\", \"Выход.\"]], \"mistake\": \"Ожидать «оплата» глубже «корзины» — корзина уже закрылась.\"}"
                 },
                 {
                   "slug": "ctx-timing-e4",
@@ -1147,7 +1222,8 @@
                   "tests": "import time as _t\n\ndef test_values():\n    with Timer() as t:\n        _t.sleep(0.05)\n    assert 0.04 < t.elapsed < 1, t.elapsed\n",
                   "solution": "import time\n\n\nclass Timer:\n    def __enter__(self):\n        self.start = time.perf_counter()\n        return self\n\n    def __exit__(self, *args):\n        self.elapsed = time.perf_counter() - self.start\n        return False\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Отметка при входе, разница при выходе.\", \"lines\": [[\"self.start = time.perf_counter()\", \"Вход.\"], [\"return self\", \"Для `as`.\"], [\"self.elapsed = time.perf_counter() - self.start\", \"Выход.\"]], \"mistake\": \"Не вернуть `self` — `t.elapsed` будет недоступен.\"}"
                 },
                 {
                   "slug": "ctx-timing-e5",
@@ -1157,7 +1233,8 @@
                   "tests": "def test_values():\n    ticks = iter([0.0, 0.5, 10.0, 12.25])\n    clock = lambda: next(ticks)\n    with time_limit(1, clock):\n        pass\n    try:\n        with time_limit(2, clock):\n            pass\n    except AssertionError as e:\n        assert str(e) == \"медленно: 2.25 c > 2 c\", str(e)\n        return\n    assert False, \"Нужен AssertionError\"\n",
                   "solution": "from contextlib import contextmanager\n\n\n@contextmanager\ndef time_limit(seconds, clock):\n    start = clock()\n    yield\n    spent = clock() - start\n    if spent > seconds:\n        raise AssertionError(f\"медленно: {spent:.2f} c > {seconds} c\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Часы передаются параметром — тест подставит поддельные. Превышение — провал.\", \"lines\": [[\"start = clock()\", \"Отметка.\"], [\"spent = clock() - start\", \"Затрачено.\"], [\"raise AssertionError(f\\\"медленно: {spent:.2f} c > {seconds} c\\\")\", \"Два знака.\"]], \"mistake\": \"Вызвать `time.perf_counter()` вместо `clock()`.\"}"
                 },
                 {
                   "slug": "ctx-timing-e6",
@@ -1167,7 +1244,8 @@
                   "tests": "def test_values():\n    ticks = iter([0, 1, 1, 4, 10, 12])\n    p = Profiler(lambda: next(ticks))\n    with p.measure(\"db\"):\n        pass\n    with p.measure(\"db\"):\n        pass\n    with p.measure(\"api\"):\n        pass\n    assert p.totals == {\"db\": 4, \"api\": 2}, p.totals\n",
                   "solution": "from contextlib import contextmanager\n\n\nclass Profiler:\n    def __init__(self, clock):\n        self.clock = clock\n        self.totals = {}\n\n    @contextmanager\n    def measure(self, name):\n        start = self.clock()\n        try:\n            yield\n        finally:\n            self.totals[name] = self.totals.get(name, 0) + self.clock() - start\n",
                   "hint": "@contextmanager можно применить и к методу класса.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Метод класса тоже можно сделать менеджером через `@contextmanager`. Время копится по имени.\", \"lines\": [[\"@contextmanager\\n    def measure(self, name):\", \"Метод-менеджер.\"], [\"start = self.clock()\", \"Отметка.\"], [\"self.totals[name] = self.totals.get(name, 0) + self.clock() - start\", \"Суммируем.\"]], \"mistake\": \"`= self.clock() - start` — перезапишет прошлые замеры.\"}"
                 },
                 {
                   "slug": "ctx-timing-e7",
@@ -1177,7 +1255,8 @@
                   "tests": "def test_values():\n    report = []\n    try:\n        with step(report, \"заказ\") as sub:\n            with step(sub, \"корзина\"):\n                pass\n            with step(sub, \"оплата\"):\n                raise AssertionError(\"отказ банка\")\n    except AssertionError:\n        pass\n    assert report == [{\"name\": \"заказ\", \"status\": \"failed\", \"steps\": [\n        {\"name\": \"корзина\", \"status\": \"passed\", \"steps\": []},\n        {\"name\": \"оплата\", \"status\": \"failed\", \"steps\": []},\n    ]}], report\n",
                   "solution": "from contextlib import contextmanager\n\n\n@contextmanager\ndef step(report, name):\n    node = {\"name\": name, \"status\": None, \"steps\": []}\n    report.append(node)\n    try:\n        yield node[\"steps\"]\n    except BaseException:\n        node[\"status\"] = \"failed\"\n        raise\n    node[\"status\"] = \"passed\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Узел добавляется при входе; в `as` — его список вложенных шагов, чтобы строить дерево.\", \"lines\": [[\"node = {\\\"name\\\": name, \\\"status\\\": None, \\\"steps\\\": []}\", \"Узел.\"], [\"report.append(node)\", \"В текущий уровень.\"], [\"yield node[\\\"steps\\\"]\", \"Для вложенных шагов.\"], [\"except BaseException:\\n        node[\\\"status\\\"] = \\\"failed\\\"\\n        raise\", \"Провал и проброс.\"], [\"node[\\\"status\\\"] = \\\"passed\\\"\", \"Без ошибки.\"]], \"mistake\": \"Отдавать в `as` весь `report` — вложенность потеряется.\"}"
                 },
                 {
                   "slug": "ctx-timing-e8",
@@ -1187,7 +1266,8 @@
                   "tests": "def test_values():\n    ticks = iter([0, 0.3, 1, 3.5, 5, 5.9])\n    log = []\n    s = SlowLog(0.5, lambda: next(ticks), log)\n    for _ in range(3):\n        with s:\n            pass\n    assert log == [\"медленно: 2.5 c\", \"медленно: 0.9 c\"], log\n",
                   "solution": "class SlowLog:\n    def __init__(self, threshold, clock, log):\n        self.threshold = threshold\n        self.clock = clock\n        self.log = log\n\n    def __enter__(self):\n        self.start = self.clock()\n        return self\n\n    def __exit__(self, *args):\n        spent = self.clock() - self.start\n        if spent > self.threshold:\n            self.log.append(f\"медленно: {spent:.1f} c\")\n        return False\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Каждый вход запоминает свою отметку, поэтому менеджер можно использовать многократно.\", \"lines\": [[\"self.start = self.clock()\", \"Новая отметка.\"], [\"spent = self.clock() - self.start\", \"Замер.\"], [\"self.log.append(f\\\"медленно: {spent:.1f} c\\\")\", \"Одна цифра после точки.\"]], \"mistake\": \"Засекать старт в `__init__` — второй `with` посчитает время с создания.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n«Сколько длился этот шаг?», «Страница грузится дольше 2 секунд?», «Покажи шаги теста в отчёте». Всё это — «сделать что-то до и после блока кода», то есть работа для контекстного менеджера. Так устроены `allure.step` и многие профилировщики.\n\n## Секундомер на функции\n\n```python\nimport time\nfrom contextlib import contextmanager\n\n@contextmanager\ndef stopwatch(results, name):\n    start = time.perf_counter()\n    try:\n        yield\n    finally:\n        results[name] = time.perf_counter() - start\n\nresults = {}\nwith stopwatch(results, \"пауза\"):\n    time.sleep(0.05)\nprint(list(results), 0.04 < results[\"пауза\"] < 1)\n```\n\n- `time.perf_counter()` — точные часы для замеров; разность двух показаний — длительность в секундах.\n- `finally` — замер записывается, даже если блок упал.\n- Точное время каждый раз немного разное, поэтому печатаем проверку, а не число.\n- Вывод: `['пауза'] True`.\n\n## Класс-таймер\n\n```python\nimport time\n\nclass Timer:\n    def __enter__(self):\n        self.start = time.perf_counter()\n        self.elapsed = None\n        return self\n\n    def __exit__(self, *args):\n        self.elapsed = time.perf_counter() - self.start\n        return False\n\nwith Timer() as t:\n    print(\"внутри:\", t.elapsed)\n    time.sleep(0.02)\nprint(\"после:\", t.elapsed > 0.01)\n```\n\n- Объект из `as` живёт и после блока — результат замера читаем из его атрибута.\n- Вывод: `внутри: None`, `после: True`.\n\n## Проверка производительности\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef time_limit(seconds, clock):\n    start = clock()\n    yield\n    spent = clock() - start\n    if spent > seconds:\n        raise AssertionError(f\"медленно: {spent:.2f} c > {seconds} c\")\n\nticks = iter([0.0, 0.5, 10.0, 12.25])\nfake_clock = lambda: next(ticks)\nwith time_limit(1, fake_clock):\n    pass\ntry:\n    with time_limit(2, fake_clock):\n        pass\nexcept AssertionError as e:\n    print(e)\n```\n\n- Часы передаются параметром: в тестах — поддельные (`iter` + `next` выдают заранее известные значения), в бою — `time.perf_counter`.\n- Проверка после `yield` без `try`: если блок упал, проверять время уже не нужно.\n- Вывод: `медленно: 2.25 c > 2 c`.\n\n## Шаги теста\n\n```python\nfrom contextlib import contextmanager\n\ndepth = 0\n\n@contextmanager\ndef step(name):\n    global depth\n    print(\"  \" * depth + \"▶ \" + name)\n    depth += 1\n    try:\n        yield\n    finally:\n        depth -= 1\n\nwith step(\"оформление заказа\"):\n    with step(\"корзина\"):\n        pass\n    with step(\"оплата\"):\n        with step(\"ввод карты\"):\n            pass\n```\n\n- Глубина вложенности растёт при входе и уменьшается при выходе — получается дерево шагов.\n- В Allure: `with allure.step(\"Открыть корзину\"): ...` — шаг с именем, временем и статусом в отчёте.\n- Вывод: `▶ оформление заказа`, `  ▶ корзина`, `  ▶ оплата`, `    ▶ ввод карты`.\n\n## @contextmanager на методе\n\n```python\nfrom contextlib import contextmanager\n\nclass Profiler:\n    def __init__(self, clock):\n        self.clock = clock\n        self.totals = {}\n\n    @contextmanager\n    def measure(self, name):\n        start = self.clock()\n        try:\n            yield\n        finally:\n            self.totals[name] = self.totals.get(name, 0) + self.clock() - start\n\nticks = iter([0, 1, 1, 4])\np = Profiler(lambda: next(ticks))\nwith p.measure(\"db\"):\n    pass\nwith p.measure(\"db\"):\n    pass\nprint(p.totals)\n```\n\n- Декоратор работает и на методах: `self` передаётся как обычно.\n- Вывод: `{'db': 4}`.\n\n## Итог\n\n- Замер: `perf_counter()` до и после, запись в `finally`.\n- Часы — параметром, чтобы тестировать без ожидания.\n- Шаги отчёта — вложенные менеджеры (`allure.step`).\n- `@contextmanager` можно применять к методам.",
@@ -1239,7 +1319,8 @@
                   "code": "from contextlib import contextmanager\n\n@contextmanager\ndef raises(exc_type):\n    try:\n        yield\n    except exc_type:\n        print(\"ожидаемая ошибка\", exc_type.__name__)\n    else:\n        raise AssertionError(f\"не было {exc_type.__name__}\")\n\nwith raises(ZeroDivisionError):\n    1 / 0\ntry:\n    with raises(KeyError):\n        pass\nexcept AssertionError as e:\n    print(e)\n",
                   "expected_output": "ожидаемая ошибка ZeroDivisionError\nне было KeyError",
                   "hint": "Так устроен pytest.raises.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Свой `raises`: нужная ошибка — поймана; не было ошибки — `else` бросает `AssertionError`.\", \"lines\": [[\"except exc_type:\\n        print(\\\"ожидаемая ошибка\\\", exc_type.__name__)\", \"1 / 0 — поймали.\"], [\"else:\\n        raise AssertionError(f\\\"не было {exc_type.__name__}\\\")\", \"Блок `pass` — ошибки не было.\"]], \"mistake\": \"Думать, что тест без ошибки пройдёт.\"}"
                 },
                 {
                   "slug": "ctx-testing-e2",
@@ -1248,7 +1329,8 @@
                   "code": "from contextlib import contextmanager\n\n@contextmanager\ndef user_fixture(db):\n    user = {\"id\": len(db) + 1, \"name\": \"test\"}\n    db.append(user)\n    print(\"создан\", user[\"id\"])\n    try:\n        yield user\n    finally:\n        db.remove(user)\n        print(\"удалён\", user[\"id\"])\n\ndb = []\nwith user_fixture(db) as u:\n    print(\"тест с\", u[\"name\"], len(db))\nprint(len(db))\n",
                   "expected_output": "создан 1\nтест с test 1\nудалён 1\n0",
                   "hint": "В pytest фикстура с yield работает так же: до yield — подготовка, после — уборка.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Фикстура на `yield`: создать до, удалить после — как в pytest.\", \"lines\": [[\"db.append(user)\", \"Подготовка.\"], [\"yield user\", \"Тест.\"], [\"db.remove(user)\", \"Уборка.\"], [\"print(len(db))\", \"После — пусто.\"]], \"mistake\": \"Ожидать 1 в конце.\"}"
                 },
                 {
                   "slug": "ctx-testing-e3",
@@ -1257,7 +1339,8 @@
                   "code": "import io\nfrom contextlib import redirect_stdout\n\ndef greet(name):\n    print(f\"Привет, {name}!\")\n\nbuf = io.StringIO()\nwith redirect_stdout(buf):\n    greet(\"Аня\")\nassert buf.getvalue() == \"Привет, Аня!\\n\"\nprint(\"вывод совпал:\", repr(buf.getvalue()))\n",
                   "expected_output": "вывод совпал: 'Привет, Аня!\\n'",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Перехват вывода позволяет проверить, что функция напечатала.\", \"lines\": [[\"greet(\\\"Аня\\\")\", \"В буфер.\"], [\"assert buf.getvalue() == \\\"Привет, Аня!\\\\n\\\"\", \"`print` добавил `\\\\n`.\"], [\"print(\\\"вывод совпал:\\\", repr(buf.getvalue()))\", \"`repr` показывает `\\\\n`.\"]], \"mistake\": \"Сравнивать без `\\\\n` — assert упадёт.\"}"
                 },
                 {
                   "slug": "ctx-testing-e4",
@@ -1267,7 +1350,8 @@
                   "tests": "def test_values():\n    with raises(ValueError, match=\"invalid\") as info:\n        int(\"x\")\n    assert isinstance(info[\"value\"], ValueError), \"Ошибка сохранена\"\n    for block, msg in [(lambda: None, \"не было KeyError\"), (lambda: {}[\"zz\"], \"текст не содержит 'qq'\")]:\n        try:\n            with raises(KeyError, match=\"qq\" if \"qq\" in msg else None):\n                block()\n        except AssertionError as e:\n            assert str(e) == msg, str(e)\n        else:\n            assert False, \"Нужен AssertionError\"\n",
                   "solution": "from contextlib import contextmanager\n\n\n@contextmanager\ndef raises(exc_type, match=None):\n    info = {\"value\": None}\n    try:\n        yield info\n    except exc_type as e:\n        info[\"value\"] = e\n        if match is not None and match not in str(e):\n            raise AssertionError(f\"текст не содержит {match!r}\") from e\n        return\n    raise AssertionError(f\"не было {exc_type.__name__}\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Нужная ошибка — сохранить и проверить текст; `return` завершает генератор без ошибки. Дошли до конца — ошибки не было.\", \"lines\": [[\"info = {\\\"value\\\": None}\", \"Контейнер для `as`.\"], [\"info[\\\"value\\\"] = e\", \"Сохранили.\"], [\"if match is not None and match not in str(e):\", \"Текст не тот.\"], [\"return\", \"Ошибка поймана — всё хорошо.\"], [\"raise AssertionError(f\\\"не было {exc_type.__name__}\\\")\", \"Блок прошёл без ошибки.\"]], \"mistake\": \"Забыть `return` — после `except` сработает «не было».\"}"
                 },
                 {
                   "slug": "ctx-testing-e5",
@@ -1277,7 +1361,8 @@
                   "tests": "def test_values():\n    def noisy(a, b):\n        print(\"считаю\")\n        print(a, b)\n        return a + b\n    assert captured(noisy, 2, 3) == (5, \"считаю\\n2 3\\n\"), captured(noisy, 2, 3)\n",
                   "solution": "import io\nfrom contextlib import redirect_stdout\n\n\ndef captured(func, *args):\n    buf = io.StringIO()\n    with redirect_stdout(buf):\n        result = func(*args)\n    return result, buf.getvalue()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Результат функции и её вывод — вместе.\", \"lines\": [[\"with redirect_stdout(buf):\\n        result = func(*args)\", \"Вывод в буфер.\"], [\"return result, buf.getvalue()\", \"Кортеж.\"]], \"mistake\": \"Вернуть только вывод.\"}"
                 },
                 {
                   "slug": "ctx-testing-e6",
@@ -1287,7 +1372,8 @@
                   "tests": "def test_values():\n    class Api:\n        def __init__(self):\n            self.users = {}\n            self.next = 1\n        def create(self, name):\n            if not name:\n                raise ValueError(\"пустое имя\")\n            self.users[self.next] = name\n            self.next += 1\n            return self.next - 1\n        def delete(self, uid):\n            del self.users[uid]\n    api = Api()\n    try:\n        with created_users(api, [\"аня\", \"боря\"]) as ids:\n            assert ids == [1, 2] and len(api.users) == 2, \"Созданы\"\n            raise AssertionError(\"тест упал\")\n    except AssertionError:\n        pass\n    assert api.users == {}, \"Удалены после падения\"\n    try:\n        with created_users(api, [\"вика\", \"\"]):\n            pass\n    except ValueError:\n        pass\n    assert api.users == {}, \"Удалены при ошибке создания\"\n",
                   "solution": "from contextlib import contextmanager\n\n\n@contextmanager\ndef created_users(api, names):\n    ids = []\n    try:\n        for name in names:\n            ids.append(api.create(name))\n        yield ids\n    finally:\n        for uid in ids:\n            api.delete(uid)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Создание — внутри `try`: если упадёт третий, первые два всё равно удалятся.\", \"lines\": [[\"ids.append(api.create(name))\", \"Копим созданные.\"], [\"yield ids\", \"Тест.\"], [\"for uid in ids:\\n            api.delete(uid)\", \"Удаляем все созданные.\"]], \"mistake\": \"Создавать до `try` — при сбое созданные останутся мусором.\"}"
                 },
                 {
                   "slug": "ctx-testing-e7",
@@ -1297,7 +1383,8 @@
                   "tests": "def test_values():\n    d = {\"a\": 1}\n    with AssertNoNewKeys(d):\n        d[\"a\"] = 2\n    try:\n        with AssertNoNewKeys(d):\n            d[\"z\"] = 1\n            d[\"b\"] = 1\n    except AssertionError as e:\n        assert str(e) == \"новые ключи: ['b', 'z']\", str(e)\n    else:\n        assert False, \"Нужен AssertionError\"\n    try:\n        with AssertNoNewKeys(d):\n            d[\"c\"] = 1\n            raise KeyError(\"своя\")\n    except KeyError:\n        pass\n    else:\n        assert False, \"Исходная ошибка важнее проверки\"\n",
                   "solution": "class AssertNoNewKeys:\n    def __init__(self, data):\n        self.data = data\n\n    def __enter__(self):\n        self.before = set(self.data)\n        return self.data\n\n    def __exit__(self, exc_type, exc, tb):\n        if exc_type is None:\n            new = set(self.data) - self.before\n            if new:\n                raise AssertionError(f\"новые ключи: {sorted(new)}\")\n        return False\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Множество ключей до и после; разность — новые ключи.\", \"lines\": [[\"self.before = set(self.data)\", \"Ключи на входе.\"], [\"if exc_type is None:\", \"Проверяем только без ошибки.\"], [\"new = set(self.data) - self.before\", \"Новые.\"], [\"raise AssertionError(f\\\"новые ключи: {sorted(new)}\\\")\", \"Сортировка для стабильного текста.\"]], \"mistake\": \"Проверять при ошибке — перекроешь исходную ошибку.\"}"
                 },
                 {
                   "slug": "ctx-testing-e8",
@@ -1307,7 +1394,8 @@
                   "tests": "def test_values():\n    class Math:\n        @staticmethod\n        def add(a, b):\n            return a + b\n    with mock_calls(Math, \"add\") as calls:\n        assert Math.add(1, 2) == 3 and Math.add(5, 5) == 10, \"Оригинал вызывается\"\n    assert calls == [(1, 2), (5, 5)], calls\n    Math.add(9, 9)\n    assert calls == [(1, 2), (5, 5)], \"После блока шпион снят\"\n",
                   "solution": "from contextlib import contextmanager\n\n\n@contextmanager\ndef mock_calls(obj, name):\n    original = getattr(obj, name)\n    calls = []\n\n    def spy(*args):\n        calls.append(args)\n        return original(*args)\n\n    setattr(obj, name, spy)\n    try:\n        yield calls\n    finally:\n        setattr(obj, name, original)\n",
                   "hint": "Так работает unittest.mock: patch + запись вызовов.",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Шпион записывает аргументы и зовёт оригинал; после блока оригинал возвращается.\", \"lines\": [[\"original = getattr(obj, name)\", \"Запомнить.\"], [\"calls.append(args)\\n        return original(*args)\", \"Запись и настоящий вызов.\"], [\"setattr(obj, name, spy)\", \"Подмена.\"], [\"setattr(obj, name, original)\", \"Возврат в `finally`.\"]], \"mistake\": \"Не вызывать оригинал — код перестанет работать.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nГлавные инструменты тестировщика на Python построены на контекстных менеджерах: `pytest.raises` проверяет исключения, фикстуры с `yield` готовят и убирают данные, `mock.patch` подменяет зависимости, `redirect_stdout` перехватывает вывод. Напишем их упрощённые версии, чтобы понимать, как они работают.\n\n## Ожидаемое исключение: raises\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef raises(exc_type):\n    try:\n        yield\n    except exc_type:\n        print(\"ожидаемая ошибка\", exc_type.__name__)\n    else:\n        raise AssertionError(f\"не было {exc_type.__name__}\")\n\nwith raises(ZeroDivisionError):\n    1 / 0\ntry:\n    with raises(KeyError):\n        pass\nexcept AssertionError as e:\n    print(e)\n```\n\n- Нужная ошибка — тест проходит (ошибка заглушена).\n- Ошибки не было — это провал: `AssertionError`.\n- Другая ошибка — летит дальше, тест «сломан».\n- В pytest: `with pytest.raises(ValueError, match=\"invalid\"): int(\"x\")`.\n- Вывод: `ожидаемая ошибка ZeroDivisionError`, `не было KeyError`.\n\n## Фикстура с yield\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef user_fixture(db):\n    user = {\"id\": len(db) + 1, \"name\": \"test\"}\n    db.append(user)\n    print(\"создан\", user[\"id\"])\n    try:\n        yield user\n    finally:\n        db.remove(user)\n        print(\"удалён\", user[\"id\"])\n\ndb = []\nwith user_fixture(db) as u:\n    print(\"тест с\", u[\"name\"], len(db))\nprint(len(db))\n```\n\n- До `yield` — подготовка (setup), `yield` отдаёт данные тесту, после — уборка (teardown).\n- Фикстура pytest выглядит так же: `@pytest.fixture` + функция с `yield`. Pytest сам оборачивает тест в такой менеджер.\n- Вывод: `создан 1`, `тест с test 1`, `удалён 1`, `0`.\n\n## Проверка вывода\n\n```python\nimport io\nfrom contextlib import redirect_stdout\n\ndef greet(name):\n    print(f\"Привет, {name}!\")\n\nbuf = io.StringIO()\nwith redirect_stdout(buf):\n    greet(\"Аня\")\nassert buf.getvalue() == \"Привет, Аня!\\n\"\nprint(\"вывод совпал:\", repr(buf.getvalue()))\n```\n\n- Перехватываем вывод в буфер и сравниваем.\n- В pytest то же делает фикстура `capsys`: `capsys.readouterr().out`.\n- Вывод: `вывод совпал: 'Привет, Аня!\\n'`.\n\n## Шпион: запись вызовов\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef spy(obj, name):\n    original = getattr(obj, name)\n    calls = []\n\n    def wrapper(*args):\n        calls.append(args)\n        return original(*args)\n\n    setattr(obj, name, wrapper)\n    try:\n        yield calls\n    finally:\n        setattr(obj, name, original)\n\nclass Mailer:\n    @staticmethod\n    def send(to, text):\n        return \"sent\"\n\nwith spy(Mailer, \"send\") as calls:\n    Mailer.send(\"anna@test.ru\", \"привет\")\nprint(calls)\n```\n\n- Временно заменяем метод обёрткой, которая записывает аргументы и вызывает оригинал.\n- Тест может проверить: «письмо отправлено ровно один раз и на правильный адрес».\n- В `unittest.mock`: `with patch.object(Mailer, \"send\") as m: ...; m.assert_called_once_with(...)`.\n- Вывод: `[('anna@test.ru', 'привет')]`.\n\n## Итог\n\n- `raises` — ожидаемая ошибка: глушим нужную, падаем без неё.\n- Фикстура: setup → `yield данные` → teardown в `finally`.\n- `redirect_stdout` — проверка вывода.\n- Шпион — `setattr` обёртки, запись вызовов, восстановление.",
@@ -1359,7 +1447,8 @@
                   "code": "class ApiSession:\n    def __init__(self, base_url):\n        self.base_url = base_url\n        self.token = None\n\n    def __enter__(self):\n        self.token = \"t-123\"\n        print(\"вход, токен\", self.token)\n        return self\n\n    def __exit__(self, *args):\n        print(\"выход, токен отозван\")\n        self.token = None\n        return False\n\n    def get(self, path):\n        return f\"GET {self.base_url}{path} [{self.token}]\"\n\nwith ApiSession(\"https://api.test\") as s:\n    print(s.get(\"/users\"))\nprint(s.token)\n",
                   "expected_output": "вход, токен t-123\nGET https://api.test/users [t-123]\nвыход, токен отозван\nNone",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Сессия получает токен при входе и отзывает при выходе.\", \"lines\": [[\"self.token = \\\"t-123\\\"\", \"Вход.\"], [\"print(s.get(\\\"/users\\\"))\", \"Запрос с токеном.\"], [\"self.token = None\", \"Выход.\"], [\"print(s.token)\", \"Отозван.\"]], \"mistake\": \"Ожидать `t-123` после блока.\"}"
                 },
                 {
                   "slug": "ctx-resources-e2",
@@ -1368,7 +1457,8 @@
                   "code": "from contextlib import contextmanager\n\nclass Pool:\n    def __init__(self, size):\n        self.free = [f\"conn{i}\" for i in range(size)]\n\n    @contextmanager\n    def connection(self):\n        conn = self.free.pop()\n        try:\n            yield conn\n        finally:\n            self.free.append(conn)\n\npool = Pool(2)\nwith pool.connection() as a:\n    with pool.connection() as b:\n        print(a, b, pool.free)\n    print(pool.free)\nprint(sorted(pool.free))\n",
                   "expected_output": "conn1 conn0 []\n['conn0']\n['conn0', 'conn1']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Пул: `pop` забирает последнее соединение, `finally` возвращает его в конец.\", \"lines\": [[\"conn = self.free.pop()\", \"conn1, затем conn0.\"], [\"print(a, b, pool.free)\", \"Свободных нет.\"], [\"print(pool.free)\", \"b вернулся.\"], [\"print(sorted(pool.free))\", \"Оба дома.\"]], \"mistake\": \"Ожидать `conn0` первым — `pop` берёт с конца.\"}"
                 },
                 {
                   "slug": "ctx-resources-e3",
@@ -1377,7 +1467,8 @@
                   "code": "from contextlib import contextmanager, ExitStack\n\n@contextmanager\ndef service(name, log):\n    log.append(\"up \" + name)\n    try:\n        yield name\n    finally:\n        log.append(\"down \" + name)\n\nlog = []\nwith ExitStack() as stack:\n    names = [stack.enter_context(service(n, log)) for n in [\"db\", \"cache\", \"api\"]]\n    log.append(\"тесты: \" + \", \".join(names))\nprint(log)\n",
                   "expected_output": "['up db', 'up cache', 'up api', 'тесты: db, cache, api', 'down api', 'down cache', 'down db']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`ExitStack` поднимает сервисы по порядку и гасит в обратном.\", \"lines\": [[\"names = [stack.enter_context(service(n, log)) for n in [\\\"db\\\", \\\"cache\\\", \\\"api\\\"]]\", \"В `names` — значения `yield`.\"], [\"log.append(\\\"тесты: \\\" + \\\", \\\".join(names))\", \"Середина.\"], [\"print(log)\", \"down в обратном порядке.\"]], \"mistake\": \"Ожидать `down db` первым.\"}"
                 },
                 {
                   "slug": "ctx-resources-e4",
@@ -1387,7 +1478,8 @@
                   "tests": "def test_values():\n    log = []\n    with Connection(log) as c:\n        c.execute(\"SELECT 1\")\n    assert log == [\"connect\", \"SELECT 1\", \"close\"], log\n    try:\n        c.execute(\"SELECT 2\")\n    except RuntimeError as e:\n        assert str(e) == \"соединение закрыто\", str(e)\n        return\n    assert False, \"Нужен RuntimeError\"\n",
                   "solution": "class Connection:\n    def __init__(self, log):\n        self.log = log\n        self.closed = True\n\n    def __enter__(self):\n        self.log.append(\"connect\")\n        self.closed = False\n        return self\n\n    def execute(self, sql):\n        if self.closed:\n            raise RuntimeError(\"соединение закрыто\")\n        self.log.append(sql)\n\n    def __exit__(self, *args):\n        self.log.append(\"close\")\n        self.closed = True\n        return False\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Флаг `closed` защищает от работы вне `with`.\", \"lines\": [[\"self.closed = True\", \"До входа — закрыто.\"], [\"self.log.append(\\\"connect\\\")\\n        self.closed = False\", \"Вход.\"], [\"if self.closed:\\n            raise RuntimeError(\\\"соединение закрыто\\\")\", \"Защита.\"], [\"self.log.append(\\\"close\\\")\\n        self.closed = True\", \"Выход.\"]], \"mistake\": \"Начальное `closed = False` — можно работать без `with`.\"}"
                 },
                 {
                   "slug": "ctx-resources-e5",
@@ -1397,7 +1489,8 @@
                   "tests": "def test_values():\n    pool = Pool(1)\n    with pool.connection() as c:\n        assert c == \"conn0\" and pool.free == [], \"Взято\"\n        try:\n            with pool.connection():\n                pass\n        except RuntimeError as e:\n            assert str(e) == \"пул исчерпан\", str(e)\n        else:\n            assert False, \"Нужен RuntimeError\"\n    assert pool.free == [\"conn0\"], \"Возвращено\"\n    try:\n        with pool.connection():\n            raise ValueError\n    except ValueError:\n        pass\n    assert pool.free == [\"conn0\"], \"Возвращено после ошибки\"\n",
                   "solution": "from contextlib import contextmanager\n\n\nclass Pool:\n    def __init__(self, size):\n        self.free = [f\"conn{i}\" for i in range(size)]\n\n    @contextmanager\n    def connection(self):\n        if not self.free:\n            raise RuntimeError(\"пул исчерпан\")\n        conn = self.free.pop()\n        try:\n            yield conn\n        finally:\n            self.free.append(conn)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Проверка до взятия; возврат — в `finally`.\", \"lines\": [[\"if not self.free:\\n            raise RuntimeError(\\\"пул исчерпан\\\")\", \"Свободных нет.\"], [\"conn = self.free.pop()\", \"Берём.\"], [\"finally:\\n            self.free.append(conn)\", \"Всегда возвращаем.\"]], \"mistake\": \"Проверка после `pop` — `IndexError` вместо понятной ошибки.\"}"
                 },
                 {
                   "slug": "ctx-resources-e6",
@@ -1407,7 +1500,8 @@
                   "tests": "def test_values():\n    log = []\n    with Browser(log):\n        pass\n    try:\n        with Browser(log):\n            raise AssertionError\n    except AssertionError:\n        pass\n    assert log == [\"start\", \"quit\", \"start\", \"screenshot: AssertionError\", \"quit\"], log\n",
                   "solution": "class Browser:\n    def __init__(self, log):\n        self.log = log\n\n    def __enter__(self):\n        self.log.append(\"start\")\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        if exc_type is not None:\n            self.log.append(f\"screenshot: {exc_type.__name__}\")\n        self.log.append(\"quit\")\n        return False\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Скриншот — только при ошибке, `quit` — всегда. `return False` — ошибка летит дальше.\", \"lines\": [[\"if exc_type is not None:\\n            self.log.append(f\\\"screenshot: {exc_type.__name__}\\\")\", \"Упал — снимок.\"], [\"self.log.append(\\\"quit\\\")\", \"Всегда.\"], [\"return False\", \"Тест упадёт.\"]], \"mistake\": \"`quit` перед скриншотом — снимать будет нечего.\"}"
                 },
                 {
                   "slug": "ctx-resources-e7",
@@ -1417,7 +1511,8 @@
                   "tests": "def test_values():\n    log = []\n    stack = environment([\"db\", \"api\"], log)\n    assert log == [\"up db\", \"up api\"], \"Сервисы подняты сразу\"\n    with stack:\n        log.append(\"tests\")\n    assert log == [\"up db\", \"up api\", \"tests\", \"down api\", \"down db\"], log\n",
                   "solution": "from contextlib import contextmanager, ExitStack\n\n\n@contextmanager\ndef service(name, log):\n    log.append(\"up \" + name)\n    try:\n        yield name\n    finally:\n        log.append(\"down \" + name)\n\n\ndef environment(names, log):\n    with ExitStack() as stack:\n        for name in names:\n            stack.enter_context(service(name, log))\n        return stack.pop_all()\n",
                   "hint": "Если при подъёме сервиса будет ошибка, with закроет уже поднятые. pop_all() — «успех, закрывать будет вызывающий».",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`pop_all` переносит менеджеры в новый стек — `with` вокруг старого их не закроет.\", \"lines\": [[\"stack.enter_context(service(name, log))\", \"Поднимаем по порядку.\"], [\"return stack.pop_all()\", \"Отдаём живой стек.\"]], \"mistake\": \"`return stack` — сервисы погаснут при выходе из `with`.\"}"
                 },
                 {
                   "slug": "ctx-resources-e8",
@@ -1427,7 +1522,8 @@
                   "tests": "def test_values():\n    results = {}\n    with TestCase(\"ok\", results) as t:\n        t.check(1 == 1, \"не выполнится\")\n    with TestCase(\"soft\", results) as t:\n        t.check(False, \"нет заголовка\")\n        t.check(2 > 1, \"-\")\n        t.check(False, \"нет кнопки\")\n    with TestCase(\"crash\", results):\n        {}[\"x\"]\n    assert results == {\"ok\": \"passed\", \"soft\": \"failed: нет заголовка; нет кнопки\", \"crash\": \"broken: KeyError\"}, results\n",
                   "solution": "class TestCase:\n    def __init__(self, name, results):\n        self.name = name\n        self.results = results\n        self.errors = []\n\n    def __enter__(self):\n        return self\n\n    def check(self, condition, message):\n        if not condition:\n            self.errors.append(message)\n\n    def __exit__(self, exc_type, exc, tb):\n        if exc_type is not None:\n            self.results[self.name] = f\"broken: {exc_type.__name__}\"\n            return True\n        if self.errors:\n            self.results[self.name] = \"failed: \" + \"; \".join(self.errors)\n        else:\n            self.results[self.name] = \"passed\"\n        return False\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Мягкие проверки копят ошибки, а итог пишется при выходе. Сломанный тест отмечается отдельно.\", \"lines\": [[\"if not condition:\\n            self.errors.append(message)\", \"Не прерываем.\"], [\"self.results[self.name] = f\\\"broken: {exc_type.__name__}\\\"\\n            return True\", \"Исключение — broken, глушим.\"], [\"self.results[self.name] = \\\"failed: \\\" + \\\"; \\\".join(self.errors)\", \"Были провалы.\"], [\"self.results[self.name] = \\\"passed\\\"\", \"Чисто.\"]], \"mistake\": \"`raise` при первой проверке — остальные не выполнятся.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nТестовое окружение состоит из ресурсов: сессия API с токеном, соединение с базой, пул соединений, браузер, поднятые сервисы. Каждый нужно корректно открыть и закрыть, а при падении теста — ещё и сохранить улики (скриншот, логи). Соберём всё изученное в практические шаблоны.\n\n## Сессия API\n\n```python\nclass ApiSession:\n    def __init__(self, base_url):\n        self.base_url = base_url\n        self.token = None\n\n    def __enter__(self):\n        self.token = \"t-123\"\n        print(\"вход, токен\", self.token)\n        return self\n\n    def __exit__(self, *args):\n        print(\"выход, токен отозван\")\n        self.token = None\n        return False\n\n    def get(self, path):\n        return f\"GET {self.base_url}{path} [{self.token}]\"\n\nwith ApiSession(\"https://api.test\") as s:\n    print(s.get(\"/users\"))\nprint(s.token)\n```\n\n- Вход — авторизация, выход — выход из системы. Токен не «висит» после тестов.\n- Вывод: `вход, токен t-123`, `GET https://api.test/users [t-123]`, `выход, токен отозван`, `None`.\n\n## Пул соединений\n\n```python\nfrom contextlib import contextmanager\n\nclass Pool:\n    def __init__(self, size):\n        self.free = [f\"conn{i}\" for i in range(size)]\n\n    @contextmanager\n    def connection(self):\n        conn = self.free.pop()\n        try:\n            yield conn\n        finally:\n            self.free.append(conn)\n\npool = Pool(2)\nwith pool.connection() as a:\n    with pool.connection() as b:\n        print(a, b, pool.free)\n    print(pool.free)\nprint(sorted(pool.free))\n```\n\n- Соединение «берётся» из пула и **обязательно** возвращается — иначе пул быстро опустеет.\n- Вывод: `conn1 conn0 []`, `['conn0']`, `['conn0', 'conn1']`.\n\n## Скриншот при падении\n\n```python\nclass Browser:\n    def __init__(self, log):\n        self.log = log\n\n    def __enter__(self):\n        self.log.append(\"start\")\n        return self\n\n    def __exit__(self, exc_type, exc, tb):\n        if exc_type is not None:\n            self.log.append(f\"screenshot: {exc_type.__name__}\")\n        self.log.append(\"quit\")\n        return False\n\nlog = []\ntry:\n    with Browser(log):\n        raise AssertionError(\"нет кнопки\")\nexcept AssertionError:\n    pass\nprint(log)\n```\n\n- `__exit__` знает об ошибке — самое место сохранить скриншот и логи браузера для отчёта.\n- Вывод: `['start', 'screenshot: AssertionError', 'quit']`.\n\n## Всё окружение через ExitStack\n\n```python\nfrom contextlib import contextmanager, ExitStack\n\n@contextmanager\ndef service(name, log):\n    log.append(\"up \" + name)\n    try:\n        yield name\n    finally:\n        log.append(\"down \" + name)\n\ndef environment(names, log):\n    with ExitStack() as stack:\n        for name in names:\n            stack.enter_context(service(name, log))\n        return stack.pop_all()\n\nlog = []\nstack = environment([\"db\", \"api\"], log)\nwith stack:\n    log.append(\"tests\")\nprint(log)\n```\n\n- Если подъём какого-то сервиса упадёт, `with ExitStack()` закроет уже поднятые.\n- `pop_all()` — «всё поднялось»: переносит менеджеры в новый стек, который возвращается вызывающему. Он закроет их позже своим `with`.\n- Вывод: `['up db', 'up api', 'tests', 'down api', 'down db']`.\n\n## Мягкие проверки\n\n```python\nclass SoftAssert:\n    def __init__(self):\n        self.errors = []\n\n    def __enter__(self):\n        return self\n\n    def check(self, condition, message):\n        if not condition:\n            self.errors.append(message)\n\n    def __exit__(self, exc_type, exc, tb):\n        if exc_type is None and self.errors:\n            raise AssertionError(\"; \".join(self.errors))\n        return False\n\ntry:\n    with SoftAssert() as s:\n        s.check(1 + 1 == 2, \"математика\")\n        s.check(\"a\" in \"xyz\", \"нет буквы a\")\n        s.check([] != [], \"списки\")\nexcept AssertionError as e:\n    print(e)\n```\n\n- Проверки не прерывают тест сразу: все ошибки собираются и выбрасываются одним `AssertionError` в конце. Так за один прогон видно все проблемы страницы.\n- Вывод: `нет буквы a; списки`.\n\n## Итог\n\n- Сессии, соединения, браузеры — менеджеры: вход открывает, выход закрывает.\n- Пул: взять → `yield` → вернуть в `finally`.\n- `__exit__` с ошибкой — время для скриншотов и логов.\n- `ExitStack` + `pop_all()` — окружение из многих ресурсов.\n- Мягкие проверки — сбор ошибок и один `AssertionError` в `__exit__`.",
