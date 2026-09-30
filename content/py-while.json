@@ -26,7 +26,8 @@
                   "code": "n = 3\nwhile n > 0:\n    print(n)\n    n -= 1\nprint(\"Старт!\")\n",
                   "expected_output": "3\n2\n1\nСтарт!",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`while` повторяет тело, пока условие истинно. Условие проверяется **перед** каждым шагом.\", \"trace\": [[\"while n > 0:\", \"3 > 0 — да\", \"3\"], [\"n -= 1\", \"n = 2 → 2 > 0 — да\", \"2\"], [\"n -= 1\", \"n = 1 → 1 > 0 — да\", \"1\"], [\"n -= 1\", \"n = 0 → 0 > 0 — нет, выходим\", \"\"], [\"print(\\\"Старт!\\\")\", \"\", \"Старт!\"]], \"mistake\": \"Напечатать 0. Когда `n` стал 0, условие уже ложно, и тело не выполняется.\"}"
                 },
                 {
                   "slug": "whl-m1-l1-e2",
@@ -35,7 +36,8 @@
                   "code": "x = 10\nwhile x < 5:\n    print(\"не выполнится\")\nprint(\"x =\", x)\nn = 1\nwhile n < 20:\n    n *= 3\nprint(n)\n",
                   "expected_output": "x = 10\n27",
                   "hint": "Во втором цикле: 1 → 3 → 9 → 27, проверка идёт перед итерацией.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Если условие ложно с самого начала, тело не выполнится ни разу. Цикл останавливается, как только условие стало ложным, даже если значение «проскочило» границу.\", \"lines\": [[\"while x < 5:\", \"10 < 5 — сразу нет, тело пропускается.\"], [\"while n < 20:\\n    n *= 3\", \"1 → 3 → 9 → 27. На 27 условие ложно.\"]], \"mistake\": \"Ответить 20 или 9. Цикл останавливается после шага, на котором условие стало ложным.\"}"
                 },
                 {
                   "slug": "whl-m1-l1-e6",
@@ -44,7 +46,8 @@
                   "code": "n = 0\nwhile n < 3:\n    n += 1\n    print(\"внутри\", n)\nprint(\"после\", n)\n",
                   "expected_output": "внутри 1\nвнутри 2\nвнутри 3\nпосле 3",
                   "hint": "Условие проверяется только перед каждым шагом, а не после каждой строки.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Условие проверяется только в начале шага. Внутри тела значение может выйти за границу — это заметят только при следующей проверке.\", \"lines\": [[\"n += 1\\n    print(\\\"внутри\\\", n)\", \"Печать идёт после увеличения — 1, 2, 3.\"], [\"print(\\\"после\\\", n)\", \"Выход при `n` = 3.\"]], \"mistake\": \"Ожидать `внутри 0`. Увеличение стоит до печати.\"}"
                 },
                 {
                   "slug": "whl-m1-l1-e3",
@@ -54,7 +57,8 @@
                   "tests": "def test_output():\n    assert OUTPUT.split() == [\"1\", \"2\", \"3\", \"4\", \"5\"], f\"Напечатано {OUTPUT.split()}\"\n\ndef test_while():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"while \" in src and \"for \" not in src, \"Используй while, без for\"\n",
                   "solution": "i = 1\nwhile i <= 5:\n    print(i)\n    i += 1\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Три части цикла со счётчиком: начальное значение, условие, изменение в теле.\", \"lines\": [[\"i = 1\", \"Старт.\"], [\"while i <= 5:\", \"`<=`, чтобы 5 вошло.\"], [\"i += 1\", \"Без этой строки цикл был бы бесконечным.\"]], \"mistake\": \"Забыть `i += 1` — единица будет печататься вечно.\"}"
                 },
                 {
                   "slug": "whl-m1-l1-e4",
@@ -64,7 +68,8 @@
                   "tests": "def test_values():\n    assert [doubling_steps(1, 10), doubling_steps(5, 5), doubling_steps(3, 100)] == [4, 0, 6], \"Неверное число шагов\"\n",
                   "solution": "def doubling_steps(start, limit):\n    steps = 0\n    while start < limit:\n        start *= 2\n        steps += 1\n    return steps\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Число шагов заранее неизвестно — это задача для `while`: удваиваем, пока не достигли цели, и считаем шаги.\", \"lines\": [[\"while start < limit:\", \"Для `(5, 5)` условие сразу ложно — 0 шагов.\"], [\"start *= 2\\n        steps += 1\", \"1 → 2 → 4 → 8 → 16: четыре шага.\"]], \"mistake\": \"`<=` в условии — для равных значений лишний шаг.\"}"
                 },
                 {
                   "slug": "whl-m1-l1-e5",
@@ -74,7 +79,8 @@
                   "tests": "def test_values():\n    assert years_to_goal(1000, 2000, 10) == 8 and years_to_goal(1000, 1000, 5) == 0 and years_to_goal(100, 121, 10) == 2, \"Неверное число лет\"\n",
                   "solution": "def years_to_goal(balance, goal, rate):\n    years = 0\n    while balance < goal:\n        balance *= 1 + rate / 100\n        years += 1\n    return years\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Каждый год сумма растёт на `rate` процентов от текущей. Считаем годы, пока не достигнем цели.\", \"lines\": [[\"balance *= 1 + rate / 100\", \"10% — умножение на 1.1.\"], [\"years += 1\", \"1000 · 1.1⁸ ≈ 2144 ≥ 2000 → 8 лет.\"]], \"mistake\": \"`balance += rate` — это прибавка рублей, а не процентов.\"}"
                 },
                 {
                   "slug": "whl-m1-l1-e7",
@@ -84,7 +90,8 @@
                   "tests": "def test_values():\n    got = [count_down_by(10, 3), count_down_by(6, 2), count_down_by(0, 1), count_down_by(1, 5)]\n    assert got == [[10, 7, 4, 1], [6, 4, 2], [], [1]], f\"Получено {got}\"\n\ndef test_while():\n    assert \"while \" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй while\"\n",
                   "solution": "def count_down_by(start, step):\n    result = []\n    n = start\n    while n > 0:\n        result.append(n)\n        n -= step\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Уменьшаем на шаг, пока число положительное. Проверка до добавления — ноль и отрицательные в список не попадут.\", \"lines\": [[\"while n > 0:\", \"Для 0 — сразу выход.\"], [\"result.append(n)\\n        n -= step\", \"10, 7, 4, 1 — следующее −2 уже не проходит.\"]], \"mistake\": \"`n >= 0` — в `[6, 4, 2]` добавится 0.\"}"
                 },
                 {
                   "slug": "whl-m1-l1-e8",
@@ -94,7 +101,8 @@
                   "tests": "def test_values():\n    got = [first_multiple_over(7, 20), first_multiple_over(5, 5), first_multiple_over(3, 0), first_multiple_over(10, 99)]\n    assert got == [21, 10, 3, 100], f\"Получено {got}\"\n\ndef test_while():\n    assert \"while \" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй while\"\n",
                   "solution": "def first_multiple_over(k, limit):\n    m = k\n    while m <= limit:\n        m += k\n    return m\n",
                   "hint": "Начни с k и прибавляй k, пока число не больше limit.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Начинаем с `k` и прибавляем `k`, пока не станет **строго больше** `limit`.\", \"lines\": [[\"while m <= limit:\\n        m += k\", \"`<=` — пока ещё не больше. Для `(5, 5)`: 5 → 10.\"]], \"mistake\": \"`m < limit` — вернёт 5 для `(5, 5)`, а нужно строго больше.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЦикл `for` перебирает готовую коллекцию. А что делать, если **заранее неизвестно**, сколько будет шагов? Повторять запрос, **пока** сервер не ответит; удваивать ставку, **пока** не наберём сумму; спрашивать пароль, **пока** он неверный. Для этого есть цикл **`while`** — «пока условие истинно, повторяй».\n\n## Как устроен while\n\n```python\nn = 3\nwhile n > 0:\n    print(n)\n    n -= 1\nprint(\"Старт!\")\n```\n\n- `while` — ключевое слово «пока».\n- `n > 0` — **условие**. Любое выражение, которое даёт `True` или `False` (как в `if`).\n- `:` и тело с отступом — как у `for` и `if`.\n- `n -= 1` — уменьшить `n` на 1 (то же, что `n = n - 1`). Без этой строки условие никогда не станет ложным.\n\n### Как это выполняется по шагам\n\n1. Проверка `3 > 0` — истина → печать `3`, `n = 2`.\n2. Проверка `2 > 0` — истина → печать `2`, `n = 1`.\n3. Проверка `1 > 0` — истина → печать `1`, `n = 0`.\n4. Проверка `0 > 0` — **ложь** → цикл закончен → `Старт!`.\n\nКаждый `while` состоит из трёх частей:\n- **начальное значение** до цикла (`n = 3`);\n- **условие** продолжения (`n > 0`);\n- **изменение** внутри тела, которое приближает условие к `False` (`n -= 1`).\n\n## Условие проверяется перед каждым шагом\n\n```python\nn = 0\nwhile n < 3:\n    n += 1\n    print(\"внутри\", n)\nprint(\"после\", n)\n```\n\n- Условие проверяется **только в начале** каждого шага — не после каждой строки.\n- На третьем шаге `n` становится 3, и хотя `3 < 3` уже ложно, `print(\"внутри\", 3)` всё равно выполняется: шаг начался, когда `n` было 2.\n- Вывод: `внутри 1`, `внутри 2`, `внутри 3`, `после 3`.\n\n## Цикл может не выполниться ни разу\n\n```python\nx = 10\nwhile x < 5:\n    print(\"не выполнится\")\nprint(\"x =\", x)\n```\n\n- Условие ложно с самого начала — тело пропускается. Вывод: `x = 10`.\n\n## Неизвестное число шагов\n\n```python\nn = 1\nwhile n < 20:\n    n *= 3\nprint(n)\n```\n\n- `1 → 3 → 9 → 27`. На `27` условие ложно. Вывод: `27` — результат **больше** 20, потому что проверка идёт перед шагом.\n\nСколько раз удвоить, чтобы достичь лимита:\n\n```python\nstart, limit = 3, 100\nsteps = 0\nwhile start < limit:\n    start *= 2\n    steps += 1\nprint(steps, start)\n```\n\n- `3 → 6 → 12 → 24 → 48 → 96 → 192` — 6 удвоений. Вывод: `6 192`.\n\n## Кратное больше порога\n\n```python\nk, limit = 7, 20\nm = k\nwhile m <= limit:\n    m += k\nprint(m)\n```\n\n- Перебираем 7, 14, 21… пока число не больше 20. Вывод: `21`.\n\n## Частые ошибки\n\n**Забыть изменить переменную условия.** Цикл станет бесконечным (урок «Счётчики и бесконечные циклы»).\n\n**Изменить не в ту сторону.** `n += 1` при условии `n > 0` — тоже бесконечный цикл.\n\n**Ждать, что цикл прервётся посреди тела.** Условие проверяется только в начале шага.\n\n## Итог\n\n- `while условие:` — повторять тело, пока условие истинно.\n- Три части: начальное значение, условие, изменение в теле.\n- Условие проверяется перед каждым шагом; ложно сразу — тело не выполнится ни разу.\n- `while` — для случаев, когда число повторений заранее неизвестно.",
@@ -146,7 +154,8 @@
                   "code": "items = [\"a\", \"b\", \"c\"]\ni = 0\nwhile i < len(items):\n    print(i, items[i])\n    i += 1\n",
                   "expected_output": "0 a\n1 b\n2 c",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Список можно перебрать и `while` с индексом, но для этого есть более удобный `for`.\", \"lines\": [[\"while i < len(items):\", \"Пока индекс в пределах.\"], [\"i += 1\", \"Следующий индекс.\"]], \"mistake\": \"`i <= len(items)` — последний шаг выйдет за границу списка.\"}"
                 },
                 {
                   "slug": "whl-vs-for-e2",
@@ -155,7 +164,8 @@
                   "code": "todo = [\"код\", \"тесты\", \"деплой\"]\nwhile todo:\n    task = todo.pop()\n    print(\"делаю\", task)\nprint(todo, bool(todo))\n",
                   "expected_output": "делаю деплой\nделаю тесты\nделаю код\n[] False",
                   "hint": "Непустой список — истина, пустой — ложь. pop() берёт с конца.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`while список:` — «пока в списке что-то есть». `pop()` снимает с конца, и список пустеет.\", \"lines\": [[\"task = todo.pop()\", \"С конца: деплой, тесты, код.\"], [\"print(todo, bool(todo))\", \"Пустой список ложен.\"]], \"mistake\": \"Ожидать порядок «код, тесты, деплой». `pop()` берёт последний.\"}"
                 },
                 {
                   "slug": "whl-vs-for-e3",
@@ -164,7 +174,8 @@
                   "code": "total, n = 0, 0\nwhile total <= 10:\n    n += 1\n    total += n\nprint(n, total)\n",
                   "expected_output": "5 15",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Когда неизвестно, сколько будет шагов, нужен `while`: прибавляем, пока сумма не превысит 10.\", \"trace\": [[\"total += n\", \"n = 1, total = 1\", \"\"], [\"total += n\", \"n = 2, total = 3\", \"\"], [\"total += n\", \"n = 3, total = 6\", \"\"], [\"total += n\", \"n = 4, total = 10 — всё ещё ≤ 10\", \"\"], [\"total += n\", \"n = 5, total = 15 — выход\", \"\"], [\"print(n, total)\", \"\", \"5 15\"]], \"mistake\": \"Остановиться на 10. Условие `<= 10` для 10 ещё истинно.\"}"
                 },
                 {
                   "slug": "whl-vs-for-e4",
@@ -174,7 +185,8 @@
                   "tests": "def test_values():\n    assert sum_list_while([3, 4, 5]) == 12 and sum_list_while([]) == 0 and sum_list_while([-1]) == -1, \"Неверная сумма\"\n\ndef test_while():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"while \" in src and \"for \" not in src and \"sum(\" not in src.replace(\"sum_list_while(\", \"\"), \"Используй while, без for и sum\"\n",
                   "solution": "def sum_list_while(nums):\n    total = 0\n    i = 0\n    while i < len(nums):\n        total += nums[i]\n        i += 1\n    return total\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Перебор по индексу: счётчик, условие по длине, увеличение в конце тела.\", \"lines\": [[\"while i < len(nums):\", \"Для пустого — сразу выход.\"], [\"total += nums[i]\\n        i += 1\", \"3 + 4 + 5 = 12.\"]], \"mistake\": \"Увеличивать `i` до прибавления — первый элемент пропустится.\"}"
                 },
                 {
                   "slug": "whl-vs-for-e5",
@@ -184,7 +196,8 @@
                   "tests": "def test_values():\n    got = [how_many_to_reach([5, 3, 8, 1], 10), how_many_to_reach([1, 1], 5), how_many_to_reach([4], 0), how_many_to_reach([2, 3], 5)]\n    assert got == [3, -1, 0, 2], f\"Получено {got}\"\n",
                   "solution": "def how_many_to_reach(nums, target):\n    total = 0\n    i = 0\n    while total < target and i < len(nums):\n        total += nums[i]\n        i += 1\n    if total >= target:\n        return i\n    return -1\n",
                   "hint": "Два условия продолжения: сумма ещё мала И элементы не кончились.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Два условия продолжения: сумма ещё мала **и** элементы не кончились. После цикла проверяем, почему он остановился.\", \"lines\": [[\"while total < target and i < len(nums):\", \"Остановимся на первом из двух событий.\"], [\"if total >= target:\\n        return i\", \"Хватило — `i` элементов.\"], [\"return -1\", \"Элементы кончились раньше.\"]], \"mistake\": \"Только `while total < target` — на коротком списке `IndexError`.\"}"
                 },
                 {
                   "slug": "whl-vs-for-e6",
@@ -194,7 +207,8 @@
                   "tests": "def test_values():\n    got = [first_index_while([\"a\", \"b\", \"c\"], \"b\"), first_index_while([1, 2], 9), first_index_while([], 1), first_index_while([5, 5], 5)]\n    assert got == [1, -1, -1, 0], f\"Получено {got}\"\n\ndef test_while():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"while \" in src and \"for \" not in src and \".index(\" not in src, \"Используй while, без for и index\"\n",
                   "solution": "def first_index_while(items, value):\n    i = 0\n    while i < len(items) and items[i] != value:\n        i += 1\n    if i < len(items):\n        return i\n    return -1\n",
                   "hint": "Порядок в and важен: сначала i < len(items), иначе items[i] даст IndexError.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Составное условие: идём, пока индекс в пределах **и** элемент не тот. `and` проверяет границу первой — поэтому `items[i]` безопасен.\", \"lines\": [[\"while i < len(items) and items[i] != value:\", \"Если `i` вышел за границу, вторая часть уже не вычисляется.\"], [\"if i < len(items):\\n        return i\", \"Остановились раньше конца — нашли.\"], [\"return -1\", \"Дошли до конца.\"]], \"mistake\": \"Поменять части условия местами — на пустом или неудачном поиске `IndexError`.\"}"
                 },
                 {
                   "slug": "whl-vs-for-e7",
@@ -204,7 +218,8 @@
                   "tests": "def test_values():\n    s = [1, 2, 3]\n    assert drain(s) == [3, 2, 1] and s == [], \"Неверный результат или список не опустел\"\n    assert drain([]) == [], \"Пустой — пусто\"\n\ndef test_while():\n    assert \"while \" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй while\"\n",
                   "solution": "def drain(stack):\n    result = []\n    while stack:\n        result.append(stack.pop())\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`while stack:` + `pop()` — классический способ опустошить стек.\", \"lines\": [[\"while stack:\\n        result.append(stack.pop())\", \"3, 2, 1. Исходный список опустеет.\"]], \"mistake\": \"`for x in stack: stack.pop()` — менять список во время `for` нельзя.\"}"
                 },
                 {
                   "slug": "whl-vs-for-e8",
@@ -214,7 +229,8 @@
                   "tests": "def test_values():\n    got = [chunks([1, 2, 3, 4, 5], 2), chunks([1, 2], 5), chunks([], 3), chunks([1, 2, 3], 1)]\n    assert got == [[[1, 2], [3, 4], [5]], [[1, 2]], [], [[1], [2], [3]]], f\"Получено {got}\"\n",
                   "solution": "def chunks(items, size):\n    result = []\n    i = 0\n    while i < len(items):\n        result.append(items[i:i + size])\n        i += size\n    return result\n",
                   "hint": "Срез items[i:i + size], затем сдвиг i += size.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Индекс прыгает сразу на `size`. Срез за концом списка просто обрезается.\", \"lines\": [[\"result.append(items[i:i + size])\", \"`[1, 2]`, `[3, 4]`, `[5]`.\"], [\"i += size\", \"Следующий кусок.\"]], \"mistake\": \"`i += 1` — куски будут перекрываться.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПочти любую задачу можно решить и `for`, и `while`. Но один из них всегда подходит лучше: код получается короче и в нём труднее ошибиться. Нужно уметь выбрать.\n\n## Правило выбора\n\n- **`for`** — когда перебираешь **известную коллекцию** или делаешь **известное число** шагов: каждый элемент списка, числа от 1 до 10.\n- **`while`** — когда шаги продолжаются **до события**: пока не набрали сумму, пока очередь не пуста, пока не нашли, пока пользователь не ввёл правильно.\n\n## Перебор списка через while — можно, но длиннее\n\n```python\nitems = [\"a\", \"b\", \"c\"]\ni = 0\nwhile i < len(items):\n    print(i, items[i])\n    i += 1\n```\n\n- Индекс приходится вести вручную: завести, проверить, увеличить. Забыл `i += 1` — вечный цикл.\n- Тот же результат через `for i, x in enumerate(items):` — короче и безопаснее. Вывод: `0 a`, `1 b`, `2 c`.\n\n## Когда while незаменим: условие остановки — не конец коллекции\n\n### «Пока сумма мала»\n\n```python\ntotal, n = 0, 0\nwhile total <= 10:\n    n += 1\n    total += n\nprint(n, total)\n```\n\n- Складываем 1 + 2 + 3 + …, пока сумма не превысит 10. Сколько чисел понадобится — заранее неизвестно.\n- Вывод: `5 15`.\n\n### Два условия сразу\n\n```python\nnums = [5, 3, 8, 1]\ntarget = 10\ntotal = 0\ni = 0\nwhile total < target and i < len(nums):\n    total += nums[i]\n    i += 1\nprint(i, total)\n```\n\n- Остановимся, **либо** когда набрали сумму, **либо** когда кончились числа — что раньше.\n- `and` — оба условия должны быть истинны, чтобы продолжить. Вывод: `3 16`.\n\n### Составное условие: порядок в and важен\n\n```python\nitems = [\"a\", \"b\", \"c\"]\nvalue = \"z\"\ni = 0\nwhile i < len(items) and items[i] != value:\n    i += 1\nprint(i)\n```\n\n- Ищем, пока индекс в пределах списка **и** элемент не тот.\n- `and` вычисляется слева направо и **останавливается**, если левая часть ложна. Когда `i` стал 3, `i < 3` ложно — и `items[3]` (который дал бы `IndexError`) **не вычисляется**.\n- Если поменять части местами, будет `IndexError`. Вывод: `3` — значит, не нашли.\n\n## «Пока коллекция не пуста»\n\n```python\ntodo = [\"код\", \"тесты\", \"деплой\"]\nwhile todo:\n    task = todo.pop()\n    print(\"делаю\", task)\nprint(todo, bool(todo))\n```\n\n- `while todo:` — пустой список ложен, непустой истинен (тема «Условные операторы»).\n- `todo.pop()` — **снимает** последний элемент и возвращает его; список становится короче. Когда он опустеет, цикл закончится.\n- Вывод: `делаю деплой`, `делаю тесты`, `делаю код`, `[] False`.\n- Здесь `for` не подойдёт: нельзя менять список во время перебора `for`.\n\n## Куски списка\n\n```python\nitems = [1, 2, 3, 4, 5]\nsize = 2\ni = 0\nwhile i < len(items):\n    print(items[i:i + size])\n    i += size\n```\n\n- Шаг — не 1, а `size`; срез `items[i:i + size]` не падает, если выходит за конец.\n- Вывод: `[1, 2]`, `[3, 4]`, `[5]`. (Можно и `for i in range(0, len(items), size)` — оба варианта нормальны.)\n\n## Итог\n\n- `for` — известная коллекция или число шагов; `while` — «до события».\n- Перебор списка через `while` требует вручную вести индекс — чаще выбирай `for`.\n- `while a and b` — остановка по первому из условий; порядок в `and` защищает от `IndexError`.\n- `while список:` + `pop()` — обработать и опустошить коллекцию.",
@@ -266,7 +282,8 @@
                   "code": "attempt = 0\nwhile attempt < 3:\n    attempt += 1\n    print(\"попытка\", attempt)\nprint(\"итого\", attempt)\n",
                   "expected_output": "попытка 1\nпопытка 2\nпопытка 3\nитого 3",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Счётчик попыток: увеличиваем в начале тела, поэтому номера идут с 1.\", \"lines\": [[\"attempt += 1\\n    print(\\\"попытка\\\", attempt)\", \"1, 2, 3.\"], [\"print(\\\"итого\\\", attempt)\", \"`3`.\"]], \"mistake\": \"Начать с `попытка 0`. Увеличение стоит до печати.\"}"
                 },
                 {
                   "slug": "whl-m1-l2-e2",
@@ -275,7 +292,8 @@
                   "code": "i = 0\ntotal = 0\nwhile i < 10:\n    i += 3\n    total += i\nprint(i, total)\n",
                   "expected_output": "12 30",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Шаг больше единицы: значение может перескочить границу, и цикл остановится уже за ней.\", \"trace\": [[\"i += 3\", \"i = 3, total = 3\", \"\"], [\"i += 3\", \"i = 6, total = 9\", \"\"], [\"i += 3\", \"i = 9, total = 18\", \"\"], [\"i += 3\", \"i = 12, total = 30 — 12 < 10 нет\", \"\"], [\"print(i, total)\", \"\", \"12 30\"]], \"mistake\": \"Остановиться на 9. Условие проверяется в начале шага, а 9 < 10 — ещё да.\"}"
                 },
                 {
                   "slug": "whl-m1-l2-e6",
@@ -284,7 +302,8 @@
                   "code": "n = 0\nwhile n != 10:\n    n += 3\n    if n > 20:\n        print(\"проскочили!\")\n        break\nprint(n)\n",
                   "expected_output": "проскочили!\n21",
                   "hint": "0 → 3 → 6 → 9 → 12 … ровно 10 не получится никогда.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Условие `!=` опасно: значение может перепрыгнуть цель и никогда её не встретить. Здесь 3, 6, 9, 12… мимо 10 — спасает только `break`.\", \"lines\": [[\"while n != 10:\", \"С шагом 3 от нуля 10 не получится никогда.\"], [\"if n > 20:\\n        print(\\\"проскочили!\\\")\\n        break\", \"Страховка: 21 > 20.\"]], \"mistake\": \"Ждать, что цикл остановится на 9 или 12. Без `break` он был бы бесконечным.\"}"
                 },
                 {
                   "slug": "whl-m1-l2-e3",
@@ -294,7 +313,8 @@
                   "tests": "def test_values():\n    assert [sum_to(n) for n in (4, 0, 1, 100)] == [10, 0, 1, 5050], \"Неверная сумма\"\n",
                   "solution": "def sum_to(n):\n    total = 0\n    i = 1\n    while i <= n:\n        total += i\n        i += 1\n    return total\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Бесконечный цикл — это когда переменная из условия не меняется. Здесь нужно увеличивать `i`.\", \"lines\": [[\"while i <= n:\", \"Для 0 — сразу выход.\"], [\"total += i\\n        i += 1\", \"Этой строки и не хватало.\"]], \"mistake\": \"Увеличивать `total`, но не `i` — условие никогда не станет ложным.\"}"
                 },
                 {
                   "slug": "whl-m1-l2-e4",
@@ -304,7 +324,8 @@
                   "tests": "def test_values():\n    assert countdown_even(6) == [6, 4, 2, 0] and countdown_even(5) == [4, 2, 0] and countdown_even(0) == [0] and countdown_even(1) == [0], \"Неверный результат\"\n",
                   "solution": "def countdown_even(n):\n    if n % 2:\n        n -= 1\n    result = []\n    while n >= 0:\n        result.append(n)\n        n -= 2\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Вместо «точного попадания» `!=` используем границу `>=`. Нечётное начало сначала делаем чётным.\", \"lines\": [[\"if n % 2:\\n        n -= 1\", \"7 → 6.\"], [\"while n >= 0:\", \"Выход, как только уйдём ниже нуля.\"]], \"mistake\": \"Оставить `n != 0` — для нечётного старта цикл проскочит ноль.\"}"
                 },
                 {
                   "slug": "whl-m1-l2-e5",
@@ -314,7 +335,8 @@
                   "tests": "def test_values():\n    assert [collatz_steps(n) for n in (1, 6, 27)] == [0, 8, 111], \"Неверное число шагов\"\n",
                   "solution": "def collatz_steps(n):\n    steps = 0\n    while n != 1:\n        n = n // 2 if n % 2 == 0 else 3 * n + 1\n        steps += 1\n    return steps\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Сколько шагов заранее неизвестно — `while n != 1`. На каждом шаге одно из двух правил.\", \"lines\": [[\"n = n // 2 if n % 2 == 0 else 3 * n + 1\", \"Условное выражение выбирает правило.\"], [\"steps += 1\", \"Считаем шаги. Для 1 цикл не выполнится — 0.\"]], \"mistake\": \"`n / 2` — число станет дробным, и `n % 2` перестанет работать как надо.\"}"
                 },
                 {
                   "slug": "whl-m1-l2-e7",
@@ -324,7 +346,8 @@
                   "tests": "def test_values():\n    assert [count_vowels(s) for s in (\"hello\", \"xyz\", \"\", \"aaa\")] == [2, 0, 0, 3], \"Неверный подсчёт\"\n",
                   "solution": "def count_vowels(text):\n    count = 0\n    i = 0\n    while i < len(text):\n        if text[i] in \"aeiou\":\n            count += 1\n        i += 1\n    return count\n",
                   "hint": "i увеличивается только для гласных. На согласной индекс застревает навсегда.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Индекс увеличивался только внутри `if`: на согласной он застревал навсегда. Увеличение должно быть на каждом шаге.\", \"lines\": [[\"if text[i] in \\\"aeiou\\\":\\n            count += 1\", \"Счёт гласных.\"], [\"i += 1\", \"Вне `if` — на одном уровне с ним.\"]], \"mistake\": \"Оставить `i += 1` внутри `if`.\"}"
                 },
                 {
                   "slug": "whl-m1-l2-e8",
@@ -334,7 +357,8 @@
                   "tests": "def test_values():\n    got = [collatz_limited(6, 50), collatz_limited(27, 50), collatz_limited(1, 0), collatz_limited(27, 111), collatz_limited(27, 110)]\n    assert got == [8, -1, 0, 111, -1], f\"Получено {got}\"\n",
                   "solution": "def collatz_limited(n, max_steps):\n    steps = 0\n    while n != 1:\n        if steps >= max_steps:\n            return -1\n        n = n // 2 if n % 2 == 0 else 3 * n + 1\n        steps += 1\n    return steps\n",
                   "hint": "Перед каждым шагом проверь: не исчерпан ли лимит.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Страховка от слишком долгого цикла: перед каждым шагом проверяем лимит.\", \"lines\": [[\"if steps >= max_steps:\\n            return -1\", \"27 требует 111 шагов — при лимите 50 сдаёмся.\"], [\"n = n // 2 if n % 2 == 0 else 3 * n + 1\", \"Обычный шаг.\"]], \"mistake\": \"Проверять лимит после шага — будет на один шаг больше разрешённого.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nГлавная опасность `while` — **бесконечный цикл**: условие никогда не становится ложным, программа «зависает» и не отвечает. В проде это съеденный процессор и упавший сервис, в тестах — прогон, который никогда не закончится. Нужно понимать, откуда они берутся, и уметь от них защищаться.\n\n## Счётчик\n\n```python\nattempt = 0\nwhile attempt < 3:\n    attempt += 1\n    print(\"попытка\", attempt)\nprint(\"итого\", attempt)\n```\n\n- Счётчик — переменная, которая растёт на каждом шаге и ограничивает число повторов.\n- Вывод: `попытка 1`, `попытка 2`, `попытка 3`, `итого 3`.\n\nШаг счётчика может быть любым:\n\n```python\ni = 0\ntotal = 0\nwhile i < 10:\n    i += 3\n    total += i\nprint(i, total)\n```\n\n- `i`: 3, 6, 9, 12. Последний шаг начался при `i = 9`, поэтому 12 тоже прибавилось. Вывод: `12 30`.\n\n## Причина 1: забыли изменить переменную\n\n```py\ntotal = 0\ni = 1\nwhile i <= n:\n    total += i        # i не меняется — условие вечно истинно\n```\n\n- `i` всегда 1 — цикл бесконечный. Лекарство — `i += 1` в теле.\n\n## Причина 2: изменение только в одной ветке\n\n```py\ni = 0\nwhile i < len(text):\n    if text[i] in \"aeiou\":\n        count += 1\n        i += 1        # i растёт только для гласных!\n```\n\n- На первой же согласной `i` перестаёт расти. Изменение счётчика должно выполняться на **каждом** шаге — ставь его вне `if`.\n\n## Причина 3: условие != «перепрыгивается»\n\n```python\nn = 0\nwhile n != 10:\n    n += 3\n    if n > 20:\n        print(\"проскочили!\")\n        break\nprint(n)\n```\n\n- 0 → 3 → 6 → 9 → 12… ровно 10 не будет никогда. Без страховки `if n > 20` цикл бесконечный.\n- Вывод: `проскочили!`, `21`.\n- Правило: для чисел пиши условие через `<`, `>`, `<=`, `>=`, а не `!=`. Например, `while n < 10`.\n\n## Причина 4: переменная меняется не в ту сторону\n\n```py\nn = 10\nwhile n > 0:\n    n += 1            # растёт — никогда не станет <= 0\n```\n\n## Страховка: предохранитель\n\nЕсли нельзя гарантировать, что цикл закончится (внешние данные, сложная логика), добавляют **лимит шагов**:\n\n```python\nn = 27\nsteps = 0\nmax_steps = 50\nwhile n != 1:\n    if steps >= max_steps:\n        print(\"лимит!\")\n        break\n    n = n // 2 if n % 2 == 0 else 3 * n + 1\n    steps += 1\nprint(steps)\n```\n\n- `n // 2 if n % 2 == 0 else 3 * n + 1` — условное выражение: половина для чётного, `3n + 1` для нечётного (гипотеза Коллатца).\n- Для 27 нужно 111 шагов — сработает лимит. Вывод: `лимит!`, `50`.\n\n## Что делать, если программа зависла\n\n- В терминале — `Ctrl+C`: Python прервёт программу с `KeyboardInterrupt`.\n- В CodeQuest выполнение останавливается по таймауту.\n- Добавь отладочный `print` внутрь цикла: сразу видно, какая переменная «застряла» (урок «Отладка циклов»).\n\n## Итог\n\n- Каждый шаг должен приближать условие к `False`.\n- Бесконечный цикл: забыли изменить переменную, изменение в одной ветке, `!=` «перепрыгнули», изменение не в ту сторону.\n- Для чисел — `<`/`>` вместо `!=`.\n- Предохранитель: счётчик шагов + `break`/`return` по лимиту.\n- Зависло — `Ctrl+C`.",
@@ -386,7 +410,8 @@
                   "code": "commands = [\"start\", \"status\", \"stop\", \"never\"]\ni = 0\nwhile True:\n    cmd = commands[i]\n    i += 1\n    if cmd == \"stop\":\n        break\n    print(\"выполняю\", cmd)\nprint(\"остановлено\")\n",
                   "expected_output": "выполняю start\nвыполняю status\nостановлено",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`while True` крутится бесконечно, выход — только через `break`. Проверка может стоять где угодно в теле.\", \"lines\": [[\"cmd = commands[i]\\n    i += 1\", \"Берём следующую команду.\"], [\"if cmd == \\\"stop\\\":\\n        break\", \"Остановка раньше печати — `stop` не печатается.\"]], \"mistake\": \"Напечатать `выполняю stop` или `never`.\"}"
                 },
                 {
                   "slug": "whl-m1-l3-e2",
@@ -395,7 +420,8 @@
                   "code": "n = 0\nwhile True:\n    n += 1\n    if n % 2 == 0:\n        continue\n    if n > 7:\n        break\n    print(n)\n",
                   "expected_output": "1\n3\n5\n7",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`continue` пропускает остаток шага, `break` завершает цикл.\", \"lines\": [[\"if n % 2 == 0:\\n        continue\", \"Чётные — сразу к следующему шагу.\"], [\"if n > 7:\\n        break\", \"9 уже больше 7 — выход.\"], [\"print(n)\", \"1, 3, 5, 7.\"]], \"mistake\": \"Напечатать 9. `break` стоит до `print`.\"}"
                 },
                 {
                   "slug": "whl-m1-l3-e6",
@@ -404,7 +430,8 @@
                   "code": "n = 100\nwhile True:\n    n //= 3\n    print(n)\n    if n < 5:\n        break\n",
                   "expected_output": "33\n11\n3",
                   "hint": "Тело выполняется хотя бы раз — проверка стоит в конце.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"В `while True` проверку можно поставить **в конец** тела — тогда тело выполнится хотя бы раз.\", \"lines\": [[\"n //= 3\\n    print(n)\", \"100 → 33 → 11 → 3.\"], [\"if n < 5:\\n        break\", \"Проверка после печати — 3 успевает напечататься.\"]], \"mistake\": \"Не печатать 3. Проверка идёт после `print`.\"}"
                 },
                 {
                   "slug": "whl-m1-l3-e3",
@@ -414,7 +441,8 @@
                   "tests": "def test_values():\n    assert read_until_stop([\"a\", \"b\", \"STOP\", \"c\"]) == [\"a\", \"b\"] and read_until_stop([\"a\"]) == [\"a\"] and read_until_stop([]) == [], \"Неверный результат\"\n\ndef test_while_true():\n    assert \"while True\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй while True\"\n",
                   "solution": "def read_until_stop(lines):\n    result = []\n    i = 0\n    while True:\n        if i >= len(lines) or lines[i] == \"STOP\":\n            break\n        result.append(lines[i])\n        i += 1\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Две причины выхода: строки кончились или встретился `STOP`. Обе проверяем в начале шага.\", \"lines\": [[\"if i >= len(lines) or lines[i] == \\\"STOP\\\":\\n            break\", \"`or` — сначала граница, потом значение.\"], [\"result.append(lines[i])\\n        i += 1\", \"Обычная строка.\"]], \"mistake\": \"Проверять только `STOP` — без него `lines[i]` выйдет за границу.\"}"
                 },
                 {
                   "slug": "whl-m1-l3-e4",
@@ -424,7 +452,8 @@
                   "tests": "def test_values():\n    assert first_power_over(2, 100) == 128 and first_power_over(10, 5) == 10 and first_power_over(3, 27) == 81, \"Неверная степень\"\n",
                   "solution": "def first_power_over(base, limit):\n    value = base\n    while True:\n        if value > limit:\n            return value\n        value *= base\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Внутри функции из `while True` удобно выходить через `return`.\", \"lines\": [[\"if value > limit:\\n            return value\", \"Нашли — сразу ответ.\"], [\"value *= base\", \"Следующая степень: 2, 4, …, 128.\"]], \"mistake\": \"Начать с `value = 1` — для `first_power_over(10, 0)` вернётся 1 (это base⁰), а нужна первая степень — 10.\"}"
                 },
                 {
                   "slug": "whl-m1-l3-e5",
@@ -434,7 +463,8 @@
                   "tests": "def test_values():\n    assert login_attempts([\"1\", \"2\", \"qwerty\"], \"qwerty\") == \"вход выполнен с попытки 3\", \"Третья попытка верная\"\n    assert login_attempts([\"1\", \"2\", \"3\", \"qwerty\"], \"qwerty\") == \"аккаунт заблокирован\", \"Три неверных — блок\"\n    assert login_attempts([\"qwerty\"], \"qwerty\") == \"вход выполнен с попытки 1\", \"Первая попытка верная\"\n    assert login_attempts([\"x\"], \"qwerty\") == \"аккаунт заблокирован\", \"Пароли кончились — блок\"\n",
                   "solution": "def login_attempts(passwords, correct, max_attempts=3):\n    attempt = 0\n    while True:\n        if attempt >= max_attempts or attempt >= len(passwords):\n            return \"аккаунт заблокирован\"\n        if passwords[attempt] == correct:\n            return f\"вход выполнен с попытки {attempt + 1}\"\n        attempt += 1\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Два условия блокировки и одно успеха — все проверяются в начале каждого шага.\", \"lines\": [[\"if attempt >= max_attempts or attempt >= len(passwords):\\n            return \\\"аккаунт заблокирован\\\"\", \"Лимит исчерпан или паролей больше нет.\"], [\"if passwords[attempt] == correct:\\n            return f\\\"вход выполнен с попытки {attempt + 1}\\\"\", \"`+1` — попытки считаем с единицы.\"], [\"attempt += 1\", \"Следующая попытка.\"]], \"mistake\": \"Проверять пароль до лимита — сработает четвёртая попытка, хотя разрешено три.\"}"
                 },
                 {
                   "slug": "whl-m1-l3-e7",
@@ -444,7 +474,8 @@
                   "tests": "def test_values():\n    got = [guess_number(7, [5, 9, 7, 1]), guess_number(3, [1]), guess_number(2, []), guess_number(4, [4, 4])]\n    assert got == [[\"больше\", \"меньше\", \"угадал\"], [\"больше\"], [], [\"угадал\"]], f\"Получено {got}\"\n\ndef test_while_true():\n    assert \"while True\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй while True\"\n",
                   "solution": "def guess_number(secret, guesses):\n    answers = []\n    i = 0\n    while True:\n        if i >= len(guesses):\n            break\n        g = guesses[i]\n        i += 1\n        if g < secret:\n            answers.append(\"больше\")\n        elif g > secret:\n            answers.append(\"меньше\")\n        else:\n            answers.append(\"угадал\")\n            break\n    return answers\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Игровой цикл: берём догадку, отвечаем, при угадывании — `break`. Кончились догадки — тоже выход.\", \"lines\": [[\"if i >= len(guesses):\\n            break\", \"Догадок больше нет.\"], [\"answers.append(\\\"угадал\\\")\\n            break\", \"Игра окончена.\"]], \"mistake\": \"Перепутать подсказки: если догадка **меньше** числа, ответ — «больше».\"}"
                 },
                 {
                   "slug": "whl-m1-l3-e8",
@@ -454,7 +485,8 @@
                   "tests": "def test_values():\n    got = menu([\"add 5\", \"show\", \"add 2\", \"hello\", \"show\", \"exit\", \"show\"])\n    assert got == [5, \"?\", 7], f\"Получено {got}\"\n    assert menu([]) == [] and menu([\"show\"]) == [0], \"Неверный результат\"\n",
                   "solution": "def menu(commands):\n    total = 0\n    output = []\n    i = 0\n    while True:\n        if i >= len(commands):\n            break\n        cmd = commands[i]\n        i += 1\n        if cmd == \"exit\":\n            break\n        if cmd == \"show\":\n            output.append(total)\n        elif cmd.startswith(\"add \"):\n            total += int(cmd.split()[1])\n        else:\n            output.append(\"?\")\n    return output\n",
                   "hint": "cmd.split()[1] — число после add; int(...) превращает его в число.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Командный цикл: читаем команду, выполняем, повторяем. `exit` и конец списка завершают работу.\", \"lines\": [[\"if cmd == \\\"exit\\\":\\n            break\", \"Команда выхода.\"], [\"elif cmd.startswith(\\\"add \\\"):\\n            total += int(cmd.split()[1])\", \"`\\\"add 5\\\"` → 5.\"], [\"else:\\n            output.append(\\\"?\\\")\", \"Неизвестная команда.\"]], \"mistake\": \"Забыть `int` — строка не прибавится к числу.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nИногда условие остановки удобнее проверить **не в начале шага**, а в середине или в конце: сначала прочитать команду, потом решить, выходить ли; сначала сделать попытку, потом проверить результат. Для этого пишут **`while True`** — «повторять всегда» — и выходят через `break` (или `return`).\n\n## Как это работает\n\n```python\ncommands = [\"start\", \"status\", \"stop\", \"never\"]\ni = 0\nwhile True:\n    cmd = commands[i]\n    i += 1\n    if cmd == \"stop\":\n        break\n    print(\"выполняю\", cmd)\nprint(\"остановлено\")\n```\n\n- `while True:` — условие всегда истинно, сам цикл не остановится никогда.\n- Выход — только `break` внутри: он прерывает цикл, выполнение идёт на строку после него.\n- Вывод: `выполняю start`, `выполняю status`, `остановлено`. Команда `never` не прочитана.\n\n## Проверка в конце: «хотя бы один раз»\n\n```python\nn = 100\nwhile True:\n    n //= 3\n    print(n)\n    if n < 5:\n        break\n```\n\n- Тело выполняется **минимум один раз**, проверка стоит в конце — такой цикл в других языках называют `do … while`.\n- `100 // 3 = 33`, `11`, `3` — на 3 условие выхода истинно. Вывод: `33`, `11`, `3`.\n\n## Несколько выходов\n\n```python\nn = 0\nwhile True:\n    n += 1\n    if n % 2 == 0:\n        continue\n    if n > 7:\n        break\n    print(n)\n```\n\n- `continue` — пропустить остаток шага (урок «continue, else и флаги»).\n- Чётные пропускаются, после 7 — выход. Вывод: `1`, `3`, `5`, `7`.\n\n## Внутри функции — return\n\n```python\ndef first_power_over(base, limit):\n    value = base\n    while True:\n        if value > limit:\n            return value\n        value *= base\n\nprint(first_power_over(2, 100), first_power_over(10, 5))\n```\n\n- `return` завершает и цикл, и функцию. Вывод: `128 10`.\n\n## Не забудь, что данные могут кончиться\n\n`while True` с чтением из списка опасен: если стоп-команды нет, `commands[i]` выйдет за границу → `IndexError`. Проверяй и конец данных:\n\n```python\nlines = [\"a\", \"b\"]\nresult = []\ni = 0\nwhile True:\n    if i >= len(lines) or lines[i] == \"STOP\":\n        break\n    result.append(lines[i])\n    i += 1\nprint(result)\n```\n\n- `or`: остановка, если строки кончились **или** встретился `STOP`. Порядок снова важен: сначала граница. Вывод: `['a', 'b']`.\n\n## Попытки с лимитом\n\n```python\npasswords = [\"1\", \"2\", \"qwerty\"]\ncorrect = \"qwerty\"\nattempt = 0\nwhile True:\n    if attempt >= 3 or attempt >= len(passwords):\n        print(\"аккаунт заблокирован\")\n        break\n    if passwords[attempt] == correct:\n        print(\"вход с попытки\", attempt + 1)\n        break\n    attempt += 1\n```\n\nВывод: `вход с попытки 3`.\n\n## Когда выбирать while True\n\n- Условие выхода проверяется в середине или в конце тела.\n- Выходов несколько, и каждый со своей логикой.\n- Сервер, меню, игровой цикл — «работай, пока не скажут стоп».\n\nЕсли условие простое и проверяется в начале — обычный `while условие:` читается лучше.\n\n## Итог\n\n- `while True:` + `break`/`return` — цикл с выходом из любого места тела.\n- Тело выполняется хотя бы раз, если проверка в конце.\n- Обязательно предусмотри выход на все случаи, включая «данные кончились».\n- Простое условие в начале — лучше обычный `while условие:`.",
@@ -506,7 +538,8 @@
                   "code": "i = 0\nwhile i < 6:\n    i += 1\n    if i % 2 == 0:\n        continue\n    print(i)\n",
                   "expected_output": "1\n3\n5",
                   "hint": "Счётчик увеличивается ДО continue — поэтому цикл не зависает.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"В `while` счётчик надо менять **до** `continue`, иначе цикл застрянет на месте.\", \"lines\": [[\"i += 1\", \"Первым делом — увеличение.\"], [\"if i % 2 == 0:\\n        continue\", \"Чётные пропускаем.\"]], \"mistake\": \"Поставить `i += 1` после `continue` — на первом же чётном цикл зависнет.\"}"
                 },
                 {
                   "slug": "whl-ctrl-e2",
@@ -515,7 +548,8 @@
                   "code": "n = 3\nwhile n > 0:\n    n -= 1\nelse:\n    print(\"условие стало ложным, n =\", n)\nk = 0\nwhile k < 10:\n    k += 1\n    if k == 4:\n        break\nelse:\n    print(\"не напечатается\")\nprint(\"k =\", k)\n",
                   "expected_output": "условие стало ложным, n = 0\nk = 4",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`else` у `while` выполняется, когда условие стало ложным, но не после `break`.\", \"lines\": [[\"else:\\n    print(\\\"условие стало ложным, n =\\\", n)\", \"Цикл закончился сам — `else` работает.\"], [\"if k == 4:\\n        break\", \"Выход по `break`.\"], [\"print(\\\"не напечатается\\\")\", \"`else` после `break` пропускается.\"]], \"mistake\": \"Напечатать «не напечатается».\"}"
                 },
                 {
                   "slug": "whl-ctrl-e3",
@@ -524,7 +558,8 @@
                   "code": "running = True\nfuel, distance = 3, 0\nwhile running:\n    fuel -= 1\n    distance += 10\n    if fuel == 0:\n        running = False\nprint(distance, fuel)\n",
                   "expected_output": "30 0",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Флаг в условии: цикл работает, пока флаг `True`. Внутри тела его сбрасывают, когда пора остановиться.\", \"lines\": [[\"while running:\", \"Проверка флага.\"], [\"if fuel == 0:\\n        running = False\", \"После третьего шага.\"], [\"print(distance, fuel)\", \"30 км, 0 топлива.\"]], \"mistake\": \"Решить, что цикл остановится сразу при сбросе флага. Шаг дорабатывает до конца.\"}"
                 },
                 {
                   "slug": "whl-ctrl-e4",
@@ -534,7 +569,8 @@
                   "tests": "def test_values():\n    assert [sum_odd_until(n) for n in (6, 1, 0, 10)] == [9, 0, 0, 25], \"Неверная сумма\"\n\ndef test_continue():\n    assert \"continue\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Оставь continue\"\n",
                   "solution": "def sum_odd_until(n):\n    total = 0\n    i = 0\n    while i < n:\n        if i % 2 == 0:\n            i += 1\n            continue\n        total += i\n        i += 1\n    return total\n",
                   "hint": "continue перескакивает i += 1 в конце тела. Увеличь счётчик и перед continue.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Перед `continue` в `while` обязательно сдвигаем счётчик — иначе застрянем на чётном числе.\", \"lines\": [[\"if i % 2 == 0:\\n            i += 1\\n            continue\", \"Сдвиг и пропуск.\"], [\"total += i\\n        i += 1\", \"1 + 3 + 5 = 9.\"]], \"mistake\": \"Убрать `continue` вместе с увеличением — это то, что было в исходной ошибке.\"}"
                 },
                 {
                   "slug": "whl-ctrl-e5",
@@ -544,7 +580,8 @@
                   "tests": "def test_values():\n    assert [find_divisor(n) for n in (15, 13, 49, 2, 4, 97)] == [3, 13, 7, 2, 2, 97], \"Неверный делитель\"\n\ndef test_while_else():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"while \" in src and \"else:\" in src and \"break\" in src, \"Используй while … else с break\"\n",
                   "solution": "def find_divisor(n):\n    d = 2\n    while d * d <= n:\n        if n % d == 0:\n            result = d\n            break\n        d += 1\n    else:\n        result = n\n    return result\n",
                   "hint": "Если у n есть делитель, то есть и делитель не больше корня из n — поэтому d * d <= n.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Делитель ищем только до корня: если `d · d > n`, большие делители уже нашлись бы в паре с маленькими. `else` — делителя нет.\", \"lines\": [[\"while d * d <= n:\", \"Для 49 проверяем до 7.\"], [\"if n % d == 0:\\n            result = d\\n            break\", \"15 → 3.\"], [\"else:\\n        result = n\", \"13 — простое.\"]], \"mistake\": \"`d < n` — работает, но для больших чисел в тысячи раз дольше.\"}"
                 },
                 {
                   "slug": "whl-ctrl-e6",
@@ -554,7 +591,8 @@
                   "tests": "def test_values():\n    got = [process_orders([10, 20, -5, 7]), process_orders([1, 2]), process_orders([]), process_orders([-1])]\n    assert got == [(30, False), (3, True), (0, True), (0, False)], f\"Получено {got}\"\n",
                   "solution": "def process_orders(orders):\n    total = 0\n    ok = True\n    i = 0\n    while ok and i < len(orders):\n        if orders[i] < 0:\n            ok = False\n        else:\n            total += orders[i]\n        i += 1\n    return total, ok\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Флаг `ok` в условии цикла — остановка «по ошибке» без `break`.\", \"lines\": [[\"while ok and i < len(orders):\", \"Идём, пока нет ошибки и есть заказы.\"], [\"if orders[i] < 0:\\n            ok = False\", \"Ошибка — дальше не обрабатываем.\"], [\"return total, ok\", \"Итог и признак успеха.\"]], \"mistake\": \"Прибавить отрицательную сумму до того, как поднять флаг.\"}"
                 },
                 {
                   "slug": "whl-ctrl-e7",
@@ -564,7 +602,8 @@
                   "tests": "def test_values():\n    assert skip_comments([\"# conf\", \"  a=1 \", \"\", \"#x\", \"b=2\"]) == [\"a=1\", \"b=2\"] and skip_comments([]) == [], \"Неверный результат\"\n\ndef test_while_continue():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"while \" in src and \"continue\" in src, \"Используй while и continue\"\n",
                   "solution": "def skip_comments(lines):\n    result = []\n    i = 0\n    while i < len(lines):\n        line = lines[i].strip()\n        i += 1\n        if not line or line.startswith(\"#\"):\n            continue\n        result.append(line)\n    return result\n",
                   "hint": "Увеличь i сразу после чтения строки — до любого continue.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Индекс увеличиваем сразу после чтения строки — тогда `continue` безопасен.\", \"lines\": [[\"line = lines[i].strip()\\n        i += 1\", \"Сдвиг до любых проверок.\"], [\"if not line or line.startswith(\\\"#\\\"):\\n            continue\", \"Мусор.\"]], \"mistake\": \"Увеличивать `i` в конце тела — после `continue` цикл зависнет.\"}"
                 },
                 {
                   "slug": "whl-ctrl-e8",
@@ -574,7 +613,8 @@
                   "tests": "def test_values():\n    got = [first_stable([1, 3, 3, 5]), first_stable([1, 2, 3]), first_stable([]), first_stable([4, 4])]\n    assert got == [1, -1, -1, 0], f\"Получено {got}\"\n",
                   "solution": "def first_stable(values):\n    i = 0\n    while i < len(values) - 1 and values[i] != values[i + 1]:\n        i += 1\n    if i < len(values) - 1:\n        return i\n    return -1\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Составное условие: пока есть пара соседей **и** они различаются. После цикла проверяем, почему вышли.\", \"lines\": [[\"while i < len(values) - 1 and values[i] != values[i + 1]:\", \"Граница первой — чтобы `values[i + 1]` был безопасен.\"], [\"if i < len(values) - 1:\\n        return i\", \"Вышли из-за равенства — нашли.\"]], \"mistake\": \"`i < len(values)` — на последнем шаге `values[i + 1]` выйдет за границу.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n`break`, `continue` и `else` работают в `while` так же, как в `for` (тема «Цикл for»), но у `continue` в `while` есть коварная ловушка — легко получить вечный цикл. А ещё в `while` часто используют **флаги** — переменные-переключатели, которые управляют условием цикла.\n\n## continue в while: ловушка\n\n```py\ni = 0\nwhile i < n:\n    if i % 2 == 0:\n        continue      # i += 1 ниже не выполнится — i навсегда 0\n    total += i\n    i += 1\n```\n\n- `continue` пропускает остаток тела — в том числе `i += 1` в конце. На `i = 0` цикл застревает навсегда.\n- В `for` такой проблемы нет: следующий элемент выдаёт сам цикл. В `while` счётчик — твоя забота.\n\nПравильно — менять счётчик **до** `continue`:\n\n```python\ni = 0\nwhile i < 6:\n    i += 1\n    if i % 2 == 0:\n        continue\n    print(i)\n```\n\n- `i += 1` в начале тела выполняется всегда. Вывод: `1`, `3`, `5`.\n\nИли увеличивать и в ветке с `continue`:\n\n```python\nn, total, i = 6, 0, 0\nwhile i < n:\n    if i % 2 == 0:\n        i += 1\n        continue\n    total += i\n    i += 1\nprint(total)\n```\n\nВывод: `9` (1 + 3 + 5).\n\n## else у while\n\n`else` у `while` выполняется, когда условие стало ложным, — то есть цикл закончился **без `break`**:\n\n```python\nn = 3\nwhile n > 0:\n    n -= 1\nelse:\n    print(\"условие стало ложным, n =\", n)\nk = 0\nwhile k < 10:\n    k += 1\n    if k == 4:\n        break\nelse:\n    print(\"не напечатается\")\nprint(\"k =\", k)\n```\n\n- Первый цикл закончился «сам» — `else` выполнился.\n- Второй прерван `break` — `else` пропущен.\n- Вывод: `условие стало ложным, n = 0`, `k = 4`.\n\n### Поиск делителя с while … else\n\n```python\nn = 91\nd = 2\nwhile d * d <= n:\n    if n % d == 0:\n        print(\"делитель\", d)\n        break\n    d += 1\nelse:\n    print(n, \"простое\")\n```\n\n- Делители достаточно искать до корня из `n`: если у числа есть делитель больше корня, то есть и парный меньше корня. `d * d <= n` — то же, что `d <= √n`, но без дробей.\n- 91 = 7 × 13. Вывод: `делитель 7`.\n\n## Флаги\n\n**Флаг** — логическая переменная (`True`/`False`), которая говорит «продолжать ли». Удобно, когда решение об остановке принимается в разных местах:\n\n```python\nrunning = True\nfuel, distance = 3, 0\nwhile running:\n    fuel -= 1\n    distance += 10\n    if fuel == 0:\n        running = False\nprint(distance, fuel)\n```\n\n- В отличие от `break`, после `running = False` **остаток шага выполняется**, а выход произойдёт при следующей проверке условия.\n- Вывод: `30 0`.\n\nФлаг + ещё одно условие:\n\n```python\norders = [10, 20, -5, 7]\ntotal = 0\nok = True\ni = 0\nwhile ok and i < len(orders):\n    if orders[i] < 0:\n        ok = False\n    else:\n        total += orders[i]\n    i += 1\nprint(total, ok)\n```\n\n- После ошибки `ok = False` цикл останавливается, а флаг ещё и сообщает **результат**: всё ли прошло хорошо. Вывод: `30 False`.\n\n## Частые ошибки\n\n**`continue` до изменения счётчика.** Вечный цикл.\n\n**Ждать, что флаг прервёт шаг сразу.** Он сработает только на следующей проверке условия; нужно сразу — `break`.\n\n**`else` у `while`, когда `break` в цикле нет.** Тогда это просто код после цикла.\n\n## Итог\n\n- В `while` меняй счётчик **до** `continue`.\n- `while … else`: `else` выполняется, если цикл закончился без `break`.\n- Флаг `running = True/False` в условии — мягкая остановка на следующей проверке.\n- Флаг может одновременно хранить результат («всё ли в порядке»).",
@@ -626,7 +666,8 @@
                   "code": "answers = [\"abc\", \"-5\", \"42\"]\ni = 0\nwhile True:\n    text = answers[i]\n    i += 1\n    if not text.lstrip(\"-\").isdigit():\n        print(\"не число:\", text)\n        continue\n    n = int(text)\n    if n < 0:\n        print(\"отрицательное:\", n)\n        continue\n    break\nprint(\"принято\", n, \"с попытки\", i)\n",
                   "expected_output": "не число: abc\nотрицательное: -5\nпринято 42 с попытки 3",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"«Спрашивать, пока не введут правильно» — `while True` с `continue` на каждую ошибку и `break` на успех.\", \"lines\": [[\"if not text.lstrip(\\\"-\\\").isdigit():\", \"`lstrip(\\\"-\\\")` убирает минус — тогда `\\\"-5\\\"` тоже пройдёт как число. `abc` — не число.\"], [\"print(\\\"отрицательное:\\\", n)\\n        continue\", \"−5 — число, но отрицательное.\"], [\"break\", \"42 подходит.\"], [\"print(\\\"принято\\\", n, \\\"с попытки\\\", i)\", \"`i` увеличивался на каждом шаге — 3.\"]], \"mistake\": \"Решить, что `\\\"-5\\\"` отсеется как «не число». Минус убирается перед проверкой.\"}"
                 },
                 {
                   "slug": "whl-input-e2",
@@ -635,7 +676,8 @@
                   "code": "inputs = [\"ок\", \"может\", \"нет\"]\nanswer = \"\"\nwhile answer not in (\"да\", \"нет\"):\n    answer = inputs.pop(0)\n    print(\"ввели:\", answer)\n",
                   "expected_output": "ввели: ок\nввели: может\nввели: нет",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Условие проверяется **до** шага, поэтому последний ответ «нет» печатается, а цикл останавливается уже после.\", \"lines\": [[\"while answer not in (\\\"да\\\", \\\"нет\\\"):\", \"Пустая строка — не ответ, заходим в цикл.\"], [\"answer = inputs.pop(0)\\n    print(\\\"ввели:\\\", answer)\", \"Печатается каждый ответ, включая «нет».\"]], \"mistake\": \"Не напечатать «нет». Проверка стоит перед шагом, а не после печати.\"}"
                 },
                 {
                   "slug": "whl-input-e3",
@@ -644,7 +686,8 @@
                   "code": "raw = [\"x\", \"7.5\", \"8\"]\nwhile raw:\n    text = raw.pop(0)\n    try:\n        value = int(text)\n        break\n    except ValueError:\n        print(\"повторите ввод:\", text)\nprint(value)\n",
                   "expected_output": "повторите ввод: x\nповторите ввод: 7.5\n8",
                   "hint": "int(\"7.5\") тоже ValueError — это не целое число.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`try` внутри цикла: ошибка — сообщение и следующая попытка, успех — `break`.\", \"lines\": [[\"value = int(text)\\n        break\", \"`int(\\\"7.5\\\")` падает — дробное `int` не читает. `8` — успех.\"], [\"except ValueError:\\n        print(\\\"повторите ввод:\\\", text)\", \"Для `x` и `7.5`.\"]], \"mistake\": \"Решить, что `7.5` превратится в 7. `int` из строки с точкой — ошибка.\"}"
                 },
                 {
                   "slug": "whl-input-e4",
@@ -654,7 +697,8 @@
                   "tests": "def test_values():\n    got = [ask_int([\"abc\", \"\", \"12\"]), ask_int([\" 7 \"]), ask_int([\"x\"]), ask_int([]), ask_int([\"-3\", \"5\"])]\n    assert got == [12, 7, None, None, -3], f\"Получено {got}\"\n\ndef test_try():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"while \" in src and \"except\" in src, \"Используй while и try/except\"\n",
                   "solution": "def ask_int(inputs):\n    i = 0\n    while i < len(inputs):\n        text = inputs[i]\n        i += 1\n        try:\n            return int(text)\n        except ValueError:\n            pass\n    return None\n",
                   "hint": "try: return int(text) — если строка не число, будет ValueError, и цикл пойдёт дальше.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`return` внутри `try` сразу выходит при успехе. `except` просто пропускает неудачную попытку.\", \"lines\": [[\"try:\\n            return int(text)\", \"Первое число — ответ.\"], [\"except ValueError:\\n            pass\", \"Не число — идём дальше.\"], [\"return None\", \"Ответы кончились.\"]], \"mistake\": \"Ловить `Exception` — поймаются и чужие ошибки.\"}"
                 },
                 {
                   "slug": "whl-input-e5",
@@ -664,7 +708,8 @@
                   "tests": "def test_values():\n    got = [ask_in_range([\"0\", \"abc\", \"11\", \"7\"], 1, 10), ask_in_range([\"5\"], 5, 5), ask_in_range([\"100\"], 1, 10), ask_in_range([], 1, 2)]\n    assert got == [7, 5, None, None], f\"Получено {got}\"\n",
                   "solution": "def ask_in_range(inputs, low, high):\n    i = 0\n    while i < len(inputs):\n        text = inputs[i]\n        i += 1\n        try:\n            n = int(text)\n        except ValueError:\n            continue\n        if low <= n <= high:\n            return n\n    return None\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Два фильтра: сначала «число ли», потом «в диапазоне ли». Не прошёл — следующий ответ.\", \"lines\": [[\"n = int(text)\\n        except ValueError:\\n            continue\", \"Не число — пропуск.\"], [\"if low <= n <= high:\\n            return n\", \"0 и 11 вне диапазона, 7 подходит.\"]], \"mistake\": \"Проверять диапазон внутри `try` — если `int` упал, переменной `n` не будет.\"}"
                 },
                 {
                   "slug": "whl-input-e6",
@@ -674,7 +719,8 @@
                   "tests": "def test_values():\n    got = [ask_yes_no([\"ну\", \" ДА \"]), ask_yes_no([\"N\"]), ask_yes_no([\"?\", \"maybe\"]), ask_yes_no([\"yes\", \"no\"])]\n    assert got == [True, False, None, True], f\"Получено {got}\"\n",
                   "solution": "def ask_yes_no(inputs):\n    i = 0\n    while i < len(inputs):\n        answer = inputs[i].strip().lower()\n        i += 1\n        if answer in (\"да\", \"yes\", \"y\"):\n            return True\n        if answer in (\"нет\", \"no\", \"n\"):\n            return False\n    return None\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Очищаем ответ и сверяем с наборами «да» и «нет». Непонятный ответ — просто идём дальше.\", \"lines\": [[\"answer = inputs[i].strip().lower()\", \"`\\\" Да \\\"` → `\\\"да\\\"`.\"], [\"if answer in (\\\"да\\\", \\\"yes\\\", \\\"y\\\"):\\n            return True\", \"Согласие.\"], [\"if answer in (\\\"нет\\\", \\\"no\\\", \\\"n\\\"):\\n            return False\", \"Отказ.\"]], \"mistake\": \"Не очищать ответ — `\\\"Да\\\"` не совпадёт с `\\\"да\\\"`.\"}"
                 },
                 {
                   "slug": "whl-input-e7",
@@ -684,7 +730,8 @@
                   "tests": "def test_values():\n    got = [collect_until_empty([\" молоко\", \"хлеб \", \"  \", \"сыр\"]), collect_until_empty([\"a\"]), collect_until_empty([\"\"])]\n    assert got == [[\"молоко\", \"хлеб\"], [\"a\"], []], f\"Получено {got}\"\n",
                   "solution": "def collect_until_empty(inputs):\n    result = []\n    i = 0\n    while i < len(inputs):\n        line = inputs[i].strip()\n        if not line:\n            break\n        result.append(line)\n        i += 1\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Пустая строка — сигнал конца ввода: `break`, и дальше не читаем.\", \"lines\": [[\"line = inputs[i].strip()\", \"Очищаем сразу.\"], [\"if not line:\\n            break\", \"`\\\"  \\\"` — конец. `сыр` уже не попадёт.\"]], \"mistake\": \"`continue` вместо `break` — пустая строка пропустится, и `сыр` добавится.\"}"
                 },
                 {
                   "slug": "whl-input-e8",
@@ -694,7 +741,8 @@
                   "tests": "def test_values():\n    got = [sum_inputs([\"5\", \"x\", \"-2\", \"стоп\", \"100\"]), sum_inputs([]), sum_inputs([\"a\", \"b\"]), sum_inputs([\"10\"])]\n    assert got == [(3, 1), (0, 0), (0, 2), (10, 0)], f\"Получено {got}\"\n",
                   "solution": "def sum_inputs(inputs):\n    total = 0\n    errors = 0\n    i = 0\n    while i < len(inputs):\n        text = inputs[i]\n        i += 1\n        if text == \"стоп\":\n            break\n        try:\n            total += int(text)\n        except ValueError:\n            errors += 1\n    return total, errors\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Читаем до `стоп`. Числа суммируем, ошибки ввода считаем — `try/except` отличает одно от другого.\", \"lines\": [[\"if text == \\\"стоп\\\":\\n            break\", \"Команда окончания.\"], [\"try:\\n            total += int(text)\", \"Число — в сумму.\"], [\"except ValueError:\\n            errors += 1\", \"Не число — ошибка.\"]], \"mistake\": \"Посчитать `стоп` ошибкой — проверка на него стоит до `int`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПользователь может ввести что угодно: буквы вместо числа, пустую строку, «ДА» вместо «да». Программа не должна падать — она должна **переспрашивать**, пока не получит корректные данные. Это классическая задача для `while`.\n\n## Функция input\n\nВ обычной программе ввод с клавиатуры читает `input()`:\n\n```py\nname = input(\"Как тебя зовут? \")\nage = int(input(\"Сколько тебе лет? \"))\n```\n\n- `input(подсказка)` печатает подсказку, ждёт, пока пользователь наберёт строку и нажмёт Enter, и **возвращает строку**.\n- Всегда строку! Даже если ввели `25`, это `\"25\"`. Для числа — `int(...)` или `float(...)`.\n- В заданиях CodeQuest клавиатуры нет, поэтому ответы пользователя заменяют **списком строк**, который читается по одной.\n\n## int() падает на неверных данных\n\n```python\nprint(int(\"42\"), int(\" -7 \"))\ntry:\n    int(\"abc\")\nexcept ValueError as e:\n    print(\"ValueError:\", e)\n```\n\n- `int` понимает знак и пробелы по краям. Вывод: `42 -7`.\n- Для `\"abc\"`, `\"\"`, `\"7.5\"` — ошибка `ValueError`.\n\n## try/except — перехватить ошибку\n\n```python\nfor text in [\"12\", \"x\"]:\n    try:\n        print(int(text) * 2)\n    except ValueError:\n        print(\"не число:\", text)\n```\n\n- `try:` — «попробуй выполнить».\n- Если внутри `try` возникла ошибка указанного типа, Python не падает, а переходит в блок `except ValueError:`.\n- Если ошибки не было — `except` пропускается.\n- Вывод: `24`, `не число: x`. Подробно — тема «Исключения».\n\n## Переспрашивать, пока не получится\n\n```python\nraw = [\"x\", \"7.5\", \"8\"]\nwhile raw:\n    text = raw.pop(0)\n    try:\n        value = int(text)\n        break\n    except ValueError:\n        print(\"повторите ввод:\", text)\nprint(value)\n```\n\n- `raw.pop(0)` — снять **первый** элемент списка (следующий «ответ пользователя»).\n- Если `int` сработал — `break`; если нет — `except` печатает сообщение, и цикл идёт дальше.\n- Вывод: `повторите ввод: x`, `повторите ввод: 7.5`, `8`.\n\nС настоящим вводом это выглядит так:\n\n```py\nwhile True:\n    text = input(\"Введите возраст: \")\n    try:\n        age = int(text)\n        break\n    except ValueError:\n        print(\"Это не число, попробуйте ещё раз\")\n```\n\n## Проверка без исключений\n\n```python\nanswers = [\"abc\", \"-5\", \"42\"]\ni = 0\nwhile True:\n    text = answers[i]\n    i += 1\n    if not text.lstrip(\"-\").isdigit():\n        print(\"не число:\", text)\n        continue\n    n = int(text)\n    if n < 0:\n        print(\"отрицательное:\", n)\n        continue\n    break\nprint(\"принято\", n, \"с попытки\", i)\n```\n\n- `text.isdigit()` — состоит ли строка только из цифр (и не пуста).\n- `text.lstrip(\"-\")` — убрать минусы слева, чтобы `\"-5\"` тоже прошёл проверку.\n- Каждая неудачная проверка — сообщение и `continue` («спросить снова»).\n- Вывод: `не число: abc`, `отрицательное: -5`, `принято 42 с попытки 3`.\n\n## Ответ из допустимого набора\n\n```python\ninputs = [\"ок\", \"может\", \"нет\"]\nanswer = \"\"\nwhile answer not in (\"да\", \"нет\"):\n    answer = inputs.pop(0)\n    print(\"ввели:\", answer)\n```\n\n- `answer not in (\"да\", \"нет\")` — ответ не входит в набор допустимых.\n- Начальное `answer = \"\"` — чтобы условие было истинно в первый раз.\n- Вывод: `ввели: ок`, `ввели: может`, `ввели: нет`.\n\nОтвет стоит **нормализовать**: `answer.strip().lower()` — тогда `\" ДА \"` тоже подойдёт.\n\n## Ввод до пустой строки\n\n```python\ninputs = [\" молоко\", \"хлеб \", \"  \", \"сыр\"]\nitems = []\ni = 0\nwhile i < len(inputs):\n    line = inputs[i].strip()\n    if not line:\n        break\n    items.append(line)\n    i += 1\nprint(items)\n```\n\n- Классический приём «вводите по одному, пустая строка — конец». Вывод: `['молоко', 'хлеб']`.\n\n## Итог\n\n- `input()` всегда возвращает строку; число — через `int()`/`float()`.\n- Неверная строка в `int()` — `ValueError`; перехват — `try/except ValueError`.\n- Схема: `while True` → прочитать → проверить → ошибка: сообщение и `continue` → успех: `break`.\n- Нормализуй ответы: `strip().lower()`.\n- В заданиях ввод заменён списком строк: `inputs.pop(0)` или индекс.",
@@ -754,7 +802,8 @@
                   "code": "n = 2024\nwhile n > 0:\n    print(n % 10)\n    n //= 10\n",
                   "expected_output": "4\n2\n0\n2",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`n % 10` — последняя цифра, `n //= 10` — отбросить её. Цифры идут справа налево.\", \"lines\": [[\"print(n % 10)\", \"4, 2, 0, 2.\"], [\"n //= 10\", \"2024 → 202 → 20 → 2 → 0.\"]], \"mistake\": \"Ожидать цифры слева направо.\"}"
                 },
                 {
                   "slug": "whl-m2-l1-e2",
@@ -763,7 +812,8 @@
                   "code": "n, count = 1000, 0\nwhile n > 0:\n    n //= 10\n    count += 1\nprint(count)\n",
                   "expected_output": "4",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Сколько раз можно отбросить цифру, пока число не станет 0, — столько в нём цифр.\", \"lines\": [[\"n //= 10\\n    count += 1\", \"1000 → 100 → 10 → 1 → 0: четыре шага.\"]], \"mistake\": \"Ответить 3, забыв последний шаг 1 → 0.\"}"
                 },
                 {
                   "slug": "whl-m2-l1-e6",
@@ -772,7 +822,8 @@
                   "code": "n = 12345\ncount_even = 0\nwhile n:\n    if n % 10 % 2 == 0:\n        count_even += 1\n    n //= 10\nprint(count_even)\n",
                   "expected_output": "2",
                   "hint": "while n — пока число не ноль. Цифры идут с конца: 5, 4, 3, 2, 1.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`while n:` — пока число не 0. Для каждой цифры проверяем чётность.\", \"lines\": [[\"if n % 10 % 2 == 0:\", \"Последняя цифра, затем её остаток от деления на 2.\"], [\"n //= 10\", \"Цифры 5, 4, 3, 2, 1 — чётные 4 и 2.\"]], \"mistake\": \"Проверять чётность всего числа `n % 2`, а не цифры.\"}"
                 },
                 {
                   "slug": "whl-m2-l1-e3",
@@ -782,7 +833,8 @@
                   "tests": "def test_values():\n    assert [digit_sum(n) for n in (2024, 0, 999, 7)] == [8, 0, 27, 7], \"Неверная сумма цифр\"\n\ndef test_no_str():\n    assert \"str(\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Реши без str()\"\n",
                   "solution": "def digit_sum(n):\n    total = 0\n    while n > 0:\n        total += n % 10\n        n //= 10\n    return total\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Отрезаем последнюю цифру и прибавляем её к сумме, пока число не кончится.\", \"lines\": [[\"total += n % 10\\n        n //= 10\", \"4 + 2 + 0 + 2 = 8.\"]], \"mistake\": \"`n / 10` — дробное деление, цикл будет крутиться по дробным числам.\"}"
                 },
                 {
                   "slug": "whl-m2-l1-e4",
@@ -792,7 +844,8 @@
                   "tests": "def test_values():\n    assert [reverse_number(n) for n in (1234, 100, 7, 0)] == [4321, 1, 7, 0], \"Неверный результат\"\n\ndef test_no_str():\n    assert \"str(\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Реши без str()\"\n",
                   "solution": "def reverse_number(n):\n    result = 0\n    while n > 0:\n        result = result * 10 + n % 10\n        n //= 10\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Строим новое число: сдвигаем накопленное влево (`* 10`) и дописываем последнюю цифру исходного.\", \"trace\": [[\"result = result * 10 + n % 10\", \"n = 1234 → result = 4\", \"\"], [\"result = result * 10 + n % 10\", \"n = 123 → result = 43\", \"\"], [\"result = result * 10 + n % 10\", \"n = 12 → result = 432\", \"\"], [\"result = result * 10 + n % 10\", \"n = 1 → result = 4321\", \"\"]], \"mistake\": \"Для 100 ожидать `001`. Число не хранит ведущие нули — это 1.\"}"
                 },
                 {
                   "slug": "whl-m2-l1-e5",
@@ -802,7 +855,8 @@
                   "tests": "def test_values():\n    assert [digital_root(n) for n in (16, 942, 132189, 5, 0)] == [7, 6, 6, 5, 0], \"Неверный цифровой корень\"\n",
                   "solution": "def digital_root(n):\n    while n >= 10:\n        total = 0\n        while n > 0:\n            total += n % 10\n            n //= 10\n        n = total\n    return n\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Внешний цикл повторяет, пока число двузначное и больше. Внутренний — считает сумму его цифр.\", \"lines\": [[\"while n >= 10:\", \"Одна цифра — готово.\"], [\"total = 0\", \"Новая сумма для каждого прохода.\"], [\"n = total\", \"942 → 15 → 6.\"]], \"mistake\": \"Сложить цифры один раз — для 942 получится 15, а не 6.\"}"
                 },
                 {
                   "slug": "whl-m2-l1-e7",
@@ -812,7 +866,8 @@
                   "tests": "def test_values():\n    assert [count_digits(n) for n in (12345, 0, -42, 7, 1000)] == [5, 1, 2, 1, 4], \"Неверное количество цифр\"\n\ndef test_no_str():\n    assert \"str(\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Реши без str()\"\n",
                   "solution": "def count_digits(n):\n    n = abs(n)\n    count = 1\n    while n >= 10:\n        n //= 10\n        count += 1\n    return count\n",
                   "hint": "abs(n) убирает минус. Для 0 цикл while n > 0 не выполнится ни разу — учти это.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Минус убираем через `abs`. Начинаем счёт с 1 — так у нуля ровно одна цифра.\", \"lines\": [[\"n = abs(n)\", \"−42 → 42.\"], [\"count = 1\", \"Хотя бы одна цифра есть всегда.\"], [\"while n >= 10:\\n        n //= 10\\n        count += 1\", \"12345: четыре отбрасывания + 1 = 5.\"]], \"mistake\": \"Цикл `while n > 0` со счётом с нуля — для 0 вернёт 0.\"}"
                 },
                 {
                   "slug": "whl-m2-l1-e8",
@@ -822,7 +877,8 @@
                   "tests": "def test_values():\n    assert [to_binary(n) for n in (10, 1, 0, 2, 255)] == [\"1010\", \"1\", \"0\", \"10\", \"11111111\"], \"Неверная двоичная запись\"\n\ndef test_no_bin():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"bin(\" not in src and \"format\" not in src and \":b\" not in src, \"Реши циклом, без bin/format\"\n",
                   "solution": "def to_binary(n):\n    if n == 0:\n        return \"0\"\n    result = \"\"\n    while n > 0:\n        result = str(n % 2) + result\n        n //= 2\n    return result\n",
                   "hint": "Новую цифру приписывай слева: result = str(n % 2) + result.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Двоичная цифра — остаток от деления на 2. Новая цифра приписывается **слева**, потому что остатки идут от младшего разряда.\", \"lines\": [[\"if n == 0:\\n        return \\\"0\\\"\", \"Для нуля цикл не выполнится — отдельный случай.\"], [\"result = str(n % 2) + result\", \"10: остатки 0, 1, 0, 1 → `1010`.\"], [\"n //= 2\", \"Отбрасываем разряд.\"]], \"mistake\": \"`result += str(n % 2)` — цифры получатся задом наперёд.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nРазбор числа на цифры — классическая задача для `while`: сумма цифр для контрольных сумм, проверка номеров карт и документов, переворот числа, перевод в двоичную систему. Сколько в числе цифр, заранее неизвестно — поэтому `while`, а не `for`.\n\n## Два инструмента: % 10 и // 10\n\n```python\nn = 2024\nprint(n % 10, n // 10)\n```\n\n- `n % 10` — остаток от деления на 10, это **последняя цифра**: `4`.\n- `n // 10` — целочисленное деление, это число **без последней цифры**: `202`.\n- Вывод: `4 202`.\n\n## Перебор цифр с конца\n\n```python\nn = 2024\nwhile n > 0:\n    print(n % 10)\n    n //= 10\n```\n\n- `n //= 10` — то же, что `n = n // 10`.\n- По шагам: `2024` → печать 4, n = 202 → печать 2, n = 20 → печать 0, n = 2 → печать 2, n = 0 → стоп.\n- Вывод: `4`, `2`, `0`, `2` — цифры **справа налево**.\n- `while n:` — то же самое, что `while n > 0:` для неотрицательных чисел: ноль ложен.\n\n## Сумма и подсчёт цифр\n\n```python\nn = 12345\ntotal = 0\ncount_even = 0\nwhile n:\n    digit = n % 10\n    total += digit\n    if digit % 2 == 0:\n        count_even += 1\n    n //= 10\nprint(total, count_even)\n```\n\n- Цифру удобно сохранить в переменную `digit` — код понятнее.\n- Вывод: `15 2` (сумма 1+2+3+4+5, чётные — 2 и 4).\n\n## Количество цифр и особый случай нуля\n\n```python\nn = 1000\ncount = 0\nwhile n > 0:\n    n //= 10\n    count += 1\nprint(count)\n```\n\n- Вывод: `4`.\n- Для `n = 0` цикл не выполнится ни разу, и получится 0 цифр — а у нуля одна цифра. Такие **граничные случаи** нужно обрабатывать отдельно: `if n == 0: return 1` — или считать, пока `n >= 10`, начиная со счётчика 1.\n- Для отрицательных чисел `while n > 0` тоже не сработает — сначала `n = abs(n)` (модуль числа, без знака).\n\n## Переворот числа\n\n```python\nn = 1234\nresult = 0\nwhile n > 0:\n    result = result * 10 + n % 10\n    n //= 10\nprint(result)\n```\n\n- `result * 10` сдвигает накопленное влево на разряд, `+ n % 10` дописывает новую цифру справа.\n- По шагам: 0 → 4 → 43 → 432 → 4321. Вывод: `4321`.\n\n## Перевод в двоичную систему\n\nТо же самое, только делим на 2:\n\n```python\nn = 10\nbits = \"\"\nwhile n > 0:\n    bits = str(n % 2) + bits\n    n //= 2\nprint(bits, bin(10))\n```\n\n- `n % 2` — очередная двоичная цифра (справа налево), поэтому её приписываем **слева**.\n- `bin(10)` — встроенная функция для проверки, возвращает `'0b1010'`.\n- Вывод: `1010 0b1010`.\n\n## Вложенные while: цифровой корень\n\nСкладывать цифры, пока не останется одна:\n\n```python\nn = 942\nwhile n >= 10:\n    total = 0\n    while n > 0:\n        total += n % 10\n        n //= 10\n    n = total\nprint(n)\n```\n\n- Внутренний цикл считает сумму цифр, внешний повторяет, пока число многозначное: 942 → 15 → 6. Вывод: `6`.\n\n## Итог\n\n- `n % 10` — последняя цифра, `n // 10` — число без неё.\n- `while n > 0: … n //= 10` — перебор цифр справа налево.\n- Не забывай граничные случаи: 0 и отрицательные числа (`abs`).\n- Переворот: `result = result * 10 + n % 10`.\n- Другая система счисления — делить на её основание (2, 8, 16).",
@@ -874,7 +930,8 @@
                   "code": "responses = [503, 502, 200]\nattempt = 0\nstatus = None\nwhile attempt < 5 and status != 200:\n    status = responses[attempt]\n    attempt += 1\n    print(f\"попытка {attempt}: {status}\")\n",
                   "expected_output": "попытка 1: 503\nпопытка 2: 502\nпопытка 3: 200",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Повторяем запрос, пока попытки не кончились **и** статус не 200.\", \"lines\": [[\"while attempt < 5 and status != 200:\", \"Стартовый `None` — не 200, заходим.\"], [\"print(f\\\"попытка {attempt}: {status}\\\")\", \"503, 502, 200 — после 200 условие ложно.\"]], \"mistake\": \"Решить, что 200 не напечатается. Печать идёт в том же шаге, где статус получен.\"}"
                 },
                 {
                   "slug": "whl-m2-l2-e2",
@@ -883,7 +940,8 @@
                   "code": "t = 0.0\nready_at = 1.2\npolls = 0\nwhile t < ready_at:\n    t += 0.5\n    polls += 1\nprint(t, polls)\n",
                   "expected_output": "1.5 3",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Опрос с шагом: время прыгает на 0.5, и цикл останавливается, когда оно достигло или перешло момент готовности.\", \"lines\": [[\"while t < ready_at:\", \"0 → 0.5 → 1.0 → 1.5.\"], [\"print(t, polls)\", \"1.5 ≥ 1.2 — три опроса.\"]], \"mistake\": \"Ответить `1.2`. Время идёт шагами по 0.5.\"}"
                 },
                 {
                   "slug": "whl-m2-l2-e6",
@@ -892,7 +950,8 @@
                   "code": "delay = 1\nwaited = 0\nattempt = 0\nwhile attempt < 4:\n    attempt += 1\n    print(\"попытка\", attempt, \"ждём\", delay)\n    waited += delay\n    delay *= 2\nprint(\"всего ждали\", waited)\n",
                   "expected_output": "попытка 1 ждём 1\nпопытка 2 ждём 2\nпопытка 3 ждём 4\nпопытка 4 ждём 8\nвсего ждали 15",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Экспоненциальный откат: каждая следующая пауза вдвое длиннее. Так повторы не заваливают сервер.\", \"lines\": [[\"waited += delay\\n    delay *= 2\", \"1, 2, 4, 8.\"], [\"print(\\\"всего ждали\\\", waited)\", \"1 + 2 + 4 + 8 = 15.\"]], \"mistake\": \"Удвоить до печати — паузы начнутся с 2.\"}"
                 },
                 {
                   "slug": "whl-m2-l2-e3",
@@ -902,7 +961,8 @@
                   "tests": "def test_values():\n    got = [retry([503, 502, 200], 5), retry([500, 500, 500], 2), retry([404], 3)]\n    assert got == [(200, 3), (500, 2), (404, 1)], f\"Получено {got}\"\n",
                   "solution": "def retry(statuses, max_attempts):\n    attempt = 0\n    status = None\n    while attempt < max_attempts and attempt < len(statuses):\n        status = statuses[attempt]\n        attempt += 1\n        if status < 500:\n            break\n    return status, attempt\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Два ограничения: попытки и статусы. Успешный статус (< 500) — сразу `break`.\", \"lines\": [[\"while attempt < max_attempts and attempt < len(statuses):\", \"Не выйти за лимит и за список.\"], [\"if status < 500:\\n            break\", \"Ошибки клиента (4xx) тоже не повторяем — дело не в сервере.\"]], \"mistake\": \"Повторять при любом статусе ≠ 200 — 404 повторять бессмысленно.\"}"
                 },
                 {
                   "slug": "whl-m2-l2-e4",
@@ -912,7 +972,8 @@
                   "tests": "class FakeClock:\n    def __init__(self):\n        self.t = 0.0\n    def now(self):\n        return self.t\n    def sleep(self, s):\n        self.t += s\n\ndef test_ready():\n    c = FakeClock()\n    assert wait_until(lambda: c.now() >= 2, 10, c) is True and c.now() < 3, \"Должно вернуть True около 2-й секунды\"\n\ndef test_timeout():\n    c = FakeClock()\n    try:\n        wait_until(lambda: False, 3, c)\n    except TimeoutError:\n        assert 3 <= c.now() <= 3.5, f\"Сдаваться сразу после таймаута, сейчас {c.now()}\"\n        return\n    assert False, \"Нужен TimeoutError\"\n",
                   "solution": "def wait_until(condition, timeout, clock, poll=0.5):\n    start = clock.now()\n    while True:\n        if condition():\n            return True\n        if clock.now() - start >= timeout:\n            raise TimeoutError(f\"не дождались за {timeout} с\")\n        clock.sleep(poll)\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Явное ожидание, как в автотестах: проверяем условие, при таймауте — ошибка, иначе ждём и повторяем. Часы передаются параметром — поэтому функцию легко тестировать без реального ожидания.\", \"lines\": [[\"start = clock.now()\", \"Засекаем начало.\"], [\"if condition():\\n            return True\", \"Дождались.\"], [\"if clock.now() - start >= timeout:\\n            raise TimeoutError(f\\\"не дождались за {timeout} с\\\")\", \"Время вышло.\"], [\"clock.sleep(poll)\", \"Пауза перед новой проверкой.\"]], \"mistake\": \"Проверять таймаут до условия — готовое на последней секунде условие не засчитается.\"}"
                 },
                 {
                   "slug": "whl-m2-l2-e5",
@@ -922,7 +983,8 @@
                   "tests": "def test_values():\n    assert [backoff_schedule(n) for n in (10, 15, 0, 1)] == [[1, 2, 4], [1, 2, 4, 8], [], [1]], \"Неверное расписание\"\n",
                   "solution": "def backoff_schedule(max_total):\n    delays = []\n    delay, total = 1, 0\n    while total + delay <= max_total:\n        delays.append(delay)\n        total += delay\n        delay *= 2\n    return delays\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Проверяем «влезет ли следующая задержка» **до** добавления.\", \"lines\": [[\"while total + delay <= max_total:\", \"7 + 8 > 10 — восьмёрка не добавляется.\"], [\"delays.append(delay)\\n        total += delay\\n        delay *= 2\", \"1, 2, 4.\"]], \"mistake\": \"`while total <= max_total` — добавится задержка, которая превысит лимит.\"}"
                 },
                 {
                   "slug": "whl-m2-l2-e7",
@@ -932,7 +994,8 @@
                   "tests": "def test_values():\n    got = [poll_status([\"queued\", \"running\", \"done\", \"x\"]), poll_status([\"running\", \"running\"]), poll_status([\"failed\"]), poll_status([])]\n    assert got == [(\"done\", 3), (\"timeout\", 2), (\"failed\", 1), (\"timeout\", 0)], f\"Получено {got}\"\n",
                   "solution": "def poll_status(statuses):\n    polls = 0\n    while polls < len(statuses):\n        status = statuses[polls]\n        polls += 1\n        if status in (\"done\", \"failed\"):\n            return status, polls\n    return \"timeout\", polls\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Опрашиваем, пока статус не конечный. Кончились ответы без конечного — таймаут.\", \"lines\": [[\"if status in (\\\"done\\\", \\\"failed\\\"):\\n            return status, polls\", \"Оба статуса конечные — `failed` тоже.\"], [\"return \\\"timeout\\\", polls\", \"Не дождались.\"]], \"mistake\": \"Ждать только `done` — на `failed` опрос продолжится впустую.\"}"
                 },
                 {
                   "slug": "whl-m2-l2-e8",
@@ -942,7 +1005,8 @@
                   "tests": "def test_success():\n    calls = []\n    def flaky():\n        calls.append(1)\n        if len(calls) < 3:\n            raise ConnectionError(\"нет связи\")\n        return \"ok\"\n    assert retry_call(flaky, 5) == \"ok\" and len(calls) == 3, f\"Результат или число вызовов неверны: {len(calls)}\"\n\ndef test_fail():\n    calls = []\n    def broken():\n        calls.append(1)\n        raise ValueError(\"x\")\n    assert retry_call(broken, 2) is None and len(calls) == 2, \"Все попытки упали — None, ровно attempts вызовов\"\n",
                   "solution": "def retry_call(func, attempts):\n    attempt = 0\n    while attempt < attempts:\n        attempt += 1\n        try:\n            return func()\n        except Exception:\n            pass\n    return None\n",
                   "hint": "try: return func() — при исключении управление попадёт в except, и цикл сделает следующую попытку.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Повтор при исключении: `return` внутри `try` выходит при успехе, `except` даёт следующую попытку.\", \"lines\": [[\"attempt += 1\\n        try:\\n            return func()\", \"Успех — сразу результат.\"], [\"except Exception:\\n            pass\", \"Упало — пробуем снова.\"], [\"return None\", \"Все попытки неудачны.\"]], \"mistake\": \"Забыть `attempt += 1` — функция, которая всегда падает, будет вызываться бесконечно.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nВ автотестах и работе с сетью постоянно приходится **ждать** и **повторять**: сервис ещё не поднялся, страница грузится, запрос упал с 503. Правильные повторы — `while` с лимитом попыток и паузой. Неправильные — вечное ожидание или `sleep(10)` «на всякий случай».\n\n## Повтор запроса с лимитом\n\n```python\nresponses = [503, 502, 200]\nattempt = 0\nstatus = None\nwhile attempt < 5 and status != 200:\n    status = responses[attempt]\n    attempt += 1\n    print(f\"попытка {attempt}: {status}\")\n```\n\n- Два условия: попытки не кончились **и** ещё нет успеха.\n- `status = None` до цикла — чтобы условие `status != 200` было истинно в первый раз.\n- Вывод: `попытка 1: 503`, `попытка 2: 502`, `попытка 3: 200`.\n\nЧто повторять, а что нет: ошибки **5xx** (проблема сервера) обычно временные — их повторяют. **4xx** (ошибка запроса: 404, 401) от повтора не исправятся — останавливаются сразу.\n\n## Пауза между попытками\n\nВ настоящем коде между попытками ждут:\n\n```py\nimport time\n\nattempt = 0\nwhile attempt < 5:\n    status = send_request()\n    if status < 500:\n        break\n    attempt += 1\n    time.sleep(2)          # подождать 2 секунды\n```\n\n- `import time` подключает модуль `time`; `time.sleep(секунды)` приостанавливает программу.\n- В заданиях настоящих пауз нет: время «подделывают», чтобы тесты шли мгновенно.\n\n## Экспоненциальный откат\n\nЕсли сервис перегружен, частые повторы делают хуже. Поэтому паузу **удваивают**: 1, 2, 4, 8 секунд…\n\n```python\ndelay = 1\nwaited = 0\nattempt = 0\nwhile attempt < 4:\n    attempt += 1\n    print(\"попытка\", attempt, \"ждём\", delay)\n    waited += delay\n    delay *= 2\nprint(\"всего ждали\", waited)\n```\n\nВывод: попытки с паузами 1, 2, 4, 8 и `всего ждали 15`.\n\n## Ожидание условия с таймаутом\n\nСамый важный приём автотестов — **явное ожидание**: проверять условие, пока оно не выполнится, но не дольше таймаута.\n\n```python\nt = 0.0          # «часы» — сколько секунд прошло\nready_at = 1.2   # страница будет готова через 1.2 с\npolls = 0\nwhile t < ready_at:\n    t += 0.5     # «подождали» полсекунды\n    polls += 1\nprint(t, polls)\n```\n\n- Проверка каждые 0.5 секунды: 0.5, 1.0, 1.5 — на третьей проверке готово. Вывод: `1.5 3`.\n\nПолная версия с таймаутом — как `WebDriverWait` в Selenium:\n\n```python\nclass FakeClock:\n    def __init__(self):\n        self.t = 0.0\n    def now(self):\n        return self.t\n    def sleep(self, s):\n        self.t += s\n\ndef wait_until(condition, timeout, clock, poll=0.5):\n    start = clock.now()\n    while True:\n        if condition():\n            return True\n        if clock.now() - start >= timeout:\n            raise TimeoutError(f\"не дождались за {timeout} с\")\n        clock.sleep(poll)\n\nclock = FakeClock()\nprint(wait_until(lambda: clock.now() >= 2, 10, clock), clock.now())\ntry:\n    wait_until(lambda: False, 1, FakeClock())\nexcept TimeoutError as e:\n    print(\"TimeoutError:\", e)\n```\n\nЧто здесь нового:\n- `class FakeClock` — **класс**: шаблон объекта со своими данными (`self.t`) и функциями-**методами** (`now`, `sleep`). Подробно — тема «Классы». Здесь достаточно понимать: у объекта `clock` можно вызвать `clock.now()` (который час) и `clock.sleep(s)` (подождать). Настоящие часы — `time.monotonic()` и `time.sleep()`, а фейковые сдвигают время мгновенно.\n- `condition` — **функция-проверка**, её передают аргументом (тема «Функции как объекты»); `lambda: clock.now() >= 2` — короткая функция без параметров.\n- `raise TimeoutError(...)` — **выбросить** ошибку: так функция сообщает «не получилось». Вызывающий код ловит её через `try/except`.\n- Вывод: `True 2.0`, затем `TimeoutError: не дождались за 1 с`.\n\n## Повтор при исключении\n\n```python\ncalls = []\ndef flaky():\n    calls.append(1)\n    if len(calls) < 3:\n        raise ConnectionError(\"нет связи\")\n    return \"ok\"\n\nresult = None\nattempt = 0\nwhile attempt < 5:\n    attempt += 1\n    try:\n        result = flaky()\n        break\n    except ConnectionError:\n        print(\"попытка\", attempt, \"упала\")\nprint(result, len(calls))\n```\n\n- Функция падает дважды, на третий раз отвечает. Вывод: две строки об ошибках, затем `ok 3`.\n- `except Exception:` перехватывает **любую** обычную ошибку — удобно для повторов, но опасно маскирует баги. Лучше ловить конкретные типы.\n\n## Итог\n\n- Повтор: `while попытки < лимит and нет_успеха`.\n- Повторяют временные ошибки (5xx, обрыв связи), не повторяют ошибки запроса (4xx).\n- Паузы — `time.sleep`; при перегрузке — экспоненциальный откат (1, 2, 4, 8…).\n- Явное ожидание: проверять условие, пока не истечёт таймаут; по таймауту — `raise TimeoutError`.\n- Никогда не жди без лимита.",
@@ -994,7 +1058,8 @@
                   "code": "queue = [\"build\", \"test\"]\nwhile queue:\n    task = queue.pop(0)\n    print(\"выполняю\", task)\n    if task == \"build\":\n        queue.append(\"deploy\")\n",
                   "expected_output": "выполняю build\nвыполняю test\nвыполняю deploy",
                   "hint": "Задача, добавленная во время работы, тоже будет обработана.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Очередь может пополняться во время работы: `while queue:` крутится, пока в ней что-то есть.\", \"lines\": [[\"task = queue.pop(0)\", \"Берём с начала.\"], [\"if task == \\\"build\\\":\\n        queue.append(\\\"deploy\\\")\", \"После сборки в конец очереди встаёт деплой.\"]], \"mistake\": \"Решить, что `deploy` выполнится сразу после `build`. Он встал в конец, после `test`.\"}"
                 },
                 {
                   "slug": "whl-m2-l3-e2",
@@ -1003,7 +1068,8 @@
                   "code": "stack = [1, 2, 3]\nwhile stack:\n    print(stack.pop())\nprint(stack)\n",
                   "expected_output": "3\n2\n1\n[]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Стек: `pop()` снимает с конца — последний добавленный выходит первым.\", \"lines\": [[\"print(stack.pop())\", \"3, 2, 1.\"], [\"print(stack)\", \"Пустой список.\"]], \"mistake\": \"Ожидать 1, 2, 3.\"}"
                 },
                 {
                   "slug": "whl-m2-l3-e6",
@@ -1012,7 +1078,8 @@
                   "code": "stack = []\nfor ch in \"abc\":\n    stack.append(ch)\nresult = \"\"\nwhile stack:\n    result += stack.pop()\nprint(result)\n",
                   "expected_output": "cba",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Положили `a, b, c` — снимаем `c, b, a`. Стек переворачивает порядок.\", \"lines\": [[\"result += stack.pop()\", \"`cba`.\"]], \"mistake\": \"Ответить `abc`.\"}"
                 },
                 {
                   "slug": "whl-m2-l3-e3",
@@ -1022,7 +1089,8 @@
                   "tests": "def test_values():\n    got = [is_balanced(s) for s in (\"{[()]}\", \"([)]\", \"((\", \"f(x[1])\", \"\", \")\")]\n    assert got == [True, False, False, True, True, False], f\"Получено {got}\"\n",
                   "solution": "def is_balanced(text):\n    pairs = {\")\": \"(\", \"]\": \"[\", \"}\": \"{\"}\n    stack = []\n    i = 0\n    while i < len(text):\n        ch = text[i]\n        if ch in \"([{\":\n            stack.append(ch)\n        elif ch in pairs:\n            if not stack or stack.pop() != pairs[ch]:\n                return False\n        i += 1\n    return not stack\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Открывающие скобки — в стек. На закрывающей снимаем верхнюю и проверяем, что она той же формы. В конце стек должен быть пуст.\", \"lines\": [[\"pairs = {\\\")\\\": \\\"(\\\", \\\"]\\\": \\\"[\\\", \\\"}\\\": \\\"{\\\"}\", \"Закрывающая → её открывающая.\"], [\"if not stack or stack.pop() != pairs[ch]:\\n                return False\", \"Нечего закрывать или не та скобка: `([)]`.\"], [\"return not stack\", \"`((` — остались открытые.\"]], \"mistake\": \"Считать только количество скобок — `([)]` пройдёт.\"}"
                 },
                 {
                   "slug": "whl-m2-l3-e4",
@@ -1032,7 +1100,8 @@
                   "tests": "def test_values():\n    got = run_pipeline([\"build\"], {\"build\": [\"unit\", \"lint\"], \"unit\": [\"report\"]})\n    assert got == [\"build\", \"unit\", \"lint\", \"report\"], f\"Получено {got}\"\n    assert run_pipeline([], {}) == [], \"Пусто — пусто\"\n",
                   "solution": "def run_pipeline(tasks, deps):\n    queue = list(tasks)\n    done = []\n    while queue:\n        task = queue.pop(0)\n        done.append(task)\n        queue.extend(deps.get(task, []))\n    return done\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Очередь задач: выполнили — добавили в конец её зависимые задачи.\", \"lines\": [[\"queue = list(tasks)\", \"Копия — исходный список не трогаем.\"], [\"queue.extend(deps.get(task, []))\", \"Для задач без зависимостей — пустой список.\"]], \"mistake\": \"`deps[task]` — для задачи без записи в словаре `KeyError`.\"}"
                 },
                 {
                   "slug": "whl-m2-l3-e5",
@@ -1042,7 +1111,8 @@
                   "tests": "def test_values():\n    assert undo_history([\"type a\", \"type b\", \"undo\", \"type c\", \"undo\", \"undo\"]) == [], \"Всё отменено\"\n    assert undo_history([\"a\", \"b\", \"undo\", \"c\"]) == [\"a\", \"c\"], \"Неверная история\"\n    assert undo_history([\"undo\"]) == [], \"Отмена пустой истории — без ошибки\"\n",
                   "solution": "def undo_history(actions):\n    history = []\n    i = 0\n    while i < len(actions):\n        if actions[i] == \"undo\":\n            if history:\n                history.pop()\n        else:\n            history.append(actions[i])\n        i += 1\n    return history\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"История — стек: команда кладётся, `undo` снимает последнюю, если есть что снимать.\", \"lines\": [[\"if actions[i] == \\\"undo\\\":\\n            if history:\\n                history.pop()\", \"Лишний `undo` на пустой истории ничего не ломает.\"], [\"else:\\n            history.append(actions[i])\", \"Обычная команда.\"]], \"mistake\": \"`pop()` без проверки — на пустой истории `IndexError`.\"}"
                 },
                 {
                   "slug": "whl-m2-l3-e7",
@@ -1052,7 +1122,8 @@
                   "tests": "def test_values():\n    src = [\"a\", \"b\", \"c\", \"d\", \"e\"]\n    assert serve_queue(src, 2) == 3 and src == [\"a\", \"b\", \"c\", \"d\", \"e\"], \"Неверно или исходная очередь изменилась\"\n    assert serve_queue([], 3) == 0 and serve_queue([\"x\"], 5) == 1 and serve_queue([1, 2, 3], 1) == 3, \"Неверное число тактов\"\n",
                   "solution": "def serve_queue(queue, capacity):\n    queue = list(queue)\n    ticks = 0\n    while queue:\n        queue = queue[capacity:]\n        ticks += 1\n    return ticks\n",
                   "hint": "Сделай копию list(queue). За такт отрезай первые capacity: queue = queue[capacity:].",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"За такт убираем `capacity` человек срезом. Работаем с копией, чтобы не менять исходный список.\", \"lines\": [[\"queue = list(queue)\", \"Копия.\"], [\"queue = queue[capacity:]\", \"5 человек по 2: 3 → 1 → 0 — три такта.\"]], \"mistake\": \"`del queue[:capacity]` без копии — испортит исходный список.\"}"
                 },
                 {
                   "slug": "whl-m2-l3-e8",
@@ -1062,7 +1133,8 @@
                   "tests": "def test_values():\n    got = [eval_rpn([\"2\", \"3\", \"+\", \"4\", \"*\"]), eval_rpn([\"10\", \"4\", \"-\"]), eval_rpn([\"7\"]), eval_rpn([\"5\", \"1\", \"2\", \"+\", \"4\", \"*\", \"+\", \"3\", \"-\"])]\n    assert got == [20, 6, 7, 14], f\"Получено {got}\"\n",
                   "solution": "def eval_rpn(tokens):\n    stack = []\n    i = 0\n    while i < len(tokens):\n        tok = tokens[i]\n        i += 1\n        if tok in (\"+\", \"-\", \"*\"):\n            right = stack.pop()\n            left = stack.pop()\n            if tok == \"+\":\n                stack.append(left + right)\n            elif tok == \"-\":\n                stack.append(left - right)\n            else:\n                stack.append(left * right)\n        else:\n            stack.append(int(tok))\n    return stack.pop()\n",
                   "hint": "Для «-» порядок важен: первым снимается ПРАВЫЙ операнд.",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Обратная польская запись: числа кладём в стек, оператор снимает два верхних и кладёт результат. Первым снимается **правый** операнд.\", \"lines\": [[\"right = stack.pop()\\n            left = stack.pop()\", \"Порядок важен для вычитания.\"], [\"stack.append(left - right)\", \"`[\\\"5\\\", \\\"3\\\", \\\"-\\\"]` → 5 − 3 = 2.\"], [\"stack.append(int(tok))\", \"Число — в стек.\"], [\"return stack.pop()\", \"В конце остаётся результат.\"]], \"mistake\": \"Снять сначала левый — `5 3 -` даст −2.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nДве базовые структуры данных программиста — **очередь** и **стек**. Очередь — задачи CI, запросы к серверу, люди у кассы: первым пришёл — первым обслужен. Стек — история «отмены» в редакторе, кнопка «назад» в браузере, проверка скобок: последним положил — первым взял. Обе обрабатываются циклом «**пока не пусто**».\n\n## Стек: последним пришёл — первым ушёл (LIFO)\n\n```python\nstack = [1, 2, 3]\nwhile stack:\n    print(stack.pop())\nprint(stack)\n```\n\n- `append(x)` кладёт на верх стека (в конец списка), `pop()` снимает с верха.\n- `while stack:` — пока стек не пуст.\n- Вывод: `3`, `2`, `1`, `[]`.\n\nСтек переворачивает порядок:\n\n```python\nstack = []\nfor ch in \"abc\":\n    stack.append(ch)\nresult = \"\"\nwhile stack:\n    result += stack.pop()\nprint(result)\n```\n\nВывод: `cba`.\n\n## Очередь: первым пришёл — первым ушёл (FIFO)\n\n```python\nqueue = [\"build\", \"test\"]\nwhile queue:\n    task = queue.pop(0)\n    print(\"выполняю\", task)\n    if task == \"build\":\n        queue.append(\"deploy\")\n```\n\n- `pop(0)` снимает **первый** элемент — начало очереди.\n- Во время работы в конец можно добавлять новые задачи: `while queue` обработает и их.\n- Вывод: `выполняю build`, `выполняю test`, `выполняю deploy`.\n- Так работает обход «в ширину»: задача порождает новые, они встают в конец очереди.\n\nПроизводительность: `pop(0)` у списка сдвигает все элементы — на больших очередях медленно. Для настоящих очередей есть `collections.deque` с быстрым `popleft()`. Для учебных задач список подходит.\n\n## Очередь с зависимостями\n\n```python\ndeps = {\"build\": [\"unit\", \"lint\"], \"unit\": [\"report\"]}\nqueue = [\"build\"]\ndone = []\nwhile queue:\n    task = queue.pop(0)\n    done.append(task)\n    queue.extend(deps.get(task, []))\nprint(done)\n```\n\n- `deps.get(task, [])` — список задач, которые идут после `task`, или пустой список, если их нет (тема «Словари»).\n- `extend` добавляет их все в конец очереди.\n- Вывод: `['build', 'unit', 'lint', 'report']`.\n\n## Стек для проверки скобок\n\n```python\ntext = \"{[()]}\"\npairs = {\")\": \"(\", \"]\": \"[\", \"}\": \"{\"}\nstack = []\nok = True\nfor ch in text:\n    if ch in \"([{\":\n        stack.append(ch)\n    elif ch in pairs:\n        if not stack or stack.pop() != pairs[ch]:\n            ok = False\n            break\nprint(ok and not stack)\n```\n\n- Открывающую скобку кладём в стек. Закрывающая должна совпасть с **последней** открытой — она на верху стека.\n- `pairs[ch]` — какая открывающая соответствует закрывающей.\n- `not stack` — стек пуст (закрывать нечего) → ошибка.\n- В конце стек должен быть пуст: иначе остались незакрытые скобки.\n- Вывод: `True`.\n\n## Стек вычислений\n\nОбратная польская запись `2 3 + 4 *` означает `(2 + 3) * 4`:\n\n```python\ntokens = [\"2\", \"3\", \"+\", \"4\", \"*\"]\nstack = []\nfor tok in tokens:\n    if tok in \"+-*\":\n        right = stack.pop()\n        left = stack.pop()\n        if tok == \"+\":\n            stack.append(left + right)\n        elif tok == \"-\":\n            stack.append(left - right)\n        else:\n            stack.append(left * right)\n    else:\n        stack.append(int(tok))\nprint(stack.pop())\n```\n\n- Числа кладём в стек; оператор снимает два верхних (сначала **правый**), результат кладёт обратно.\n- Вывод: `20`. Так считают калькуляторы и компиляторы.\n\n## Отмена действий\n\n```python\nhistory = []\nfor action in [\"a\", \"b\", \"undo\", \"c\"]:\n    if action == \"undo\":\n        if history:\n            history.pop()\n    else:\n        history.append(action)\nprint(history)\n```\n\n- `if history:` перед `pop()` — защита: `pop()` пустого списка даёт `IndexError`.\n- Вывод: `['a', 'c']`.\n\n## Итог\n\n- Стек (LIFO): `append` + `pop()`. Очередь (FIFO): `append` + `pop(0)`.\n- Обработка до опустошения: `while коллекция:`.\n- В очередь можно добавлять задачи во время обработки.\n- `pop()` пустого списка — `IndexError`; проверяй `if stack:`.\n- Большие очереди — `collections.deque`.",
@@ -1114,7 +1186,8 @@
                   "code": "s = \"level\"\ni, j = 0, len(s) - 1\nwhile i < j and s[i] == s[j]:\n    i += 1\n    j -= 1\nprint(i, j, i >= j)\n",
                   "expected_output": "2 2 True",
                   "hint": "Указатели идут навстречу, пока символы совпадают. Встретились — значит палиндром.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Два указателя идут навстречу, пока символы совпадают. Встретились — строка палиндром.\", \"lines\": [[\"while i < j and s[i] == s[j]:\", \"l=l, e=e — сдвигаемся.\"], [\"print(i, j, i >= j)\", \"Встретились на средней `v`: `2 2 True`.\"]], \"mistake\": \"Ожидать, что `i` уйдёт дальше `j`. Цикл останавливается, как только `i < j` ложно.\"}"
                 },
                 {
                   "slug": "whl-pointers-e2",
@@ -1123,7 +1196,8 @@
                   "code": "xs = [1, 2, 3, 4, 5]\ni, j = 0, len(xs) - 1\nwhile i < j:\n    xs[i], xs[j] = xs[j], xs[i]\n    i += 1\n    j -= 1\nprint(xs)\n",
                   "expected_output": "[5, 4, 3, 2, 1]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Разворот на месте: меняем крайние элементы и сдвигаем указатели к центру.\", \"lines\": [[\"xs[i], xs[j] = xs[j], xs[i]\", \"1↔5, 2↔4. Средний 3 остаётся.\"]], \"mistake\": \"`while i <= j` — лишний обмен среднего элемента с самим собой, результат тот же, но условие `<` точнее.\"}"
                 },
                 {
                   "slug": "whl-pointers-e3",
@@ -1132,7 +1206,8 @@
                   "code": "a, b = [1, 4, 7], [2, 3, 9]\ni = j = 0\nmerged = []\nwhile i < len(a) and j < len(b):\n    if a[i] <= b[j]:\n        merged.append(a[i])\n        i += 1\n    else:\n        merged.append(b[j])\n        j += 1\nmerged += a[i:] + b[j:]\nprint(merged)\n",
                   "expected_output": "[1, 2, 3, 4, 7, 9]",
                   "hint": "Когда один список кончился, хвост второго дописывается целиком.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Слияние: каждый раз берём меньший из двух текущих элементов. Когда один список кончился — дописываем хвост другого.\", \"lines\": [[\"if a[i] <= b[j]:\", \"1 < 2 → 1; 4 > 2 → 2; 4 > 3 → 3; 4 < 9 → 4; 7 < 9 → 7.\"], [\"merged += a[i:] + b[j:]\", \"`a` кончился, хвост `b` — `[9]`.\"]], \"mistake\": \"Забыть хвост — 9 потеряется.\"}"
                 },
                 {
                   "slug": "whl-pointers-e4",
@@ -1142,7 +1217,8 @@
                   "tests": "def test_values():\n    got = [is_palindrome(s) for s in (\"level\", \"abca\", \"\", \"a\", \"abba\", \"ab\")]\n    assert got == [True, False, True, True, True, False], f\"Получено {got}\"\n\ndef test_no_slice():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"::\" not in src and \"reversed\" not in src, \"Реши двумя указателями\"\n",
                   "solution": "def is_palindrome(s):\n    i, j = 0, len(s) - 1\n    while i < j:\n        if s[i] != s[j]:\n            return False\n        i += 1\n        j -= 1\n    return True\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Сравниваем символы с двух концов, сдвигаясь к центру. Первое несовпадение — сразу `False`.\", \"lines\": [[\"i, j = 0, len(s) - 1\", \"Для пустой строки `j` = −1, цикл не выполнится.\"], [\"if s[i] != s[j]:\\n            return False\", \"`abca`: b ≠ c.\"], [\"return True\", \"Все пары совпали.\"]], \"mistake\": \"`j = len(s)` — выход за границу строки.\"}"
                 },
                 {
                   "slug": "whl-pointers-e5",
@@ -1152,7 +1228,8 @@
                   "tests": "def test_values():\n    got = [merge_sorted([1, 4, 7], [2, 3, 9, 10]), merge_sorted([], [1]), merge_sorted([1, 1], [1]), merge_sorted([], [])]\n    assert got == [[1, 2, 3, 4, 7, 9, 10], [1], [1, 1, 1], []], f\"Получено {got}\"\n\ndef test_no_sort():\n    src = open(\"solution.py\", encoding=\"utf-8\").read().replace(\"merge_sorted\", \"\")\n    assert \"sorted(\" not in src and \".sort(\" not in src, \"Без sorted/sort\"\n",
                   "solution": "def merge_sorted(a, b):\n    i = j = 0\n    result = []\n    while i < len(a) and j < len(b):\n        if a[i] <= b[j]:\n            result.append(a[i])\n            i += 1\n        else:\n            result.append(b[j])\n            j += 1\n    result.extend(a[i:])\n    result.extend(b[j:])\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Два указателя по двум отсортированным спискам: берём меньший, двигаем его указатель.\", \"lines\": [[\"while i < len(a) and j < len(b):\", \"Пока оба не кончились.\"], [\"result.extend(a[i:])\\n    result.extend(b[j:])\", \"Один из хвостов пустой, другой — остаток.\"]], \"mistake\": \"`result = sorted(a + b)` — задание просит без сортировки.\"}"
                 },
                 {
                   "slug": "whl-pointers-e6",
@@ -1162,7 +1239,8 @@
                   "tests": "def test_values():\n    got = [pair_with_sum_sorted([1, 2, 4, 7, 11], 9), pair_with_sum_sorted([1, 2], 10), pair_with_sum_sorted([], 1), pair_with_sum_sorted([3, 3], 6)]\n    assert got == [(2, 7), None, None, (3, 3)], f\"Получено {got}\"\n",
                   "solution": "def pair_with_sum_sorted(nums, target):\n    i, j = 0, len(nums) - 1\n    while i < j:\n        s = nums[i] + nums[j]\n        if s == target:\n            return (nums[i], nums[j])\n        if s < target:\n            i += 1\n        else:\n            j -= 1\n    return None\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"В отсортированном списке: сумма мала — двигаем левый указатель к большим числам, велика — правый к меньшим.\", \"lines\": [[\"s = nums[i] + nums[j]\", \"Сумма крайних.\"], [\"if s < target:\\n            i += 1\", \"Нужно больше.\"], [\"else:\\n            j -= 1\", \"Нужно меньше.\"]], \"mistake\": \"Двигать оба указателя сразу — можно проскочить нужную пару.\"}"
                 },
                 {
                   "slug": "whl-pointers-e7",
@@ -1172,7 +1250,8 @@
                   "tests": "def test_values():\n    got = [dedupe_sorted([1, 1, 2, 3, 3, 3]), dedupe_sorted([]), dedupe_sorted([5]), dedupe_sorted([1, 2])]\n    assert got == [[1, 2, 3], [], [5], [1, 2]], f\"Получено {got}\"\n\ndef test_no_set():\n    assert \"set(\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Реши циклом, без set\"\n",
                   "solution": "def dedupe_sorted(nums):\n    result = []\n    i = 0\n    while i < len(nums):\n        if not result or nums[i] != result[-1]:\n            result.append(nums[i])\n        i += 1\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"В отсортированном списке одинаковые стоят рядом — достаточно сравнить с последним добавленным.\", \"lines\": [[\"if not result or nums[i] != result[-1]:\", \"Первый элемент добавляем всегда.\"]], \"mistake\": \"Сравнивать с `result[-1]` без проверки `not result` — на первом шаге `IndexError`.\"}"
                 },
                 {
                   "slug": "whl-pointers-e8",
@@ -1182,7 +1261,8 @@
                   "tests": "def test_values():\n    got = [is_subsequence(\"ace\", \"abcde\"), is_subsequence(\"aec\", \"abcde\"), is_subsequence(\"\", \"abc\"), is_subsequence(\"a\", \"\"), is_subsequence(\"abc\", \"abc\")]\n    assert got == [True, False, True, False, True], f\"Получено {got}\"\n",
                   "solution": "def is_subsequence(small, big):\n    i = j = 0\n    while i < len(small) and j < len(big):\n        if small[i] == big[j]:\n            i += 1\n        j += 1\n    return i == len(small)\n",
                   "hint": "Указатель по big двигается всегда, по small — только при совпадении.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Указатель по `small` двигается только при совпадении, по `big` — всегда. Если `small` пройден до конца — подпоследовательность найдена.\", \"lines\": [[\"if small[i] == big[j]:\\n            i += 1\", \"Нашли очередной символ `small`.\"], [\"j += 1\", \"По `big` идём в любом случае.\"], [\"return i == len(small)\", \"`ace` в `abcde` — все три найдены по порядку.\"]], \"mistake\": \"Искать каждый символ через `in` — порядок не учтётся, и `aec` пройдёт.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n**Два указателя** — приём, в котором по данным идут сразу две индексные переменные: навстречу друг другу с концов или параллельно по двум спискам. Он превращает многие задачи с вложенными циклами в один проход: проверка палиндрома, слияние отсортированных списков, поиск пары с суммой. Указатели двигаются по-разному в зависимости от условий — поэтому здесь нужен именно `while`.\n\n## Навстречу друг другу: палиндром\n\n```python\ns = \"level\"\ni, j = 0, len(s) - 1\nwhile i < j and s[i] == s[j]:\n    i += 1\n    j -= 1\nprint(i, j, i >= j)\n```\n\n- `i` — с начала, `j` — с конца. Пока символы совпадают, сдвигаем оба к центру.\n- Если указатели встретились (`i >= j`), все пары совпали — строка палиндром.\n- По шагам: (0, 4) l=l → (1, 3) e=e → (2, 2) — стоп. Вывод: `2 2 True`.\n- Срез `s == s[::-1]` проще, но создаёт копию строки; указатели работают без копии и останавливаются на первом несовпадении.\n\n## Разворот списка на месте\n\n```python\nxs = [1, 2, 3, 4, 5]\ni, j = 0, len(xs) - 1\nwhile i < j:\n    xs[i], xs[j] = xs[j], xs[i]\n    i += 1\n    j -= 1\nprint(xs)\n```\n\n- `xs[i], xs[j] = xs[j], xs[i]` — обмен двух элементов в одну строку.\n- Средний элемент остаётся на месте. Вывод: `[5, 4, 3, 2, 1]`.\n\n## Пара с нужной суммой в отсортированном списке\n\n```python\nnums = [1, 2, 4, 7, 11]\ntarget = 9\ni, j = 0, len(nums) - 1\nwhile i < j:\n    s = nums[i] + nums[j]\n    if s == target:\n        print(nums[i], nums[j])\n        break\n    if s < target:\n        i += 1\n    else:\n        j -= 1\n```\n\n- Список отсортирован. Сумма мала — берём число побольше: левый указатель вправо. Велика — правый влево.\n- Каждый шаг отбрасывает один элемент, поэтому хватает **одного прохода** вместо вложенных циклов.\n- По шагам: 1+11=12 (много) → 1+7=8 (мало) → 2+7=9. Вывод: `2 7`.\n\n## Параллельно по двум спискам: слияние\n\n```python\na, b = [1, 4, 7], [2, 3, 9]\ni = j = 0\nmerged = []\nwhile i < len(a) and j < len(b):\n    if a[i] <= b[j]:\n        merged.append(a[i])\n        i += 1\n    else:\n        merged.append(b[j])\n        j += 1\nmerged += a[i:] + b[j:]\nprint(merged)\n```\n\n- `i` идёт по `a`, `j` — по `b`. Каждый раз берём меньший из двух текущих элементов и сдвигаем **только его** указатель.\n- Когда один список кончился, остаток другого уже отсортирован — дописываем его срезом.\n- Вывод: `[1, 2, 3, 4, 7, 9]`. На этом приёме построена сортировка слиянием.\n\n## Подпоследовательность\n\nМожно ли получить `\"ace\"` из `\"abcde\"`, вычёркивая буквы?\n\n```python\nsmall, big = \"ace\", \"abcde\"\ni = j = 0\nwhile i < len(small) and j < len(big):\n    if small[i] == big[j]:\n        i += 1\n    j += 1\nprint(i == len(small))\n```\n\n- Указатель по `big` идёт всегда, по `small` — только при совпадении.\n- Если `small` пройден целиком — ответ «да». Вывод: `True`.\n\n## Убрать повторы из отсортированного списка\n\n```python\nnums = [1, 1, 2, 3, 3, 3]\nresult = []\ni = 0\nwhile i < len(nums):\n    if not result or nums[i] != result[-1]:\n        result.append(nums[i])\n    i += 1\nprint(result)\n```\n\n- В отсортированном списке одинаковые стоят рядом — достаточно сравнить с последним добавленным `result[-1]`.\n- `not result` — результат ещё пуст, первый элемент добавляем всегда. Вывод: `[1, 2, 3]`.\n\n## Итог\n\n- Два указателя: навстречу (`i` с начала, `j` с конца, `while i < j`) или параллельно по двум спискам.\n- Каждый указатель двигается по своему условию — поэтому `while`.\n- Отсортированные данные позволяют решать поиск пары и слияние за один проход.\n- После параллельного прохода не забудь «хвост» оставшегося списка.",
@@ -1242,7 +1322,8 @@
                   "code": "xs = [1, 3, 5, 7, 9, 11]\nlo, hi, steps = 0, len(xs) - 1, 0\ntarget = 9\nwhile lo <= hi:\n    steps += 1\n    mid = (lo + hi) // 2\n    if xs[mid] == target:\n        break\n    if xs[mid] < target:\n        lo = mid + 1\n    else:\n        hi = mid - 1\nprint(mid, steps)\n",
                   "expected_output": "4 2",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Двоичный поиск делит отсортированный диапазон пополам: сравнили середину — отбросили половину, где искать бессмысленно.\", \"trace\": [[\"mid = (lo + hi) // 2\", \"lo = 0, hi = 5 → mid = 2, xs[2] = 5 < 9\", \"\"], [\"lo = mid + 1\", \"lo = 3\", \"\"], [\"mid = (lo + hi) // 2\", \"lo = 3, hi = 5 → mid = 4, xs[4] = 9 — нашли\", \"\"], [\"print(mid, steps)\", \"\", \"4 2\"]], \"mistake\": \"Посчитать шагов больше — перебор по одному был бы 5 шагов, а двоичный поиск нашёл за 2.\"}"
                 },
                 {
                   "slug": "whl-m3-l1-e2",
@@ -1251,7 +1332,8 @@
                   "code": "n, steps = 1_000_000, 0\nwhile n > 1:\n    n //= 2\n    steps += 1\nprint(steps)\n",
                   "expected_output": "19",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Каждое деление пополам сокращает диапазон вдвое. Для миллиона хватает около 20 шагов — поэтому двоичный поиск такой быстрый.\", \"lines\": [[\"n //= 2\\n    steps += 1\", \"1 000 000 → 500 000 → … → 1.\"], [\"print(steps)\", \"19 делений.\"]], \"mistake\": \"Ожидать сотни шагов. log₂(1 000 000) ≈ 20.\"}"
                 },
                 {
                   "slug": "whl-m3-l1-e6",
@@ -1260,7 +1342,8 @@
                   "code": "xs = [2, 4, 6, 8, 10, 12, 14]\nlo, hi = 0, len(xs) - 1\nwhile lo <= hi:\n    mid = (lo + hi) // 2\n    print(lo, hi, mid)\n    if xs[mid] < 5:\n        lo = mid + 1\n    else:\n        hi = mid - 1\nprint(\"lo =\", lo)\n",
                   "expected_output": "0 6 3\n0 2 1\n2 2 2\nlo = 2",
                   "hint": "Когда элемента нет, lo в конце указывает, куда его можно вставить.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Если искомого нет, двоичный поиск всё равно сужает границы, и `lo` оказывается там, куда его можно было бы вставить.\", \"trace\": [[\"print(lo, hi, mid)\", \"xs[3] = 8 ≥ 5 → hi = 2\", \"0 6 3\"], [\"print(lo, hi, mid)\", \"xs[1] = 4 < 5 → lo = 2\", \"0 2 1\"], [\"print(lo, hi, mid)\", \"xs[2] = 6 ≥ 5 → hi = 1, lo > hi — выход\", \"2 2 2\"], [\"print(\\\"lo =\\\", lo)\", \"\", \"lo = 2\"]], \"mistake\": \"Ожидать, что цикл остановится раньше. Выход — только когда `lo > hi`.\"}"
                 },
                 {
                   "slug": "whl-m3-l1-e3",
@@ -1270,7 +1353,8 @@
                   "tests": "def test_values():\n    xs = [1, 3, 5, 7, 9, 11, 13]\n    assert all(binary_search(xs, v) == i for i, v in enumerate(xs)), \"Каждый элемент должен находиться\"\n    assert binary_search(xs, 4) == -1 and binary_search([], 1) == -1 and binary_search(xs, 100) == -1, \"Отсутствующий — -1\"\n\ndef test_no_index():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \".index(\" not in src and \" in xs\" not in src, \"Реализуй двоичный поиск сам\"\n",
                   "solution": "def binary_search(xs, target):\n    lo, hi = 0, len(xs) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if xs[mid] == target:\n            return mid\n        if xs[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Классический двоичный поиск: границы `lo` и `hi`, середина `mid`. Меньше цели — ищем справа, больше — слева.\", \"lines\": [[\"while lo <= hi:\", \"Пока диапазон не пуст.\"], [\"if xs[mid] == target:\\n            return mid\", \"Нашли.\"], [\"if xs[mid] < target:\\n            lo = mid + 1\", \"`+ 1` — середину уже проверили.\"], [\"else:\\n            hi = mid - 1\", \"Левая половина.\"]], \"mistake\": \"`lo = mid` без `+ 1` — на двух элементах цикл может стать бесконечным.\"}"
                 },
                 {
                   "slug": "whl-m3-l1-e4",
@@ -1280,7 +1364,8 @@
                   "tests": "def test_values():\n    assert [int_sqrt(n) for n in (16, 17, 0, 1, 1_000_000, 99)] == [4, 4, 0, 1, 1000, 9], \"Неверный корень\"\n\ndef test_no_pow():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"**\" not in src and \"math\" not in src, \"Реши двоичным поиском\"\n",
                   "solution": "def int_sqrt(n):\n    lo, hi = 0, n\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if mid * mid <= n:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return hi\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Ищем наибольшее `m`, для которого `m² ≤ n`. Если середина подходит — ответ не меньше неё, двигаем `lo`; иначе — `hi`. В конце `hi` — последний подходящий.\", \"lines\": [[\"if mid * mid <= n:\\n            lo = mid + 1\", \"Подходит — пробуем больше.\"], [\"else:\\n            hi = mid - 1\", \"Слишком много.\"], [\"return hi\", \"Для 17: 4² = 16 ≤ 17, 5² = 25 > 17 → 4.\"]], \"mistake\": \"Вернуть `lo` — он на единицу больше ответа.\"}"
                 },
                 {
                   "slug": "whl-m3-l1-e5",
@@ -1290,7 +1375,8 @@
                   "tests": "def test_values():\n    commits = [f\"c{i}\" for i in range(100)]\n    calls = []\n    def is_bad(c):\n        calls.append(c)\n        return int(c[1:]) >= 37\n    assert first_bad(commits, is_bad) == \"c37\", \"Первый плохой — c37\"\n    assert len(calls) <= 8, f\"Слишком много проверок: {len(calls)} (двоичный поиск уложится в 7-8)\"\n\ndef test_none():\n    assert first_bad([\"a\", \"b\"], lambda c: False) is None, \"Плохих нет — None\"\n    assert first_bad([\"a\", \"b\"], lambda c: True) == \"a\", \"Все плохие — первый\"\n",
                   "solution": "def first_bad(commits, is_bad):\n    lo, hi = 0, len(commits) - 1\n    answer = None\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if is_bad(commits[mid]):\n            answer = commits[mid]\n            hi = mid - 1\n        else:\n            lo = mid + 1\n    return answer\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Как `git bisect`: плохие коммиты идут подряд после хороших. Плохая середина — запоминаем и ищем раньше; хорошая — ищем позже.\", \"lines\": [[\"if is_bad(commits[mid]):\\n            answer = commits[mid]\\n            hi = mid - 1\", \"Может, первый плохой ещё левее.\"], [\"else:\\n            lo = mid + 1\", \"Всё до `mid` хорошее.\"]], \"mistake\": \"Остановиться на первом найденном плохом — он не обязательно первый.\"}"
                 },
                 {
                   "slug": "whl-m3-l1-e7",
@@ -1300,7 +1386,8 @@
                   "tests": "def test_values():\n    got = [insert_position([1, 3, 5], 4), insert_position([1, 3, 5], 0), insert_position([1, 3, 5], 6), insert_position([1, 3, 3], 3), insert_position([], 7)]\n    assert got == [2, 0, 3, 1, 0], f\"Получено {got}\"\n\ndef test_while():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"while \" in src and \"for \" not in src, \"Реши двоичным поиском на while\"\n",
                   "solution": "def insert_position(xs, x):\n    lo, hi = 0, len(xs) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if xs[mid] < x:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return lo\n",
                   "hint": "Это двоичный поиск, где при xs[mid] >= x мы идём влево. Ответ — lo.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Место вставки — первая позиция, где элемент не меньше `x`. После поиска это `lo`.\", \"lines\": [[\"if xs[mid] < x:\\n            lo = mid + 1\", \"Вставлять надо правее.\"], [\"else:\\n            hi = mid - 1\", \"Может, есть позиция левее.\"], [\"return lo\", \"Для `[1, 3, 5]` и 4 — индекс 2.\"]], \"mistake\": \"`xs[mid] <= x` — для уже существующего `x` позиция окажется после него, а нужно перед.\"}"
                 },
                 {
                   "slug": "whl-m3-l1-e8",
@@ -1310,7 +1397,8 @@
                   "tests": "def test_values():\n    assert guess_game(50, 1, 100) == 1 and guess_game(25, 1, 100) == 2, \"Неверное число догадок\"\n    assert max(guess_game(s, 1, 100) for s in range(1, 101)) == 7, \"Для 1..100 максимум 7 догадок\"\n",
                   "solution": "def guess_game(secret, low, high):\n    guesses = 0\n    while True:\n        guess = (low + high) // 2\n        guesses += 1\n        if guess == secret:\n            return guesses\n        if guess < secret:\n            low = guess + 1\n        else:\n            high = guess - 1\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Угадывание серединой: каждая ошибка сужает диапазон вдвое.\", \"lines\": [[\"guess = (low + high) // 2\", \"1–100 → 50.\"], [\"if guess < secret:\\n            low = guess + 1\", \"Больше — сдвигаем нижнюю границу.\"], [\"else:\\n            high = guess - 1\", \"Меньше — верхнюю.\"]], \"mistake\": \"`low = guess` без `+ 1` — можно зациклиться на одной и той же догадке.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nКак найти слово в бумажном словаре? Открываешь посередине, смотришь, левее или правее нужное слово, и отбрасываешь половину. Это **двоичный поиск**: в отсортированных данных он находит элемент среди миллиона за 20 шагов вместо миллиона. Тот же принцип у `git bisect` (поиск коммита, который сломал тест) и у поиска «с какой версии упало».\n\n## Идея\n\n- Ищем в границах `lo`…`hi` (изначально весь список).\n- Смотрим на середину `mid`.\n- Нашли — готово. Середина меньше искомого — искомое правее: `lo = mid + 1`. Больше — левее: `hi = mid - 1`.\n- Когда `lo > hi`, искать негде — элемента нет.\n\n```python\nxs = [1, 3, 5, 7, 9, 11]\ntarget = 9\nlo, hi, steps = 0, len(xs) - 1, 0\nwhile lo <= hi:\n    steps += 1\n    mid = (lo + hi) // 2\n    if xs[mid] == target:\n        break\n    if xs[mid] < target:\n        lo = mid + 1\n    else:\n        hi = mid - 1\nprint(mid, steps)\n```\n\n- `(lo + hi) // 2` — индекс середины (целочисленное деление).\n- По шагам: lo=0, hi=5, mid=2 (5 < 9) → lo=3; mid=4 (9) — нашли.\n- Вывод: `4 2` — два шага вместо пяти при переборе.\n- **Условие работы: список отсортирован.** На неотсортированном двоичный поиск даёт неверные ответы.\n\n## Почему так быстро\n\nКаждый шаг делит область пополам:\n\n```python\nn, steps = 1_000_000, 0\nwhile n > 1:\n    n //= 2\n    steps += 1\nprint(steps)\n```\n\n- `1_000_000` — подчёркивания в числе для читаемости, это просто миллион.\n- Вывод: `19` — примерно столько шагов нужно для миллиона элементов. Для миллиарда — около 30.\n\n## Как функция\n\n```python\ndef binary_search(xs, target):\n    lo, hi = 0, len(xs) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if xs[mid] == target:\n            return mid\n        if xs[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n\nprint(binary_search([1, 3, 5, 7, 9], 7), binary_search([1, 3, 5], 4))\n```\n\nВывод: `3 -1`.\n\nТонкости, где легко ошибиться:\n- условие `lo <= hi` (с равенством!) — иначе не проверится последний оставшийся элемент;\n- `lo = mid + 1` и `hi = mid - 1` (не `mid`) — иначе цикл может зациклиться на одном и том же `mid`.\n\n## Место для вставки\n\nЕсли элемента нет, `lo` в конце указывает, **куда его вставить**, чтобы порядок сохранился:\n\n```python\nxs = [2, 4, 6, 8, 10, 12, 14]\nlo, hi = 0, len(xs) - 1\nwhile lo <= hi:\n    mid = (lo + hi) // 2\n    print(lo, hi, mid)\n    if xs[mid] < 5:\n        lo = mid + 1\n    else:\n        hi = mid - 1\nprint(\"lo =\", lo)\n```\n\n- Вывод: `0 6 3`, `0 2 1`, `2 2 2`, `lo = 2` — 5 встаёт между 4 и 6.\n\n## Поиск границы: первый «плохой»\n\nДвоичный поиск работает не только со списком чисел, а с любым условием вида «сначала всё хорошо, потом всё плохо»:\n\n```python\ncommits = [f\"c{i}\" for i in range(100)]\ndef is_bad(c):\n    return int(c[1:]) >= 37\n\nlo, hi, answer, checks = 0, len(commits) - 1, None, 0\nwhile lo <= hi:\n    mid = (lo + hi) // 2\n    checks += 1\n    if is_bad(commits[mid]):\n        answer = commits[mid]\n        hi = mid - 1\n    else:\n        lo = mid + 1\nprint(answer, checks)\n```\n\n- Нашли плохой — запоминаем и ищем **левее**: вдруг есть более ранний. Хороший — ищем правее.\n- `c[1:]` — строка без первого символа, `int(...)` — номер коммита.\n- Вывод: `c37 6` — 6 проверок из 100 коммитов. Так работает `git bisect`.\n\n## Целый корень двоичным поиском\n\n```python\nn = 17\nlo, hi = 0, n\nwhile lo <= hi:\n    mid = (lo + hi) // 2\n    if mid * mid <= n:\n        lo = mid + 1\n    else:\n        hi = mid - 1\nprint(hi)\n```\n\n- Ищем наибольшее `m` с `m * m <= n`. В конце `hi` — ответ. Вывод: `4`.\n\n## Итог\n\n- Двоичный поиск — только для **отсортированных** данных (или монотонного условия).\n- `lo`, `hi`, `mid = (lo + hi) // 2`; `while lo <= hi`; сдвиг `mid + 1` / `mid - 1`.\n- Шагов — около log₂(n): миллион — 20, миллиард — 30.\n- Не нашли — `lo` показывает место вставки.\n- Поиск границы «хорошо → плохо»: при находке запомнить и искать левее.",
@@ -1362,7 +1450,8 @@
                   "code": "a, b = 0, 1\nresult = []\nwhile a <= 20:\n    result.append(a)\n    a, b = b, a + b\nprint(result)\n",
                   "expected_output": "[0, 1, 1, 2, 3, 5, 8, 13]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Фибоначчи через пару `a, b`: каждый шаг сдвигает окно — `a` становится `b`, `b` — их сумма.\", \"lines\": [[\"while a <= 20:\", \"Пока число не больше 20.\"], [\"a, b = b, a + b\", \"0, 1, 1, 2, 3, 5, 8, 13, 21 — на 21 стоп.\"]], \"mistake\": \"Включить 21. Проверка идёт перед добавлением.\"}"
                 },
                 {
                   "slug": "whl-m3-l2-e2",
@@ -1371,7 +1460,8 @@
                   "code": "n = 7\npath = [n]\nwhile n != 1:\n    n = n // 2 if n % 2 == 0 else 3 * n + 1\n    path.append(n)\nprint(len(path) - 1, max(path))\n",
                   "expected_output": "16 52",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Путь Коллатца для 7: считаем шаги и запоминаем все значения, чтобы найти максимум.\", \"lines\": [[\"n = n // 2 if n % 2 == 0 else 3 * n + 1\\n    path.append(n)\", \"7 → 22 → 11 → 34 → 17 → 52 → … → 1.\"], [\"print(len(path) - 1, max(path))\", \"Шагов на один меньше, чем чисел: 16. Пик — 52.\"]], \"mistake\": \"Ответить 17 — стартовое число не шаг.\"}"
                 },
                 {
                   "slug": "whl-m3-l2-e6",
@@ -1380,7 +1470,8 @@
                   "code": "x = 1\npowers = []\nwhile x < 100:\n    powers.append(x)\n    x *= 3\nprint(powers, x)\n",
                   "expected_output": "[1, 3, 9, 27, 81] 243",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Цикл останавливается, когда `x` уже вышел за границу, — последнее значение в список не попало, но в `x` осталось.\", \"lines\": [[\"powers.append(x)\\n    x *= 3\", \"1, 3, 9, 27, 81.\"], [\"print(powers, x)\", \"После 81 → 243, 243 < 100 — нет.\"]], \"mistake\": \"Ожидать `x` = 81. Умножение успело выполниться.\"}"
                 },
                 {
                   "slug": "whl-m3-l2-e3",
@@ -1390,7 +1481,8 @@
                   "tests": "def test_values():\n    assert fib_until(10) == [0, 1, 1, 2, 3, 5, 8] and fib_until(0) == [0] and fib_until(1) == [0, 1, 1], \"Неверная последовательность\"\n",
                   "solution": "def fib_until(limit):\n    a, b = 0, 1\n    result = []\n    while a <= limit:\n        result.append(a)\n        a, b = b, a + b\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Генерируем числа Фибоначчи, пока они не превышают лимит.\", \"lines\": [[\"while a <= limit:\", \"Для 0 — только 0.\"], [\"a, b = b, a + b\", \"Одновременное присваивание.\"]], \"mistake\": \"`a = b` и `b = a + b` раздельно — второе использует уже новое `a`.\"}"
                 },
                 {
                   "slug": "whl-m3-l2-e4",
@@ -1400,7 +1492,8 @@
                   "tests": "def test_values():\n    assert [gcd(48, 18), gcd(17, 5), gcd(0, 7), gcd(100, 75)] == [6, 1, 7, 25], \"Неверный НОД\"\n\ndef test_no_math():\n    assert \"math\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Реализуй алгоритм Евклида сам\"\n",
                   "solution": "def gcd(a, b):\n    while b:\n        a, b = b, a % b\n    return a\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Алгоритм Евклида: НОД(a, b) = НОД(b, a % b). Когда остаток 0 — ответ в `a`.\", \"lines\": [[\"while b:\\n        a, b = b, a % b\", \"(48, 18) → (18, 12) → (12, 6) → (6, 0).\"], [\"return a\", \"6.\"]], \"mistake\": \"Перебирать делители от меньшего числа вниз — работает, но в разы медленнее.\"}"
                 },
                 {
                   "slug": "whl-m3-l2-e5",
@@ -1410,7 +1503,8 @@
                   "tests": "def test_values():\n    assert primes_until(20) == [2, 3, 5, 7, 11, 13, 17, 19] and primes_until(1) == [] and primes_until(2) == [2], \"Неверный список\"\n    assert len(primes_until(1000)) == 168, \"До 1000 ровно 168 простых\"\n",
                   "solution": "def primes_until(limit):\n    primes = []\n    n = 2\n    while n <= limit:\n        d = 2\n        is_prime = True\n        while d * d <= n:\n            if n % d == 0:\n                is_prime = False\n                break\n            d += 1\n        if is_prime:\n            primes.append(n)\n        n += 1\n    return primes\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Внешний `while` по кандидатам, внутренний — по делителям до корня. Флаг `is_prime` запоминает результат проверки.\", \"lines\": [[\"while d * d <= n:\", \"Делители до корня.\"], [\"is_prime = False\\n                break\", \"Нашли делитель.\"], [\"n += 1\", \"Следующий кандидат — вне внутреннего цикла.\"]], \"mistake\": \"Забыть `is_prime = True` для каждого нового `n` — после первого составного все станут «составными».\"}"
                 },
                 {
                   "slug": "whl-m3-l2-e7",
@@ -1420,7 +1514,8 @@
                   "tests": "def test_values():\n    assert [lcm(4, 6), lcm(5, 7), lcm(10, 5), lcm(1, 1)] == [12, 35, 10, 1], \"Неверное НОК\"\n\ndef test_no_math():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"math\" not in src and \"while \" in src, \"Реализуй через Евклида на while\"\n",
                   "solution": "def lcm(a, b):\n    x, y = a, b\n    while y:\n        x, y = y, x % y\n    return a * b // x\n",
                   "hint": "Сохрани a и b — они понадобятся после цикла, а x, y алгоритм «съедает».",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"НОК = a · b / НОД. НОД считаем на копиях `x, y`, чтобы исходные `a` и `b` остались для формулы.\", \"lines\": [[\"x, y = a, b\", \"Копии.\"], [\"while y:\\n        x, y = y, x % y\", \"Евклид.\"], [\"return a * b // x\", \"4 · 6 / 2 = 12.\"]], \"mistake\": \"Крутить Евклида прямо на `a` и `b` — к формуле они уже изменятся.\"}"
                 },
                 {
                   "slug": "whl-m3-l2-e8",
@@ -1430,7 +1525,8 @@
                   "tests": "def test_values():\n    assert triangular_until(20) == [1, 3, 6, 10, 15] and triangular_until(0) == [] and triangular_until(1) == [1] and triangular_until(21) == [1, 3, 6, 10, 15, 21], \"Неверная последовательность\"\n",
                   "solution": "def triangular_until(limit):\n    result = []\n    n, value = 1, 1\n    while value <= limit:\n        result.append(value)\n        n += 1\n        value += n\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Треугольное число: к предыдущему прибавляется следующий номер. 1, 1+2, 1+2+3…\", \"lines\": [[\"n += 1\\n        value += n\", \"1 → 3 → 6 → 10 → 15 → 21.\"]], \"mistake\": \"Прибавлять `n` до увеличения — получится 1, 2, 4, 7…\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nМногие вычисления строят **последовательность**, где каждое следующее значение получается из предыдущих: числа Фибоначчи, степени, алгоритм Евклида, гипотеза Коллатца. Сколько будет элементов — определяется условием, а не заранее, поэтому это работа для `while`.\n\n## Степени: пока меньше порога\n\n```python\nx = 1\npowers = []\nwhile x < 100:\n    powers.append(x)\n    x *= 3\nprint(powers, x)\n```\n\n- Сохраняем текущее значение, затем вычисляем следующее.\n- Вывод: `[1, 3, 9, 27, 81] 243` — после цикла `x` уже «перешагнул» порог.\n\n## Фибоначчи: два предыдущих\n\n```python\na, b = 0, 1\nresult = []\nwhile a <= 20:\n    result.append(a)\n    a, b = b, a + b\nprint(result)\n```\n\n- `a` — текущее число, `b` — следующее.\n- `a, b = b, a + b` — одновременное присваивание: правая часть вычисляется **целиком до** присваивания. Иначе пришлось бы заводить временную переменную.\n- Вывод: `[0, 1, 1, 2, 3, 5, 8, 13]`.\n\n## Треугольные числа\n\n```python\nlimit = 20\nn, value = 1, 1\nresult = []\nwhile value <= limit:\n    result.append(value)\n    n += 1\n    value += n\nprint(result)\n```\n\n- 1, 1+2, 1+2+3… — к значению прибавляем следующий номер. Вывод: `[1, 3, 6, 10, 15]`.\n\n## Алгоритм Евклида: наибольший общий делитель\n\n```python\na, b = 48, 18\nwhile b:\n    a, b = b, a % b\nprint(a)\n```\n\n- Идея: НОД(a, b) = НОД(b, a % b). Пары: (48, 18) → (18, 12) → (12, 6) → (6, 0).\n- `while b:` — пока `b` не ноль. Когда `b` стал 0, ответ — `a`.\n- Вывод: `6`. Работает за считаные шаги даже для огромных чисел.\n- Наименьшее общее кратное: `a * b // НОД(a, b)`. Не забудь сохранить исходные `a` и `b` — цикл их изменяет.\n\n## Коллатц: неизвестная длина\n\n```python\nn = 7\npath = [n]\nwhile n != 1:\n    n = n // 2 if n % 2 == 0 else 3 * n + 1\n    path.append(n)\nprint(len(path) - 1, max(path))\n```\n\n- Чётное — пополам, нечётное — `3n + 1`. Гипотеза утверждает, что любое число дойдёт до 1, но это не доказано.\n- `len(path) - 1` — число шагов (первое значение — сам старт). Вывод: `16 52`.\n\n## Простые числа: while внутри while\n\n```python\nlimit = 20\nprimes = []\nn = 2\nwhile n <= limit:\n    d = 2\n    is_prime = True\n    while d * d <= n:\n        if n % d == 0:\n            is_prime = False\n            break\n        d += 1\n    if is_prime:\n        primes.append(n)\n    n += 1\nprint(primes)\n```\n\n- Внешний цикл — кандидаты, внутренний — делители до корня.\n- `break` выходит только из внутреннего цикла.\n- Каждый счётчик (`n`, `d`) меняется в своём цикле; `d = 2` заново для каждого `n`.\n- Вывод: `[2, 3, 5, 7, 11, 13, 17, 19]`.\n\n## Итог\n\n- Последовательность: сохранить текущее → вычислить следующее → проверить условие.\n- `a, b = b, a + b` — одновременный пересчёт двух значений.\n- Евклид: `while b: a, b = b, a % b` — НОД в `a`.\n- После цикла переменная уже содержит значение, нарушившее условие.\n- Во вложенных `while` сбрасывай внутренний счётчик для каждого шага внешнего.",
@@ -1482,7 +1578,8 @@
                   "code": "position, target, moves = 0, 10, 0\nsteps = [3, 4, 5]\ni = 0\nwhile position < target:\n    position += steps[i % len(steps)]\n    i += 1\n    moves += 1\nprint(position, moves)\n",
                   "expected_output": "12 3",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`i % len(steps)` зацикливает список шагов: после последнего снова идёт первый.\", \"lines\": [[\"position += steps[i % len(steps)]\", \"3 → 7 → 12.\"], [\"print(position, moves)\", \"12 ≥ 10 — стоп после трёх ходов.\"]], \"mistake\": \"Остановиться на 10 ровно — позиция перепрыгнула цель.\"}"
                 },
                 {
                   "slug": "whl-m3-l3-e2",
@@ -1491,7 +1588,8 @@
                   "code": "state = \"idle\"\nevents = [\"start\", \"pause\", \"start\", \"stop\"]\ntransitions = {(\"idle\", \"start\"): \"running\", (\"running\", \"pause\"): \"paused\",\n               (\"paused\", \"start\"): \"running\", (\"running\", \"stop\"): \"stopped\"}\ni = 0\nwhile state != \"stopped\" and i < len(events):\n    state = transitions.get((state, events[i]), state)\n    print(events[i], \"->\", state)\n    i += 1\n",
                   "expected_output": "start -> running\npause -> paused\nstart -> running\nstop -> stopped",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Конечный автомат: словарь «(состояние, событие) → новое состояние». Неизвестная пара — состояние не меняется.\", \"lines\": [[\"state = transitions.get((state, events[i]), state)\", \"Ключ — кортеж.\"], [\"while state != \\\"stopped\\\" and i < len(events):\", \"Остановились — дальше не обрабатываем.\"]], \"mistake\": \"Путать ключ: здесь важна и текущая позиция, и событие.\"}"
                 },
                 {
                   "slug": "whl-m3-l3-e6",
@@ -1500,7 +1598,8 @@
                   "code": "population = 100\nyear = 0\nwhile population < 200:\n    population = int(population * 1.3)\n    year += 1\n    print(year, population)\n",
                   "expected_output": "1 130\n2 169\n3 219",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Рост на 30% в год с округлением вниз до целого (`int`).\", \"trace\": [[\"population = int(population * 1.3)\", \"100 · 1.3 = 130\", \"1 130\"], [\"population = int(population * 1.3)\", \"130 · 1.3 = 169\", \"2 169\"], [\"population = int(population * 1.3)\", \"169 · 1.3 = 219.7 → 219\", \"3 219\"]], \"mistake\": \"Округлить 219.7 до 220. `int` отбрасывает дробную часть.\"}"
                 },
                 {
                   "slug": "whl-m3-l3-e3",
@@ -1510,7 +1609,8 @@
                   "tests": "def test_values():\n    assert bank_account([\"deposit 100\", \"withdraw 30\", \"withdraw 500\", \"close\", \"deposit 1000\"]) == 70, \"Неверный баланс\"\n    assert bank_account([]) == 0 and bank_account([\"deposit 5\", \"deposit 5\"]) == 10, \"Неверный баланс\"\n",
                   "solution": "def bank_account(operations):\n    balance = 0\n    i = 0\n    while i < len(operations):\n        parts = operations[i].split()\n        i += 1\n        if parts[0] == \"close\":\n            break\n        amount = int(parts[1])\n        if parts[0] == \"deposit\":\n            balance += amount\n        elif parts[0] == \"withdraw\" and amount <= balance:\n            balance -= amount\n    return balance\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Разбираем команду на части. `close` — выход, `withdraw` больше баланса — пропуск.\", \"lines\": [[\"parts = operations[i].split()\", \"`\\\"deposit 100\\\"` → `[\\\"deposit\\\", \\\"100\\\"]`.\"], [\"if parts[0] == \\\"close\\\":\\n            break\", \"У `close` нет суммы — проверяем до `int(parts[1])`.\"], [\"elif parts[0] == \\\"withdraw\\\" and amount <= balance:\", \"Снимаем, только если хватает.\"]], \"mistake\": \"`int(parts[1])` до проверки `close` — `IndexError`.\"}"
                 },
                 {
                   "slug": "whl-m3-l3-e4",
@@ -1520,7 +1620,8 @@
                   "tests": "def test_values():\n    assert traffic_light(8) == [\"green\", \"green\", \"green\", \"yellow\", \"red\", \"red\", \"green\", \"green\"], f\"Получено {traffic_light(8)}\"\n    assert traffic_light(0) == [], \"0 тактов — пусто\"\n",
                   "solution": "def traffic_light(ticks):\n    cycle = [(\"green\", 3), (\"yellow\", 1), (\"red\", 2)]\n    result = []\n    phase = 0\n    while len(result) < ticks:\n        color, duration = cycle[phase % len(cycle)]\n        left = duration\n        while left > 0 and len(result) < ticks:\n            result.append(color)\n            left -= 1\n        phase += 1\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Цикл по фазам светофора: каждая фаза добавляет свой цвет столько раз, сколько длится, — но не больше оставшихся тактов.\", \"lines\": [[\"color, duration = cycle[phase % len(cycle)]\", \"Фазы по кругу.\"], [\"while left > 0 and len(result) < ticks:\", \"Фаза может оборваться, если такты кончились.\"], [\"phase += 1\", \"Следующая фаза.\"]], \"mistake\": \"Не проверять `ticks` во внутреннем цикле — результат выйдет длиннее.\"}"
                 },
                 {
                   "slug": "whl-m3-l3-e5",
@@ -1530,7 +1631,8 @@
                   "tests": "def test_values():\n    assert robot(\"UURR\") == ((2, 2), 4), f\"Получено {robot('UURR')}\"\n    assert robot(\"URDLUU\") == ((0, 0), 4), f\"Получено {robot('URDLUU')}\"\n    assert robot(\"\") == ((0, 0), 0), \"Нет команд\"\n",
                   "solution": "def robot(commands):\n    moves = {\"U\": (0, 1), \"D\": (0, -1), \"L\": (-1, 0), \"R\": (1, 0)}\n    x = y = steps = 0\n    while steps < len(commands):\n        dx, dy = moves[commands[steps]]\n        x, y = x + dx, y + dy\n        steps += 1\n        if (x, y) == (0, 0):\n            break\n    return (x, y), steps\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Смещения по направлениям — в словаре. После каждого шага проверяем, не вернулись ли в начало.\", \"lines\": [[\"moves = {\\\"U\\\": (0, 1), \\\"D\\\": (0, -1), \\\"L\\\": (-1, 0), \\\"R\\\": (1, 0)}\", \"Команда → (dx, dy).\"], [\"x, y = x + dx, y + dy\\n        steps += 1\", \"Шаг.\"], [\"if (x, y) == (0, 0):\\n            break\", \"Проверка после шага — стартовая точка не считается.\"]], \"mistake\": \"Проверять до шага — робот остановится сразу, ещё не двинувшись.\"}"
                 },
                 {
                   "slug": "whl-m3-l3-e7",
@@ -1540,7 +1642,8 @@
                   "tests": "def test_values():\n    assert elevator([5, 2, 8]) == 14 and elevator([3], start=3) == 0 and elevator([]) == 0 and elevator([1, -1]) == 3, \"Неверное расстояние\"\n\ndef test_while():\n    assert \"while \" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй while\"\n",
                   "solution": "def elevator(requests, start=0):\n    floor = start\n    total = 0\n    i = 0\n    while i < len(requests):\n        total += abs(requests[i] - floor)\n        floor = requests[i]\n        i += 1\n    return total\n",
                   "hint": "abs(a - b) — расстояние между этажами без знака.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Расстояние между этажами — модуль разности. Лифт каждый раз оказывается на новом этаже.\", \"lines\": [[\"total += abs(requests[i] - floor)\", \"0→5: 5, 5→2: 3, 2→8: 6.\"], [\"floor = requests[i]\", \"Теперь лифт здесь.\"]], \"mistake\": \"Без `abs` поездки вниз вычтутся из суммы.\"}"
                 },
                 {
                   "slug": "whl-m3-l3-e8",
@@ -1550,7 +1653,8 @@
                   "tests": "def test_values():\n    got = [battle(10, 10, 3, 4), battle(5, 5, 10, 1), battle(10, 9, 3, 3)]\n    assert got == [(\"B\", 3), (\"A\", 1), (\"A\", 3)], f\"Получено {got}\"\n",
                   "solution": "def battle(hp_a, hp_b, dmg_a, dmg_b):\n    round_no = 0\n    while True:\n        round_no += 1\n        hp_b -= dmg_a\n        if hp_b <= 0:\n            return \"A\", round_no\n        hp_a -= dmg_b\n        if hp_a <= 0:\n            return \"B\", round_no\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Раунд: A бьёт первым. Если B выжил — отвечает. Проверка после каждого удара.\", \"lines\": [[\"hp_b -= dmg_a\\n        if hp_b <= 0:\\n            return \\\"A\\\", round_no\", \"B погиб — A побеждает, ответного удара нет.\"], [\"hp_a -= dmg_b\\n        if hp_a <= 0:\\n            return \\\"B\\\", round_no\", \"Ответ B.\"]], \"mistake\": \"Проверять здоровье только в конце раунда — B успеет ударить уже побеждённым.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n**Симуляция** — программа, которая шаг за шагом воспроизводит процесс: работу банковского счёта, светофора, лифта, игру, рост популяции. В тестировании так моделируют сценарии пользователя и состояния системы. Каждый шаг цикла — «такт» времени или одно событие, а цикл идёт, пока процесс не завершится.\n\n## Такты до цели\n\n```python\npopulation = 100\nyear = 0\nwhile population < 200:\n    population = int(population * 1.3)\n    year += 1\n    print(year, population)\n```\n\n- Каждый год +30%; `int(...)` отбрасывает дробную часть.\n- Вывод: `1 130`, `2 169`, `3 219`.\n\n## Циклическое повторение: остаток от деления\n\n```python\nposition, target, moves = 0, 10, 0\nsteps = [3, 4, 5]\ni = 0\nwhile position < target:\n    position += steps[i % len(steps)]\n    i += 1\n    moves += 1\nprint(position, moves)\n```\n\n- `i % len(steps)` даёт 0, 1, 2, 0, 1, 2… — бесконечный «по кругу» перебор списка.\n- 3 + 4 + 5 = 12 ≥ 10. Вывод: `12 3`.\n\n## Обработка событий\n\n```python\noperations = [\"deposit 100\", \"withdraw 30\", \"withdraw 500\", \"close\", \"deposit 1000\"]\nbalance = 0\ni = 0\nwhile i < len(operations):\n    parts = operations[i].split()\n    i += 1\n    if parts[0] == \"close\":\n        break\n    amount = int(parts[1])\n    if parts[0] == \"deposit\":\n        balance += amount\n    elif parts[0] == \"withdraw\" and amount <= balance:\n        balance -= amount\nprint(balance)\n```\n\n- `split()` разбивает команду на слова: `[\"deposit\", \"100\"]`.\n- Невозможное снятие игнорируется, `close` останавливает обработку.\n- Вывод: `70`.\n\n## Конечный автомат\n\n**Конечный автомат** — система с фиксированным набором состояний и правилами перехода «из состояния X по событию Y — в состояние Z». Так описывают статусы заказа, плеер, светофор; тестировщики строят по ним тест-кейсы.\n\n```python\nstate = \"idle\"\nevents = [\"start\", \"pause\", \"start\", \"stop\"]\ntransitions = {(\"idle\", \"start\"): \"running\", (\"running\", \"pause\"): \"paused\",\n               (\"paused\", \"start\"): \"running\", (\"running\", \"stop\"): \"stopped\"}\ni = 0\nwhile state != \"stopped\" and i < len(events):\n    state = transitions.get((state, events[i]), state)\n    print(events[i], \"->\", state)\n    i += 1\n```\n\n- Ключ словаря — **пара** `(состояние, событие)`; значение — новое состояние.\n- `transitions.get(ключ, state)` — если перехода нет, состояние не меняется.\n- Вывод: `start -> running`, `pause -> paused`, `start -> running`, `stop -> stopped`.\n\n## Движение по координатам\n\n```python\nmoves = {\"U\": (0, 1), \"D\": (0, -1), \"L\": (-1, 0), \"R\": (1, 0)}\nx = y = 0\nfor cmd in \"UURDL\":\n    dx, dy = moves[cmd]\n    x, y = x + dx, y + dy\nprint(x, y)\n```\n\n- Каждой команде соответствует сдвиг `(dx, dy)`.\n- Вывод: `0 1`.\n\n## Пошаговый бой\n\n```python\nhp_a, hp_b = 10, 10\nround_no = 0\nwhile True:\n    round_no += 1\n    hp_b -= 3\n    if hp_b <= 0:\n        print(\"A победил в раунде\", round_no)\n        break\n    hp_a -= 4\n    if hp_a <= 0:\n        print(\"B победил в раунде\", round_no)\n        break\n```\n\n- Проверка после **каждого** удара — иначе проигравший успел бы ответить.\n- Вывод: `B победил в раунде 3`.\n\n## Итог\n\n- Симуляция: состояние в переменных, один шаг цикла — один такт или событие.\n- `i % len(список)` — перебор по кругу.\n- Команды разбирают `split()`, неверные — пропускают, «стоп» — `break`.\n- Конечный автомат: словарь `(состояние, событие) → новое состояние`.\n- Проверяй условие завершения сразу после изменения, которое может его вызвать.",
@@ -1602,7 +1706,8 @@
                   "code": "balance = 1000\nyears = 0\nwhile balance < 1500:\n    balance = balance * 1.1\n    years += 1\nprint(years, round(balance, 2))\n",
                   "expected_output": "5 1610.51",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Сложные проценты: каждый год +10% от текущей суммы. Считаем годы до цели.\", \"lines\": [[\"balance = balance * 1.1\", \"1000 → 1100 → 1210 → 1331 → 1464.1 → 1610.51.\"], [\"print(years, round(balance, 2))\", \"На пятый год впервые ≥ 1500.\"]], \"mistake\": \"Ответить 4: 1464 ещё меньше 1500.\"}"
                 },
                 {
                   "slug": "whl-threshold-e2",
@@ -1611,7 +1716,8 @@
                   "code": "n = 2\nx = n\nwhile abs(x * x - n) > 0.0001:\n    x = (x + n / x) / 2\n    print(round(x, 5))\n",
                   "expected_output": "1.5\n1.41667\n1.41422",
                   "hint": "Каждый шаг приближения резко уточняет ответ; цикл идёт, пока ошибка больше допуска.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Метод Ньютона: каждое новое приближение — среднее между `x` и `n / x`. Точность растёт очень быстро.\", \"lines\": [[\"while abs(x * x - n) > 0.0001:\", \"Пока квадрат заметно отличается от 2.\"], [\"x = (x + n / x) / 2\", \"2 → 1.5 → 1.41667 → 1.41422.\"]], \"mistake\": \"Ожидать десятки шагов. Ньютону хватает трёх.\"}"
                 },
                 {
                   "slug": "whl-threshold-e3",
@@ -1620,7 +1726,8 @@
                   "code": "weights = [4, 3, 5, 2]\nload, i = 0, 0\nwhile i < len(weights) and load + weights[i] <= 10:\n    load += weights[i]\n    i += 1\nprint(i, load)\n",
                   "expected_output": "2 7",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Грузим по порядку, пока следующий груз влезает. Условие с двумя частями: и границы списка, и лимит.\", \"lines\": [[\"while i < len(weights) and load + weights[i] <= 10:\", \"4 + 3 = 7, 7 + 5 > 10 — стоп.\"]], \"mistake\": \"Пропустить 5 и взять 2 — цикл остановился целиком, а не пропустил груз.\"}"
                 },
                 {
                   "slug": "whl-threshold-e4",
@@ -1630,7 +1737,8 @@
                   "tests": "def test_values():\n    assert [months_to_save(1000, 300), months_to_save(900, 300), months_to_save(0, 100), months_to_save(1, 1000)] == [4, 3, 0, 1], \"Неверное число месяцев\"\n\ndef test_while():\n    assert \"while \" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй while\"\n",
                   "solution": "def months_to_save(goal, monthly):\n    saved = 0\n    months = 0\n    while saved < goal:\n        saved += monthly\n        months += 1\n    return months\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Копим, пока не набрали цель. Если цель 0 — ноль месяцев.\", \"lines\": [[\"while saved < goal:\\n        saved += monthly\\n        months += 1\", \"1000 по 300: 300, 600, 900, 1200 — 4 месяца.\"]], \"mistake\": \"`goal // monthly` — для 1000 даст 3, а трёх месяцев не хватит.\"}"
                 },
                 {
                   "slug": "whl-threshold-e5",
@@ -1640,7 +1748,8 @@
                   "tests": "def test_values():\n    for n in (9, 2, 1, 0.25, 1e6):\n        r = sqrt_approx(n)\n        assert abs(r * r - n) < 1e-6, f\"sqrt_approx({n}) = {r}\"\n    assert sqrt_approx(0) == 0, \"Корень из 0 — 0\"\n\ndef test_no_pow():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"**\" not in src and \"math\" not in src and \"pow(\" not in src, \"Реализуй метод Ньютона сам\"\n",
                   "solution": "def sqrt_approx(n, eps=1e-9):\n    if n == 0:\n        return 0\n    x = n\n    while abs(x * x - n) > eps:\n        x = (x + n / x) / 2\n    return x\n",
                   "hint": "1e-9 — это 0.000000001, запись числа в научном формате.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Приближаемся к корню, пока квадрат не станет достаточно близок к `n`.\", \"lines\": [[\"if n == 0:\\n        return 0\", \"Иначе `n / x` — деление на ноль.\"], [\"while abs(x * x - n) > eps:\\n        x = (x + n / x) / 2\", \"Формула Ньютона.\"]], \"mistake\": \"`while x * x != n` — для дробных чисел точного равенства может не случиться никогда.\"}"
                 },
                 {
                   "slug": "whl-threshold-e6",
@@ -1650,7 +1759,8 @@
                   "tests": "def test_values():\n    assert [halving_steps(100, 1), halving_steps(0.5, 1), halving_steps(8, 1), halving_steps(1, 1)] == [7, 0, 4, 1], \"Неверное число шагов\"\n",
                   "solution": "def halving_steps(value, limit):\n    steps = 0\n    while value >= limit:\n        value /= 2\n        steps += 1\n    return steps\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Делим пополам, пока значение не меньше границы. Если сразу меньше — ноль шагов.\", \"lines\": [[\"while value >= limit:\\n        value /= 2\\n        steps += 1\", \"100 → … → 0.78: семь делений.\"]], \"mistake\": \"`//=` — целое деление потеряет дробную часть и собьёт счёт.\"}"
                 },
                 {
                   "slug": "whl-threshold-e7",
@@ -1660,7 +1770,8 @@
                   "tests": "def test_values():\n    got = [fill_boxes([4, 3, 5, 2], 10), fill_boxes([], 10), fill_boxes([10, 10], 10), fill_boxes([6, 5, 4, 3], 10)]\n    assert got == [2, 0, 2, 3], f\"Получено {got}\"\n",
                   "solution": "def fill_boxes(items, capacity):\n    boxes = 0\n    load = 0\n    i = 0\n    while i < len(items):\n        if boxes == 0 or load + items[i] > capacity:\n            boxes += 1\n            load = 0\n        load += items[i]\n        i += 1\n    return boxes\n",
                   "hint": "Новая коробка нужна для самого первого груза и когда очередной не влезает.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Новая коробка нужна для первого груза и когда очередной не влезает в текущую.\", \"lines\": [[\"if boxes == 0 or load + items[i] > capacity:\\n            boxes += 1\\n            load = 0\", \"Начинаем коробку.\"], [\"load += items[i]\", \"Кладём груз.\"]], \"mistake\": \"Забыть обнулить `load` при новой коробке.\"}"
                 },
                 {
                   "slug": "whl-threshold-e8",
@@ -1670,7 +1781,8 @@
                   "tests": "def test_values():\n    got = [loan_months(1000, 1, 300), loan_months(1000, 10, 100), loan_months(100, 0, 100), loan_months(1000, 10, 101)]\n    assert got[:3] == [4, -1, 1], f\"Получено {got}\"\n    assert got[3] > 30, \"При платеже чуть выше процентов кредит гасится очень долго\"\n",
                   "solution": "def loan_months(debt, rate, payment):\n    if payment <= debt * rate / 100:\n        return -1\n    months = 0\n    while debt > 0:\n        debt = debt * (1 + rate / 100) - payment\n        months += 1\n    return months\n",
                   "hint": "Сначала проверь «вечный» случай — иначе цикл никогда не закончится.",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Сначала проверяем, что платёж вообще гасит долг. Потом каждый месяц: проценты, потом платёж.\", \"lines\": [[\"if payment <= debt * rate / 100:\\n        return -1\", \"Иначе долг не будет уменьшаться — цикл был бы бесконечным.\"], [\"debt = debt * (1 + rate / 100) - payment\", \"Проценты начисляются до платежа.\"]], \"mistake\": \"Не проверить платёж заранее — программа зависнет.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nМного практических вопросов звучат как «**сколько** шагов нужно, чтобы достичь цели?»: сколько месяцев копить, за сколько лет вклад удвоится, сколько коробок понадобится. А ещё `while` вычисляет **приближения**: корень, точность, сходимость — повторяем уточнение, пока ошибка не станет достаточно маленькой.\n\n## Сколько шагов до цели\n\n```python\nbalance = 1000\nyears = 0\nwhile balance < 1500:\n    balance = balance * 1.1\n    years += 1\nprint(years, round(balance, 2))\n```\n\n- Каждый год +10% (сложный процент: процент начисляется на уже выросшую сумму).\n- Счётчик `years` — ответ на вопрос «сколько». Вывод: `5 1610.51`.\n- Если цель уже достигнута, цикл не выполнится ни разу и ответ 0 — это правильно.\n\n## Загрузка до лимита\n\n```python\nweights = [4, 3, 5, 2]\nload, i = 0, 0\nwhile i < len(weights) and load + weights[i] <= 10:\n    load += weights[i]\n    i += 1\nprint(i, load)\n```\n\n- Проверяем **до** добавления: влезет ли следующий груз.\n- Вывод: `2 7` — третий груз (5) уже не влезает.\n\n## Защита от «никогда»\n\n```python\ndebt, rate, payment = 1000, 10, 100\nif payment <= debt * rate / 100:\n    print(\"долг никогда не будет погашен\")\nelse:\n    months = 0\n    while debt > 0:\n        debt = debt * (1 + rate / 100) - payment\n        months += 1\n    print(months)\n```\n\n- Проценты за месяц — 100, платёж — 100: долг не уменьшается никогда, и цикл был бы вечным.\n- Такие случаи проверяют **до** цикла. Вывод: `долг никогда не будет погашен`.\n\n## Приближения: повторять, пока ошибка велика\n\nМетод Ньютона для квадратного корня: берём догадку `x` и улучшаем её по формуле `(x + n / x) / 2`.\n\n```python\nn = 2\nx = n\nwhile abs(x * x - n) > 0.0001:\n    x = (x + n / x) / 2\n    print(round(x, 5))\n```\n\n- `abs(...)` — модуль: насколько `x²` отличается от `n`, без учёта знака.\n- Условие — «пока ошибка больше допуска». Точного равенства с дробями ждать нельзя (урок «Отладка циклов»).\n- Вывод: `1.5`, `1.41667`, `1.41422` — три шага до точности 0.0001.\n\nДопуск часто записывают в научной форме: `1e-9` — это 0.000000001 (единица, умноженная на 10 в минус девятой).\n\n## Деление до порога\n\n```python\nvalue, limit = 100, 1\nsteps = 0\nwhile value >= limit:\n    value /= 2\n    steps += 1\nprint(steps, value)\n```\n\n- `/=` — обычное деление (результат дробный). Вывод: `7 0.78125`.\n\n## Итог\n\n- «Сколько шагов» — счётчик + `while не_достигли`.\n- Проверяй «влезет ли» **до** изменения, если превышать нельзя.\n- Случаи «никогда не достигнем» отсекай до цикла.\n- Приближения: `while abs(ошибка) > допуск`; равенства дробных чисел не жди.\n- `1e-9` — научная запись маленьких чисел.",
@@ -1722,7 +1834,8 @@
                   "code": "n = 10\nstep = 0\nwhile n > 1:\n    step += 1\n    n = n // 2\n    print(f\"шаг {step}: n = {n}\")\n",
                   "expected_output": "шаг 1: n = 5\nшаг 2: n = 2\nшаг 3: n = 1",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Отладочная печать внутри цикла показывает, как меняются значения на каждом шаге.\", \"lines\": [[\"print(f\\\"шаг {step}: n = {n}\\\")\", \"10 → 5 → 2 → 1.\"]], \"mistake\": \"Напечатать `n = 10` — печать стоит после деления.\"}"
                 },
                 {
                   "slug": "whl-debug-e2",
@@ -1731,7 +1844,8 @@
                   "code": "x = 0.0\nsteps = 0\nwhile x != 1.0 and steps < 20:\n    x += 0.1\n    steps += 1\nprint(steps, x == 1.0, round(x, 2))\n",
                   "expected_output": "20 False 2.0",
                   "hint": "0.1 в компьютере хранится неточно: десять раз по 0.1 — не ровно 1.0.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Дробные числа неточные: сумма десяти `0.1` — не ровно 1.0, поэтому `!=` никогда не станет ложным. Спасает предохранитель.\", \"lines\": [[\"while x != 1.0 and steps < 20:\", \"`x` проходит мимо 1.0 (0.9999999…), цикл идёт дальше.\"], [\"print(steps, x == 1.0, round(x, 2))\", \"Остановил предохранитель на 20 шагах.\"]], \"mistake\": \"Ожидать остановку на 10. Сравнивать дробные через `==`/`!=` опасно.\"}"
                 },
                 {
                   "slug": "whl-debug-e3",
@@ -1740,7 +1854,8 @@
                   "code": "n = 7\nguard = 0\nwhile n != 0 and guard < 5:\n    n -= 2\n    guard += 1\nprint(n, guard)\n",
                   "expected_output": "-3 5",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Нечётное число с шагом 2 перепрыгивает ноль. Предохранитель `guard` не даёт циклу стать бесконечным.\", \"lines\": [[\"n -= 2\\n    guard += 1\", \"7 → 5 → 3 → 1 → −1 → −3.\"], [\"print(n, guard)\", \"Остановил лимит 5.\"]], \"mistake\": \"Ждать остановку на 0 — его никогда не будет.\"}"
                 },
                 {
                   "slug": "whl-debug-e4",
@@ -1750,7 +1865,8 @@
                   "tests": "def test_values():\n    got = [inclusive_list(1, 4), inclusive_list(3, 3), inclusive_list(5, 2)]\n    assert got == [[1, 2, 3, 4], [3], []], f\"Получено {got}\"\n",
                   "solution": "def inclusive_list(a, b):\n    result = []\n    i = a\n    while i <= b:\n        result.append(i)\n        i += 1\n    return result\n",
                   "hint": "Проверь крайний случай: при i == b тело должно выполниться.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Ошибка на единицу: `<` не включает правую границу. «Включительно» — это `<=`.\", \"lines\": [[\"while i <= b:\", \"Было `<` — терялось `b`.\"]], \"mistake\": \"Исправить на `b + 1` в теле цикла — сдвинется весь диапазон.\"}"
                 },
                 {
                   "slug": "whl-debug-e5",
@@ -1760,7 +1876,8 @@
                   "tests": "def test_values():\n    got = [trace_halving(10), trace_halving(1), trace_halving(8)]\n    assert got == [[\"n=10\", \"n=5\", \"n=2\", \"n=1\"], [\"n=1\"], [\"n=8\", \"n=4\", \"n=2\", \"n=1\"]], f\"Получено {got}\"\n",
                   "solution": "def trace_halving(n):\n    log = [f\"n={n}\"]\n    while n > 1:\n        n //= 2\n        log.append(f\"n={n}\")\n    return log\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Журнал работы цикла: записываем начальное значение и каждое следующее.\", \"lines\": [[\"log = [f\\\"n={n}\\\"]\", \"Начальное — до цикла.\"], [\"n //= 2\\n        log.append(f\\\"n={n}\\\")\", \"10 → 5 → 2 → 1.\"]], \"mistake\": \"Записывать до деления — последнее значение 1 не попадёт в журнал.\"}"
                 },
                 {
                   "slug": "whl-debug-e6",
@@ -1770,7 +1887,8 @@
                   "tests": "def test_values():\n    got = [reach(1, 0.1), reach(1, 0.25), reach(0.3, 0.1), reach(0, 0.5), reach(0.7, 0.1)]\n    assert got == [10, 4, 3, 0, 7], f\"Получено {got}\"\n",
                   "solution": "def reach(target, step):\n    x = 0.0\n    steps = 0\n    while x < target - 1e-9:\n        x += step\n        steps += 1\n    return steps\n",
                   "hint": "1e-9 — крошечный допуск, который «прощает» ошибку округления дробных чисел.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Сравнение дробных с допуском: вычитаем крошечное `1e-9`, чтобы погрешность `0.9999999999999999` не давала лишний шаг.\", \"lines\": [[\"while x < target - 1e-9:\", \"Допуск.\"], [\"x += step\\n        steps += 1\", \"Для `(1, 0.1)` — ровно 10 шагов.\"]], \"mistake\": \"`while x < target` — выйдет 11 шагов: 0.9999… всё ещё меньше 1.\"}"
                 },
                 {
                   "slug": "whl-debug-e7",
@@ -1780,7 +1898,8 @@
                   "tests": "def test_values():\n    got = [run_until([5, 3, 9], 9, 10), run_until([5, 3, 9], 9, 2), run_until([5, 3], 7, 10), run_until([], 1, 0)]\n    assert got == [(\"found\", 2), (\"limit\", 2), (\"end\", 2), (\"limit\", 0)], f\"Получено {got}\"\n",
                   "solution": "def run_until(values, stop_value, max_steps):\n    i = 0\n    while True:\n        if i >= max_steps:\n            return \"limit\", max_steps\n        if i >= len(values):\n            return \"end\", len(values)\n        if values[i] == stop_value:\n            return \"found\", i\n        i += 1\n",
                   "hint": "Порядок проверок определяет ответ для пограничных случаев: сначала лимит, потом конец списка.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Три причины выхода — три проверки в начале шага. Порядок проверок задаёт приоритет.\", \"lines\": [[\"if i >= max_steps:\\n            return \\\"limit\\\", max_steps\", \"Лимит проверок исчерпан.\"], [\"if i >= len(values):\\n            return \\\"end\\\", len(values)\", \"Список кончился.\"], [\"if values[i] == stop_value:\\n            return \\\"found\\\", i\", \"Нашли.\"]], \"mistake\": \"Проверить `values[i]` раньше границы — `IndexError`.\"}"
                 },
                 {
                   "slug": "whl-debug-e8",
@@ -1790,7 +1909,8 @@
                   "tests": "def test_values():\n    assert [product_digits(n) for n in (234, 5, 101, 99)] == [24, 5, 0, 81], \"Неверное произведение цифр\"\n",
                   "solution": "def product_digits(n):\n    result = 1\n    while n > 0:\n        result *= n % 10\n        n //= 10\n    return result\n",
                   "hint": "Проследи по шагам для 234: какая цифра не попадает в произведение?",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Условие `n > 9` обрабатывало все цифры, кроме последней. Цикл должен работать, пока в числе есть цифры: `n > 0`.\", \"lines\": [[\"while n > 0:\", \"Исправленное условие.\"], [\"result *= n % 10\\n        n //= 10\", \"2 · 3 · 4 = 24; для 101 — ноль в середине даёт 0.\"]], \"mistake\": \"Начать `result` с 0 — любое произведение станет 0.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЦиклы — место, где ошибки прячутся лучше всего: цикл делает на один шаг больше или меньше, зависает на дробных числах, «теряет» последний элемент. Нужно уметь **видеть**, что происходит внутри, и защищаться от зависаний.\n\n## Отладочная печать\n\nСамый быстрый способ понять цикл — печатать состояние на каждом шаге:\n\n```python\nn = 10\nstep = 0\nwhile n > 1:\n    step += 1\n    n = n // 2\n    print(f\"шаг {step}: n = {n}\")\n```\n\n- Видно, как меняется переменная условия и сколько шагов сделано.\n- Вывод: `шаг 1: n = 5`, `шаг 2: n = 2`, `шаг 3: n = 1`.\n- Когда ошибка найдена, отладочную печать **удаляют**. Вместо `print` в серьёзном коде используют модуль `logging`.\n\nТакую «трассу» можно и собрать в список — удобно проверять в тестах:\n\n```python\nn = 10\nlog = [f\"n={n}\"]\nwhile n > 1:\n    n //= 2\n    log.append(f\"n={n}\")\nprint(log)\n```\n\nВывод: `['n=10', 'n=5', 'n=2', 'n=1']`.\n\n## Ошибка «на единицу»\n\nСамая частая ошибка в циклах — один шаг лишний или недостающий (off-by-one):\n\n```python\na, b = 1, 4\nresult = []\ni = a\nwhile i < b:\n    result.append(i)\n    i += 1\nprint(result)\n```\n\n- Хотели числа от 1 до 4 **включительно**, а `<` не пускает 4. Вывод: `[1, 2, 3]`. Нужно `<=`.\n\nПроверяй **граничные случаи**:\n- что будет на первом и последнем шаге;\n- пустые данные, одно значение, ноль;\n- `a == b` и `a > b`.\n\nДругой пример — условие, которое «съедает» последнюю цифру:\n\n```python\nn = 234\nresult = 1\nwhile n > 9:\n    result *= n % 10\n    n //= 10\nprint(result)\n```\n\n- Когда `n` стало 2, условие `2 > 9` ложно, и цифра 2 не попала в произведение. Вывод: `12` вместо 24. Нужно `while n > 0`.\n\n## Дробные числа и !=\n\n```python\nx = 0.0\nsteps = 0\nwhile x != 1.0 and steps < 20:\n    x += 0.1\n    steps += 1\nprint(steps, x == 1.0, round(x, 2))\n```\n\n- `0.1` в компьютере хранится **неточно** (как 1/3 в десятичной записи). Сумма десяти `0.1` — `0.9999999999999999`, не ровно `1.0`.\n- Условие `x != 1.0` так и не станет ложным. Спас только предохранитель `steps < 20`. Вывод: `20 False 2.0`.\n\nПравила для дробных чисел:\n- никогда не сравнивай их через `==` / `!=` в условии цикла;\n- используй `<`, `>` или сравнение с допуском: `abs(x - 1.0) < 1e-9`, `x < target - 1e-9`;\n- если можно — считай в целых (копейки вместо рублей, шаги вместо дробей).\n\n```python\nprint(0.1 + 0.2, 0.1 + 0.2 == 0.3, abs(0.1 + 0.2 - 0.3) < 1e-9)\n```\n\nВывод: `0.30000000000000004 False True`.\n\n## Предохранитель\n\n```python\nn = 7\nguard = 0\nwhile n != 0 and guard < 5:\n    n -= 2\n    guard += 1\nprint(n, guard)\n```\n\n- 7 → 5 → 3 → 1 → −1 → −3: ноль «перепрыгнули». Без `guard < 5` цикл был бы вечным.\n- Вывод: `-3 5`. Если сработал предохранитель — значит, в логике ошибка, и об этом стоит сообщить (вернуть особое значение или выбросить ошибку).\n\n## Порядок проверок в сложном условии\n\nКогда выходов несколько, порядок проверок определяет результат на границах:\n\n```python\nvalues, stop_value, max_steps = [5, 3], 7, 10\ni = 0\nwhile True:\n    if i >= max_steps:\n        print(\"limit\")\n        break\n    if i >= len(values):\n        print(\"end\")\n        break\n    if values[i] == stop_value:\n        print(\"found\", i)\n        break\n    i += 1\n```\n\n- Сначала лимит, потом конец данных, потом проверка элемента (к элементу обращаемся, только убедившись, что он есть). Вывод: `end`.\n\n## Итог\n\n- Печатай состояние на каждом шаге, чтобы увидеть, что происходит; потом убирай.\n- Проверяй граничные случаи: первый/последний шаг, пусто, ноль, равные границы.\n- `<` против `<=` — источник ошибок «на единицу».\n- Дробные числа не сравнивай через `==`/`!=`; используй допуск или целые.\n- Предохранитель-счётчик защищает от зависания и сигнализирует об ошибке логики.",
