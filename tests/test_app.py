@@ -278,6 +278,17 @@ def test_stats_goals_and_facts(client):
     assert f["lesson_seconds"] == 300 and f["lessons_timed"] == 1
 
 
+def test_avatar(client):
+    png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    r = client.put("/api/account/avatar", json={"image": png})
+    assert r.status_code == 200 and r.json()["avatar"] == png
+    assert client.get("/api/auth/me").json()["avatar"] == png
+    bad = "data:image/svg+xml;base64,PHN2Zy8+"
+    assert client.put("/api/account/avatar", json={"image": bad}).status_code == 400
+    assert client.put("/api/account/avatar", json={"image": "javascript:alert(1)"}).status_code == 400
+    assert client.put("/api/account/avatar", json={"image": ""}).json()["avatar"] == ""
+
+
 def test_module_trophy(client):
     topic = client.get("/api/path").json()[0]
     events = []

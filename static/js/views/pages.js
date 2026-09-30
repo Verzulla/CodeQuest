@@ -439,7 +439,42 @@ function bindAdmins(root) {
   load();
 }
 
-// ---------- Настройки (вариант B: визуальные карточки) ----------
+// ---------- Аватарка ----------
+export const avatarHtml = (u) => u.avatar
+  ? `<img class="avatar" src="${esc(u.avatar)}" alt="">`
+  : `<div class="avatar">${esc(u.username[0].toUpperCase())}</div>`;
+
+// Картинку из файла — в квадрат size×size по центру и в сжатый data-URL (WebP, иначе JPEG).
+function squareImage(file, size) {
+  return new Promise((resolve, reject) => {
+    if (file.size > 15 * 1024 * 1024) return reject(new Error("Файл больше 15 МБ"));
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const side = Math.min(img.naturalWidth, img.naturalHeight);
+      const c = document.createElement("canvas");
+      c.width = c.height = size;
+      c.getContext("2d").drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, size, size);
+      let data = c.toDataURL("image/webp", 0.85);
+      if (!data.startsWith("data:image/webp")) data = c.toDataURL("image/jpeg", 0.85);
+      resolve(data);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Это не картинка или формат не поддерживается")); };
+    img.src = url;
+  });
+}
+
+// Аватарка на пункте «Профиль» в нижней панели телефона.
+export function renderNavAvatar() {
+  const link = document.querySelector('.nav-link[data-route="settings"]');
+  if (!link) return;
+  link.querySelector(".nav-ava")?.remove();
+  link.classList.toggle("has-ava", !!store.user?.avatar);
+  if (store.user?.avatar) link.insertAdjacentHTML("afterbegin", `<img class="nav-ava" src="${esc(store.user.avatar)}" alt="">`);
+}
+
+// ---------- Настройки (одной колонкой, визуальные карточки) ----------
 const GOALS = [[10, "легко"], [20, "норм"], [30, "серьёзно"], [50, "интенсив"], [100, "хардкор"]];
 const toggle = (id, on) => `<button class="toggle ${on ? "on" : ""}" id="${id}" role="switch" aria-checked="${on}"></button>`;
 const setRow = (icon, title, sub, right, cls = "") =>
@@ -453,11 +488,14 @@ export function renderSettings(view) {
     const chev = ic("arrowR", "chev");
     view.innerHTML = `<div class="topbar path-top">${pills()}</div>
       <h1 class="section-title">Настройки</h1>
-      <div class="settings set-grid">
-      <div class="set-col">
-        <div class="card set-profile"><div class="avatar">${esc(u.username[0].toUpperCase())}</div>
-          <div class="grow"><b>${esc(u.username)}</b><small class="muted">${u.is_admin ? "администратор · " : ""}уровень ${s.level}</small></div>
-          <button class="btn ghost small" id="logout">${ic("logout")}Выйти</button></div>
+      <div class="settings set-one">
+        <div class="card set-profile">
+          <button class="avatar-btn" id="ava-pick" title="Сменить аватарку">${avatarHtml(u)}<span class="ava-edit">${ic("pen")}</span></button>
+          <div class="grow"><b>${esc(u.username)}</b><small class="muted">${u.is_admin ? "администратор · " : ""}уровень ${s.level}</small>
+            <div class="ava-links"><button class="link" id="ava-pick2">${u.avatar ? "Сменить аватарку" : "Поставить аватарку"}</button>
+              ${u.avatar ? `<button class="link muted" id="ava-del">Убрать</button>` : ""}</div></div>
+          <button class="btn ghost small" id="logout" title="Выйти">${ic("logout")}<span>Выйти</span></button>
+          <input type="file" id="ava-file" accept="image/png,image/jpeg,image/webp,image/gif,image/heic" hidden></div>
         <div class="card mob-links">
           <a href="#/about">${ic("i-info")}<span>О приложении</span>${chev}</a>
           ${u.is_admin ? `<a href="#/admin">${ic("wrench")}<span>Контент</span>${chev}</a>` : ""}
@@ -470,8 +508,6 @@ export function renderSettings(view) {
         <div class="pv-tiles">
           <button data-view="zigzag" class="card ${s.path_view !== "list" ? "on" : ""}">${ZIG}<b>Зигзаг</b></button>
           <button data-view="list" class="card ${s.path_view === "list" ? "on" : ""}">${LST}<b>Список</b></button></div>
-      </div>
-      <div class="set-col">
         <h3 class="set-sec">Режимы</h3>
         ${setRow(ic("heart", "si"), "Сердечки", "Ошибка в уроке стоит сердечко, вернуть — в работе над ошибками", toggle("hearts", s.hearts_enabled))}
         ${setRow(ic("unlock", "si ok"), "Открыть все уроки", "Любой урок доступен сразу, без прохождения предыдущих", toggle("sequential", !s.sequential_lessons))}
@@ -482,7 +518,7 @@ export function renderSettings(view) {
         <button class="card set-row link-row" id="pw-open">${ic("key", "si")}<div class="grow"><b>Сменить пароль</b></div>${chev}</button>
         ${u.is_admin ? `<button class="card set-row link-row" id="admins-open">${ic("shield", "si ok")}<div class="grow"><b>Администраторы</b><small class="muted">назначить или снять по нику</small></div>${chev}</button>` : ""}
         <button class="card set-row link-row danger" id="danger-open">${ic("warn", "si")}<div class="grow"><b>Сбросить прогресс или удалить аккаунт</b></div>${chev}</button>
-      </div></div>`;
+      </div>`;
     view.querySelectorAll("[data-goal]").forEach((b) => b.onclick = () => save({ daily_goal: Number(b.dataset.goal) }));
     view.querySelector("#theme").onclick = () => save({ theme: s.theme === "dark" ? "light" : "dark" });
     view.querySelector("#hearts").onclick = () => save({ hearts_enabled: !s.hearts_enabled });
@@ -494,6 +530,25 @@ export function renderSettings(view) {
       draw();
     };
     view.querySelector("#danger-open").onclick = openDanger;
+    const file = view.querySelector("#ava-file");
+    view.querySelector("#ava-pick").onclick = () => file.click();
+    view.querySelector("#ava-pick2").onclick = () => file.click();
+    file.onchange = async () => {
+      const f = file.files[0];
+      if (!f) return;
+      try {
+        const image = await squareImage(f, 192);
+        store.user = await api("/account/avatar", { method: "PUT", body: { image } });
+        renderNavAvatar();
+        toast("user", "Аватарка обновлена");
+        draw();
+      } catch (e) { toast("warn", "Не получилось", e.message); }
+    };
+    view.querySelector("#ava-del")?.addEventListener("click", async () => {
+      store.user = await api("/account/avatar", { method: "PUT", body: { image: "" } });
+      renderNavAvatar();
+      draw();
+    });
     view.querySelector("#pw-open").onclick = openPassword;
     view.querySelector("#admins-open")?.addEventListener("click", openAdmins);
     const install = view.querySelector("#install");

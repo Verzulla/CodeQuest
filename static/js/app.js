@@ -4,7 +4,7 @@ import { store, refreshState } from "./store.js";
 import { renderAuth } from "./views/auth.js";
 import { renderCatalog, renderTopic, renderTopicTheory } from "./views/path.js";
 import { renderLesson } from "./views/lesson.js";
-import { renderReview, renderTraining, renderAwards, renderStats, renderSettings } from "./views/pages.js";
+import { renderReview, renderTraining, renderAwards, renderStats, renderSettings, renderNavAvatar } from "./views/pages.js";
 import { renderAdmin } from "./views/admin.js";
 import { renderAbout } from "./views/about.js";
 
@@ -71,6 +71,7 @@ async function enter(user) {
   store.user = user;
   document.body.classList.remove("auth");
   document.getElementById("nav-admin").hidden = !user.is_admin;
+  renderNavAvatar();
   await refreshState();
   route();
   if (store.state && store.state.onboarded === false) showWelcome();

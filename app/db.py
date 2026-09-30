@@ -73,7 +73,8 @@ CREATE TABLE IF NOT EXISTS users (
     username_key  TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     is_admin      INTEGER NOT NULL DEFAULT 0,
-    created_at    TEXT NOT NULL
+    created_at    TEXT NOT NULL,
+    avatar        TEXT NOT NULL DEFAULT ''      -- data:image/…;base64 (маленькая, ужата в браузере)
 );
 
 -- В базе только sha256 от токена: утечка файла БД не даёт готовых сессий.
@@ -204,6 +205,7 @@ MIGRATIONS = [
     ("exercise_progress", "hearts_lost", "INTEGER NOT NULL DEFAULT 0"),  # сердечки, потерянные на задании
     ("user_state", "path_view", "TEXT NOT NULL DEFAULT 'zigzag'"),  # вид дорожки уроков (редизайн)
     ("daily_activity", "frozen", "INTEGER NOT NULL DEFAULT 0"),      # день, спасённый заморозкой
+    ("users", "avatar", "TEXT NOT NULL DEFAULT ''"),                  # аватарка
 ]
 
 

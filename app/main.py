@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import random
+import re
 import sqlite3
 from contextlib import asynccontextmanager
 from datetime import timedelta
@@ -167,6 +168,24 @@ def logout(request: Request, response: Response):
 @app.get("/api/auth/me")
 def me(user: User):
     return auth.public(user)
+
+
+# Аватарка: только растровые картинки в data-URL (SVG нельзя — в нём может быть скрипт), до ~120 КБ.
+AVATAR_RE = re.compile(r"^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$")
+AVATAR_MAX = 160_000
+
+
+class AvatarIn(BaseModel):
+    image: str = Field("", max_length=AVATAR_MAX)   # пустая строка — убрать аватарку
+
+
+@app.put("/api/account/avatar")
+def set_avatar(body: AvatarIn, user: User):
+    if body.image and not AVATAR_RE.match(body.image):
+        raise HTTPException(400, "Нужна картинка PNG, JPEG или WebP")
+    with transaction() as conn:
+        conn.execute("UPDATE users SET avatar = ? WHERE id = ?", (body.image, user["id"]))
+        return auth.public(conn.execute("SELECT * FROM users WHERE id = ?", (user["id"],)).fetchone())
 
 
 class PasswordIn(BaseModel):

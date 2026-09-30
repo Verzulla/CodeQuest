@@ -118,7 +118,8 @@ def set_admin(conn, username: str, is_admin: bool) -> sqlite3.Row:
 
 
 def public(user: sqlite3.Row) -> dict:
-    return {"id": user["id"], "username": user["username"], "is_admin": bool(user["is_admin"])}
+    return {"id": user["id"], "username": user["username"], "is_admin": bool(user["is_admin"]),
+            "avatar": user["avatar"] if "avatar" in user.keys() else ""}
 
 
 # ---------- сессии ----------
