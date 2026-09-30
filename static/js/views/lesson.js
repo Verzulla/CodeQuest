@@ -2,6 +2,7 @@
 import { api, esc, md, highlight, sound, modal, confetti, burst, toast, fmtTime, ic, owl, plural, goBack, $ } from "../util.js";
 import { createEditor } from "../editor.js";
 import { achMini } from "../achievements.js";
+import { attachKeybar } from "../keybar.js";
 import { bindRunnable } from "../runnable.js";
 import { store, setState, announce } from "../store.js";
 
@@ -385,6 +386,7 @@ export function runSession(view, opts) {
     if (isCode) {
       editor = createEditor($("#ed", view), initial, { onSubmit: () => $("#check", view)?.click(), onChange: onEdit });
       editor.textarea.readOnly = viewSolved;
+      attachKeybar(editor.textarea);
       if (!viewSolved) editor.focus();
       $("#run", view).onclick = async () => {
         const btn = $("#run", view);
@@ -398,6 +400,7 @@ export function runSession(view, opts) {
       answerEl = $("#answer", view);
       answerEl.value = initial;
       answerEl.readOnly = viewSolved;
+      attachKeybar(answerEl);
       if (!viewSolved) answerEl.focus();
       answerEl.oninput = () => onEdit(answerEl.value);
       answerEl.onkeydown = (e) => {
