@@ -26,7 +26,8 @@
                   "code": "from datetime import date\n\nd = date(2024, 3, 8)\nprint(d)\nprint(d.year, d.month, d.day)\nprint(type(d).__name__)\n",
                   "expected_output": "2024-03-08\n2024 3 8\ndate",
                   "hint": "print(date) показывает дату в формате ГГГГ-ММ-ДД.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`date` хранит год, месяц и день. Печатается в формате ISO: `ГГГГ-ММ-ДД`.\", \"lines\": [[\"print(d)\", \"Месяц и день с ведущим нулём.\"], [\"print(d.year, d.month, d.day)\", \"Атрибуты — обычные числа, без нулей.\"], [\"print(type(d).__name__)\", \"Имя класса.\"]], \"mistake\": \"Ожидать `8.3.2024` — формат по умолчанию ISO.\"}"
                 },
                 {
                   "slug": "dt-date-e2",
@@ -35,7 +36,8 @@
                   "code": "from datetime import date\n\nd = date(2024, 3, 8)\nprint(d.weekday(), d.isoweekday())\ndays = [\"пн\", \"вт\", \"ср\", \"чт\", \"пт\", \"сб\", \"вс\"]\nprint(days[d.weekday()])\nprint(date(2024, 3, 10).weekday() >= 5)\n",
                   "expected_output": "4 5\nпт\nTrue",
                   "hint": "weekday(): понедельник — 0, воскресенье — 6. isoweekday(): понедельник — 1.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`weekday()` считает от понедельника = 0, `isoweekday()` — от понедельника = 1. 8 марта 2024 — пятница.\", \"lines\": [[\"print(d.weekday(), d.isoweekday())\", \"4 и 5.\"], [\"print(days[d.weekday()])\", \"Индекс 4 — «пт».\"], [\"print(date(2024, 3, 10).weekday() >= 5)\", \"Воскресенье: 6 ≥ 5.\"]], \"mistake\": \"Считать, что `weekday()` начинается с 1.\"}"
                 },
                 {
                   "slug": "dt-date-e3",
@@ -44,7 +46,8 @@
                   "code": "from datetime import date\n\na = date(2024, 1, 15)\nb = date(2023, 12, 31)\nprint(a > b, a == date(2024, 1, 15))\ndates = [date(2024, 5, 1), date(2023, 1, 1), date(2024, 1, 1)]\nprint(sorted(dates)[0], max(dates))\ntry:\n    date(2023, 2, 29)\nexcept ValueError as e:\n    print(e)\n",
                   "expected_output": "True True\n2023-01-01 2024-05-01\nday is out of range for month",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Даты сравниваются как числа на шкале времени, поэтому работают `sorted`, `min`, `max`. Несуществующая дата — `ValueError`.\", \"lines\": [[\"print(a > b, a == date(2024, 1, 15))\", \"2024 позже 2023; одинаковые даты равны.\"], [\"print(sorted(dates)[0], max(dates))\", \"Самая ранняя и самая поздняя.\"], [\"date(2023, 2, 29)\", \"2023 — не високосный.\"]], \"mistake\": \"Думать, что `date` сама «перенесёт» 29 февраля на 1 марта.\"}"
                 },
                 {
                   "slug": "dt-date-e4",
@@ -54,7 +57,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert is_weekend(date(2024, 3, 9)) and is_weekend(date(2024, 3, 10)), \"Выходные\"\n    assert not is_weekend(date(2024, 3, 8)) and not is_weekend(date(2024, 3, 11)), \"Будни\"\n",
                   "solution": "from datetime import date\n\n\ndef is_weekend(d):\n    return d.weekday() >= 5\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Суббота — 5, воскресенье — 6 в `weekday()`.\", \"lines\": [[\"return d.weekday() >= 5\", \"Выходные — 5 и 6.\"]], \"mistake\": \"`d.weekday() > 5` — суббота окажется будним днём.\"}"
                 },
                 {
                   "slug": "dt-date-e5",
@@ -64,7 +68,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert day_name(date(2024, 3, 8)) == \"пятница\" and day_name(date(2024, 3, 11)) == \"понедельник\" and day_name(date(2024, 3, 10)) == \"воскресенье\", \"Неверный день\"\n",
                   "solution": "from datetime import date\n\nDAYS = [\"понедельник\", \"вторник\", \"среда\", \"четверг\", \"пятница\", \"суббота\", \"воскресенье\"]\n\n\ndef day_name(d):\n    return DAYS[d.weekday()]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`weekday()` — готовый индекс для списка названий, начинающегося с понедельника.\", \"lines\": [[\"DAYS = [\\\"понедельник\\\", \\\"вторник\\\", \\\"среда\\\", \\\"четверг\\\", \\\"пятница\\\", \\\"суббота\\\", \\\"воскресенье\\\"]\", \"Индекс 0 — понедельник.\"], [\"return DAYS[d.weekday()]\", \"Название по индексу.\"]], \"mistake\": \"Начать список с воскресенья, как в американском календаре.\"}"
                 },
                 {
                   "slug": "dt-date-e6",
@@ -74,7 +79,8 @@
                   "tests": "def test_values():\n    assert is_valid_date(2024, 2, 29) and not is_valid_date(2023, 2, 29), \"29 февраля\"\n    assert not is_valid_date(2024, 4, 31) and not is_valid_date(2024, 13, 1) and is_valid_date(2024, 12, 31), \"Прочие даты\"\n",
                   "solution": "from datetime import date\n\n\ndef is_valid_date(year, month, day):\n    try:\n        date(year, month, day)\n    except ValueError:\n        return False\n    return True\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Проверять високосные годы и длину месяцев вручную не нужно — `date` сама выбросит `ValueError`.\", \"lines\": [[\"date(year, month, day)\", \"Пробуем создать.\"], [\"except ValueError:\\n        return False\", \"Такой даты нет.\"], [\"return True\", \"Создалась — существует.\"]], \"mistake\": \"Писать свою проверку с таблицей дней в месяцах.\"}"
                 },
                 {
                   "slug": "dt-date-e7",
@@ -84,7 +90,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert earliest([date(2024, 5, 1), date(2023, 1, 2), date(2024, 1, 1)]) == date(2023, 1, 2) and earliest([]) is None, \"Неверный результат\"\n",
                   "solution": "from datetime import date\n\n\ndef earliest(dates):\n    return min(dates) if dates else None\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`min` работает с датами. Пустой список — отдельный случай.\", \"lines\": [[\"return min(dates) if dates else None\", \"`min([])` упал бы с ошибкой.\"]], \"mistake\": \"Вызвать `min` без проверки на пустоту.\"}"
                 },
                 {
                   "slug": "dt-date-e8",
@@ -94,7 +101,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert [quarter(date(2024, m, 1)) for m in (1, 3, 4, 6, 7, 10, 12)] == [1, 1, 2, 2, 3, 4, 4], \"quarter\"\n    assert same_quarter(date(2024, 1, 5), date(2024, 3, 31)) and not same_quarter(date(2024, 1, 5), date(2023, 2, 1)) and not same_quarter(date(2024, 3, 31), date(2024, 4, 1)), \"same_quarter\"\n",
                   "solution": "from datetime import date\n\n\ndef quarter(d):\n    return (d.month - 1) // 3 + 1\n\n\ndef same_quarter(a, b):\n    return a.year == b.year and quarter(a) == quarter(b)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Месяцы 1–12 сдвигаем к 0–11, делим на 3 нацело — получаем 0–3, прибавляем 1.\", \"lines\": [[\"return (d.month - 1) // 3 + 1\", \"Март: 2 // 3 + 1 = 1; апрель: 3 // 3 + 1 = 2.\"], [\"return a.year == b.year and quarter(a) == quarter(b)\", \"Один квартал разных лет не считается.\"]], \"mistake\": \"`d.month // 3 + 1` — март попадёт во второй квартал.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nДаты повсюду: срок действия токена, дата заказа, время создания записи в API, имя файла отчёта. Хранить дату строкой `\"08.03.2024\"` неудобно: её не сравнить правильно, к ней не прибавить неделю. В Python для этого есть модуль `datetime` со специальными классами.\n\n## Модуль datetime\n\nВ стандартном модуле `datetime` несколько классов:\n\n- `date` — только дата (год, месяц, день);\n- `time` — только время (часы, минуты, секунды);\n- `datetime` — дата и время вместе;\n- `timedelta` — промежуток времени («3 дня», «2 часа»);\n- `timezone` — часовой пояс.\n\nВнимание: модуль и один из классов называются одинаково — `datetime`. Поэтому обычно пишут `from datetime import date, datetime`.\n\n## Создание даты\n\n```python\nfrom datetime import date\n\nd = date(2024, 3, 8)\nprint(d)\nprint(d.year, d.month, d.day)\nprint(type(d).__name__)\n```\n\n- `date(год, месяц, день)` — порядок всегда «от большего к меньшему».\n- `print(d)` показывает дату в международном формате **ISO**: `ГГГГ-ММ-ДД`.\n- `year`, `month`, `day` — атрибуты-числа.\n- Вывод: `2024-03-08`, `2024 3 8`, `date`.\n\n## Сегодняшняя дата\n\n```py\ndate.today()      # сегодняшняя дата, например date(2026, 9, 28)\n```\n\n- Результат меняется каждый день, поэтому в примерах и тестах мы используем **фиксированные** даты. Как тестировать код, который зависит от «сегодня», — в последнем уроке темы.\n\n## День недели\n\n```python\nfrom datetime import date\n\nd = date(2024, 3, 8)\nprint(d.weekday(), d.isoweekday())\ndays = [\"пн\", \"вт\", \"ср\", \"чт\", \"пт\", \"сб\", \"вс\"]\nprint(days[d.weekday()])\nprint(date(2024, 3, 10).weekday() >= 5)\n```\n\n- `weekday()` — номер дня недели с нуля: понедельник `0`, …, воскресенье `6`. Удобно как индекс списка.\n- `isoweekday()` — «человеческая» нумерация: понедельник `1`, …, воскресенье `7`.\n- `weekday() >= 5` — выходной (суббота 5 или воскресенье 6).\n- Вывод: `4 5`, `пт`, `True`.\n\n## Сравнение и сортировка\n\n```python\nfrom datetime import date\n\na = date(2024, 1, 15)\nb = date(2023, 12, 31)\nprint(a > b, a == date(2024, 1, 15))\ndates = [date(2024, 5, 1), date(2023, 1, 1), date(2024, 1, 1)]\nprint(sorted(dates)[0], max(dates))\n```\n\n- Даты сравниваются по времени: более поздняя — «больше».\n- Работают `sorted`, `min`, `max`.\n- Вывод: `True True`, `2023-01-01 2024-05-01`.\n\n## Несуществующая дата\n\n```python\nfrom datetime import date\n\ntry:\n    date(2023, 2, 29)\nexcept ValueError as e:\n    print(e)\n```\n\n- 2023 — не високосный год, 29 февраля нет → `ValueError`. Так же для 31 апреля или 13-го месяца.\n- Вывод: `day is out of range for month`.\n- Это удобный способ проверить, существует ли дата: попробовать создать и поймать ошибку.\n\n## Даты неизменяемы\n\nОбъект `date` нельзя изменить: `d.day = 5` → `AttributeError`. Все операции (сдвиг, замена дня) возвращают **новый** объект. Поэтому даты можно смело класть в множества и использовать как ключи словаря.\n\n## Итог\n\n- `from datetime import date`; `date(2024, 3, 8)`; `date.today()`.\n- `.year`, `.month`, `.day`; `weekday()` (пн = 0), `isoweekday()` (пн = 1).\n- Даты сравниваются и сортируются.\n- Несуществующая дата → `ValueError`.",
@@ -146,7 +154,8 @@
                   "code": "from datetime import datetime\n\ndt = datetime(2024, 3, 8, 14, 30, 5)\nprint(dt)\nprint(dt.hour, dt.minute, dt.second)\nprint(dt.date(), dt.time())\n",
                   "expected_output": "2024-03-08 14:30:05\n14 30 5\n2024-03-08 14:30:05",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`datetime` — дата плюс время. `.date()` и `.time()` разбивают его на части.\", \"lines\": [[\"print(dt)\", \"Дата и время через пробел.\"], [\"print(dt.hour, dt.minute, dt.second)\", \"Числа без ведущих нулей.\"], [\"print(dt.date(), dt.time())\", \"Две части вместе дают ту же строку.\"]], \"mistake\": \"Ожидать `T` между датой и временем — его добавляет только `isoformat()`.\"}"
                 },
                 {
                   "slug": "dt-datetime-e2",
@@ -155,7 +164,8 @@
                   "code": "from datetime import datetime, date, time\n\ndt = datetime(2024, 3, 8, 14, 30)\nprint(dt.replace(hour=9, minute=0))\nprint(dt)\nstart = datetime.combine(date(2024, 1, 1), time(10, 15))\nprint(start, start.replace(day=31).day)\n",
                   "expected_output": "2024-03-08 09:00:00\n2024-03-08 14:30:00\n2024-01-01 10:15:00 31",
                   "hint": "replace возвращает новый объект — datetime неизменяем.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`replace` возвращает новый объект, исходный не меняется. `combine` собирает `datetime` из `date` и `time`.\", \"lines\": [[\"print(dt.replace(hour=9, minute=0))\", \"Новый объект: 9:00.\"], [\"print(dt)\", \"Старый не изменился: 14:30.\"], [\"start = datetime.combine(date(2024, 1, 1), time(10, 15))\", \"Дата + время.\"], [\"print(start, start.replace(day=31).day)\", \"В январе 31 день — можно.\"]], \"mistake\": \"Думать, что `replace` меняет объект на месте.\"}"
                 },
                 {
                   "slug": "dt-datetime-e3",
@@ -164,7 +174,8 @@
                   "code": "from datetime import datetime, time\n\ndt = datetime(2024, 3, 8, 14, 30, 45, 123456)\nprint(dt.replace(microsecond=0))\nmidnight = datetime.combine(dt.date(), time.min)\nprint(midnight)\nprint(time(9, 0) < time(18, 0) < time(23, 59))\n",
                   "expected_output": "2024-03-08 14:30:45\n2024-03-08 00:00:00\nTrue",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Начало дня — `combine(дата, time.min)` или `replace` с нулями. Объекты `time` тоже сравниваются.\", \"lines\": [[\"print(dt.replace(microsecond=0))\", \"Микросекунды убраны из вывода.\"], [\"midnight = datetime.combine(dt.date(), time.min)\", \"`time.min` — 00:00.\"], [\"print(time(9, 0) < time(18, 0) < time(23, 59))\", \"Цепочка сравнений.\"]], \"mistake\": \"Ожидать `.123456` в первой строке.\"}"
                 },
                 {
                   "slug": "dt-datetime-e4",
@@ -174,7 +185,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    assert is_working_hours(datetime(2024, 3, 8, 9, 0)) and is_working_hours(datetime(2024, 3, 8, 17, 59)), \"Рабочее время\"\n    assert not is_working_hours(datetime(2024, 3, 8, 18, 0)) and not is_working_hours(datetime(2024, 3, 8, 8, 59)) and not is_working_hours(datetime(2024, 3, 9, 12, 0)), \"Нерабочее\"\n",
                   "solution": "from datetime import datetime, time\n\n\ndef is_working_hours(dt):\n    return dt.weekday() < 5 and time(9, 0) <= dt.time() < time(18, 0)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Два условия: будний день и время в полуинтервале [9:00, 18:00).\", \"lines\": [[\"return dt.weekday() < 5 and time(9, 0) <= dt.time() < time(18, 0)\", \"18:00 уже не рабочее.\"]], \"mistake\": \"`<= time(18, 0)` — ровно 18:00 окажется рабочим.\"}"
                 },
                 {
                   "slug": "dt-datetime-e5",
@@ -184,7 +196,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    dt = datetime(2024, 3, 8, 14, 30, 5, 77)\n    assert start_of_day(dt) == datetime(2024, 3, 8) and end_of_day(dt) == datetime(2024, 3, 8, 23, 59, 59, 999999), \"Неверные границы\"\n    assert dt == datetime(2024, 3, 8, 14, 30, 5, 77), \"Исходный объект не меняется\"\n",
                   "solution": "from datetime import datetime\n\n\ndef start_of_day(dt):\n    return dt.replace(hour=0, minute=0, second=0, microsecond=0)\n\n\ndef end_of_day(dt):\n    return dt.replace(hour=23, minute=59, second=59, microsecond=999999)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`replace` с явными значениями всех частей времени.\", \"lines\": [[\"return dt.replace(hour=0, minute=0, second=0, microsecond=0)\", \"Начало дня.\"], [\"return dt.replace(hour=23, minute=59, second=59, microsecond=999999)\", \"Последняя микросекунда дня.\"]], \"mistake\": \"Забыть `microsecond` — останутся микросекунды из исходного значения.\"}"
                 },
                 {
                   "slug": "dt-datetime-e6",
@@ -194,7 +207,8 @@
                   "tests": "from datetime import datetime, date\n\ndef test_values():\n    assert meeting_at(date(2024, 3, 8), 10) == datetime(2024, 3, 8, 10, 0) and meeting_at(date(2024, 1, 1), 9, 30) == datetime(2024, 1, 1, 9, 30), \"Неверный результат\"\n",
                   "solution": "from datetime import datetime, date, time\n\n\ndef meeting_at(d, hour, minute=0):\n    return datetime.combine(d, time(hour, minute))\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`combine` соединяет день и время в `datetime`.\", \"lines\": [[\"return datetime.combine(d, time(hour, minute))\", \"Минуты по умолчанию — 0.\"]], \"mistake\": \"`datetime(d, hour, minute)` — `datetime` не принимает объект `date` первым аргументом.\"}"
                 },
                 {
                   "slug": "dt-datetime-e7",
@@ -204,7 +218,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    hours = [0, 5, 6, 11, 12, 17, 18, 23]\n    assert [part_of_day(datetime(2024, 1, 1, h, 30)) for h in hours] == [\"ночь\", \"ночь\", \"утро\", \"утро\", \"день\", \"день\", \"вечер\", \"вечер\"], \"Неверный результат\"\n",
                   "solution": "def part_of_day(dt):\n    if dt.hour < 6:\n        return \"ночь\"\n    if dt.hour < 12:\n        return \"утро\"\n    if dt.hour < 18:\n        return \"день\"\n    return \"вечер\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Цепочка `if` с ранним `return`: каждая проверка отсекает свой диапазон часов.\", \"lines\": [[\"if dt.hour < 6:\\n        return \\\"ночь\\\"\", \"0–5.\"], [\"if dt.hour < 12:\\n        return \\\"утро\\\"\", \"6–11: до этой строки доходят только часы ≥ 6.\"], [\"if dt.hour < 18:\\n        return \\\"день\\\"\", \"12–17.\"], [\"return \\\"вечер\\\"\", \"Всё остальное.\"]], \"mistake\": \"`dt.hour <= 6` — 6:00 станет ночью.\"}"
                 },
                 {
                   "slug": "dt-datetime-e8",
@@ -214,7 +229,8 @@
                   "tests": "from datetime import datetime, date, time\n\ndef test_values():\n    ev = [datetime(2024, 3, 9, 10), datetime(2024, 3, 8, 15), datetime(2024, 3, 8, 9, 30)]\n    r = group_by_date(ev)\n    assert r == {date(2024, 3, 8): [time(9, 30), time(15)], date(2024, 3, 9): [time(10)]} and list(r) == [date(2024, 3, 8), date(2024, 3, 9)], r\n    assert group_by_date([]) == {}, \"Пустой список\"\n",
                   "solution": "def group_by_date(events):\n    result = {}\n    for dt in sorted(events):\n        result.setdefault(dt.date(), []).append(dt.time())\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Сортируем события заранее — тогда и ключи, и списки времён окажутся по возрастанию.\", \"lines\": [[\"for dt in sorted(events):\", \"По времени.\"], [\"result.setdefault(dt.date(), []).append(dt.time())\", \"Создать список дня при первом событии.\"]], \"mistake\": \"Не сортировать — порядок ключей и времён будет как во входе.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЧасто нужна не только дата, но и время: когда создан заказ, когда упал тест, до какого момента действует токен. Для этого есть `datetime` (дата + время) и `time` (только время).\n\n## datetime\n\n```python\nfrom datetime import datetime\n\ndt = datetime(2024, 3, 8, 14, 30, 5)\nprint(dt)\nprint(dt.hour, dt.minute, dt.second)\nprint(dt.date(), dt.time())\n```\n\n- `datetime(год, месяц, день, час, минута, секунда, микросекунда)` — всё после дня необязательно (по умолчанию 0).\n- Атрибуты: `year`, `month`, `day`, `hour`, `minute`, `second`, `microsecond`.\n- `dt.date()` — только дата (`date`), `dt.time()` — только время (`time`).\n- Вывод: `2024-03-08 14:30:05`, `14 30 5`, `2024-03-08 14:30:05`.\n\n## Текущий момент\n\n```py\ndatetime.now()    # текущие дата и время на компьютере\n```\n\n- Как и `date.today()`, результат меняется — в тестах так не делают. Подробнее — в последнем уроке.\n\n## replace: изменить часть\n\n```python\nfrom datetime import datetime\n\ndt = datetime(2024, 3, 8, 14, 30)\nprint(dt.replace(hour=9, minute=0))\nprint(dt)\n```\n\n- `datetime` неизменяем. `replace(...)` возвращает **новый** объект с заменёнными полями, остальные поля копируются.\n- Исходный `dt` не изменился.\n- Вывод: `2024-03-08 09:00:00`, `2024-03-08 14:30:00`.\n\n## combine: дата + время\n\n```python\nfrom datetime import datetime, date, time\n\nstart = datetime.combine(date(2024, 1, 1), time(10, 15))\nprint(start)\nmidnight = datetime.combine(date(2024, 1, 1), time.min)\nprint(midnight)\n```\n\n- `time(часы, минуты, секунды)` — объект «время суток».\n- `datetime.combine(дата, время)` — склеить их.\n- `time.min` — `00:00:00`, `time.max` — `23:59:59.999999`.\n- Вывод: `2024-01-01 10:15:00`, `2024-01-01 00:00:00`.\n\n## Микросекунды\n\n```python\nfrom datetime import datetime\n\ndt = datetime(2024, 3, 8, 14, 30, 45, 123456)\nprint(dt)\nprint(dt.replace(microsecond=0))\n```\n\n- Микросекунда — миллионная доля секунды. Они часто приходят из API и мешают сравнивать.\n- `replace(microsecond=0)` — отбросить их.\n- Вывод: `2024-03-08 14:30:45.123456`, `2024-03-08 14:30:45`.\n\n## Сравнение времени\n\n```python\nfrom datetime import datetime, time\n\ndt = datetime(2024, 3, 8, 17, 59)\nprint(time(9, 0) <= dt.time() < time(18, 0))\nprint(dt.weekday() < 5)\n```\n\n- Объекты `time` сравниваются между собой — удобно проверять «рабочие часы».\n- Двойное сравнение `a <= x < b` работает и здесь.\n- Вывод: `True`, `True`.\n\n## Группировка по дням\n\n```python\nfrom datetime import datetime\n\nevents = [datetime(2024, 3, 9, 10), datetime(2024, 3, 8, 15), datetime(2024, 3, 8, 9, 30)]\nby_day = {}\nfor dt in sorted(events):\n    by_day.setdefault(dt.date(), []).append(dt.time())\nfor day, times in by_day.items():\n    print(day, [t.strftime(\"%H:%M\") for t in times])\n```\n\n- `dt.date()` — ключ группы. `setdefault` создаёт пустой список для нового ключа.\n- `strftime(\"%H:%M\")` — время в виде «часы:минуты» (подробно — в следующем уроке).\n- Вывод: `2024-03-08 ['09:30', '15:00']`, `2024-03-09 ['10:00']`.\n\n## Итог\n\n- `datetime(год, мес, день, ч, мин, сек, мкс)`; `datetime.now()`.\n- `.date()`, `.time()`; `time(ч, мин)`, `time.min`, `time.max`.\n- `replace(...)` — новый объект; `combine(date, time)`.\n- `datetime` и `time` сравниваются.",
@@ -266,7 +282,8 @@
                   "code": "from datetime import datetime\n\ndt = datetime(2024, 3, 8, 9, 5, 7)\nprint(dt.strftime(\"%d.%m.%Y\"))\nprint(dt.strftime(\"%H:%M:%S\"))\nprint(dt.strftime(\"%Y-%m-%d %H:%M\"))\nprint(dt.strftime(\"%d/%m/%y\"))\n",
                   "expected_output": "08.03.2024\n09:05:07\n2024-03-08 09:05\n08/03/24",
                   "hint": "%d, %m, %H, %M, %S — всегда две цифры, с ведущим нулём.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`strftime` собирает строку по шаблону: `%d` день, `%m` месяц, `%Y` год из 4 цифр, `%y` — из 2, `%H:%M:%S` — время.\", \"lines\": [[\"print(dt.strftime(\\\"%d.%m.%Y\\\"))\", \"Нули добавляются: 08.03.\"], [\"print(dt.strftime(\\\"%H:%M:%S\\\"))\", \"09:05:07.\"], [\"print(dt.strftime(\\\"%d/%m/%y\\\"))\", \"`%y` — 24.\"]], \"mistake\": \"Перепутать `%m` (месяц) и `%M` (минуты).\"}"
                 },
                 {
                   "slug": "dt-format-e2",
@@ -275,7 +292,8 @@
                   "code": "from datetime import datetime, date\n\ndt = datetime(2024, 3, 8, 9, 5)\nprint(dt.isoformat())\nprint(date(2024, 3, 8).isoformat())\nprint(f\"{dt:%d.%m.%Y}\", f\"{dt:%H:%M}\")\nprint(str(dt))\n",
                   "expected_output": "2024-03-08T09:05:00\n2024-03-08\n08.03.2024 09:05\n2024-03-08 09:05:00",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`isoformat` ставит `T` между датой и временем и всегда пишет секунды. В f-строке формат пишется после двоеточия.\", \"lines\": [[\"print(dt.isoformat())\", \"С `T` и секундами.\"], [\"print(date(2024, 3, 8).isoformat())\", \"У даты — только дата.\"], [\"print(f\\\"{dt:%d.%m.%Y}\\\", f\\\"{dt:%H:%M}\\\")\", \"Как `strftime`.\"], [\"print(str(dt))\", \"С пробелом вместо `T`.\"]], \"mistake\": \"Ожидать `09:05` без секунд от `isoformat()`.\"}"
                 },
                 {
                   "slug": "dt-format-e3",
@@ -284,7 +302,8 @@
                   "code": "from datetime import date\n\nd = date(2024, 3, 8)\nprint(d.strftime(\"%A, %B\"))\nprint(d.strftime(\"%a %b\"))\nprint(d.strftime(\"%j\"), d.strftime(\"%w\"))\nprint(d.strftime(\"%%Y = %Y\"))\n",
                   "expected_output": "Friday, March\nFri Mar\n068 5\n%Y = 2024",
                   "hint": "Названия дней и месяцев — английские (зависят от языка системы).",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`%A`/`%B` — полные английские названия, `%a`/`%b` — сокращённые. `%j` — день года, `%w` — день недели от воскресенья = 0. `%%` — сам знак процента.\", \"lines\": [[\"print(d.strftime(\\\"%A, %B\\\"))\", \"Friday, March.\"], [\"print(d.strftime(\\\"%j\\\"), d.strftime(\\\"%w\\\"))\", \"31 + 29 + 8 = 68-й день; пятница = 5.\"], [\"print(d.strftime(\\\"%%Y = %Y\\\"))\", \"`%%Y` — просто текст «%Y».\"]], \"mistake\": \"Считать `%w` как `weekday()` — там понедельник 0, здесь воскресенье 0.\"}"
                 },
                 {
                   "slug": "dt-format-e4",
@@ -294,7 +313,8 @@
                   "tests": "from datetime import date, datetime\n\ndef test_values():\n    assert ru_date(date(2024, 3, 8)) == \"08.03.2024\" and ru_date(datetime(2023, 12, 31, 23, 0)) == \"31.12.2023\", \"Неверный формат\"\n",
                   "solution": "def ru_date(d):\n    return d.strftime(\"%d.%m.%Y\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Шаблон `%d.%m.%Y` — привычный русский формат с ведущими нулями.\", \"lines\": [[\"return d.strftime(\\\"%d.%m.%Y\\\")\", \"Работает и для `date`, и для `datetime`.\"]], \"mistake\": \"`f\\\"{d.day}.{d.month}.{d.year}\\\"` — потеряются нули: 8.3.2024.\"}"
                 },
                 {
                   "slug": "dt-format-e5",
@@ -304,7 +324,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    assert log_line(datetime(2024, 3, 8, 9, 5, 7), \"error\", \"упал тест\") == \"[2024-03-08 09:05:07] ERROR: упал тест\", log_line(datetime(2024, 3, 8, 9, 5, 7), \"error\", \"упал тест\")\n",
                   "solution": "def log_line(dt, level, msg):\n    return f\"[{dt:%Y-%m-%d %H:%M:%S}] {level.upper()}: {msg}\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Формат даты прямо внутри f-строки.\", \"lines\": [[\"return f\\\"[{dt:%Y-%m-%d %H:%M:%S}] {level.upper()}: {msg}\\\"\", \"Время в скобках, уровень заглавными.\"]], \"mistake\": \"Забыть `.upper()` у уровня.\"}"
                 },
                 {
                   "slug": "dt-format-e6",
@@ -314,7 +335,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert human_date(date(2024, 3, 8)) == \"8 марта 2024\" and human_date(date(2023, 12, 31)) == \"31 декабря 2023\" and human_date(date(2024, 1, 1)) == \"1 января 2024\", \"Неверный формат\"\n",
                   "solution": "MONTHS = [\"января\", \"февраля\", \"марта\", \"апреля\", \"мая\", \"июня\",\n          \"июля\", \"августа\", \"сентября\", \"октября\", \"ноября\", \"декабря\"]\n\n\ndef human_date(d):\n    return f\"{d.day} {MONTHS[d.month - 1]} {d.year}\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`%B` зависит от языка системы и даёт именительный падеж. Свой список — надёжно и по-русски.\", \"lines\": [[\"MONTHS = [\\\"января\\\", \\\"февраля\\\", \\\"марта\\\", \\\"апреля\\\", \\\"мая\\\", \\\"июня\\\",\\n          \\\"июля\\\", \\\"августа\\\", \\\"сентября\\\", \\\"октября\\\", \\\"ноября\\\", \\\"декабря\\\"]\", \"Родительный падеж.\"], [\"return f\\\"{d.day} {MONTHS[d.month - 1]} {d.year}\\\"\", \"`d.day` — без нуля; месяц с 1, индекс с 0.\"]], \"mistake\": \"`MONTHS[d.month]` — сдвиг на месяц и `IndexError` в декабре.\"}"
                 },
                 {
                   "slug": "dt-format-e7",
@@ -324,7 +346,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    assert report_name(datetime(2024, 3, 8, 9, 5, 59)) == \"report_2024-03-08_09-05.html\" and report_name(datetime(2024, 12, 1, 23, 0), \"allure\") == \"allure_2024-12-01_23-00.html\", \"Неверное имя\"\n",
                   "solution": "def report_name(dt, prefix=\"report\"):\n    return f\"{prefix}_{dt:%Y-%m-%d_%H-%M}.html\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"В имени файла двоеточие заменено дефисом, дата и время разделены `_`.\", \"lines\": [[\"return f\\\"{prefix}_{dt:%Y-%m-%d_%H-%M}.html\\\"\", \"`%H-%M` вместо `%H:%M`.\"]], \"mistake\": \"Использовать `isoformat()` — в имени появятся двоеточия.\"}"
                 },
                 {
                   "slug": "dt-format-e8",
@@ -334,7 +357,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    assert api_timestamp(datetime(2024, 3, 8, 9, 5, 7, 123456)) == \"2024-03-08T09:05:07\" and api_timestamp(datetime(2024, 1, 1)) == \"2024-01-01T00:00:00\", \"Неверный формат\"\n",
                   "solution": "def api_timestamp(dt):\n    return dt.isoformat(timespec=\"seconds\")\n",
                   "hint": "dt.isoformat(timespec=\"seconds\")",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`timespec` задаёт точность: `\\\"seconds\\\"` отбрасывает микросекунды.\", \"lines\": [[\"return dt.isoformat(timespec=\\\"seconds\\\")\", \"`2024-03-08T09:05:07`.\"]], \"mistake\": \"`str(dt)` — пробел вместо `T` и возможные микросекунды.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nДля людей и для API даты пишут в разных форматах: `08.03.2024`, `2024-03-08T09:05:00`, `8 марта 2024`. Превратить объект даты в строку нужного вида помогает `strftime` (string format time) и `isoformat`.\n\n## strftime и коды формата\n\n```python\nfrom datetime import datetime\n\ndt = datetime(2024, 3, 8, 9, 5, 7)\nprint(dt.strftime(\"%d.%m.%Y\"))\nprint(dt.strftime(\"%H:%M:%S\"))\nprint(dt.strftime(\"%Y-%m-%d %H:%M\"))\nprint(dt.strftime(\"%d/%m/%y\"))\n```\n\n- `strftime(шаблон)` — подставляет части даты вместо кодов с `%`; всё остальное (точки, пробелы, слеши) копируется как есть.\n- Главные коды:\n  - `%Y` — год четырьмя цифрами, `%y` — двумя;\n  - `%m` — месяц `01`–`12`;\n  - `%d` — день `01`–`31`;\n  - `%H` — час `00`–`23`, `%M` — минуты, `%S` — секунды.\n- Числовые коды всегда дают **две цифры** с ведущим нулём.\n- Внимание: `%m` — месяц, `%M` — минуты. Перепутать их — частая ошибка.\n- Вывод: `08.03.2024`, `09:05:07`, `2024-03-08 09:05`, `08/03/24`.\n\n## Формат прямо в f-строке\n\n```python\nfrom datetime import datetime\n\ndt = datetime(2024, 3, 8, 9, 5)\nprint(f\"{dt:%d.%m.%Y}\", f\"{dt:%H:%M}\")\nprint(f\"[{dt:%Y-%m-%d %H:%M:%S}] ERROR: упал тест\")\n```\n\n- После двоеточия в `{}` можно написать тот же шаблон — это короче, чем `strftime`.\n- Вывод: `08.03.2024 09:05`, `[2024-03-08 09:05:00] ERROR: упал тест`.\n\n## isoformat\n\n```python\nfrom datetime import datetime, date\n\ndt = datetime(2024, 3, 8, 9, 5, 7, 123456)\nprint(dt.isoformat())\nprint(dt.isoformat(timespec=\"seconds\"))\nprint(dt.isoformat(sep=\" \", timespec=\"minutes\"))\nprint(date(2024, 3, 8).isoformat())\n```\n\n- **ISO 8601** — международный стандарт записи дат: `ГГГГ-ММ-ДДTЧЧ:ММ:СС`. Буква `T` разделяет дату и время. Его используют почти все API и JSON.\n- `timespec=\"seconds\"` — без микросекунд; `\"minutes\"` — до минут.\n- `sep=\" \"` — пробел вместо `T`.\n- Вывод: `2024-03-08T09:05:07.123456`, `2024-03-08T09:05:07`, `2024-03-08 09:05`, `2024-03-08`.\n\n## Названия дней и месяцев\n\n```python\nfrom datetime import date\n\nd = date(2024, 3, 8)\nprint(d.strftime(\"%A, %B\"))\nprint(d.strftime(\"%a %b\"))\nprint(d.strftime(\"%j\"), d.strftime(\"%w\"))\n```\n\n- `%A` / `%a` — день недели полностью / сокращённо, `%B` / `%b` — месяц.\n- Язык названий зависит от настроек системы (**локали**); на серверах обычно английский.\n- `%j` — номер дня в году, `%w` — день недели (воскресенье `0`).\n- Вывод: `Friday, March`, `Fri Mar`, `068 5`.\n\nДля русских названий надёжнее свой список:\n\n```python\nfrom datetime import date\n\nMONTHS = [\"января\", \"февраля\", \"марта\", \"апреля\", \"мая\", \"июня\",\n          \"июля\", \"августа\", \"сентября\", \"октября\", \"ноября\", \"декабря\"]\n\nd = date(2024, 3, 8)\nprint(f\"{d.day} {MONTHS[d.month - 1]} {d.year}\")\n```\n\n- `d.day` — число без ведущего нуля; `d.month - 1` — индекс в списке с нуля.\n- Вывод: `8 марта 2024`.\n\n## Имя файла из даты\n\n```python\nfrom datetime import datetime\n\ndt = datetime(2024, 3, 8, 9, 5)\nprint(f\"report_{dt:%Y-%m-%d_%H-%M}.html\")\n```\n\n- Формат «год-месяц-день» удобен: такие имена сортируются по алфавиту в правильном порядке.\n- Двоеточия в именах файлов запрещены в Windows — используем дефис.\n- Вывод: `report_2024-03-08_09-05.html`.\n\n## Итог\n\n- `dt.strftime(\"%d.%m.%Y %H:%M\")` или `f\"{dt:%d.%m.%Y}\"`.\n- `%Y %m %d %H %M %S` — год, месяц, день, час, минуты, секунды; `%%` — знак процента.\n- `isoformat()` — стандарт для API; `timespec=\"seconds\"`.\n- `%A`, `%B` зависят от локали — для русского языка свой список.",
@@ -386,7 +410,8 @@
                   "code": "from datetime import datetime\n\ndt = datetime.strptime(\"08.03.2024 14:30\", \"%d.%m.%Y %H:%M\")\nprint(dt)\nprint(repr(dt))\nprint(datetime.strptime(\"2024-03-08\", \"%Y-%m-%d\").date())\n",
                   "expected_output": "2024-03-08 14:30:00\ndatetime.datetime(2024, 3, 8, 14, 30)\n2024-03-08",
                   "hint": "strptime — string parse time: строка + формат → datetime.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`strptime` — обратная к `strftime`: строка + шаблон → `datetime`. Шаблон должен совпадать со строкой полностью.\", \"lines\": [[\"dt = datetime.strptime(\\\"08.03.2024 14:30\\\", \\\"%d.%m.%Y %H:%M\\\")\", \"Разбор по шаблону.\"], [\"print(repr(dt))\", \"`repr` показывает конструктор; нулевые секунды не пишутся.\"], [\"print(datetime.strptime(\\\"2024-03-08\\\", \\\"%Y-%m-%d\\\").date())\", \"`.date()` — только дата.\"]], \"mistake\": \"Ожидать `datetime(2024, 3, 8, 14, 30, 0)` в `repr`.\"}"
                 },
                 {
                   "slug": "dt-parse-e2",
@@ -395,7 +420,8 @@
                   "code": "from datetime import datetime, date\n\nprint(date.fromisoformat(\"2024-03-08\"))\nprint(datetime.fromisoformat(\"2024-03-08T14:30:00\"))\nprint(datetime.fromisoformat(\"2024-03-08 14:30\"))\nprint(datetime.fromisoformat(\"2024-03-08T14:30:00Z\"))\n",
                   "expected_output": "2024-03-08\n2024-03-08 14:30:00\n2024-03-08 14:30:00\n2024-03-08 14:30:00+00:00",
                   "hint": "Буква Z в конце означает время UTC.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`fromisoformat` понимает ISO-строки: с `T` или пробелом, без секунд, с `Z` (UTC, с Python 3.11).\", \"lines\": [[\"print(datetime.fromisoformat(\\\"2024-03-08 14:30\\\"))\", \"Секунды дописаны нулями.\"], [\"print(datetime.fromisoformat(\\\"2024-03-08T14:30:00Z\\\"))\", \"`Z` → часовой пояс `+00:00`.\"]], \"mistake\": \"Ожидать `Z` в выводе — Python печатает смещение.\"}"
                 },
                 {
                   "slug": "dt-parse-e3",
@@ -404,7 +430,8 @@
                   "code": "from datetime import datetime\n\ntests = [\"31.12.2024\", \"2024-12-31\", \"32.01.2024\", \"1.2.2024\"]\nfor text in tests:\n    try:\n        print(datetime.strptime(text, \"%d.%m.%Y\").date())\n    except ValueError:\n        print(\"ошибка:\", text)\n",
                   "expected_output": "2024-12-31\nошибка: 2024-12-31\nошибка: 32.01.2024\n2024-02-01",
                   "hint": "strptime разрешает числа без ведущего нуля, но не несуществующие даты.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Строка должна соответствовать шаблону и быть существующей датой. Ведущие нули при разборе необязательны.\", \"lines\": [[\"tests = [\\\"31.12.2024\\\", \\\"2024-12-31\\\", \\\"32.01.2024\\\", \\\"1.2.2024\\\"]\", \"Первая подходит; вторая — другой формат; 32-го дня нет; последняя подходит: `%d` принимает и «1».\"], [\"print(datetime.strptime(text, \\\"%d.%m.%Y\\\").date())\", \"Удачный разбор.\"], [\"except ValueError:\\n        print(\\\"ошибка:\\\", text)\", \"Неудачный.\"]], \"mistake\": \"Думать, что `1.2.2024` не подходит под `%d.%m`.\"}"
                 },
                 {
                   "slug": "dt-parse-e4",
@@ -414,7 +441,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert parse_ru(\"08.03.2024\") == date(2024, 3, 8) and parse_ru(\"31.12.1999\") == date(1999, 12, 31) and type(parse_ru(\"01.01.2000\")) is date, \"Неверный результат\"\n",
                   "solution": "from datetime import datetime\n\n\ndef parse_ru(text):\n    return datetime.strptime(text, \"%d.%m.%Y\").date()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Разбираем в `datetime` и берём дату.\", \"lines\": [[\"return datetime.strptime(text, \\\"%d.%m.%Y\\\").date()\", \"`date` своего `strptime` не имеет.\"]], \"mistake\": \"Вернуть `datetime` — ответ будет с временем 00:00.\"}"
                 },
                 {
                   "slug": "dt-parse-e5",
@@ -424,7 +452,8 @@
                   "tests": "def test_values():\n    assert convert(\"2024-03-08\") == \"08.03.2024\" and convert(\"1999-12-31\") == \"31.12.1999\", \"Неверный результат\"\n",
                   "solution": "from datetime import date\n\n\ndef convert(text):\n    return date.fromisoformat(text).strftime(\"%d.%m.%Y\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Разобрать ISO-строку и собрать новую по другому шаблону.\", \"lines\": [[\"return date.fromisoformat(text).strftime(\\\"%d.%m.%Y\\\")\", \"Строка → дата → строка.\"]], \"mistake\": \"Переставлять части `split(\\\"-\\\")` вручную — сработает, но без проверки даты.\"}"
                 },
                 {
                   "slug": "dt-parse-e6",
@@ -434,7 +463,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert parse_any(\"08.03.2024\") == date(2024, 3, 8) and parse_any(\"2024-03-08\") == date(2024, 3, 8) and parse_any(\"08/03/2024\") == date(2024, 3, 8), \"Форматы\"\n    assert parse_any(\"вчера\") is None and parse_any(\"30.02.2024\") is None, \"Неразборные\"\n",
                   "solution": "from datetime import datetime\n\nFORMATS = [\"%d.%m.%Y\", \"%Y-%m-%d\", \"%d/%m/%Y\"]\n\n\ndef parse_any(text):\n    for fmt in FORMATS:\n        try:\n            return datetime.strptime(text, fmt).date()\n        except ValueError:\n            pass\n    return None\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Перебор форматов: первый удачный разбор — сразу `return`, неудачный — пробуем следующий.\", \"lines\": [[\"for fmt in FORMATS:\", \"По очереди.\"], [\"return datetime.strptime(text, fmt).date()\", \"Подошёл — выходим.\"], [\"except ValueError:\\n            pass\", \"Не подошёл — дальше.\"], [\"return None\", \"Ни один формат.\"]], \"mistake\": \"`return None` внутри `except` — второй формат не будет проверен.\"}"
                 },
                 {
                   "slug": "dt-parse-e7",
@@ -444,7 +474,8 @@
                   "tests": "def test_values():\n    good = [\"2024-03-08T14:30:00\", \"2024-03-08T14:30:00Z\", \"2024-03-08\"]\n    bad = [\"08.03.2024\", \"2024-13-01T00:00:00\", \"\", \"сегодня\"]\n    assert all(is_iso_datetime(s) for s in good) and not any(is_iso_datetime(s) for s in bad), \"Неверная проверка\"\n",
                   "solution": "from datetime import datetime\n\n\ndef is_iso_datetime(text):\n    try:\n        datetime.fromisoformat(text)\n    except ValueError:\n        return False\n    return True\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Корректность проверяем попыткой разбора.\", \"lines\": [[\"datetime.fromisoformat(text)\", \"Результат не нужен — важна ошибка.\"], [\"except ValueError:\\n        return False\", \"Не ISO.\"], [\"return True\", \"Разобралось.\"]], \"mistake\": \"Проверять регулярным выражением — пропустит `2024-13-45`.\"}"
                 },
                 {
                   "slug": "dt-parse-e8",
@@ -454,7 +485,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    lines = [\n        \"2024-03-08 14:30:05 ERROR база недоступна\",\n        \"2024-03-08 14:29:00 INFO старт\",\n        \"2024-03-08 09:00:00 ERROR таймаут\",\n    ]\n    assert parse_log(lines) == [(datetime(2024, 3, 8, 9, 0), \"ERROR\"), (datetime(2024, 3, 8, 14, 30, 5), \"ERROR\")] and parse_log([]) == [], parse_log(lines)\n",
                   "solution": "from datetime import datetime\n\n\ndef parse_log(lines):\n    result = []\n    for line in lines:\n        day, clock, level, _ = line.split(\" \", 3)\n        if level == \"ERROR\":\n            dt = datetime.strptime(f\"{day} {clock}\", \"%Y-%m-%d %H:%M:%S\")\n            result.append((dt, level))\n    return sorted(result)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`split(\\\" \\\", 3)` делит строку не больше трёх раз — текст сообщения с пробелами остаётся целым. Кортежи сортируются по первому элементу — времени.\", \"lines\": [[\"day, clock, level, _ = line.split(\\\" \\\", 3)\", \"Четыре части.\"], [\"if level == \\\"ERROR\\\":\", \"Только ошибки.\"], [\"dt = datetime.strptime(f\\\"{day} {clock}\\\", \\\"%Y-%m-%d %H:%M:%S\\\")\", \"Склеиваем обратно и разбираем.\"], [\"return sorted(result)\", \"По времени.\"]], \"mistake\": \"`line.split()` без ограничения — распаковка упадёт, если в тексте есть пробелы.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nОбратная задача: из строки получить объект даты. Даты приходят строками отовсюду — из форм, CSV-файлов, логов, JSON-ответов API. Чтобы сравнивать и считать, их нужно **разобрать** (распарсить).\n\n## strptime: строка + шаблон\n\n```python\nfrom datetime import datetime\n\ndt = datetime.strptime(\"08.03.2024 14:30\", \"%d.%m.%Y %H:%M\")\nprint(dt)\nprint(repr(dt))\nprint(datetime.strptime(\"2024-03-08\", \"%Y-%m-%d\").date())\n```\n\n- `datetime.strptime(строка, шаблон)` — string **parse** time. Коды те же, что в `strftime`.\n- Шаблон должен **точно** описывать строку: каждая точка, пробел и двоеточие.\n- Возвращает всегда `datetime`; если нужна дата — `.date()`.\n- `repr` показывает, как объект создать в коде.\n- Вывод: `2024-03-08 14:30:00`, `datetime.datetime(2024, 3, 8, 14, 30)`, `2024-03-08`.\n\n## fromisoformat: для ISO-строк\n\n```python\nfrom datetime import datetime, date\n\nprint(date.fromisoformat(\"2024-03-08\"))\nprint(datetime.fromisoformat(\"2024-03-08T14:30:00\"))\nprint(datetime.fromisoformat(\"2024-03-08 14:30\"))\nprint(datetime.fromisoformat(\"2024-03-08T14:30:00Z\"))\n```\n\n- `fromisoformat` разбирает ISO-строки без шаблона. Быстрее и проще, чем `strptime`.\n- Понимает и `T`, и пробел, секунды необязательны.\n- `Z` в конце — «Zulu time», то есть UTC. Результат получает часовой пояс `+00:00` (о поясах — в модуле 3).\n- Вывод: `2024-03-08`, `2024-03-08 14:30:00`, `2024-03-08 14:30:00`, `2024-03-08 14:30:00+00:00`.\n\n## Ошибки разбора\n\n```python\nfrom datetime import datetime\n\ntests = [\"31.12.2024\", \"2024-12-31\", \"32.01.2024\", \"1.2.2024\"]\nfor text in tests:\n    try:\n        print(datetime.strptime(text, \"%d.%m.%Y\").date())\n    except ValueError:\n        print(\"ошибка:\", text)\n```\n\n- Строка не подходит под шаблон или дата не существует → `ValueError`.\n- `strptime` разрешает числа **без** ведущего нуля (`1.2.2024`).\n- Вывод: `2024-12-31`, `ошибка: 2024-12-31`, `ошибка: 32.01.2024`, `2024-02-01`.\n\n## Несколько форматов\n\n```python\nfrom datetime import datetime\n\nFORMATS = [\"%d.%m.%Y\", \"%Y-%m-%d\", \"%d/%m/%Y\"]\n\ndef parse_any(text):\n    for fmt in FORMATS:\n        try:\n            return datetime.strptime(text, fmt).date()\n        except ValueError:\n            pass\n    return None\n\nprint(parse_any(\"08/03/2024\"), parse_any(\"вчера\"))\n```\n\n- Пробуем форматы по очереди; первый подошедший — возвращаем.\n- `pass` в `except` — «ошибка ожидаема, идём дальше».\n- Вывод: `2024-03-08 None`.\n\n## Перевод из формата в формат\n\n```python\nfrom datetime import date\n\ntext = \"2024-03-08\"\nprint(date.fromisoformat(text).strftime(\"%d.%m.%Y\"))\n```\n\n- Правильный путь: строка → объект → строка. Не режь строки вручную срезами — легко ошибиться.\n- Вывод: `08.03.2024`.\n\n## Разбор строки лога\n\n```python\nfrom datetime import datetime\n\nline = \"2024-03-08 14:30:05 ERROR база недоступна\"\nday, clock, level, message = line.split(\" \", 3)\ndt = datetime.strptime(f\"{day} {clock}\", \"%Y-%m-%d %H:%M:%S\")\nprint(dt.hour, level, message)\n```\n\n- `split(\" \", 3)` — разрезать не больше трёх раз: сообщение с пробелами останется целым.\n- Вывод: `14 ERROR база недоступна`.\n\n## Итог\n\n- `datetime.strptime(s, \"%d.%m.%Y\")` — разбор по шаблону.\n- `date.fromisoformat(s)`, `datetime.fromisoformat(s)` — для ISO, понимает `Z`.\n- Неразборная строка → `ValueError`: лови его для проверки формата.\n- Перевод форматов: строка → объект → строка.",
@@ -514,7 +546,8 @@
                   "code": "from datetime import date, timedelta\n\nd = date(2024, 2, 27)\nprint(d + timedelta(days=3))\nprint(d - timedelta(weeks=1))\nprint(timedelta(days=1, hours=5))\nprint(timedelta(hours=36))\n",
                   "expected_output": "2024-03-01\n2024-02-20\n1 day, 5:00:00\n1 day, 12:00:00",
                   "hint": "2024 — високосный: в феврале 29 дней.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`timedelta` — промежуток. Прибавляешь к дате — получаешь новую дату; переходы через месяц и високосный февраль учитываются сами.\", \"lines\": [[\"print(d + timedelta(days=3))\", \"27.02 + 3: 28, 29 (2024 високосный), 1 марта.\"], [\"print(d - timedelta(weeks=1))\", \"Неделя назад.\"], [\"print(timedelta(days=1, hours=5))\", \"Печать: `дни, Ч:ММ:СС`.\"], [\"print(timedelta(hours=36))\", \"36 часов = 1 день и 12 часов.\"]], \"mistake\": \"Забыть про 29 февраля — ответ `2024-03-02`.\"}"
                 },
                 {
                   "slug": "dt-timedelta-e2",
@@ -523,7 +556,8 @@
                   "code": "from datetime import timedelta\n\ntd = timedelta(days=2, hours=3, minutes=30)\nprint(td.days, td.seconds)\nprint(td.total_seconds())\nprint(td.total_seconds() / 3600)\nprint(timedelta(minutes=90) > timedelta(hours=1))\n",
                   "expected_output": "2 12600\n185400.0\n51.5\nTrue",
                   "hint": "Внутри хранятся только дни, секунды и микросекунды.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Внутри `timedelta` хранит дни и секунды остатка (меньше суток). Для всего промежутка в секундах — `total_seconds()`.\", \"lines\": [[\"print(td.days, td.seconds)\", \"3 ч 30 мин = 12600 с — только остаток, без дней.\"], [\"print(td.total_seconds())\", \"2 × 86400 + 12600.\"], [\"print(td.total_seconds() / 3600)\", \"В часах: 51.5.\"], [\"print(timedelta(minutes=90) > timedelta(hours=1))\", \"Промежутки сравниваются.\"]], \"mistake\": \"Считать, что `.seconds` — все секунды промежутка.\"}"
                 },
                 {
                   "slug": "dt-timedelta-e3",
@@ -532,7 +566,8 @@
                   "code": "from datetime import datetime, timedelta\n\nstart = datetime(2024, 3, 8, 23, 30)\nprint(start + timedelta(minutes=45))\nstep = timedelta(minutes=20)\nprint(step * 3, step / 2)\nprint(timedelta(hours=2) // timedelta(minutes=25))\nprint(-timedelta(hours=1))\n",
                   "expected_output": "2024-03-09 00:15:00\n1:00:00 0:10:00\n4\n-1 day, 23:00:00",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`timedelta` можно умножать, делить на число и делить друг на друга. Отрицательный промежуток хранится как «−1 день + положительный остаток».\", \"lines\": [[\"print(start + timedelta(minutes=45))\", \"23:30 + 45 мин — следующий день.\"], [\"print(step * 3, step / 2)\", \"Час и 10 минут.\"], [\"print(timedelta(hours=2) // timedelta(minutes=25))\", \"Сколько целых 25-минуток в 2 часах: 4.\"], [\"print(-timedelta(hours=1))\", \"−1 день + 23 часа.\"]], \"mistake\": \"Ожидать `-1:00:00`.\"}"
                 },
                 {
                   "slug": "dt-timedelta-e4",
@@ -542,7 +577,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert deadline(date(2024, 2, 27), 3) == date(2024, 3, 1) and deadline(date(2023, 12, 31), 1) == date(2024, 1, 1) and deadline(date(2024, 1, 1), 0) == date(2024, 1, 1), \"Неверный результат\"\n",
                   "solution": "from datetime import date, timedelta\n\n\ndef deadline(start, days):\n    return start + timedelta(days=days)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Дата + промежуток = новая дата.\", \"lines\": [[\"return start + timedelta(days=days)\", \"Именованный аргумент `days=`.\"]], \"mistake\": \"`start + days` — к дате нельзя прибавить число.\"}"
                 },
                 {
                   "slug": "dt-timedelta-e5",
@@ -552,7 +588,8 @@
                   "tests": "from datetime import timedelta\n\ndef test_values():\n    assert to_hms(timedelta(hours=26, minutes=5, seconds=3)) == \"26:05:03\" and to_hms(timedelta(seconds=59, microseconds=999)) == \"00:00:59\" and to_hms(timedelta()) == \"00:00:00\", \"Неверный формат\"\n",
                   "solution": "from datetime import timedelta\n\n\ndef to_hms(td):\n    total = int(td.total_seconds())\n    hours, rest = divmod(total, 3600)\n    minutes, seconds = divmod(rest, 60)\n    return f\"{hours:02}:{minutes:02}:{seconds:02}\"\n",
                   "hint": "divmod(a, b) возвращает (частное, остаток).",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Берём все секунды и раскладываем через `divmod`: часы, затем минуты и секунды.\", \"lines\": [[\"total = int(td.total_seconds())\", \"Все секунды, дробь отброшена.\"], [\"hours, rest = divmod(total, 3600)\", \"Часы и остаток.\"], [\"minutes, seconds = divmod(rest, 60)\", \"Минуты и секунды.\"], [\"return f\\\"{hours:02}:{minutes:02}:{seconds:02}\\\"\", \"`:02` — ведущий ноль.\"]], \"mistake\": \"`str(td)` — выдаст `1 day, 2:05:03`.\"}"
                 },
                 {
                   "slug": "dt-timedelta-e6",
@@ -562,7 +599,8 @@
                   "tests": "from datetime import timedelta\n\ndef test_values():\n    assert total_duration([\"01:30\", \"00:45\", \"10:00\"]) == timedelta(minutes=12, seconds=15) and total_duration([]) == timedelta(0), \"Неверная сумма\"\n",
                   "solution": "from datetime import timedelta\n\n\ndef total_duration(durations):\n    total = timedelta()\n    for d in durations:\n        minutes, seconds = d.split(\":\")\n        total += timedelta(minutes=int(minutes), seconds=int(seconds))\n    return total\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Копим сумму в `timedelta()` — пустой промежуток; каждую строку разбираем в минуты и секунды.\", \"lines\": [[\"total = timedelta()\", \"Ноль.\"], [\"minutes, seconds = d.split(\\\":\\\")\", \"Две строки.\"], [\"total += timedelta(minutes=int(minutes), seconds=int(seconds))\", \"Числа — через `int`.\"]], \"mistake\": \"`total = 0` — `0 + timedelta` вызовет `TypeError`.\"}"
                 },
                 {
                   "slug": "dt-timedelta-e7",
@@ -572,7 +610,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    r = schedule(datetime(2024, 3, 8, 23, 30), 3, 20)\n    assert r == [datetime(2024, 3, 8, 23, 30), datetime(2024, 3, 8, 23, 50), datetime(2024, 3, 9, 0, 10)] and schedule(datetime(2024, 1, 1), 0, 5) == [], r\n",
                   "solution": "from datetime import datetime, timedelta\n\n\ndef schedule(start, count, interval_minutes):\n    step = timedelta(minutes=interval_minutes)\n    return [start + step * i for i in range(count)]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"i-й запуск — `start + шаг × i`.\", \"lines\": [[\"step = timedelta(minutes=interval_minutes)\", \"Шаг.\"], [\"return [start + step * i for i in range(count)]\", \"Первый — сам `start` (i = 0).\"]], \"mistake\": \"`range(1, count + 1)` — потеряется первый запуск.\"}"
                 },
                 {
                   "slug": "dt-timedelta-e8",
@@ -582,7 +621,8 @@
                   "tests": "from datetime import timedelta\n\ndef test_values():\n    assert human_duration(timedelta(days=2, hours=3, minutes=5)) == \"2 д 3 ч 5 мин\", human_duration(timedelta(days=2, hours=3, minutes=5))\n    assert human_duration(timedelta(hours=1)) == \"1 ч\" and human_duration(timedelta(days=1, minutes=1)) == \"1 д 1 мин\" and human_duration(timedelta(seconds=30)) == \"0 мин\", \"Нулевые части\"\n",
                   "solution": "from datetime import timedelta\n\n\ndef human_duration(td):\n    hours, rest = divmod(td.seconds, 3600)\n    minutes = rest // 60\n    parts = []\n    if td.days:\n        parts.append(f\"{td.days} д\")\n    if hours:\n        parts.append(f\"{hours} ч\")\n    if minutes:\n        parts.append(f\"{minutes} мин\")\n    return \" \".join(parts) or \"0 мин\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Дни — `td.days`, часы и минуты — из остатка `td.seconds`. Пустые части не добавляем.\", \"lines\": [[\"hours, rest = divmod(td.seconds, 3600)\", \"Часы внутри суток.\"], [\"minutes = rest // 60\", \"Секунды отброшены.\"], [\"if td.days:\\n        parts.append(f\\\"{td.days} д\\\")\", \"Только ненулевые.\"], [\"return \\\" \\\".join(parts) or \\\"0 мин\\\"\", \"Пустая строка — ложь, тогда `0 мин`.\"]], \"mistake\": \"Брать часы из `total_seconds()` — дни посчитаются дважды.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n«Через 3 дня», «неделю назад», «длительность 2 часа 15 минут» — это не момент, а **промежуток** времени. В Python для него есть класс `timedelta`. Его можно прибавлять к датам и вычитать из них, складывать, умножать и сравнивать.\n\n## Сдвиг даты\n\n```python\nfrom datetime import date, timedelta\n\nd = date(2024, 2, 27)\nprint(d + timedelta(days=3))\nprint(d - timedelta(weeks=1))\n```\n\n- `timedelta(days=..., hours=..., minutes=..., seconds=..., weeks=...)` — все параметры именованные и необязательные.\n- `дата + timedelta` — новая дата. Python сам учитывает длину месяцев и високосные годы: 2024 — високосный, поэтому 27 февраля + 3 дня = 1 марта.\n- Вывод: `2024-03-01`, `2024-02-20`.\n\n## Как timedelta выглядит и хранится\n\n```python\nfrom datetime import timedelta\n\nprint(timedelta(days=1, hours=5))\nprint(timedelta(hours=36))\ntd = timedelta(days=2, hours=3, minutes=30)\nprint(td.days, td.seconds)\nprint(td.total_seconds())\nprint(td.total_seconds() / 3600)\n```\n\n- Внутри хранятся только **дни**, **секунды** (меньше суток) и микросекунды. Часы и минуты переводятся в секунды, лишние сутки — в дни: 36 часов = 1 день и 12 часов.\n- `td.seconds` — только «хвост» меньше суток, **не** все секунды! Частая ошибка.\n- `td.total_seconds()` — вся длительность в секундах (дробное число). Чтобы получить часы — дели на 3600.\n- Вывод: `1 day, 5:00:00`, `1 day, 12:00:00`, `2 12600`, `185400.0`, `51.5`.\n\n## Арифметика промежутков\n\n```python\nfrom datetime import datetime, timedelta\n\nstart = datetime(2024, 3, 8, 23, 30)\nprint(start + timedelta(minutes=45))\nstep = timedelta(minutes=20)\nprint(step * 3, step / 2)\nprint(timedelta(hours=2) // timedelta(minutes=25))\nprint(timedelta(minutes=90) > timedelta(hours=1))\n```\n\n- Прибавление минут может перейти на следующие сутки — это учитывается.\n- `timedelta * число`, `timedelta / число` — растянуть или сжать промежуток.\n- `timedelta // timedelta` — сколько целых раз один промежуток помещается в другом.\n- Промежутки сравниваются.\n- Вывод: `2024-03-09 00:15:00`, `1:00:00 0:10:00`, `4`, `True`.\n\n## Расписание\n\n```python\nfrom datetime import datetime, timedelta\n\nstart = datetime(2024, 3, 8, 9, 0)\nstep = timedelta(minutes=20)\nfor i in range(3):\n    print((start + step * i).strftime(\"%H:%M\"))\n```\n\n- `step * i` — 0, 20, 40 минут от начала.\n- Вывод: `09:00`, `09:20`, `09:40`.\n\n## Длительность в виде ЧЧ:ММ:СС\n\n```python\nfrom datetime import timedelta\n\ntd = timedelta(hours=26, minutes=5, seconds=3)\ntotal = int(td.total_seconds())\nhours, rest = divmod(total, 3600)\nminutes, seconds = divmod(rest, 60)\nprint(f\"{hours:02}:{minutes:02}:{seconds:02}\")\n```\n\n- `divmod(a, b)` — пара (целая часть, остаток).\n- `:02` — дополнить число нулём до двух цифр.\n- `str(td)` дал бы `1 day, 2:05:03` — не всегда то, что нужно.\n- Вывод: `26:05:03`.\n\n## Итог\n\n- `timedelta(days=, hours=, minutes=, seconds=, weeks=)`.\n- `дата ± timedelta` → дата; длина месяцев учитывается.\n- `.days`, `.seconds` (только хвост!), `.total_seconds()` (всё).\n- Промежутки складываются, умножаются, делятся и сравниваются.\n- Месяцев и лет в `timedelta` нет — они разной длины.",
@@ -634,7 +674,8 @@
                   "code": "from datetime import date, datetime\n\ndelta = date(2024, 12, 31) - date(2024, 1, 1)\nprint(delta, delta.days)\nd2 = datetime(2024, 3, 8, 18, 0) - datetime(2024, 3, 8, 9, 30)\nprint(d2, d2.total_seconds() / 3600)\nprint(date(2024, 1, 1) - date(2024, 1, 10))\n",
                   "expected_output": "365 days, 0:00:00 365\n8:30:00 8.5\n-9 days, 0:00:00",
                   "hint": "Разность двух дат — timedelta.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Разность дат — `timedelta`. У двух `date` время всегда `0:00:00`.\", \"lines\": [[\"delta = date(2024, 12, 31) - date(2024, 1, 1)\", \"365 дней (последний не включён).\"], [\"print(d2, d2.total_seconds() / 3600)\", \"8 ч 30 мин = 8.5 ч.\"], [\"print(date(2024, 1, 1) - date(2024, 1, 10))\", \"Из ранней вычли позднюю — минус.\"]], \"mistake\": \"Ожидать 366 — в 2024 году 366 дней, но разница 1 января и 31 декабря — 365.\"}"
                 },
                 {
                   "slug": "dt-diff-e2",
@@ -643,7 +684,8 @@
                   "code": "from datetime import date, datetime\n\ntry:\n    date(2024, 1, 1) + date(2024, 1, 2)\nexcept TypeError:\n    print(\"даты нельзя складывать\")\ntry:\n    datetime(2024, 1, 1) - date(2024, 1, 1)\nexcept TypeError:\n    print(\"datetime и date нельзя вычитать\")\nprint(datetime(2024, 1, 2).date() - date(2024, 1, 1))\n",
                   "expected_output": "даты нельзя складывать\ndatetime и date нельзя вычитать\n1 day, 0:00:00",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Даты вычитают, но не складывают. `date` и `datetime` не смешиваются — приведи `datetime` к дате через `.date()`.\", \"lines\": [[\"date(2024, 1, 1) + date(2024, 1, 2)\", \"Бессмыслица — `TypeError`.\"], [\"datetime(2024, 1, 1) - date(2024, 1, 1)\", \"Разные типы — `TypeError`.\"], [\"print(datetime(2024, 1, 2).date() - date(2024, 1, 1))\", \"Обе `date` — можно.\"]], \"mistake\": \"Думать, что `datetime` можно вычесть из `date`, раз он её наследник.\"}"
                 },
                 {
                   "slug": "dt-diff-e3",
@@ -652,7 +694,8 @@
                   "code": "from datetime import date\n\ndef age(born, today):\n    years = today.year - born.year\n    if (today.month, today.day) < (born.month, born.day):\n        years -= 1\n    return years\n\nprint(age(date(2000, 5, 20), date(2024, 5, 19)))\nprint(age(date(2000, 5, 20), date(2024, 5, 20)))\nprint((date(2024, 5, 20) - date(2000, 5, 20)).days // 365)\n",
                   "expected_output": "23\n24\n24",
                   "hint": "Делить дни на 365 неточно — мешают високосные годы.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Возраст — разность годов, минус один, если день рождения в этом году ещё не наступил. Кортежи `(месяц, день)` сравниваются по порядку.\", \"lines\": [[\"if (today.month, today.day) < (born.month, born.day):\", \"19 мая раньше 20 мая — ещё нет.\"], [\"print(age(date(2000, 5, 20), date(2024, 5, 20)))\", \"Ровно в день рождения — уже 24.\"], [\"print((date(2024, 5, 20) - date(2000, 5, 20)).days // 365)\", \"Здесь совпало, но из-за високосных лет так считать ненадёжно.\"]], \"mistake\": \"Считать возраст как `today.year - born.year` без проверки.\"}"
                 },
                 {
                   "slug": "dt-diff-e4",
@@ -662,7 +705,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert days_until(date(2024, 12, 25), date(2025, 1, 1)) == 7 and days_until(date(2024, 1, 1), date(2024, 1, 1)) == 0 and days_until(date(2024, 3, 10), date(2024, 3, 8)) == -2, \"Неверный результат\"\n",
                   "solution": "from datetime import date\n\n\ndef days_until(today, event):\n    return (event - today).days\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Разность дат — `timedelta`, число дней — `.days`.\", \"lines\": [[\"return (event - today).days\", \"Прошло — отрицательное.\"]], \"mistake\": \"`today - event` — знак будет обратным.\"}"
                 },
                 {
                   "slug": "dt-diff-e5",
@@ -672,7 +716,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert age(date(2000, 5, 20), date(2024, 5, 19)) == 23 and age(date(2000, 5, 20), date(2024, 5, 20)) == 24 and age(date(2000, 12, 31), date(2001, 1, 1)) == 0, \"Неверный возраст\"\n",
                   "solution": "from datetime import date\n\n\ndef age(born, today):\n    years = today.year - born.year\n    if (today.month, today.day) < (born.month, born.day):\n        years -= 1\n    return years\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Годы по разности, минус один, если день рождения ещё впереди.\", \"lines\": [[\"years = today.year - born.year\", \"Черновой возраст.\"], [\"if (today.month, today.day) < (born.month, born.day):\\n        years -= 1\", \"Сравниваем кортежи.\"]], \"mistake\": \"`.days // 365` — ошибка в день-два около дня рождения.\"}"
                 },
                 {
                   "slug": "dt-diff-e6",
@@ -682,7 +727,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    dl = datetime(2024, 3, 8, 18, 0)\n    assert not is_overdue(dl, datetime(2024, 3, 8, 17, 59)) and is_overdue(dl, datetime(2024, 3, 8, 18, 1)) and not is_overdue(dl, dl), \"is_overdue\"\n    assert hours_left(dl, datetime(2024, 3, 7, 15, 30)) == 26 and hours_left(dl, datetime(2024, 3, 9)) == 0, \"hours_left\"\n",
                   "solution": "from datetime import datetime\n\n\ndef is_overdue(deadline, now):\n    return now > deadline\n\n\ndef hours_left(deadline, now):\n    if now >= deadline:\n        return 0\n    return int((deadline - now).total_seconds() // 3600)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Сравнение моментов и перевод разницы в часы; просроченное даёт 0.\", \"lines\": [[\"return now > deadline\", \"Позже дедлайна.\"], [\"if now >= deadline:\\n        return 0\", \"Не отрицательные часы.\"], [\"return int((deadline - now).total_seconds() // 3600)\", \"Целые часы.\"]], \"mistake\": \"`(deadline - now).seconds // 3600` — пропадут дни.\"}"
                 },
                 {
                   "slug": "dt-diff-e7",
@@ -692,7 +738,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    ds = [date(2024, 1, 10), date(2024, 1, 1), date(2024, 2, 1)]\n    assert max_gap(ds) == 22 and max_gap([date(2024, 1, 1)]) == 0 and max_gap([]) == 0, max_gap(ds)\n",
                   "solution": "def max_gap(dates):\n    ds = sorted(dates)\n    return max(((b - a).days for a, b in zip(ds, ds[1:])), default=0)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`zip(ds, ds[1:])` даёт соседние пары. `default=0` — ответ для пустой последовательности.\", \"lines\": [[\"ds = sorted(dates)\", \"По порядку.\"], [\"return max(((b - a).days for a, b in zip(ds, ds[1:])), default=0)\", \"Меньше двух дат — пар нет, ответ 0.\"]], \"mistake\": \"Забыть `default` — `max` упадёт на одной дате.\"}"
                 },
                 {
                   "slug": "dt-diff-e8",
@@ -702,7 +749,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    ts = [\n        {\"id\": 1, \"opened\": datetime(2024, 3, 1, 9), \"closed\": datetime(2024, 3, 2, 9)},\n        {\"id\": 2, \"opened\": datetime(2024, 3, 1, 9), \"closed\": datetime(2024, 3, 2, 9, 1)},\n        {\"id\": 3, \"opened\": datetime(2024, 3, 1, 9), \"closed\": datetime(2024, 3, 5)},\n    ]\n    assert sla_report(ts) == [2, 3] and sla_report([]) == [], sla_report(ts)\n",
                   "solution": "from datetime import timedelta\n\n\ndef sla_report(tickets):\n    limit = timedelta(hours=24)\n    return [t[\"id\"] for t in tickets if t[\"closed\"] - t[\"opened\"] > limit]\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Разность `datetime` сравнивается с `timedelta` напрямую.\", \"lines\": [[\"limit = timedelta(hours=24)\", \"Порог.\"], [\"return [t[\\\"id\\\"] for t in tickets if t[\\\"closed\\\"] - t[\\\"opened\\\"] > limit]\", \"Строго дольше.\"]], \"mistake\": \"Сравнивать `.days > 1` — 36 часов не попадут.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nСколько дней до дедлайна? Сколько длилась сессия? Сколько лет пользователю? Просрочен ли заказ? Всё это — **разность** двух дат.\n\n## Разность дат — timedelta\n\n```python\nfrom datetime import date, datetime\n\ndelta = date(2024, 12, 31) - date(2024, 1, 1)\nprint(delta, delta.days)\nd2 = datetime(2024, 3, 8, 18, 0) - datetime(2024, 3, 8, 9, 30)\nprint(d2, d2.total_seconds() / 3600)\nprint(date(2024, 1, 1) - date(2024, 1, 10))\n```\n\n- `поздняя - ранняя` → положительный `timedelta`; наоборот — отрицательный.\n- Для `date` интересны `.days`, для `datetime` — чаще `.total_seconds()`.\n- Вывод: `365 days, 0:00:00 365`, `8:30:00 8.5`, `-9 days, 0:00:00`.\n\n## Что можно, а что нельзя\n\n```python\nfrom datetime import date, datetime\n\ntry:\n    date(2024, 1, 1) + date(2024, 1, 2)\nexcept TypeError:\n    print(\"даты нельзя складывать\")\ntry:\n    datetime(2024, 1, 1) - date(2024, 1, 1)\nexcept TypeError:\n    print(\"datetime и date нельзя вычитать\")\nprint(datetime(2024, 1, 2).date() - date(2024, 1, 1))\n```\n\n- `дата + дата` не имеет смысла → `TypeError`.\n- `datetime - date` — разные типы → `TypeError`. Приведи к одному: `.date()`.\n- Можно: `дата - дата`, `дата ± timedelta`, `timedelta ± timedelta`.\n- Вывод: `даты нельзя складывать`, `datetime и date нельзя вычитать`, `1 day, 0:00:00`.\n\n## Дней до события\n\n```python\nfrom datetime import date\n\ntoday = date(2024, 12, 25)\nnew_year = date(2025, 1, 1)\nprint((new_year - today).days)\n```\n\n- Вывод: `7`.\n\n## Возраст\n\n```python\nfrom datetime import date\n\ndef age(born, today):\n    years = today.year - born.year\n    if (today.month, today.day) < (born.month, born.day):\n        years -= 1\n    return years\n\nprint(age(date(2000, 5, 20), date(2024, 5, 19)))\nprint(age(date(2000, 5, 20), date(2024, 5, 20)))\n```\n\n- Разница годов, минус 1, если день рождения в этом году ещё не наступил.\n- `(месяц, день) < (месяц, день)` — сравнение кортежей: сначала месяц, при равенстве — день.\n- `дни // 365` — неточно из-за високосных лет, так возраст не считают.\n- Вывод: `23`, `24`.\n\n## Просрочено ли\n\n```python\nfrom datetime import datetime\n\ndeadline = datetime(2024, 3, 8, 18, 0)\nnow = datetime(2024, 3, 7, 15, 30)\nprint(now > deadline)\nleft = deadline - now\nprint(int(left.total_seconds() // 3600), \"ч\")\n```\n\n- Сравнение — самый простой способ проверить просрочку.\n- Остаток в целых часах: `total_seconds() // 3600`.\n- Вывод: `False`, `26 ч`.\n\n## Промежутки между событиями\n\n```python\nfrom datetime import date\n\nds = sorted([date(2024, 1, 10), date(2024, 1, 1), date(2024, 2, 1)])\ngaps = [(b - a).days for a, b in zip(ds, ds[1:])]\nprint(gaps, max(gaps))\n```\n\n- `zip(ds, ds[1:])` — пары соседних элементов.\n- Вывод: `[9, 22] 22`.\n\n## Итог\n\n- `дата - дата` → `timedelta`; `.days` или `.total_seconds()`.\n- Нельзя: `дата + дата`, `datetime - date`.\n- Возраст — через годы и сравнение `(месяц, день)`, не делением на 365.\n- «Просрочено» — просто `now > deadline`.",
@@ -754,7 +802,8 @@
                   "code": "import calendar\n\nprint(calendar.isleap(2024), calendar.isleap(1900), calendar.isleap(2000))\nprint(calendar.monthrange(2024, 2))\nprint(calendar.monthrange(2023, 2)[1])\n",
                   "expected_output": "True False True\n(calendar.THURSDAY, 29)\n28",
                   "hint": "monthrange → (день недели 1-го числа, количество дней в месяце).",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Високосный — кратен 4, кроме кратных 100, но кратные 400 — снова да. `monthrange` — (день недели 1-го числа, дней в месяце).\", \"lines\": [[\"print(calendar.isleap(2024), calendar.isleap(1900), calendar.isleap(2000))\", \"1900 кратен 100, 2000 — 400.\"], [\"print(calendar.monthrange(2024, 2))\", \"1 февраля 2024 — четверг, 29 дней.\"], [\"print(calendar.monthrange(2023, 2)[1])\", \"Только число дней.\"]], \"mistake\": \"Считать 1900 високосным.\"}"
                 },
                 {
                   "slug": "dt-calendar-e2",
@@ -763,7 +812,8 @@
                   "code": "from datetime import date, timedelta\n\nd = date(2024, 1, 31)\nprint(d + timedelta(days=30))\ntry:\n    print(d.replace(month=2))\nexcept ValueError as e:\n    print(\"ошибка:\", e)\n",
                   "expected_output": "2024-03-01\nошибка: day is out of range for month",
                   "hint": "timedelta не умеет «месяц»: месяцы разной длины.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`timedelta` не знает про месяцы: +30 дней — не «+1 месяц». `replace(month=2)` для 31-го числа падает.\", \"lines\": [[\"print(d + timedelta(days=30))\", \"31 января + 30 дней = 1 марта.\"], [\"print(d.replace(month=2))\", \"31 февраля не бывает.\"]], \"mistake\": \"Ожидать `2024-02-29` от `replace`.\"}"
                 },
                 {
                   "slug": "dt-calendar-e3",
@@ -772,7 +822,8 @@
                   "code": "import calendar\nfrom datetime import date\n\nd = date(2024, 2, 14)\nfirst = d.replace(day=1)\nlast = d.replace(day=calendar.monthrange(d.year, d.month)[1])\nprint(first, last)\nprint(calendar.month_abbr[2], calendar.day_abbr[0])\n",
                   "expected_output": "2024-02-01 2024-02-29\nFeb Mon",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Первый день — `replace(day=1)`, последний — `replace(day=дней_в_месяце)`.\", \"lines\": [[\"first = d.replace(day=1)\", \"1-е число.\"], [\"last = d.replace(day=calendar.monthrange(d.year, d.month)[1])\", \"29 — февраль 2024.\"], [\"print(calendar.month_abbr[2], calendar.day_abbr[0])\", \"Месяцы с 1, дни недели с 0 (понедельник).\"]], \"mistake\": \"Ожидать `Jan` для `month_abbr[2]` — индекс 0 там пустой.\"}"
                 },
                 {
                   "slug": "dt-calendar-e4",
@@ -782,7 +833,8 @@
                   "tests": "def test_values():\n    assert [days_in_month(2024, m) for m in (1, 2, 4, 12)] == [31, 29, 30, 31] and days_in_month(2023, 2) == 28 and days_in_month(1900, 2) == 28, \"Неверный результат\"\n",
                   "solution": "import calendar\n\n\ndef days_in_month(year, month):\n    return calendar.monthrange(year, month)[1]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Второй элемент `monthrange` — количество дней.\", \"lines\": [[\"return calendar.monthrange(year, month)[1]\", \"Первый элемент — день недели.\"]], \"mistake\": \"Взять `[0]`.\"}"
                 },
                 {
                   "slug": "dt-calendar-e5",
@@ -792,7 +844,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert last_day(date(2024, 2, 10)) == date(2024, 2, 29) and last_day(date(2023, 12, 1)) == date(2023, 12, 31) and last_day(date(2024, 4, 30)) == date(2024, 4, 30), \"Неверный результат\"\n",
                   "solution": "import calendar\nfrom datetime import date\n\n\ndef last_day(d):\n    return d.replace(day=calendar.monthrange(d.year, d.month)[1])\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Последнее число месяца подставляем через `replace`.\", \"lines\": [[\"return d.replace(day=calendar.monthrange(d.year, d.month)[1])\", \"Год и месяц — из самой даты.\"]], \"mistake\": \"`d + timedelta(days=30)` — уйдёт в следующий месяц.\"}"
                 },
                 {
                   "slug": "dt-calendar-e6",
@@ -802,7 +855,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert add_months(date(2024, 1, 31), 1) == date(2024, 2, 29) and add_months(date(2024, 11, 15), 3) == date(2025, 2, 15), \"Вперёд\"\n    assert add_months(date(2024, 3, 31), -1) == date(2024, 2, 29) and add_months(date(2024, 1, 10), -1) == date(2023, 12, 10) and add_months(date(2024, 5, 5), 0) == date(2024, 5, 5), \"Назад\"\n",
                   "solution": "import calendar\nfrom datetime import date\n\n\ndef add_months(d, n):\n    index = d.year * 12 + (d.month - 1) + n\n    year, month = divmod(index, 12)\n    month += 1\n    day = min(d.day, calendar.monthrange(year, month)[1])\n    return date(year, month, day)\n",
                   "hint": "Переведи дату в «номер месяца от нулевого года»: year * 12 + (month - 1).",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Месяцы переводим в сквозной номер (год × 12 + месяц), сдвигаем, раскладываем обратно. День ограничиваем длиной целевого месяца.\", \"lines\": [[\"index = d.year * 12 + (d.month - 1) + n\", \"Месяц с нуля, чтобы деление работало.\"], [\"year, month = divmod(index, 12)\", \"Год и месяц 0–11.\"], [\"month += 1\", \"Обратно к 1–12.\"], [\"day = min(d.day, calendar.monthrange(year, month)[1])\", \"31 января → 29 февраля.\"]], \"mistake\": \"`d.month + n` без переноса — месяц 14 и `ValueError`.\"}"
                 },
                 {
                   "slug": "dt-calendar-e7",
@@ -812,7 +866,8 @@
                   "tests": "def test_values():\n    assert leap_years(1896, 1912) == [1896, 1904, 1908, 1912] and leap_years(1999, 2001) == [2000] and leap_years(2021, 2023) == [], \"Неверный результат\"\n",
                   "solution": "import calendar\n\n\ndef leap_years(start, end):\n    return [y for y in range(start, end + 1) if calendar.isleap(y)]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Фильтр по `isleap`, конец диапазона включительно.\", \"lines\": [[\"return [y for y in range(start, end + 1) if calendar.isleap(y)]\", \"`end + 1` — включить конец.\"]], \"mistake\": \"`y % 4 == 0` — ошибка на 1900 и 2100.\"}"
                 },
                 {
                   "slug": "dt-calendar-e8",
@@ -822,7 +877,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert month_bounds(2024, 2) == (date(2024, 2, 1), date(2024, 2, 29)) and month_bounds(2023, 12) == (date(2023, 12, 1), date(2023, 12, 31)), \"month_bounds\"\n    assert in_month(date(2024, 2, 29), 2024, 2) and not in_month(date(2024, 3, 1), 2024, 2) and not in_month(date(2023, 2, 5), 2024, 2), \"in_month\"\n",
                   "solution": "import calendar\nfrom datetime import date\n\n\ndef month_bounds(year, month):\n    last = calendar.monthrange(year, month)[1]\n    return date(year, month, 1), date(year, month, last)\n\n\ndef in_month(d, year, month):\n    first, last = month_bounds(year, month)\n    return first <= d <= last\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Границы месяца — две даты; принадлежность — двойное сравнение.\", \"lines\": [[\"last = calendar.monthrange(year, month)[1]\", \"Дней в месяце.\"], [\"return date(year, month, 1), date(year, month, last)\", \"Кортеж.\"], [\"return first <= d <= last\", \"Включительно.\"]], \"mistake\": \"Сравнивать только `d.month == month` — забудешь про год.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nМесяцы бывают по 28, 29, 30 и 31 дню, а `timedelta` не умеет прибавлять «месяц». Последний день месяца, високосный ли год, «через месяц» — для этого есть модуль `calendar` и немного арифметики.\n\n## Високосные годы и длина месяца\n\n```python\nimport calendar\n\nprint(calendar.isleap(2024), calendar.isleap(1900), calendar.isleap(2000))\nprint(calendar.monthrange(2024, 2))\nprint(calendar.monthrange(2023, 2)[1])\n```\n\n- Високосный год: делится на 4, но не на 100 — или делится на 400. Поэтому 1900 — нет, 2000 — да.\n- `calendar.monthrange(год, месяц)` возвращает кортеж: (день недели 1-го числа, количество дней). Нас обычно интересует второй элемент.\n- День недели в Python 3.12 выводится как `calendar.THURSDAY` — это именованная константа, равная `3` (нумерация как у `weekday()`).\n- Вывод: `True False True`, `(calendar.THURSDAY, 29)`, `28`.\n\n## Почему нет «плюс месяц»\n\n```python\nfrom datetime import date, timedelta\n\nd = date(2024, 1, 31)\nprint(d + timedelta(days=30))\ntry:\n    print(d.replace(month=2))\nexcept ValueError as e:\n    print(\"ошибка:\", e)\n```\n\n- «30 дней» ≠ «месяц»: из 31 января получилось 1 марта.\n- `replace(month=2)` для 31-го числа ломается: 31 февраля нет.\n- Вывод: `2024-03-01`, `ошибка: day is out of range for month`.\n\n## Первый и последний день месяца\n\n```python\nimport calendar\nfrom datetime import date\n\nd = date(2024, 2, 14)\nfirst = d.replace(day=1)\nlast = d.replace(day=calendar.monthrange(d.year, d.month)[1])\nprint(first, last)\n```\n\n- Первый день — всегда `day=1`.\n- Последний — количество дней в месяце.\n- Вывод: `2024-02-01 2024-02-29`.\n\n## Прибавить месяцы\n\n```python\nimport calendar\nfrom datetime import date\n\ndef add_months(d, n):\n    index = d.year * 12 + (d.month - 1) + n\n    year, month = divmod(index, 12)\n    month += 1\n    day = min(d.day, calendar.monthrange(year, month)[1])\n    return date(year, month, day)\n\nprint(add_months(date(2024, 1, 31), 1))\nprint(add_months(date(2024, 11, 15), 3))\nprint(add_months(date(2024, 1, 10), -1))\n```\n\nЧто делает каждая строка:\n\n- `d.year * 12 + (d.month - 1)` — «номер месяца от начала летоисчисления». Январь 2024 → `24288`. Месяц уменьшаем на 1, чтобы нумерация шла с нуля.\n- `+ n` — сдвигаем на `n` месяцев (можно назад).\n- `divmod(index, 12)` — обратно в год и месяц (с нуля), затем `month += 1`.\n- `min(d.day, дней_в_месяце)` — если дня нет (31 февраля), берём последний.\n- Вывод: `2024-02-29`, `2025-02-15`, `2023-12-10`.\n- В сторонней библиотеке `dateutil` это делает `relativedelta(months=1)`.\n\n## Названия из calendar\n\n```python\nimport calendar\n\nprint(calendar.month_name[3], calendar.month_abbr[2], calendar.day_abbr[0])\n```\n\n- `month_name[1..12]`, `day_name[0..6]` — названия на языке системы (обычно английском). Индекс 0 у месяцев — пустая строка.\n- Вывод: `March Feb Mon`.\n\n## Итог\n\n- `calendar.isleap(год)`; `calendar.monthrange(год, мес)[1]` — дней в месяце.\n- Первый день — `replace(day=1)`, последний — `replace(day=дней)`.\n- Сдвиг на месяцы: через номер месяца и `divmod`, с обрезкой дня.\n- `timedelta(days=30)` — не месяц.",
@@ -874,7 +930,8 @@
                   "code": "from datetime import date, timedelta\n\nstart = date(2024, 2, 27)\ndays = [start + timedelta(days=i) for i in range(4)]\nprint([d.isoformat() for d in days])\n",
                   "expected_output": "['2024-02-27', '2024-02-28', '2024-02-29', '2024-03-01']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Диапазон дат — список `start + i дней`.\", \"lines\": [[\"days = [start + timedelta(days=i) for i in range(4)]\", \"0…3 дня.\"], [\"print([d.isoformat() for d in days])\", \"Строки в кавычках — это список строк.\"]], \"mistake\": \"Пропустить 29 февраля.\"}"
                 },
                 {
                   "slug": "dt-ranges-e2",
@@ -883,7 +940,8 @@
                   "code": "from datetime import date, timedelta\n\nd = date(2024, 3, 7)\nend = date(2024, 3, 12)\nwhile d <= end:\n    if d.weekday() < 5:\n        print(d.strftime(\"%d.%m\"), end=\" \")\n    d += timedelta(days=1)\nprint()\n",
                   "expected_output": "07.03 08.03 11.03 12.03 ",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Цикл по дням с пропуском выходных. 9 и 10 марта 2024 — суббота и воскресенье.\", \"lines\": [[\"while d <= end:\", \"По дням включительно.\"], [\"if d.weekday() < 5:\", \"Только будни.\"], [\"d += timedelta(days=1)\", \"Следующий день.\"]], \"mistake\": \"Забыть про `end=\\\" \\\"` — даты окажутся в отдельных строках.\"}"
                 },
                 {
                   "slug": "dt-ranges-e3",
@@ -892,7 +950,8 @@
                   "code": "from datetime import date, timedelta\n\nfor d in [date(2024, 3, 8), date(2024, 3, 11), date(2024, 3, 17)]:\n    monday = d - timedelta(days=d.weekday())\n    print(d, \"→\", monday)\nprint(date(2024, 3, 8).isocalendar().week)\n",
                   "expected_output": "2024-03-08 → 2024-03-04\n2024-03-11 → 2024-03-11\n2024-03-17 → 2024-03-11\n10",
                   "hint": "weekday() — сколько дней прошло с понедельника.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Понедельник недели — дата минус `weekday()` дней. `isocalendar().week` — номер недели ISO.\", \"lines\": [[\"monday = d - timedelta(days=d.weekday())\", \"Пятница − 4, понедельник − 0, воскресенье − 6.\"], [\"print(date(2024, 3, 8).isocalendar().week)\", \"10-я неделя.\"]], \"mistake\": \"Думать, что воскресенье начинает новую неделю.\"}"
                 },
                 {
                   "slug": "dt-ranges-e4",
@@ -902,7 +961,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert date_range(date(2024, 2, 28), date(2024, 3, 1)) == [date(2024, 2, 28), date(2024, 2, 29), date(2024, 3, 1)], \"Диапазон\"\n    assert date_range(date(2024, 1, 1), date(2024, 1, 1)) == [date(2024, 1, 1)] and date_range(date(2024, 1, 2), date(2024, 1, 1)) == [], \"Границы\"\n",
                   "solution": "from datetime import date, timedelta\n\n\ndef date_range(start, end):\n    count = (end - start).days + 1\n    return [start + timedelta(days=i) for i in range(max(count, 0))]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Количество дней — разность + 1; отрицательное превращаем в 0.\", \"lines\": [[\"count = (end - start).days + 1\", \"Включая оба конца.\"], [\"return [start + timedelta(days=i) for i in range(max(count, 0))]\", \"`range` отрицательного пуст, но `max` делает намерение явным.\"]], \"mistake\": \"Забыть `+ 1` — потеряется `end`.\"}"
                 },
                 {
                   "slug": "dt-ranges-e5",
@@ -912,7 +972,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert count_workdays(date(2024, 3, 4), date(2024, 3, 10)) == 5 and count_workdays(date(2024, 3, 9), date(2024, 3, 10)) == 0 and count_workdays(date(2024, 3, 1), date(2024, 3, 31)) == 21, \"Неверный подсчёт\"\n",
                   "solution": "from datetime import date, timedelta\n\n\ndef count_workdays(start, end):\n    count = 0\n    d = start\n    while d <= end:\n        if d.weekday() < 5:\n            count += 1\n        d += timedelta(days=1)\n    return count\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Идём по дням и считаем будние.\", \"lines\": [[\"while d <= end:\", \"Включая `end`.\"], [\"if d.weekday() < 5:\\n            count += 1\", \"Пн–пт.\"], [\"d += timedelta(days=1)\", \"Не забыть шаг.\"]], \"mistake\": \"Забыть шаг — бесконечный цикл.\"}"
                 },
                 {
                   "slug": "dt-ranges-e6",
@@ -922,7 +983,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert add_workdays(date(2024, 3, 8), 1) == date(2024, 3, 11) and add_workdays(date(2024, 3, 4), 5) == date(2024, 3, 11) and add_workdays(date(2024, 3, 9), 1) == date(2024, 3, 11) and add_workdays(date(2024, 3, 4), 0) == date(2024, 3, 4), \"Неверный результат\"\n",
                   "solution": "from datetime import date, timedelta\n\n\ndef add_workdays(start, n):\n    d = start\n    while n > 0:\n        d += timedelta(days=1)\n        if d.weekday() < 5:\n            n -= 1\n    return d\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Шагаем по дню вперёд и уменьшаем счётчик только на будних днях.\", \"lines\": [[\"while n > 0:\", \"Пока остались рабочие дни.\"], [\"d += timedelta(days=1)\", \"Сначала шаг — `start` не считается.\"], [\"if d.weekday() < 5:\\n            n -= 1\", \"Выходные не считаются.\"]], \"mistake\": \"Прибавить `n` дней и перескочить на понедельник — не учтёт выходные в середине.\"}"
                 },
                 {
                   "slug": "dt-ranges-e7",
@@ -932,7 +994,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    assert week_bounds(date(2024, 3, 8)) == (date(2024, 3, 4), date(2024, 3, 10)) and week_bounds(date(2024, 3, 4)) == (date(2024, 3, 4), date(2024, 3, 10)) and week_bounds(date(2024, 3, 10)) == (date(2024, 3, 4), date(2024, 3, 10)), \"Неверные границы\"\n",
                   "solution": "from datetime import date, timedelta\n\n\ndef week_bounds(d):\n    monday = d - timedelta(days=d.weekday())\n    return monday, monday + timedelta(days=6)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Понедельник — минус `weekday()`, воскресенье — понедельник + 6.\", \"lines\": [[\"monday = d - timedelta(days=d.weekday())\", \"Начало недели.\"], [\"return monday, monday + timedelta(days=6)\", \"Конец.\"]], \"mistake\": \"`+ 7` — следующий понедельник.\"}"
                 },
                 {
                   "slug": "dt-ranges-e8",
@@ -942,7 +1005,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    r = workdays_with_holidays(date(2024, 3, 6), date(2024, 3, 12), {date(2024, 3, 8)})\n    assert r == [date(2024, 3, 6), date(2024, 3, 7), date(2024, 3, 11), date(2024, 3, 12)], r\n",
                   "solution": "from datetime import date, timedelta\n\n\ndef workdays_with_holidays(start, end, holidays):\n    result = []\n    d = start\n    while d <= end:\n        if d.weekday() < 5 and d not in holidays:\n            result.append(d)\n        d += timedelta(days=1)\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Два фильтра: будний день и не праздник. Множество — быстрая проверка `in`.\", \"lines\": [[\"if d.weekday() < 5 and d not in holidays:\", \"Оба условия.\"], [\"result.append(d)\", \"Рабочий.\"], [\"d += timedelta(days=1)\", \"Следующий.\"]], \"mistake\": \"`or` вместо `and` — праздничные будни попадут в список.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nОтчёт за каждый день недели, количество рабочих дней в месяце, срок «5 рабочих дней», границы недели — это перебор **диапазона дат**. `range` для дат не работает, но его легко заменить.\n\n## Список дат подряд\n\n```python\nfrom datetime import date, timedelta\n\nstart = date(2024, 2, 27)\nend = date(2024, 3, 1)\ncount = (end - start).days + 1\ndays = [start + timedelta(days=i) for i in range(count)]\nprint([d.isoformat() for d in days])\n```\n\n- `(end - start).days + 1` — сколько дат в диапазоне включительно.\n- `start + timedelta(days=i)` — i-й день от начала.\n- Вывод: `['2024-02-27', '2024-02-28', '2024-02-29', '2024-03-01']`.\n\n## Цикл while по датам\n\n```python\nfrom datetime import date, timedelta\n\nd = date(2024, 3, 7)\nend = date(2024, 3, 12)\nwhile d <= end:\n    if d.weekday() < 5:\n        print(d.strftime(\"%d.%m\"), end=\" \")\n    d += timedelta(days=1)\nprint()\n```\n\n- `d += timedelta(days=1)` — следующий день (новый объект кладётся в `d`).\n- `weekday() < 5` — только будни.\n- Вывод: `07.03 08.03 11.03 12.03`.\n\n## Прибавить рабочие дни\n\n```python\nfrom datetime import date, timedelta\n\ndef add_workdays(start, n):\n    d = start\n    while n > 0:\n        d += timedelta(days=1)\n        if d.weekday() < 5:\n            n -= 1\n    return d\n\nprint(add_workdays(date(2024, 3, 8), 1))\nprint(add_workdays(date(2024, 3, 4), 5))\n```\n\n- Шагаем по одному дню и уменьшаем счётчик только на буднях.\n- Пятница + 1 рабочий день = понедельник.\n- Вывод: `2024-03-11`, `2024-03-11`.\n\n## Праздники\n\n```python\nfrom datetime import date, timedelta\n\nholidays = {date(2024, 3, 8)}\nd, end = date(2024, 3, 6), date(2024, 3, 12)\nwork = []\nwhile d <= end:\n    if d.weekday() < 5 and d not in holidays:\n        work.append(d.day)\n    d += timedelta(days=1)\nprint(work)\n```\n\n- Даты хешируемы — праздники удобно хранить в множестве, проверка `in` мгновенная.\n- Вывод: `[6, 7, 11, 12]`.\n\n## Границы недели\n\n```python\nfrom datetime import date, timedelta\n\nfor d in [date(2024, 3, 8), date(2024, 3, 11), date(2024, 3, 17)]:\n    monday = d - timedelta(days=d.weekday())\n    print(d, \"→\", monday, monday + timedelta(days=6))\nprint(date(2024, 3, 8).isocalendar().week)\n```\n\n- `weekday()` — сколько дней прошло с понедельника. Отнимаем их — получаем понедельник.\n- Воскресенье — понедельник + 6 дней.\n- `isocalendar()` — (год, номер недели, день недели) по стандарту ISO; `.week` — номер недели.\n- Вывод: `2024-03-08 → 2024-03-04 2024-03-10`, `2024-03-11 → 2024-03-11 2024-03-17`, `2024-03-17 → 2024-03-11 2024-03-17`, `10`.\n\n## Итог\n\n- Диапазон: `[start + timedelta(days=i) for i in range(n)]` или `while d <= end: ... d += timedelta(days=1)`.\n- Будни: `weekday() < 5`; праздники — множество дат.\n- Понедельник недели: `d - timedelta(days=d.weekday())`.\n- `d.isocalendar().week` — номер недели.",
@@ -1002,7 +1066,8 @@
                   "code": "from datetime import datetime, timezone, timedelta\n\nnaive = datetime(2024, 3, 8, 12, 0)\nutc = datetime(2024, 3, 8, 12, 0, tzinfo=timezone.utc)\nprint(naive.tzinfo, utc.tzinfo)\nprint(utc)\nmsk = timezone(timedelta(hours=3))\nprint(utc.astimezone(msk))\n",
                   "expected_output": "None UTC\n2024-03-08 12:00:00+00:00\n2024-03-08 15:00:00+03:00",
                   "hint": "+00:00 и +03:00 — смещение от UTC.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Naive — без пояса (`tzinfo is None`), aware — с поясом. `astimezone` показывает тот же момент в другом поясе.\", \"lines\": [[\"print(naive.tzinfo, utc.tzinfo)\", \"None и UTC.\"], [\"print(utc)\", \"Смещение `+00:00` в конце.\"], [\"print(utc.astimezone(msk))\", \"12:00 UTC = 15:00 по Москве.\"]], \"mistake\": \"Думать, что `astimezone` меняет момент, а не только запись.\"}"
                 },
                 {
                   "slug": "dt-timezone-e2",
@@ -1011,7 +1076,8 @@
                   "code": "from datetime import datetime, timezone, timedelta\n\nmsk = timezone(timedelta(hours=3), \"MSK\")\nny = timezone(timedelta(hours=-5), \"NY\")\na = datetime(2024, 3, 8, 15, 0, tzinfo=msk)\nb = datetime(2024, 3, 8, 7, 0, tzinfo=ny)\nprint(a == b, a - b)\nprint(b.astimezone(msk).strftime(\"%H:%M %Z\"))\n",
                   "expected_output": "True 0:00:00\n15:00 MSK",
                   "hint": "Aware-даты сравниваются как моменты времени, а не как цифры на часах.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Aware-даты сравниваются как моменты: 15:00 MSK и 7:00 NY — одно и то же (12:00 UTC).\", \"lines\": [[\"print(a == b, a - b)\", \"Равны, разница — ноль.\"], [\"print(b.astimezone(msk).strftime(\\\"%H:%M %Z\\\"))\", \"`%Z` — имя пояса.\"]], \"mistake\": \"Сравнивать цифры часов: 15 ≠ 7.\"}"
                 },
                 {
                   "slug": "dt-timezone-e3",
@@ -1020,7 +1086,8 @@
                   "code": "from datetime import datetime, timezone\n\nnaive = datetime(2024, 3, 8, 12, 0)\naware = datetime(2024, 3, 8, 12, 0, tzinfo=timezone.utc)\ntry:\n    naive < aware\nexcept TypeError:\n    print(\"сравнивать naive и aware нельзя\")\nprint(naive == aware)\nprint(naive.replace(tzinfo=timezone.utc) == aware)\n",
                   "expected_output": "сравнивать naive и aware нельзя\nFalse\nTrue",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Naive и aware нельзя сравнивать на больше-меньше; `==` просто даёт `False`. `replace(tzinfo=...)` прикрепляет пояс без пересчёта.\", \"lines\": [[\"naive < aware\", \"`TypeError`.\"], [\"print(naive == aware)\", \"Не ошибка, но всегда `False`.\"], [\"print(naive.replace(tzinfo=timezone.utc) == aware)\", \"Теперь оба aware.\"]], \"mistake\": \"Ожидать ошибку и на `==`.\"}"
                 },
                 {
                   "slug": "dt-timezone-e4",
@@ -1030,7 +1097,8 @@
                   "tests": "from datetime import datetime, timezone, timedelta\n\ndef test_values():\n    msk = timezone(timedelta(hours=3))\n    r = to_utc(datetime(2024, 3, 8, 2, 0, tzinfo=msk))\n    assert r == datetime(2024, 3, 7, 23, 0, tzinfo=timezone.utc) and r.utcoffset() == timedelta(0), r\n    try:\n        to_utc(datetime(2024, 3, 8))\n    except ValueError as e:\n        assert str(e) == \"нужен часовой пояс\", str(e)\n        return\n    assert False, \"Нужен ValueError\"\n",
                   "solution": "from datetime import datetime, timezone\n\n\ndef to_utc(dt):\n    if dt.tzinfo is None:\n        raise ValueError(\"нужен часовой пояс\")\n    return dt.astimezone(timezone.utc)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Naive непонятно как переводить — отказываемся. Aware переводим `astimezone`.\", \"lines\": [[\"if dt.tzinfo is None:\", \"Нет пояса.\"], [\"raise ValueError(\\\"нужен часовой пояс\\\")\", \"Отказ.\"], [\"return dt.astimezone(timezone.utc)\", \"Тот же момент в UTC.\"]], \"mistake\": \"`replace(tzinfo=timezone.utc)` — цифры не пересчитаются.\"}"
                 },
                 {
                   "slug": "dt-timezone-e5",
@@ -1040,7 +1108,8 @@
                   "tests": "from datetime import datetime, timezone\n\ndef test_values():\n    dt = datetime(2024, 3, 8, 22, 30, tzinfo=timezone.utc)\n    assert local_time(dt, 3) == \"01:30\" and local_time(dt, -5) == \"17:30\" and local_time(dt, 0) == \"22:30\", \"Неверное время\"\n",
                   "solution": "from datetime import datetime, timezone, timedelta\n\n\ndef local_time(utc_dt, offset_hours):\n    tz = timezone(timedelta(hours=offset_hours))\n    return utc_dt.astimezone(tz).strftime(\"%H:%M\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Пояс по смещению — `timezone(timedelta(hours=...))`.\", \"lines\": [[\"tz = timezone(timedelta(hours=offset_hours))\", \"Например, +3.\"], [\"return utc_dt.astimezone(tz).strftime(\\\"%H:%M\\\")\", \"22:30 UTC → 01:30.\"]], \"mistake\": \"Прибавить `timedelta(hours=3)` к UTC — цифры верны, но пояс останется UTC.\"}"
                 },
                 {
                   "slug": "dt-timezone-e6",
@@ -1050,7 +1119,8 @@
                   "tests": "from datetime import datetime, timezone, timedelta\n\ndef test_values():\n    msk = timezone(timedelta(hours=3))\n    assert same_moment(datetime(2024, 3, 8, 15, tzinfo=msk), datetime(2024, 3, 8, 12, tzinfo=timezone.utc)), \"Один момент\"\n    assert not same_moment(datetime(2024, 3, 8, 15, tzinfo=msk), datetime(2024, 3, 8, 15, tzinfo=timezone.utc)), \"Разные моменты\"\n",
                   "solution": "def same_moment(a, b):\n    return a == b\n",
                   "hint": "Aware-объекты сравниваются по моменту времени.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`==` у aware-дат сравнивает моменты, а не записи.\", \"lines\": [[\"return a == b\", \"Пояса учитываются автоматически.\"]], \"mistake\": \"Сравнивать `a.hour == b.hour`.\"}"
                 },
                 {
                   "slug": "dt-timezone-e7",
@@ -1060,7 +1130,8 @@
                   "tests": "from datetime import datetime, timezone, timedelta\n\ndef test_values():\n    assert assume_utc(datetime(2024, 3, 8, 12)) == datetime(2024, 3, 8, 12, tzinfo=timezone.utc) and assume_utc(datetime(2024, 3, 8, 12)).tzinfo is timezone.utc, \"naive\"\n    msk = datetime(2024, 3, 8, 12, tzinfo=timezone(timedelta(hours=3)))\n    assert assume_utc(msk) is msk, \"aware не меняется\"\n",
                   "solution": "from datetime import datetime, timezone\n\n\ndef assume_utc(dt):\n    if dt.tzinfo is None:\n        return dt.replace(tzinfo=timezone.utc)\n    return dt\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`replace(tzinfo=...)` прикрепляет пояс, не меняя цифр — ровно то, что нужно для «считаем, что это UTC».\", \"lines\": [[\"if dt.tzinfo is None:\", \"Naive.\"], [\"return dt.replace(tzinfo=timezone.utc)\", \"Прикрепить UTC.\"], [\"return dt\", \"Aware не трогаем.\"]], \"mistake\": \"`astimezone` для naive — Python сочтёт его местным временем компьютера.\"}"
                 },
                 {
                   "slug": "dt-timezone-e8",
@@ -1070,7 +1141,8 @@
                   "tests": "from datetime import datetime, timezone\n\ndef test_values():\n    r = meeting_for_all(datetime(2024, 3, 8, 22, 0, tzinfo=timezone.utc), {\"Москва\": 3, \"Нью-Йорк\": -5, \"Токио\": 9})\n    assert r == {\"Москва\": \"09.03 01:00\", \"Нью-Йорк\": \"08.03 17:00\", \"Токио\": \"09.03 07:00\"}, r\n",
                   "solution": "from datetime import datetime, timezone, timedelta\n\n\ndef meeting_for_all(utc_dt, offsets):\n    result = {}\n    for city, hours in offsets.items():\n        local = utc_dt.astimezone(timezone(timedelta(hours=hours)))\n        result[city] = local.strftime(\"%d.%m %H:%M\")\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Один момент — разные местные часы. Для каждого города свой пояс.\", \"lines\": [[\"for city, hours in offsets.items():\", \"Город и смещение.\"], [\"local = utc_dt.astimezone(timezone(timedelta(hours=hours)))\", \"Местное время.\"], [\"result[city] = local.strftime(\\\"%d.%m %H:%M\\\")\", \"Дата тоже может смениться.\"]], \"mistake\": \"Не показывать дату — встреча у кого-то окажется на другой день.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nКогда в Москве 15:00, в Лондоне 12:00, а в Нью-Йорке 7:00 — и это **один и тот же момент**. Серверы, базы данных и API обычно хранят время в **UTC** (всемирное время), а пользователю показывают местное. Если не учитывать пояса, появляются баги «заказ создан в будущем» и «тест падает только ночью».\n\n## naive и aware\n\n- **naive** («наивный») `datetime` — без часового пояса. Непонятно, какой это момент: 12:00 где?\n- **aware** («осведомлённый») — с поясом (`tzinfo`). Однозначно указывает момент.\n\n```python\nfrom datetime import datetime, timezone, timedelta\n\nnaive = datetime(2024, 3, 8, 12, 0)\nutc = datetime(2024, 3, 8, 12, 0, tzinfo=timezone.utc)\nprint(naive.tzinfo, utc.tzinfo)\nprint(utc)\n```\n\n- `timezone.utc` — готовый пояс UTC.\n- `tzinfo=` — параметр для пояса при создании.\n- В выводе aware-объекта появляется смещение `+00:00`.\n- Вывод: `None UTC`, `2024-03-08 12:00:00+00:00`.\n\n## Пояс с фиксированным смещением\n\n```python\nfrom datetime import datetime, timezone, timedelta\n\nmsk = timezone(timedelta(hours=3), \"MSK\")\nny = timezone(timedelta(hours=-5), \"NY\")\nutc_time = datetime(2024, 3, 8, 12, 0, tzinfo=timezone.utc)\nprint(utc_time.astimezone(msk))\nprint(utc_time.astimezone(ny).strftime(\"%H:%M %Z\"))\n```\n\n- `timezone(timedelta(hours=3), \"MSK\")` — пояс со смещением +3 часа от UTC; имя необязательно.\n- `astimezone(пояс)` — **перевести** момент в другой пояс: цифры на часах меняются, момент остаётся тем же.\n- `%Z` — имя пояса в `strftime`.\n- Вывод: `2024-03-08 15:00:00+03:00`, `07:00 NY`.\n\n## Сравнение aware-времени\n\n```python\nfrom datetime import datetime, timezone, timedelta\n\nmsk = timezone(timedelta(hours=3))\na = datetime(2024, 3, 8, 15, 0, tzinfo=msk)\nb = datetime(2024, 3, 8, 12, 0, tzinfo=timezone.utc)\nprint(a == b, a - b)\n```\n\n- Aware-объекты сравниваются как **моменты**, а не как цифры на часах. 15:00 MSK = 12:00 UTC.\n- Вывод: `True 0:00:00`.\n\n## naive и aware не смешиваются\n\n```python\nfrom datetime import datetime, timezone\n\nnaive = datetime(2024, 3, 8, 12, 0)\naware = datetime(2024, 3, 8, 12, 0, tzinfo=timezone.utc)\ntry:\n    naive < aware\nexcept TypeError:\n    print(\"сравнивать naive и aware нельзя\")\nprint(naive == aware)\nprint(naive.replace(tzinfo=timezone.utc) == aware)\n```\n\n- `<`, `>`, вычитание naive и aware → `TypeError`.\n- `==` не падает, но всегда `False` — коварно!\n- `replace(tzinfo=...)` — **прикрепить** пояс, не меняя цифр («считаем, что это было UTC»). Не путай с `astimezone` — тот пересчитывает время.\n- Вывод: `сравнивать naive и aware нельзя`, `False`, `True`.\n\n## Настоящие пояса: zoneinfo\n\nСмещение многих стран меняется (летнее время), поэтому для городов используют базу поясов:\n\n```py\nfrom zoneinfo import ZoneInfo           # Python 3.9+\ndt = datetime(2024, 7, 1, 12, tzinfo=ZoneInfo(\"Europe/London\"))\ndt.astimezone(ZoneInfo(\"Europe/Moscow\"))\n```\n\n- Имена поясов вида `\"Europe/Moscow\"`, `\"America/New_York\"`. Базе нужен системный пакет `tzdata`.\n\n## Правила\n\n- Храни и передавай время в **UTC**, в местное переводи только для показа.\n- Используй aware-объекты: `datetime.now(timezone.utc)` вместо `datetime.now()`.\n- `datetime.utcnow()` устарел: он возвращает naive-время.\n\n## Итог\n\n- naive — без пояса, aware — с `tzinfo`.\n- `timezone.utc`, `timezone(timedelta(hours=3))`.\n- `astimezone(tz)` — пересчитать; `replace(tzinfo=tz)` — прикрепить.\n- naive и aware нельзя сравнивать и вычитать.",
@@ -1122,7 +1194,8 @@
                   "code": "from datetime import datetime, timezone\n\nepoch = datetime(1970, 1, 1, tzinfo=timezone.utc)\ndt = datetime(2024, 3, 8, 12, 0, tzinfo=timezone.utc)\nprint(dt.timestamp())\nprint((dt - epoch).total_seconds())\nprint(datetime.fromtimestamp(0, tz=timezone.utc))\n",
                   "expected_output": "1709899200.0\n1709899200.0\n1970-01-01 00:00:00+00:00",
                   "hint": "Timestamp — секунды, прошедшие с 1 января 1970 года UTC.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Unix-время — секунды с 1 января 1970 UTC. `timestamp()` и вычитание эпохи дают одно и то же.\", \"lines\": [[\"print(dt.timestamp())\", \"float.\"], [\"print((dt - epoch).total_seconds())\", \"То же число.\"], [\"print(datetime.fromtimestamp(0, tz=timezone.utc))\", \"Ноль — сама эпоха.\"]], \"mistake\": \"Забыть `tz=` — получится местное время компьютера.\"}"
                 },
                 {
                   "slug": "dt-timestamp-e2",
@@ -1131,7 +1204,8 @@
                   "code": "from datetime import datetime, timezone\n\nms = 1709899200500\ndt = datetime.fromtimestamp(ms / 1000, tz=timezone.utc)\nprint(dt)\nprint(int(dt.timestamp() * 1000) == ms)\nprint(len(str(ms)), len(str(ms // 1000)))\n",
                   "expected_output": "2024-03-08 12:00:00.500000+00:00\nTrue\n13 10",
                   "hint": "13 цифр — миллисекунды, 10 цифр — секунды.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"API часто присылают миллисекунды (13 цифр). Для `fromtimestamp` делим на 1000.\", \"lines\": [[\"dt = datetime.fromtimestamp(ms / 1000, tz=timezone.utc)\", \"500 мс → `.500000`.\"], [\"print(int(dt.timestamp() * 1000) == ms)\", \"Обратное преобразование.\"], [\"print(len(str(ms)), len(str(ms // 1000)))\", \"13 и 10 цифр.\"]], \"mistake\": \"Передать миллисекунды без деления — год 56 тысяч и ошибка.\"}"
                 },
                 {
                   "slug": "dt-timestamp-e3",
@@ -1140,7 +1214,8 @@
                   "code": "import time\n\nstart = time.perf_counter()\ntime.sleep(0.05)\nelapsed = time.perf_counter() - start\nprint(elapsed >= 0.05, elapsed < 1)\nprint(type(time.time()).__name__, time.time() > 1_700_000_000)\n",
                   "expected_output": "True True\nfloat True",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`perf_counter` — для замеров, `time.time()` — Unix-время (float).\", \"lines\": [[\"elapsed = time.perf_counter() - start\", \"Не меньше 0.05.\"], [\"print(elapsed >= 0.05, elapsed < 1)\", \"Проверяем диапазон, не точное значение.\"], [\"print(type(time.time()).__name__, time.time() > 1_700_000_000)\", \"Сейчас больше 1.7 млрд секунд.\"]], \"mistake\": \"Сравнивать время выполнения на равенство — оно всегда немного разное.\"}"
                 },
                 {
                   "slug": "dt-timestamp-e4",
@@ -1150,7 +1225,8 @@
                   "tests": "from datetime import datetime, timezone\n\ndef test_values():\n    assert from_ms(0) == datetime(1970, 1, 1, tzinfo=timezone.utc) and from_ms(1709899200000) == datetime(2024, 3, 8, 12, 0, tzinfo=timezone.utc) and from_ms(1500).microsecond == 500000, \"Неверный результат\"\n",
                   "solution": "from datetime import datetime, timezone\n\n\ndef from_ms(ms):\n    return datetime.fromtimestamp(ms / 1000, tz=timezone.utc)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Миллисекунды → секунды → `datetime` с поясом UTC.\", \"lines\": [[\"return datetime.fromtimestamp(ms / 1000, tz=timezone.utc)\", \"`/`, а не `//` — миллисекунды сохранятся.\"]], \"mistake\": \"`ms // 1000` — потеряются доли секунды.\"}"
                 },
                 {
                   "slug": "dt-timestamp-e5",
@@ -1160,7 +1236,8 @@
                   "tests": "from datetime import datetime, timezone, timedelta\n\ndef test_values():\n    assert to_seconds(datetime(2024, 3, 8, 12, tzinfo=timezone.utc)) == 1709899200 and to_seconds(datetime(2024, 3, 8, 15, tzinfo=timezone(timedelta(hours=3)))) == 1709899200 and type(to_seconds(datetime(1970, 1, 1, tzinfo=timezone.utc))) is int, \"Неверный результат\"\n",
                   "solution": "def to_seconds(dt):\n    return int(dt.timestamp())\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`timestamp()` — float; `int` отбрасывает дробь.\", \"lines\": [[\"return int(dt.timestamp())\", \"Целые секунды.\"]], \"mistake\": \"`round` — может округлить вверх.\"}"
                 },
                 {
                   "slug": "dt-timestamp-e6",
@@ -1170,7 +1247,8 @@
                   "tests": "from datetime import datetime, timezone\n\ndef test_values():\n    expected = datetime(2024, 3, 8, 12, tzinfo=timezone.utc)\n    assert normalize_ts(1709899200) == expected and normalize_ts(1709899200000) == expected, \"Секунды и миллисекунды\"\n",
                   "solution": "from datetime import datetime, timezone\n\n\ndef normalize_ts(value):\n    if value > 10 ** 11:\n        value = value / 1000\n    return datetime.fromtimestamp(value, tz=timezone.utc)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"По размеру числа отличаем миллисекунды от секунд.\", \"lines\": [[\"if value > 10 ** 11:\\n        value = value / 1000\", \"13 цифр — миллисекунды.\"], [\"return datetime.fromtimestamp(value, tz=timezone.utc)\", \"Теперь всегда секунды.\"]], \"mistake\": \"Проверять `len(str(value))` — не сработает для float.\"}"
                 },
                 {
                   "slug": "dt-timestamp-e7",
@@ -1180,7 +1258,8 @@
                   "tests": "import time as _t\n\ndef test_values():\n    result, spent = measure(lambda: (_t.sleep(0.05), \"ok\")[1])\n    assert result == \"ok\" and 0.04 < spent < 1, f\"{result}, {spent}\"\n",
                   "solution": "import time\n\n\ndef measure(func):\n    start = time.perf_counter()\n    result = func()\n    return result, time.perf_counter() - start\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Замер: отметка до, вызов, разница после.\", \"lines\": [[\"start = time.perf_counter()\", \"До.\"], [\"result = func()\", \"Вызов.\"], [\"return result, time.perf_counter() - start\", \"Кортеж.\"]], \"mistake\": \"Засечь время после вызова и вернуть 0.\"}"
                 },
                 {
                   "slug": "dt-timestamp-e8",
@@ -1190,7 +1269,8 @@
                   "tests": "def test_values():\n    now = 1_700_000_000\n    assert is_fresh(now - 60, now, 300) and is_fresh(now - 300, now, 300) and is_fresh(now + 5, now, 300), \"Свежие\"\n    assert not is_fresh(now - 301, now, 300) and not is_fresh(now + 6, now, 300), \"Несвежие\"\n",
                   "solution": "def is_fresh(ts_seconds, now_seconds, max_age):\n    age = now_seconds - ts_seconds\n    return -5 <= age <= max_age\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Возраст записи в секундах; допускаем небольшой «минус» из-за рассинхрона часов.\", \"lines\": [[\"age = now_seconds - ts_seconds\", \"Сколько прошло.\"], [\"return -5 <= age <= max_age\", \"Двойное сравнение.\"]], \"mistake\": \"Не допустить отрицательный возраст — свежие записи с чужого сервера станут «невалидными».\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nМногие системы хранят время одним числом — **Unix-временем** (timestamp): сколько секунд прошло с полуночи 1 января 1970 года UTC. Такие числа приходят из API, JWT-токенов, логов, баз данных. Ещё есть модуль `time` для пауз и замеров.\n\n## timestamp ↔ datetime\n\n```python\nfrom datetime import datetime, timezone\n\nepoch = datetime(1970, 1, 1, tzinfo=timezone.utc)\ndt = datetime(2024, 3, 8, 12, 0, tzinfo=timezone.utc)\nprint(dt.timestamp())\nprint((dt - epoch).total_seconds())\nprint(datetime.fromtimestamp(0, tz=timezone.utc))\nprint(datetime.fromtimestamp(1709899200, tz=timezone.utc))\n```\n\n- **Эпоха** (epoch) — точка отсчёта: 1970-01-01 00:00 UTC.\n- `dt.timestamp()` — секунды от эпохи (дробное число). Это ровно разность с эпохой.\n- `datetime.fromtimestamp(ts, tz=timezone.utc)` — обратно в aware-`datetime`. Без `tz=` получится naive-время **в поясе компьютера** — источник багов.\n- Вывод: `1709899200.0`, `1709899200.0`, `1970-01-01 00:00:00+00:00`, `2024-03-08 12:00:00+00:00`.\n\n## Секунды или миллисекунды\n\n```python\nfrom datetime import datetime, timezone\n\nms = 1709899200500\ndt = datetime.fromtimestamp(ms / 1000, tz=timezone.utc)\nprint(dt)\nprint(int(dt.timestamp() * 1000) == ms)\nprint(len(str(ms)), len(str(ms // 1000)))\n```\n\n- JavaScript и многие API отдают **миллисекунды** — 13 цифр вместо 10. Раздели на 1000.\n- Обратно: `int(dt.timestamp() * 1000)`.\n- Если не разделить — получится дата в далёком будущем или `ValueError`.\n- Вывод: `2024-03-08 12:00:00.500000+00:00`, `True`, `13 10`.\n\n## Модуль time\n\n```python\nimport time\n\nstart = time.perf_counter()\ntime.sleep(0.05)\nelapsed = time.perf_counter() - start\nprint(elapsed >= 0.05, elapsed < 1)\nprint(type(time.time()).__name__, time.time() > 1_700_000_000)\n```\n\n- `time.time()` — текущий timestamp (секунды, дробное число).\n- `time.sleep(секунды)` — пауза.\n- `time.perf_counter()` — точные часы для **замеров длительности**: само значение ничего не значит, важна разность. Они не прыгают, если системное время перевели.\n- Вывод: `True True`, `float True`.\n\n## Проверка «свежести»\n\n```python\nnow = 1_700_000_000\ncreated = now - 120\nmax_age = 300\nage = now - created\nprint(age, 0 <= age <= max_age)\n```\n\n- С timestamp удобно считать возраст записи простым вычитанием.\n- `1_700_000_000` — подчёркивания в числе для читаемости.\n- Вывод: `120 True`.\n\n## Итог\n\n- Timestamp — секунды от 1970-01-01 UTC.\n- `dt.timestamp()`; `datetime.fromtimestamp(ts, tz=timezone.utc)` — всегда с `tz`.\n- 13 цифр — миллисекунды: `/ 1000`.\n- `time.time()` — сейчас, `time.sleep()` — пауза, `time.perf_counter()` — замеры.",
@@ -1242,7 +1322,8 @@
                   "code": "import json\nfrom datetime import datetime\n\ndata = {\"created\": datetime(2024, 3, 8, 12, 0)}\ntry:\n    json.dumps(data)\nexcept TypeError as e:\n    print(e)\nprint(json.dumps(data, default=str))\nprint(json.dumps({\"created\": data[\"created\"].isoformat()}))\n",
                   "expected_output": "Object of type datetime is not JSON serializable\n{\"created\": \"2024-03-08 12:00:00\"}\n{\"created\": \"2024-03-08T12:00:00\"}",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`json` не знает `datetime`. `default=str` превращает незнакомое в строку; `isoformat()` — стандарт для API.\", \"lines\": [[\"json.dumps(data)\", \"`TypeError`.\"], [\"print(json.dumps(data, default=str))\", \"`str` — с пробелом.\"], [\"print(json.dumps({\\\"created\\\": data[\\\"created\\\"].isoformat()}))\", \"ISO — с `T`.\"]], \"mistake\": \"Ожидать, что `json.dumps` сам вызовет `str`.\"}"
                 },
                 {
                   "slug": "dt-api-e2",
@@ -1251,7 +1332,8 @@
                   "code": "import json\nfrom datetime import datetime\n\nbody = '{\"id\": 7, \"created_at\": \"2024-03-08T09:30:00Z\", \"updated_at\": \"2024-03-08T12:00:00+03:00\"}'\nuser = json.loads(body)\ncreated = datetime.fromisoformat(user[\"created_at\"])\nupdated = datetime.fromisoformat(user[\"updated_at\"])\nprint(created, updated)\nprint(updated - created, updated > created)\n",
                   "expected_output": "2024-03-08 09:30:00+00:00 2024-03-08 12:00:00+03:00\n-1 day, 23:30:00 False",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Строки из API превращаем в aware-даты и сравниваем моменты. 12:00 +03:00 — это 9:00 UTC, раньше чем 9:30 UTC.\", \"lines\": [[\"created = datetime.fromisoformat(user[\\\"created_at\\\"])\", \"9:30 UTC.\"], [\"updated = datetime.fromisoformat(user[\\\"updated_at\\\"])\", \"9:00 UTC.\"], [\"print(updated - created, updated > created)\", \"−30 минут: баг в API.\"]], \"mistake\": \"Сравнивать строки: `12:00` > `09:30`.\"}"
                 },
                 {
                   "slug": "dt-api-e3",
@@ -1260,7 +1342,8 @@
                   "code": "import json\nfrom datetime import date, datetime\n\ndef encode(value):\n    if isinstance(value, (date, datetime)):\n        return value.isoformat()\n    raise TypeError(f\"не умею {type(value).__name__}\")\n\norder = {\"id\": 1, \"day\": date(2024, 3, 8), \"at\": datetime(2024, 3, 8, 9, 0)}\nprint(json.dumps(order, default=encode))\ntry:\n    json.dumps({\"s\": {1, 2}}, default=encode)\nexcept TypeError as e:\n    print(e)\n",
                   "expected_output": "{\"id\": 1, \"day\": \"2024-03-08\", \"at\": \"2024-03-08T09:00:00\"}\nне умею set",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Функция `default` вызывается для незнакомых объектов; для совсем чужих — `TypeError`.\", \"lines\": [[\"if isinstance(value, (date, datetime)):\\n        return value.isoformat()\", \"Даты — в ISO.\"], [\"raise TypeError(f\\\"не умею {type(value).__name__}\\\")\", \"Множество — ошибка.\"], [\"json.dumps({\\\"s\\\": {1, 2}}, default=encode)\", \"`set` не JSON.\"]], \"mistake\": \"Вернуть `None` для незнакомого — в JSON тихо появится `null`.\"}"
                 },
                 {
                   "slug": "dt-api-e4",
@@ -1270,7 +1353,8 @@
                   "tests": "from datetime import date, datetime\n\ndef test_values():\n    assert to_json({\"d\": date(2024, 3, 8), \"t\": datetime(2024, 3, 8, 9, 5), \"n\": 1}) == '{\"d\": \"2024-03-08\", \"t\": \"2024-03-08T09:05:00\", \"n\": 1}', to_json({\"d\": date(2024, 3, 8)})\n",
                   "solution": "import json\nfrom datetime import date, datetime\n\n\ndef to_json(data):\n    def encode(value):\n        if isinstance(value, (date, datetime)):\n            return value.isoformat()\n        raise TypeError(type(value).__name__)\n    return json.dumps(data, default=encode)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Вложенная функция-кодировщик и `default=`.\", \"lines\": [[\"if isinstance(value, (date, datetime)):\\n            return value.isoformat()\", \"Даты.\"], [\"raise TypeError(type(value).__name__)\", \"Остальное незнакомое — ошибка.\"], [\"return json.dumps(data, default=encode)\", \"Числа, строки — как обычно.\"]], \"mistake\": \"`default=str` — `datetime` выйдет с пробелом, не ISO.\"}"
                 },
                 {
                   "slug": "dt-api-e5",
@@ -1280,7 +1364,8 @@
                   "tests": "from datetime import datetime, timezone\n\ndef test_values():\n    src = {\"id\": 1, \"created_at\": \"2024-03-08T09:30:00Z\", \"name\": \"Аня\"}\n    r = parse_dates(src, [\"created_at\", \"deleted_at\"])\n    assert r == {\"id\": 1, \"created_at\": datetime(2024, 3, 8, 9, 30, tzinfo=timezone.utc), \"name\": \"Аня\"} and src[\"created_at\"] == \"2024-03-08T09:30:00Z\", r\n",
                   "solution": "from datetime import datetime\n\n\ndef parse_dates(obj, fields):\n    result = dict(obj)\n    for field in fields:\n        if field in result:\n            result[field] = datetime.fromisoformat(result[field])\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Копия словаря — чтобы не менять исходный.\", \"lines\": [[\"result = dict(obj)\", \"Поверхностная копия.\"], [\"if field in result:\", \"Отсутствующее пропускаем.\"], [\"result[field] = datetime.fromisoformat(result[field])\", \"Строка → `datetime`.\"]], \"mistake\": \"Менять `obj` на месте — вызывающий код получит неожиданные `datetime`.\"}"
                 },
                 {
                   "slug": "dt-api-e6",
@@ -1290,7 +1375,8 @@
                   "tests": "def test_values():\n    assert check_timestamps({\"created_at\": \"2024-03-08T09:00:00Z\", \"updated_at\": \"2024-03-08T10:00:00Z\"}) == [], \"Корректный\"\n    assert check_timestamps({\"created_at\": \"вчера\", \"updated_at\": \"2024-03-08T10:00:00Z\"}) == [\"created_at: не ISO\"], \"Неверное created_at\"\n    assert check_timestamps({\"created_at\": \"2024-03-08T09:00:00Z\", \"updated_at\": \"2024-03-08T08:00:00Z\"}) == [\"updated_at раньше created_at\"], \"Порядок\"\n    assert check_timestamps({\"created_at\": \"x\", \"updated_at\": \"y\"}) == [\"created_at: не ISO\", \"updated_at: не ISO\"], \"Оба неверные\"\n",
                   "solution": "from datetime import datetime\n\n\ndef check_timestamps(user):\n    errors = []\n    parsed = {}\n    for field in [\"created_at\", \"updated_at\"]:\n        try:\n            parsed[field] = datetime.fromisoformat(user[field])\n        except ValueError:\n            errors.append(f\"{field}: не ISO\")\n    if len(parsed) == 2 and parsed[\"updated_at\"] < parsed[\"created_at\"]:\n        errors.append(\"updated_at раньше created_at\")\n    return errors\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Разбираем оба поля, копим ошибки; порядок проверяем, только если оба разобрались.\", \"lines\": [[\"parsed[field] = datetime.fromisoformat(user[field])\", \"Удачно — запоминаем.\"], [\"except ValueError:\\n            errors.append(f\\\"{field}: не ISO\\\")\", \"Ошибка поля.\"], [\"if len(parsed) == 2 and parsed[\\\"updated_at\\\"] < parsed[\\\"created_at\\\"]:\", \"Оба есть и порядок неверный.\"]], \"mistake\": \"Сравнивать при ошибке разбора — `KeyError`.\"}"
                 },
                 {
                   "slug": "dt-api-e7",
@@ -1300,7 +1386,8 @@
                   "tests": "from datetime import datetime, timezone, timedelta\n\ndef test_values():\n    msk = timezone(timedelta(hours=3))\n    assert utc_iso(datetime(2024, 3, 8, 15, 0, 0, 999, tzinfo=msk)) == \"2024-03-08T12:00:00Z\" and utc_iso(datetime(2024, 1, 1, tzinfo=timezone.utc)) == \"2024-01-01T00:00:00Z\", \"Неверный формат\"\n",
                   "solution": "from datetime import datetime, timezone\n\n\ndef utc_iso(dt):\n    return dt.astimezone(timezone.utc).strftime(\"%Y-%m-%dT%H:%M:%SZ\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Переводим в UTC и форматируем вручную: `strftime` без микросекунд и с буквой `Z`.\", \"lines\": [[\"return dt.astimezone(timezone.utc).strftime(\\\"%Y-%m-%dT%H:%M:%SZ\\\")\", \"`Z` — просто символ в шаблоне.\"]], \"mistake\": \"`isoformat()` — даст `+00:00` и микросекунды.\"}"
                 },
                 {
                   "slug": "dt-api-e8",
@@ -1310,7 +1397,8 @@
                   "tests": "def test_values():\n    events = [\n        {\"user\": \"аня\", \"at\": \"2024-03-08T12:00:00+03:00\"},\n        {\"user\": \"аня\", \"at\": \"2024-03-08T10:00:00Z\"},\n        {\"user\": \"боря\", \"at\": \"2024-03-08T09:00:00Z\"},\n    ]\n    assert latest_by_user(events) == {\"аня\": \"2024-03-08T10:00:00Z\", \"боря\": \"2024-03-08T09:00:00Z\"} and latest_by_user([]) == {}, latest_by_user(events)\n",
                   "solution": "from datetime import datetime\n\n\ndef latest_by_user(events):\n    best = {}\n    for e in events:\n        moment = datetime.fromisoformat(e[\"at\"])\n        user = e[\"user\"]\n        if user not in best or moment > best[user][0]:\n            best[user] = (moment, e[\"at\"])\n    return {user: text for user, (_, text) in best.items()}\n",
                   "hint": "Строка '12:00+03:00' больше '10:00Z', но момент — раньше.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Храним лучший момент и исходную строку. Сравниваем `datetime`, а не строки — пояса разные.\", \"lines\": [[\"moment = datetime.fromisoformat(e[\\\"at\\\"])\", \"Момент.\"], [\"if user not in best or moment > best[user][0]:\", \"Первый или более поздний.\"], [\"best[user] = (moment, e[\\\"at\\\"])\", \"Пара: для сравнения и для ответа.\"], [\"return {user: text for user, (_, text) in best.items()}\", \"Оставляем только строки.\"]], \"mistake\": \"`max` по строкам — `10:00+05:00` покажется позже `08:00Z`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nВ JSON нет типа «дата» — даты передают строками, почти всегда в ISO 8601. Тестировщику API нужно уметь отправлять даты в правильном формате и проверять даты в ответах: формат, порядок, пояс.\n\n## json не умеет datetime\n\n```python\nimport json\nfrom datetime import datetime\n\ndata = {\"created\": datetime(2024, 3, 8, 12, 0)}\ntry:\n    json.dumps(data)\nexcept TypeError as e:\n    print(e)\nprint(json.dumps(data, default=str))\nprint(json.dumps({\"created\": data[\"created\"].isoformat()}))\n```\n\n- `json.dumps` не знает, как записать `datetime` → `TypeError`.\n- `default=str` — для неизвестных объектов вызвать `str()`. Работает, но даёт пробел вместо `T`.\n- Надёжнее явно вызывать `isoformat()`.\n- Вывод: `Object of type datetime is not JSON serializable`, `{\"created\": \"2024-03-08 12:00:00\"}`, `{\"created\": \"2024-03-08T12:00:00\"}`.\n\n## Своя функция default\n\n```python\nimport json\nfrom datetime import date, datetime\n\ndef encode(value):\n    if isinstance(value, (date, datetime)):\n        return value.isoformat()\n    raise TypeError(f\"не умею {type(value).__name__}\")\n\norder = {\"id\": 1, \"day\": date(2024, 3, 8), \"at\": datetime(2024, 3, 8, 9, 0)}\nprint(json.dumps(order, default=encode))\n```\n\n- `default=` получает каждый объект, который json не умеет записать. Возвращаем его JSON-представление.\n- Для остальных типов выбрасываем `TypeError` — так json и ожидает.\n- `datetime` — подкласс `date`, поэтому достаточно было бы проверки на `date`.\n- Вывод: `{\"id\": 1, \"day\": \"2024-03-08\", \"at\": \"2024-03-08T09:00:00\"}`.\n\n## Разбор дат из ответа\n\n```python\nimport json\nfrom datetime import datetime\n\nbody = '{\"id\": 7, \"created_at\": \"2024-03-08T09:30:00Z\", \"updated_at\": \"2024-03-08T12:00:00+03:00\"}'\nuser = json.loads(body)\ncreated = datetime.fromisoformat(user[\"created_at\"])\nupdated = datetime.fromisoformat(user[\"updated_at\"])\nprint(created, updated)\nprint(updated - created, updated > created)\n```\n\n- После `json.loads` даты — это просто строки. Для сравнения их нужно разобрать.\n- 12:00 по Москве (+03:00) = 09:00 UTC, то есть **раньше** 09:30 UTC.\n- Вывод: `2024-03-08 09:30:00+00:00 2024-03-08 12:00:00+03:00`, `-1 day, 23:30:00 False`.\n- `-1 day, 23:30:00` — так Python показывает минус 30 минут.\n\n## Не сравнивай даты строками\n\n```python\na = \"2024-03-08T12:00:00+03:00\"\nb = \"2024-03-08T10:00:00Z\"\nprint(a > b)\n```\n\n- Строки сравниваются посимвольно: `\"12\" > \"10\"`. Но момент `a` (09:00 UTC) — **раньше** `b` (10:00 UTC).\n- Строковое сравнение ISO-дат работает только при одинаковом формате и одинаковом поясе.\n- Вывод: `True` — неправильный ответ!\n\n## Отправка времени в API\n\n```python\nfrom datetime import datetime, timezone, timedelta\n\nmsk = timezone(timedelta(hours=3))\ndt = datetime(2024, 3, 8, 15, 0, 0, 999, tzinfo=msk)\nprint(dt.astimezone(timezone.utc).strftime(\"%Y-%m-%dT%H:%M:%SZ\"))\n```\n\n- Частое требование API: UTC, без микросекунд, с `Z`.\n- Вывод: `2024-03-08T12:00:00Z`.\n\n## Типичные проверки в тестах\n\n- Поле разбирается как ISO (`fromisoformat` не падает).\n- У времени есть пояс (`dt.tzinfo is not None`).\n- `updated_at >= created_at`.\n- `created_at` близко к моменту запроса (± несколько секунд).\n\n## Итог\n\n- В JSON даты — ISO-строки: `isoformat()` при отправке, `fromisoformat()` при разборе.\n- `json.dumps(obj, default=функция)` — свои типы.\n- Сравнивай разобранные `datetime`, а не строки.\n- Для API — UTC и `Z`.",
@@ -1362,7 +1450,8 @@
                   "code": "from datetime import datetime\n\ndef greeting(now):\n    if now.hour < 12:\n        return \"Доброе утро\"\n    if now.hour < 18:\n        return \"Добрый день\"\n    return \"Добрый вечер\"\n\nfor h in [8, 13, 21]:\n    print(greeting(datetime(2024, 3, 8, h)))\n",
                   "expected_output": "Доброе утро\nДобрый день\nДобрый вечер",
                   "hint": "Функция не вызывает datetime.now() сама — поэтому её легко проверить в любое время.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Время передаётся параметром — функцию легко проверить на любой час.\", \"lines\": [[\"def greeting(now):\", \"Не вызывает `datetime.now()` сама.\"], [\"print(greeting(datetime(2024, 3, 8, h)))\", \"8, 13, 21 часов.\"]], \"mistake\": \"Писать `datetime.now()` внутри — тест будет зависеть от времени запуска.\"}"
                 },
                 {
                   "slug": "dt-testing-e2",
@@ -1371,7 +1460,8 @@
                   "code": "from datetime import datetime, timedelta\n\nclass FakeClock:\n    def __init__(self, start):\n        self.current = start\n\n    def now(self):\n        return self.current\n\n    def advance(self, **kwargs):\n        self.current += timedelta(**kwargs)\n\nclass Session:\n    def __init__(self, clock, ttl_minutes):\n        self.clock = clock\n        self.expires = clock.now() + timedelta(minutes=ttl_minutes)\n\n    def is_active(self):\n        return self.clock.now() < self.expires\n\nclock = FakeClock(datetime(2024, 3, 8, 12, 0))\ns = Session(clock, 30)\nprint(s.is_active())\nclock.advance(minutes=29)\nprint(s.is_active())\nclock.advance(minutes=1)\nprint(s.is_active())\n",
                   "expected_output": "True\nTrue\nFalse",
                   "hint": "30 минут «прошли» мгновенно — тест не ждёт.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Поддельные часы: время двигается вручную, тест мгновенный и предсказуемый.\", \"trace\": [[\"s = Session(clock, 30)\", \"истекает 12:30\", \"\"], [\"print(s.is_active())\", \"12:00 < 12:30\", \"True\"], [\"clock.advance(minutes=29)\", \"12:29\", \"\"], [\"print(s.is_active())\", \"12:29 < 12:30\", \"True\"], [\"clock.advance(minutes=1)\", \"12:30\", \"\"], [\"print(s.is_active())\", \"12:30 < 12:30 — нет\", \"False\"]], \"mistake\": \"Ожидать `True` ровно в момент истечения.\"}"
                 },
                 {
                   "slug": "dt-testing-e3",
@@ -1380,7 +1470,8 @@
                   "code": "from datetime import date, timedelta\n\nedge = [date(2024, 2, 28), date(2023, 12, 31), date(2024, 12, 31)]\nfor d in edge:\n    print(d, \"→\", d + timedelta(days=1))\nprint(date(2024, 3, 1) - date(2024, 2, 1), date(2023, 3, 1) - date(2023, 2, 1))\n",
                   "expected_output": "2024-02-28 → 2024-02-29\n2023-12-31 → 2024-01-01\n2024-12-31 → 2025-01-01\n29 days, 0:00:00 28 days, 0:00:00",
                   "hint": "Конец месяца, конец года, високосный февраль — классика тест-дизайна.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Граничные даты — любимое место багов: високосный год, смена года, разная длина февраля.\", \"lines\": [[\"edge = [date(2024, 2, 28), date(2023, 12, 31), date(2024, 12, 31)]\", \"Коварные даты.\"], [\"print(d, \\\"→\\\", d + timedelta(days=1))\", \"29 февраля; новый год.\"], [\"print(date(2024, 3, 1) - date(2024, 2, 1), date(2023, 3, 1) - date(2023, 2, 1))\", \"29 и 28 дней.\"]], \"mistake\": \"Ожидать `2024-03-01` после 28 февраля 2024.\"}"
                 },
                 {
                   "slug": "dt-testing-e4",
@@ -1390,7 +1481,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    exp = datetime(2024, 3, 8, 12, 0)\n    assert is_expired(exp, now=datetime(2024, 3, 8, 12, 1)) and not is_expired(exp, now=datetime(2024, 3, 8, 11, 59)), \"С переданным now\"\n    assert is_expired(datetime(2000, 1, 1)) and not is_expired(datetime(2999, 1, 1)), \"Без now — текущее время\"\n",
                   "solution": "from datetime import datetime\n\n\ndef is_expired(expires_at, now=None):\n    if now is None:\n        now = datetime.now()\n    return now > expires_at\n",
                   "hint": "Не пиши now=datetime.now() в сигнатуре — значение вычислится один раз при объявлении.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Внедрение времени: параметр со значением `None`, а «сейчас» берём только если его не передали.\", \"lines\": [[\"def is_expired(expires_at, now=None):\", \"Тест передаст своё время.\"], [\"if now is None:\\n        now = datetime.now()\", \"В проде — настоящее.\"], [\"return now > expires_at\", \"Сравнение.\"]], \"mistake\": \"`now=datetime.now()` в заголовке — время застынет в момент импорта.\"}"
                 },
                 {
                   "slug": "dt-testing-e5",
@@ -1400,7 +1492,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    clock = FakeClock(datetime(2024, 3, 8, 12, 0))\n    rl = RateLimiter(clock, 2, 60)\n    assert rl.allow() and rl.allow() and not rl.allow(), \"Лимит 2\"\n    clock.advance(59)\n    assert not rl.allow(), \"Окно ещё не прошло\"\n    clock.advance(1)\n    assert rl.allow(), \"Старые вызовы забыты\"\n",
                   "solution": "from datetime import datetime, timedelta\n\n\nclass FakeClock:\n    def __init__(self, start):\n        self.current = start\n\n    def now(self):\n        return self.current\n\n    def advance(self, seconds):\n        self.current += timedelta(seconds=seconds)\n\n\nclass RateLimiter:\n    def __init__(self, clock, limit, window_seconds):\n        self.clock = clock\n        self.limit = limit\n        self.window = timedelta(seconds=window_seconds)\n        self.calls = []\n\n    def allow(self):\n        now = self.clock.now()\n        self.calls = [t for t in self.calls if now - t < self.window]\n        if len(self.calls) >= self.limit:\n            return False\n        self.calls.append(now)\n        return True\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Ограничитель хранит времена вызовов и выбрасывает старые из окна. Поддельные часы делают тест мгновенным.\", \"lines\": [[\"self.current += timedelta(seconds=seconds)\", \"Время двигаем вручную.\"], [\"self.calls = [t for t in self.calls if now - t < self.window]\", \"Забываем старые.\"], [\"if len(self.calls) >= self.limit:\\n            return False\", \"Лимит в окне.\"], [\"self.calls.append(now)\\n        return True\", \"Разрешено — запоминаем.\"]], \"mistake\": \"Запоминать отклонённые вызовы — лимит не освободится.\"}"
                 },
                 {
                   "slug": "dt-testing-e6",
@@ -1410,7 +1503,8 @@
                   "tests": "from datetime import date\n\ndef test_values():\n    cases = {\n        date(2024, 2, 29): (date(2024, 2, 1), date(2024, 2, 29)),\n        date(2023, 2, 1): (date(2023, 2, 1), date(2023, 2, 28)),\n        date(2024, 12, 31): (date(2024, 12, 1), date(2024, 12, 31)),\n        date(2024, 1, 1): (date(2024, 1, 1), date(2024, 1, 31)),\n    }\n    for day, expected in cases.items():\n        assert billing_period(day) == expected, f\"{day}: {billing_period(day)}\"\n",
                   "solution": "import calendar\nfrom datetime import date\n\n\ndef billing_period(today):\n    last = calendar.monthrange(today.year, today.month)[1]\n    return today.replace(day=1), today.replace(day=last)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Первый день — `replace(day=1)`, последний — через `monthrange`. Граничные случаи `calendar` обрабатывает сам.\", \"lines\": [[\"last = calendar.monthrange(today.year, today.month)[1]\", \"28/29/30/31.\"], [\"return today.replace(day=1), today.replace(day=last)\", \"Кортеж.\"]], \"mistake\": \"Считать последний день как «1-е следующего месяца − 1» с `month + 1` — в декабре месяц 13.\"}"
                 },
                 {
                   "slug": "dt-testing-e7",
@@ -1420,7 +1514,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    t0 = datetime(2024, 3, 8, 12)\n    assert make_order(t0) == {\"created_at\": t0, \"pay_until\": datetime(2024, 3, 11, 12), \"status\": \"new\"}, \"Значения по умолчанию\"\n    assert make_order(t0, status=\"paid\")[\"status\"] == \"paid\" and make_order(t0, pay_until=None)[\"pay_until\"] is None, \"overrides\"\n",
                   "solution": "from datetime import timedelta\n\n\ndef make_order(created_at, **overrides):\n    order = {\n        \"created_at\": created_at,\n        \"pay_until\": created_at + timedelta(days=3),\n        \"status\": \"new\",\n    }\n    order.update(overrides)\n    return order\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Фабрика с разумными значениями по умолчанию; тест меняет только нужное через `**overrides`.\", \"lines\": [[\"\\\"pay_until\\\": created_at + timedelta(days=3),\", \"Вычисляемое поле.\"], [\"order.update(overrides)\", \"Переопределения — поверх.\"]], \"mistake\": \"`update` до заполнения — переопределения затрутся.\"}"
                 },
                 {
                   "slug": "dt-testing-e8",
@@ -1430,7 +1525,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    base = datetime(2024, 3, 8, 12, 0, 0)\n    assert_close(datetime(2024, 3, 8, 12, 0, 1), base)\n    assert_close(datetime(2024, 3, 8, 11, 59, 58), base)\n    try:\n        assert_close(datetime(2024, 3, 8, 11, 59, 50), base)\n    except AssertionError as e:\n        assert str(e) == \"разница 10 с\", str(e)\n        return\n    assert False, \"Нужен AssertionError\"\n",
                   "solution": "from datetime import datetime\n\n\ndef assert_close(actual, expected, seconds=2):\n    diff = abs((actual - expected).total_seconds())\n    if diff > seconds:\n        raise AssertionError(f\"разница {int(diff)} с\")\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Точное равенство времени сервера ловить бессмысленно — проверяем, что разница в допуске.\", \"lines\": [[\"diff = abs((actual - expected).total_seconds())\", \"В любую сторону.\"], [\"if diff > seconds:\\n        raise AssertionError(f\\\"разница {int(diff)} с\\\")\", \"Вне допуска.\"]], \"mistake\": \"Без `abs` — отставание не заметишь.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nКод, который сам вызывает `datetime.now()`, трудно тестировать: результат зависит от того, когда запущен тест. Такие тесты проходят днём и падают ночью, работают в феврале и ломаются 29-го числа. Разберём приёмы, которые делают время управляемым.\n\n## Приём 1: время — параметр\n\n```python\nfrom datetime import datetime\n\ndef greeting(now):\n    if now.hour < 12:\n        return \"Доброе утро\"\n    if now.hour < 18:\n        return \"Добрый день\"\n    return \"Добрый вечер\"\n\nfor h in [8, 13, 21]:\n    print(greeting(datetime(2024, 3, 8, h)))\n```\n\n- Функция не узнаёт время сама, а **получает** его. В тесте передаём любой момент.\n- Вывод: `Доброе утро`, `Добрый день`, `Добрый вечер`.\n\nЧтобы вызывающему коду не приходилось передавать время всегда:\n\n```python\nfrom datetime import datetime\n\ndef is_expired(expires_at, now=None):\n    if now is None:\n        now = datetime.now()\n    return now > expires_at\n\nprint(is_expired(datetime(2024, 3, 8, 12), now=datetime(2024, 3, 8, 13)))\n```\n\n- `now=None` и вычисление внутри. **Не пиши** `now=datetime.now()` в сигнатуре: значение по умолчанию вычисляется **один раз** при объявлении функции и потом не меняется.\n- Вывод: `True`.\n\n## Приём 2: поддельные часы\n\n```python\nfrom datetime import datetime, timedelta\n\nclass FakeClock:\n    def __init__(self, start):\n        self.current = start\n\n    def now(self):\n        return self.current\n\n    def advance(self, **kwargs):\n        self.current += timedelta(**kwargs)\n\nclass Session:\n    def __init__(self, clock, ttl_minutes):\n        self.clock = clock\n        self.expires = clock.now() + timedelta(minutes=ttl_minutes)\n\n    def is_active(self):\n        return self.clock.now() < self.expires\n\nclock = FakeClock(datetime(2024, 3, 8, 12, 0))\ns = Session(clock, 30)\nprint(s.is_active())\nclock.advance(minutes=30)\nprint(s.is_active())\n```\n\n- Класс получает объект «часы» (внедрение зависимости). В бою — настоящие часы, в тесте — `FakeClock`.\n- `advance(minutes=30)` — «перемотать» время. Тест проверяет истечение сессии мгновенно, без `sleep`.\n- `timedelta(**kwargs)` — передать именованные аргументы дальше.\n- Вывод: `True`, `False`.\n\n## Приём 3: граничные даты\n\n```python\nfrom datetime import date, timedelta\n\nedge = [date(2024, 2, 28), date(2023, 12, 31), date(2024, 12, 31)]\nfor d in edge:\n    print(d, \"→\", d + timedelta(days=1))\nprint(date(2024, 3, 1) - date(2024, 2, 1), date(2023, 3, 1) - date(2023, 2, 1))\n```\n\n- Обязательный набор дат для тестов: конец месяца, конец года, 29 февраля (и не високосный февраль), переход через полночь, понедельник и воскресенье.\n- Вывод: `2024-02-28 → 2024-02-29`, `2023-12-31 → 2024-01-01`, `2024-12-31 → 2025-01-01`, `29 days, 0:00:00 28 days, 0:00:00`.\n\n## Приём 4: «почти равно»\n\n```python\nfrom datetime import datetime\n\ndef assert_close(actual, expected, seconds=2):\n    diff = abs((actual - expected).total_seconds())\n    if diff > seconds:\n        raise AssertionError(f\"разница {int(diff)} с\")\n\nassert_close(datetime(2024, 3, 8, 12, 0, 1), datetime(2024, 3, 8, 12, 0, 0))\ntry:\n    assert_close(datetime(2024, 3, 8, 11, 59, 50), datetime(2024, 3, 8, 12, 0, 0))\nexcept AssertionError as e:\n    print(e)\n```\n\n- Сервер ставит `created_at` сам — точного значения мы не знаем. Проверяем, что оно близко к моменту запроса.\n- `abs(...)` — разница в любую сторону.\n- Вывод: `разница 10 с`.\n\n## Библиотеки\n\nВ реальных проектах время «замораживают» библиотеками `freezegun` (`@freeze_time(\"2024-03-08\")`) или `time-machine`. Они подменяют `datetime.now()` на время теста. Но передавать время параметром — проще и работает без библиотек.\n\n## Итог\n\n- Не вызывай `now()` глубоко в логике — передавай время параметром или через объект-часы.\n- `now=None` в сигнатуре, а не `now=datetime.now()`.\n- Тестируй граничные даты.\n- Время от сервера проверяй с допуском.",
