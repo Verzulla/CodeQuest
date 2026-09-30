@@ -55,10 +55,13 @@ def attach_explain(name: str, topic: dict) -> None:
         raise SystemExit(f"explain_{name}.py: нет таких заданий {sorted(unknown)}")
     for slug, item in manual.items():
         ex = exercises[slug]
-        src = {ln.strip() for ln in (ex["code"] if ex["type"] == "output" else ex["solution"]).splitlines()}
+        # «Терминал»: разбирают части команды (и команды из контекста) — ищем как подстроку
+        text = ex["code"] if ex["type"] == "output" else ex["solution"] + ("\n" + ex["code"] if ex["type"] == "command" else "")
+        src = {ln.strip() for ln in text.splitlines()}
         for code in [c for c, _ in item.get("lines", [])] + [r[0] for r in item.get("trace", [])]:
             for ln in code.splitlines():
-                if ln.strip() and ln.strip() not in src:
+                ok = ln.strip() in text if ex["type"] == "command" else ln.strip() in src
+                if ln.strip() and not ok:
                     raise SystemExit(f"explain_{name}.py: {slug}: строки «{ln.strip()}» нет в решении")
         ex["explain"] = json.dumps(item, ensure_ascii=False)
     print(f"  ручных разборов: {len(manual)} из {len(exercises)}")
