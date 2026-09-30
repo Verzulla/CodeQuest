@@ -2,30 +2,61 @@
 import { api, esc, modal, soundOn, sound, plural, toast, ic, owl } from "../util.js";
 import { store, setState, pills } from "../store.js";
 import { runSession } from "./lesson.js";
+import { glyph } from "../glyphs.js";
 
 // ---------- Повторение ----------
+const KIND = { code: ["code", "Напиши код"], command: ["term", "Терминал"], output: ["eye", "Что выведет"] };
+// Заголовок задания — первая строка условия без markdown.
+const promptTitle = (p) => {
+  const line = String(p || "").split("\n").find((x) => x.trim()) || "Задание";
+  const t = line.replace(/^#+\s*/, "").replace(/[*_`]/g, "").trim();
+  return t.length > 70 ? `${t.slice(0, 68)}…` : t;
+};
+
 export async function renderReview(view, start) {
   const data = await api("/review");
   const mistakes = data.kind === "mistakes" ? data.exercises : [];
   if (start && mistakes.length) {
-    return runSession(view, { mode: "review", title: "Повторение", theory: "", color: "var(--blue)", exercises: mistakes });
+    return runSession(view, { mode: "review", title: "Повторение", theory: "", color: "var(--red)", exercises: mistakes });
   }
   if (start) { location.hash = "#/review"; return; }
   const s = store.state;
-  const heartsNote = s.hearts_enabled && s.hearts < s.max_hearts
-    ? `<p><b>❤️ Исправленное задание вернёт сердечки, потерянные на нём.</b></p>` : "";
-  const mistakesCard = mistakes.length
-    ? `<div class="card empty"><div class="big">🩹</div><h2>Работа над ошибками</h2>
-      <p class="muted">${mistakes.length} ${plural(mistakes.length, "задание ждёт", "задания ждут", "заданий ждут")} реванша.
-      За каждую исправленную ошибку — +5 XP. Сердечки здесь не тратятся.</p>${heartsNote}
-      <a class="btn blue" href="#/review/start">Начать</a></div>`
-    : `<div class="card empty"><div class="big">🩹</div><h2>Ошибок нет — ты молодец!</h2>
-      <p class="muted">Задания, в которых ты ошибёшься, попадут сюда — чтобы вернуться к ним и исправить.</p></div>`;
-  const trainingCard = `<div class="card empty"><div class="big">🏋️</div><h2>Тренировка</h2>
-      <p class="muted">Случайные задания из уроков, которые ты уже прошёл, — чтобы закрепить материал.
-      Выбираешь темы и сколько заданий решить. Ошибки не тратят сердечки.</p>
-      <a class="btn" href="#/training">Настроить тренировку</a></div>`;
-  view.innerHTML = `<div class="topbar path-top">${pills()}</div><div style="display:grid;gap:16px">${mistakesCard}${trainingCard}</div>`;
+  const items = data.items || [];
+  const total = items.length;
+  const lost = items.reduce((a, it) => a + (it.hearts_lost || 0), 0);
+  const back = s.hearts_enabled ? Math.min(lost, s.max_hearts - s.hearts) : 0;
+  const heart = ic("heart");
+  const mistakesCard = total
+    ? `<div class="card rv-card bad">${owl("sad", "breathe")}
+        <div class="kind">Работа над ошибками</div>
+        <div class="rv-big">${total} ${plural(total, "задание", "задания", "заданий")}</div>
+        <div class="muted rv-sub">ждут реванша${back ? ` · вернёшь до <b class="hl">${back} ${heart}</b>` : ""} и +${data.fix_xp * total} XP</div>
+        ${total > mistakes.length ? `<div class="muted rv-note">За один подход — до ${mistakes.length} заданий</div>` : ""}
+        <a class="btn" href="#/review/start">Исправить</a></div>`
+    : `<div class="card rv-card good">${owl("happy", "bob")}
+        <div class="kind">Работа над ошибками</div>
+        <div class="rv-big">Ошибок нет</div>
+        <div class="muted rv-sub">Задания, в которых ошибёшься, попадут сюда — чтобы вернуться и исправить. Исправленное возвращает сердечки.</div></div>`;
+  const trainingCard = `<div class="card rv-card">${owl("think", "tilt")}
+      <div class="kind">Тренировка</div>
+      <div class="rv-mid">Закрепи пройденное</div>
+      <div class="muted rv-sub">Случайные задания из выбранных тем — пройденных и новых (разминка). Ошибки не тратят сердечки.</div>
+      <a class="btn ghost" href="#/training">Настроить</a></div>`;
+  const hearts = s.hearts_enabled
+    ? `<div class="card rv-chip"><span class="muted">Сердечки</span>${ic("heart").repeat(s.hearts)}${ic("heartE").repeat(s.max_hearts - s.hearts)}</div>` : "";
+  const list = total ? `<h3 class="rv-sec">Ошибки</h3>
+    <div class="card rv-list">${items.map((it) => {
+      const [icon, label] = KIND[it.type] || KIND.output;
+      const gain = s.hearts_enabled && it.hearts_lost
+        ? `<span class="rv-gain hearts">+${it.hearts_lost}${heart}</span>` : `<span class="rv-gain">+${data.fix_xp} XP</span>`;
+      return `<div class="rv-row"><span class="rv-ico ${it.type}">${ic(icon)}</span>
+        <div class="rv-body"><b>${esc(promptTitle(it.prompt))}</b><small class="muted">${esc(it.topic_title)} · ${esc(it.lesson_title)}</small></div>
+        <span class="muted rv-type">${label}</span><span class="rv-count" title="Ошибок">${it.mistakes}×</span>${gain}</div>`;
+    }).join("")}</div>` : "";
+  view.innerHTML = `<div class="topbar path-top">${pills()}</div>
+    <div class="rv-head"><h1 class="section-title">Повторение</h1><div class="spacer"></div>${hearts}
+      <div class="card rv-chip"><span class="muted">Исправлено</span><b>${data.fixed}</b></div></div>
+    <div class="rv-grid">${mistakesCard}${trainingCard}</div>${list}`;
 }
 
 // ---------- Тренировка: случайные задания из пройденных уроков выбранных тем ----------
@@ -50,8 +81,8 @@ export async function renderTraining(view) {
   const tasksOf = (t) => (!t.passed || unfinished ? t.total : t.available);
   const warmupOf = (t) => (!t.passed ? t.total : unfinished ? t.total - t.available : 0);
   const n = (k) => `${k} ${plural(k, "задание", "задания", "заданий")}`;
-  const topicBtn = (t) => `<button data-topic="${esc(t.slug)}" class="${selected.has(t.slug) ? "on" : ""}">
-      ${esc(t.icon)} ${esc(t.title)}<br><small class="muted">${n(tasksOf(t))}</small></button>`;
+  const topicBtn = (t) => `<button data-topic="${esc(t.slug)}" class="topic-pick ${selected.has(t.slug) ? "on" : ""}">
+      ${glyph(t, 34)}<span><b>${esc(t.title)}</b><small class="muted">${n(tasksOf(t))}</small></span>${selected.has(t.slug) ? ic("okc", "tick") : ""}</button>`;
   const allBtn = (list, id) => list.length
     ? `<button class="btn ghost small" id="${id}">${list.every((t) => selected.has(t.slug)) ? "Снять все" : "Выбрать все"}</button>` : "";
 
@@ -65,18 +96,18 @@ export async function renderTraining(view) {
     const will = Math.min(count, available);
     view.innerHTML = `<div class="topbar path-top">${pills()}</div>
       <div class="settings">
-        <h1 class="section-title">🏋️ Тренировка</h1>
+        <div class="rv-head"><a class="icon-btn" href="#/review" title="К повторению">${ic("back")}</a><h1 class="section-title">Тренировка</h1></div>
         <div class="card"><h3 style="margin-top:0">Темы</h3>
-          <div class="row"><b>✅ Пройденные</b><div class="spacer"></div>${allBtn(passed, "all-passed")}</div>
+          <div class="row"><b>Пройденные</b><div class="spacer"></div>${allBtn(passed, "all-passed")}</div>
           <p class="muted" style="margin:6px 0 12px">Темы, где пройден хотя бы один урок. Задания — из пройденных уроков.</p>
-          ${passed.length ? `<div class="choice">${passed.map(topicBtn).join("")}</div>
+          ${passed.length ? `<div class="choice topic-choice">${passed.map(topicBtn).join("")}</div>
             <label class="check-row"><input type="checkbox" id="unfinished" ${unfinished ? "checked" : ""}>
               <span><b>Включать непройденные уроки этих тем</b><br><small class="muted">Их задания — разминка: не засчитываются</small></span></label>`
             : `<p class="muted" style="margin:0">Пока нет — пройди хотя бы один урок.</p>`}
           <div class="train-sep"></div>
-          <div class="row"><b>🆕 Ещё не пройденные</b><div class="spacer"></div>${allBtn(fresh, "all-fresh")}</div>
+          <div class="row"><b>Ещё не пройденные</b><div class="spacer"></div>${allBtn(fresh, "all-fresh")}</div>
           <p class="muted" style="margin:6px 0 12px">Разминка на новом материале: задания из любых уроков темы. Не засчитываются — прогресс уроков не меняется.</p>
-          ${fresh.length ? `<div class="choice train-scroll">${fresh.map(topicBtn).join("")}</div>` : `<p class="muted" style="margin:0">Все темы уже начаты 🎉</p>`}
+          ${fresh.length ? `<div class="choice topic-choice train-scroll">${fresh.map(topicBtn).join("")}</div>` : `<p class="muted" style="margin:0">Все темы уже начаты.</p>`}
         </div>
         <div class="card"><h3>Сколько заданий</h3>
           <p class="muted" style="margin:-4px 0 12px">В выбранных темах доступно <b>${available}</b> ${plural(available, "задание", "задания", "заданий")}.</p>
@@ -90,7 +121,7 @@ export async function renderTraining(view) {
           <p class="muted" style="margin:0 0 12px">${available
             ? `${will < count
                 ? `Выбрано ${count}, а заданий в этих темах пока ${available} — тренировка будет из ${will}. Добавь темы или пройди больше уроков, и выбор вырастет.<br>`
-                : `Будет ${n(will)} вперемешку. `}${warmup ? `Из них могут попасться задания разминки — они не засчитываются. ` : ""}Ошибки не тратят сердечки, правильный ответ — +2 XP. Кнопка 📖 — шпаргалка урока.`
+                : `Будет ${n(will)} вперемешку. `}${warmup ? `Из них могут попасться задания разминки — они не засчитываются. ` : ""}Ошибки не тратят сердечки, правильный ответ — +2 XP. Книжка вверху — шпаргалка урока.`
             : "Выбери хотя бы одну тему."}</p>
           <button class="btn blue wide" id="start" ${available ? "" : "disabled"}>Начать тренировку</button>
         </div>
@@ -137,7 +168,7 @@ export async function renderTraining(view) {
       runSession(view, { mode: "training", title: "Тренировка", color: "var(--purple)", exercises: r.exercises });
     } catch (e) {
       btn.disabled = false;
-      toast("⚠️", "Не удалось начать", e.message);
+      toast("warn", "Не удалось начать", e.message);
     }
   };
   draw();

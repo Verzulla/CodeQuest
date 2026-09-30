@@ -432,7 +432,15 @@ def review(user: User):
                 "WHERE ep.user_id = ? AND ep.solved = 1", (uid,)
             ).fetchall()
             rows = random.sample(rows, min(5, len(rows)))
-        return {"kind": kind, "exercises": [_public_exercise(e, progress) for e in rows]}
+        # Список для экрана «Повторение»: все задания в работе над ошибками — где они и что вернут.
+        items = [dict(r) for r in conn.execute(
+            "SELECT e.id, e.type, e.prompt, ep.mistakes, ep.hearts_lost, l.title AS lesson_title, t.title AS topic_title "
+            "FROM exercise_progress ep JOIN exercises e ON e.slug = ep.exercise_slug "
+            "JOIN lessons l ON l.id = e.lesson_id JOIN modules m ON m.id = l.module_id JOIN topics t ON t.id = m.topic_id "
+            "WHERE ep.user_id = ? AND ep.in_review = 1 ORDER BY ep.mistakes DESC, e.id LIMIT 100", (uid,))]
+        fixed = conn.execute("SELECT value FROM counters WHERE user_id = ? AND name = 'review_fixed'", (uid,)).fetchone()
+        return {"kind": kind, "exercises": [_public_exercise(e, progress) for e in rows],
+                "items": items, "fixed": fixed["value"] if fixed else 0, "fix_xp": game.XP_REVIEW_FIX}
 
 
 # Тренировка: случайные задания выбранных тем. Из пройденных уроков — решённые задания (засчитываются
