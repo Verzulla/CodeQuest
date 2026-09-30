@@ -97,7 +97,7 @@ export async function renderTraining(view) {
     const will = Math.min(count, available);
     view.innerHTML = `<div class="topbar path-top">${pills()}</div>
       <div class="settings">
-        <div class="rv-head"><a class="icon-btn" href="#/review" title="К повторению">${ic("back")}</a><h1 class="section-title">Тренировка</h1></div>
+        <div class="rv-head"><a class="icon-btn" data-back href="#/review" title="Назад">${ic("back")}</a><h1 class="section-title">Тренировка</h1></div>
         <div class="card"><h3 style="margin-top:0">Темы</h3>
           <div class="row"><b>Пройденные</b><div class="spacer"></div>${allBtn(passed, "all-passed")}</div>
           <p class="muted" style="margin:6px 0 12px">Темы, где пройден хотя бы один урок. Задания — из пройденных уроков.</p>
@@ -367,7 +367,7 @@ export async function renderStats(view) {
       </div>
       ${factsBlock(st, d)}
     </div>
-    <h3 class="set-sec">До следующей награды</h3>
+    <h3 class="set-sec st-sec">До следующей награды</h3>
     ${goalTiles(st, d)}
     <div class="card act-panel">
       <div class="act-head"><b>Активность</b>

@@ -1,5 +1,5 @@
 // Прохождение урока / повторения: теория → задания по одному → финальный экран.
-import { api, esc, md, highlight, sound, modal, confetti, burst, toast, fmtTime, ic, owl, plural, $ } from "../util.js";
+import { api, esc, md, highlight, sound, modal, confetti, burst, toast, fmtTime, ic, owl, plural, goBack, $ } from "../util.js";
 import { createEditor } from "../editor.js";
 import { achMini } from "../achievements.js";
 import { bindRunnable } from "../runnable.js";
@@ -78,6 +78,8 @@ export function runSession(view, opts) {
     if (location.hash === hash) window.dispatchEvent(new HashChangeEvent("hashchange"));
     else location.hash = hash;
   };
+  // Выход из урока и повторения — на экран, откуда пришли; тренировка — к её настройке (тот же адрес).
+  const leave = () => (training ? leaveTo(exitHash()) : goBack(exitHash()));
   const cheatOf = () => (training && cur >= 0 && cur < n ? (items[cur].ex.cheat || "").trim() : "");
   document.body.classList.add("focus");
   view.style.setProperty("--tc", opts.color || "var(--green)");
@@ -173,7 +175,6 @@ export function runSession(view, opts) {
   const bindTop = () => {
     $("#quit", view).onclick = () => {
       flushDraft();
-      const leave = () => leaveTo(exitHash());
       if (opts.mode !== "lesson") return leave();
       const m = modal(`${owl("wave")}<h2>Выйти из урока?</h2>
         <p class="muted">Прогресс сохранён: решённые задания и недописанные ответы останутся на месте, в следующий раз продолжишь отсюда.</p>
@@ -647,7 +648,7 @@ export function runSession(view, opts) {
       <button class="btn wide" id="done">Продолжить</button></div>`;
     sound("done");
     confetti();
-    $("#done", view).onclick = () => { document.body.classList.remove("celebrate"); leaveTo(exitHash()); };
+    $("#done", view).onclick = () => { document.body.classList.remove("celebrate"); leave(); };
     view.querySelector(".to-fix")?.addEventListener("click", () => document.body.classList.remove("celebrate"));
     $("#done", view).focus();
   }

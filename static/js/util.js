@@ -36,6 +36,27 @@ const isIconName = (s) => /^[a-z][\w-]*$/.test(s);
 export const owl = (pose, anim = "", style = "") =>
   `<img class="owl ${anim}" src="/static/img/owls/owl-${pose}.webp" alt="" draggable="false"${style ? ` style="${style}"` : ""}>`;
 
+// ---------- «Назад» — на предыдущий экран приложения ----------
+// Свой стек адресов: переход вперёд добавляет адрес, возврат (браузером или кнопкой) снимает.
+const navStack = [location.hash || "#/"];
+window.addEventListener("hashchange", () => {
+  const h = location.hash || "#/";
+  if (navStack.length >= 2 && navStack[navStack.length - 2] === h) navStack.pop();
+  else if (navStack[navStack.length - 1] !== h) navStack.push(h);
+});
+// Вернуться на предыдущий экран; если его нет (открыли по ссылке) — на fallback.
+export function goBack(fallback = "#/") {
+  if (navStack.length >= 2) history.back();
+  else location.hash = fallback;
+}
+// Ссылки «назад» в разметке: <a data-back href="#/запасной-адрес">
+document.addEventListener("click", (e) => {
+  const a = e.target.closest("a[data-back]");
+  if (!a || e.metaKey || e.ctrlKey || e.shiftKey) return;
+  e.preventDefault();
+  goBack(a.getAttribute("href"));
+});
+
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 

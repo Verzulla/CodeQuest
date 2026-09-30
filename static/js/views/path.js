@@ -83,7 +83,7 @@ export async function renderTopic(view, topicId) {
   const asList = store.state?.path_view === "list";
   view.innerHTML = `
     <div class="topic-head" style="--tc:${esc(t.color)}">
-      <a class="icon-btn" href="#/" title="Все темы">${ic("back")}</a>
+      <a class="icon-btn" data-back href="#/" title="Назад">${ic("back")}</a>
       ${glyph(t, 46)}
       <div class="th-name"><h1>${esc(t.title)}</h1>
         <div class="muted">${t.completed} из ${t.total} ${plural(t.total, "урока", "уроков", "уроков")} · ${pct}%${t.trophy ? " · тема пройдена" : ""}</div></div>
@@ -138,7 +138,7 @@ export async function renderTopicTheory(view, topicId) {
       }).join("")}`).join("");
     view.innerHTML = `<div class="topic-theory" style="--tc:${esc(data.color)}">
         <div class="topic-head">
-          <a class="icon-btn" href="#/topic/${data.id}" title="К урокам">${ic("back")}</a>
+          <a class="icon-btn" data-back href="#/topic/${data.id}" title="Назад">${ic("back")}</a>
           ${glyph(data, 46)}
           <div class="th-name"><h1>Теория темы</h1><div class="muted">${esc(data.title)} · ${lessons.length} ${plural(lessons.length, "урок", "урока", "уроков")}</div></div>
         </div>
