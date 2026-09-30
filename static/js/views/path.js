@@ -7,7 +7,7 @@ import { glyph } from "../glyphs.js";
 const OFFSETS = [0, 44, 70, 44, 0, -44, -70, -44]; // зигзаг дорожки (у нечётных модулей — зеркально)
 const NO_GROUP = "Другие темы";
 // Цвета плашек модулей — по кругу
-const MOD_COLORS = [["#4f9e1c", "#1f4a0c"], ["#8a4fd6", "#3d1d6e"], ["#2e8fd6", "#0f3150"], ["#d6802e", "#5a2e0c"], ["#d64f8f", "#5e1a3a"], ["#1fa89a", "#0b4640"]];
+const MOD_COLORS = [["#5fbf1f", "#1f4a0c"], ["#8a4fd6", "#3d1d6e"], ["#2e8fd6", "#0f3150"], ["#d6802e", "#5a2e0c"], ["#d64f8f", "#5e1a3a"], ["#1fa89a", "#0b4640"]];
 // Сова у модуля: поза и анимация меняются от модуля к модулю
 const OWLS = [["think", "tilt"], ["wave", "bob"], ["happy", "breathe"], ["think", "bob"], ["wave", "tilt"]];
 
@@ -160,9 +160,13 @@ export async function renderTopicTheory(view, topicId) {
   draw();
 }
 
-const modHead = (m, mi) => {
+// Цвет модуля задаётся на всей секции: плашка, кружки уроков и карточки списка — в его тонах.
+const modVars = (mi) => {
   const [c1, c2] = MOD_COLORS[mi % MOD_COLORS.length];
-  return `<div class="mod" style="--m1:${c1};--m2:${c2}"><small>Модуль ${mi + 1}</small><b>${esc(m.title)}</b>
+  return `--m1:${c1};--m2:${c2}`;
+};
+const modHead = (m, mi) => {
+  return `<div class="mod"><small>Модуль ${mi + 1}</small><b>${esc(m.title)}</b>
     ${m.description ? `<p>${esc(m.description)}</p>` : ""}</div>`;
 };
 const exercisesText = (l) => l.status === "done" || l.solved
@@ -185,7 +189,7 @@ function unit(m, mi) {
   const allDone = m.lessons.length && m.lessons.every((l) => l.status === "done");
   const [pose, anim] = allLocked ? ["sleep", "breathe"] : allDone ? ["happy", "hop"] : OWLS[mi % OWLS.length];
   const owlSide = mirror > 0 ? "left" : "right";
-  return `<section class="unit">
+  return `<section class="unit" style="${modVars(mi)}">
     ${modHead(m, mi)}
     <div class="nodes"><svg class="trail-line" aria-hidden="true"><path/></svg>${nodes}</div>
     <div class="unit-end ${owlSide}">
@@ -219,7 +223,6 @@ function drawTrails(view) {
 
 // Список: карточка на урок, в конце модуля — награда.
 function listUnit(m, mi) {
-  const [c1] = MOD_COLORS[mi % MOD_COLORS.length];
   const items = m.lessons.map((l) => {
     const pct = l.exercises ? Math.round((100 * l.solved) / l.exercises) : 0;
     const active = l.status === "current" || l.status === "open";
@@ -230,8 +233,8 @@ function listUnit(m, mi) {
       ${l.status === "current" ? `<span class="btn small">${l.solved ? "Дальше" : "Начать"}</span>` : ""}
     </div>`;
   }).join("");
-  return `<section class="ll-unit">
-    <div class="kind" style="color:${c1}">Модуль ${mi + 1} · ${esc(m.title)}</div>
+  return `<section class="ll-unit" style="${modVars(mi)}">
+    <div class="kind mod-kind">Модуль ${mi + 1} · ${esc(m.title)}</div>
     ${items}
     <div class="ll-reward ${m.trophy ? "earned" : ""}">${ic(m.trophy ? "medalI" : "chest")}
       <div><b>${m.trophy ? "Награда получена" : "Награда модуля"}</b>

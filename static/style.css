@@ -239,18 +239,21 @@ body.focus main { max-width: 900px; padding-top: 16px; }
 .trail-line path { fill: none; stroke: var(--line-strong); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 1 15; }
 .node-wrap { position: relative; --amp: 1; transform: translateX(calc(var(--off) * var(--amp) * 1px)); }
 @media (min-width: 900px) { .node-wrap { --amp: 1.8; } .unit-end { padding: 0 12%; } .unit-owl .owl { width: 140px; } }
+.unit, .ll-unit { --m1: #5fbf1f; --m2: #1f4a0c;
+  --n1: color-mix(in srgb, var(--m1) 28%, #fff); --n2: color-mix(in srgb, var(--m1) 50%, #fff); --n3: color-mix(in srgb, var(--m1) 70%, #000);
+  --ni: color-mix(in srgb, var(--m1) 80%, #000); --nr: color-mix(in srgb, var(--m1) 45%, #fff); --nl: color-mix(in srgb, var(--m1) 45%, #fff); }
+/* Кружки уроков — светлая пастель цвета модуля, значок — насыщенным цветом модуля (вариант A) */
 .node { width: 66px; height: 66px; border-radius: 50%; border: 0; cursor: pointer; display: grid; place-items: center; position: relative; transition: transform .08s;
-  background: linear-gradient(180deg, #a7ee55, #4fae12); box-shadow: 0 6px 0 #2f7d0c; color: #0b1207; }
+  background: linear-gradient(180deg, var(--n1), var(--n2)); box-shadow: 0 6px 0 var(--n3); color: var(--ni); }
 .node svg.i { width: 28px; height: 28px; }
-.node:active { transform: translateY(4px); box-shadow: 0 2px 0 #2f7d0c; }
-.node.current { box-shadow: 0 6px 0 #2f7d0c, 0 0 36px rgba(140,230,70,.55); }
-.node.current svg.i, .node.open svg.i { color: #fff; }
-.node.locked { background: linear-gradient(180deg, #3a4336, #20261e); box-shadow: 0 6px 0 #141913; cursor: pointer; }
+.node:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--n3); }
+.node.current { box-shadow: 0 6px 0 var(--n3), 0 0 36px color-mix(in srgb, var(--nr) 50%, transparent); }
+.node.locked { background: linear-gradient(180deg, color-mix(in srgb, var(--m1) 18%, #353b33), color-mix(in srgb, var(--m1) 12%, #1d221c)); box-shadow: 0 6px 0 #141913; cursor: pointer; color: color-mix(in srgb, var(--m1) 30%, #7d8a77); }
 [data-theme="light"] .node.locked { background: linear-gradient(180deg, #d7ddd2, #bcc5b5); box-shadow: 0 6px 0 #a4ad9d; }
 .node.locked svg.i { width: 24px; height: 24px; }
 .node .crown { position: absolute; right: -4px; top: -4px; width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(180deg, #ffe27a, #e59a00); display: grid; place-items: center; box-shadow: 0 0 10px rgba(255,190,40,.5); }
-.node .crown svg.i { width: 14px; height: 14px; }
-.node-wrap.current::before { content: ""; position: absolute; left: -10px; top: -10px; width: 86px; height: 86px; border-radius: 50%; border: 3px solid rgba(155,232,74,.75); box-shadow: 0 0 18px rgba(140,230,70,.35); animation: glowP 2.4s ease-in-out infinite; pointer-events: none; box-sizing: border-box; }
+.node .crown svg.i { width: 14px; height: 14px; color: #fff; }
+.node-wrap.current::before { content: ""; position: absolute; left: -10px; top: -10px; width: 86px; height: 86px; border-radius: 50%; border: 3px solid var(--nr); box-shadow: 0 0 18px color-mix(in srgb, var(--nr) 40%, transparent); animation: glowP 2.4s ease-in-out infinite; pointer-events: none; box-sizing: border-box; }
 .nodes .node-wrap.current:not(:nth-child(2)) { margin-top: 40px; }
 .start-tip { position: absolute; bottom: calc(100% + 14px); left: 50%; transform: translateX(-50%); background: #eef5ea; color: #1a2a12; font-weight: 800; font-size: 13px; padding: 7px 12px; border-radius: 999px; white-space: nowrap; animation: tipbob 1.4s ease-in-out infinite; }
 .start-tip::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -6px; border: 6px solid transparent; border-top-color: #eef5ea; }
@@ -260,7 +263,9 @@ body.focus main { max-width: 900px; padding-top: 16px; }
 .node-label.left { right: calc(100% + 14px); text-align: right; }
 .node-label b { display: block; font-size: 14px; font-weight: 800; }
 .node-label small { color: var(--muted); font-weight: 600; font-size: 12px; }
-.node-wrap.current .node-label b { color: var(--acc2); }
+.node-wrap.current .node-label b { color: var(--nl); }
+[data-theme="light"] .node-wrap.current .node-label b { color: var(--n3); }
+.start-tip { color: var(--n3) !important; }
 .node-wrap.locked .node-label b { color: var(--muted); }
 @media (max-width: 700px) { .node-label { max-width: 112px; } .node-label b { font-size: 13px; } }
 /* Конец модуля: сова и награда по разные стороны (у соседних модулей — зеркально) */
@@ -278,13 +283,16 @@ body.focus main { max-width: 900px; padding-top: 16px; }
 .ll-unit > .kind { margin: 4px 0 2px; }
 .ll-item { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 18px; cursor: pointer; transition: border-color .15s; }
 .ll-item:hover { border-color: var(--line-strong); }
-.ll-ico { width: 42px; height: 42px; border-radius: 14px; background: linear-gradient(180deg, #a7ee55, #4fae12); display: grid; place-items: center; flex: none; color: #0b1207; }
+.ll-ico { width: 42px; height: 42px; border-radius: 14px; background: linear-gradient(180deg, var(--n1), var(--n2)); display: grid; place-items: center; flex: none; color: var(--ni); }
 .ll-ico svg.i { width: 20px; height: 20px; }
-.ll-item.current { border-color: rgba(140,230,70,.45); box-shadow: 0 0 24px rgba(120,212,40,.18); }
-.ll-item.current .ll-ico { box-shadow: 0 0 16px rgba(140,230,70,.5); }
-.ll-item.current .ll-ico svg, .ll-item.open .ll-ico svg { color: #fff; }
+.ll-item.current { border-color: color-mix(in srgb, var(--nr) 55%, transparent); box-shadow: 0 0 24px color-mix(in srgb, var(--nr) 18%, transparent); }
+.ll-item.current .btn { --c: linear-gradient(180deg, var(--n1), var(--n2)); color: var(--ni); box-shadow: 0 0 18px color-mix(in srgb, var(--nr) 35%, transparent); }
+.ll-body .bar > i { background: var(--nr); box-shadow: none; }
+.mod-kind { color: var(--nl) !important; }
+[data-theme="light"] .mod-kind { color: var(--m1) !important; }
+.ll-item.current .ll-ico { box-shadow: 0 0 16px color-mix(in srgb, var(--nr) 50%, transparent); }
 .ll-item.locked { opacity: .6; }
-.ll-item.locked .ll-ico { background: var(--locked); }
+.ll-item.locked .ll-ico { background: color-mix(in srgb, var(--m1) 15%, var(--locked)); color: color-mix(in srgb, var(--m1) 30%, #7d8a77); }
 .ll-body { flex: 1; min-width: 0; }
 .ll-body b { display: block; font-size: 14.5px; }
 .ll-body small { font-size: 12.5px; }
