@@ -3,6 +3,7 @@ import { api, esc, md, sound, plural, toast, ic, owl } from "../util.js";
 import { bindRunnable } from "../runnable.js";
 import { store, pills, statusStrip } from "../store.js";
 import { glyph } from "../glyphs.js";
+import { drawScenery } from "../scenery.js";
 
 const OFFSETS = [0, 44, 70, 44, 0, -44, -70, -44]; // зигзаг дорожки (у нечётных модулей — зеркально)
 const NO_GROUP = "Другие темы";
@@ -175,7 +176,7 @@ const exercisesText = (l) => l.status === "done" || l.solved
 const nodeIcon = (l) => ic(l.status === "done" ? "check" : l.status === "locked" ? "lock" : "star");
 
 // Зигзаг: узлы уроков, пунктирная тропинка (рисуется после вёрстки), сова и награда в конце модуля.
-function unit(m, mi) {
+function unit(m, mi, t) {
   const mirror = mi % 2 ? -1 : 1;
   const nodes = m.lessons.map((l, i) => {
     const off = OFFSETS[i % OFFSETS.length] * mirror;
@@ -191,7 +192,7 @@ function unit(m, mi) {
   const owlSide = mirror > 0 ? "left" : "right";
   return `<section class="unit" style="${modVars(mi)}">
     ${modHead(m, mi)}
-    <div class="nodes"><svg class="trail-line" aria-hidden="true"><path/></svg>${nodes}</div>
+    <div class="nodes" data-seed="${t.id * 31 + mi}" data-locked="${allLocked ? 1 : ""}"><svg class="scenery" aria-hidden="true"></svg><svg class="trail-line" aria-hidden="true"><path/></svg>${nodes}</div>
     <div class="unit-end ${owlSide}">
       <div class="unit-owl">${owl(pose, anim)}</div>
       <div class="reward-chest ${m.trophy ? "earned" : ""}" title="${m.trophy ? "Награда за модуль получена!" : "Пройди все уроки модуля, чтобы получить награду"}">
@@ -199,7 +200,7 @@ function unit(m, mi) {
     </div></section>`;
 }
 
-// Пунктир через центры узлов каждого модуля — по реальным координатам после вёрстки.
+// Пунктир через центры узлов каждого модуля и пейзаж вокруг — по реальным координатам после вёрстки.
 function drawTrails(view) {
   view.querySelectorAll(".unit .nodes").forEach((box) => {
     const svg = box.querySelector(".trail-line");
@@ -210,6 +211,7 @@ function drawTrails(view) {
     });
     svg.setAttribute("width", r0.width);
     svg.setAttribute("height", r0.height);
+    drawScenery(box, Number(box.dataset.seed), pts, !!box.dataset.locked);
     if (pts.length < 2) { svg.querySelector("path").setAttribute("d", ""); return; }
     let d = `M${pts[0][0]} ${pts[0][1]}`;
     for (let i = 1; i < pts.length; i++) {
