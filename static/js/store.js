@@ -1,5 +1,6 @@
 // Глобальное состояние игрока (XP, сердечки, streak…) и его отображение.
 import { api, esc, toast, plural, ic, owl } from "./util.js";
+import { achIconName } from "./achievements.js";
 
 export const store = { state: null, user: null, listeners: new Set() };
 
@@ -103,7 +104,7 @@ function renderRail() {
 // Показать события, пришедшие с сервера (достижения, уровень, цель…)
 export function announce(events) {
   for (const e of events || []) {
-    if (e.type === "achievement") toast(e.icon, `Достижение: ${e.title}`, e.description);
+    if (e.type === "achievement") toast(achIconName(e.code), `Достижение: ${e.title}`, e.description);
     else if (e.type === "level_up") toast("star", `Новый уровень ${e.level}!`);
     else if (e.type === "goal_met") toast("target", "Дневная цель выполнена!", `${e.goal} XP`);
     else if (e.type === "freeze_earned") toast("snow", "Заморозка серии получена", "Спасёт серию, если пропустишь день");

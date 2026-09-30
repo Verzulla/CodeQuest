@@ -513,7 +513,7 @@ def achievements(user: User):
                 for m in conn.execute(
                     "SELECT * FROM modules WHERE topic_id = ? ORDER BY position, id", (t["id"],))
             ]
-            trophies.append({"title": t["title"], "icon": t["icon"], "color": t["color"],
+            trophies.append({"id": t["id"], "slug": t["slug"], "title": t["title"], "icon": t["icon"], "color": t["color"],
                              "earned_at": earned.get(("topic", t["slug"])), "modules": mods})
         return {"achievements": game.achievements_view(conn, user["id"]), "trophies": trophies}
 

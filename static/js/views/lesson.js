@@ -1,6 +1,7 @@
 // Прохождение урока / повторения: теория → задания по одному → финальный экран.
 import { api, esc, md, highlight, sound, modal, confetti, burst, toast, fmtTime, ic, owl, plural, $ } from "../util.js";
 import { createEditor } from "../editor.js";
+import { achMini } from "../achievements.js";
 import { bindRunnable } from "../runnable.js";
 import { store, setState, announce } from "../store.js";
 
@@ -590,7 +591,7 @@ export function runSession(view, opts) {
     const delay = `style="animation-delay:${0.3 + i * 0.15}s"`;
     if (e.type === "trophy") return `<div class="reward card trophy" ${delay}><div class="ri">${ic(e.kind === "topic" ? "cup" : "medalI")}</div><div>
       <b>${e.kind === "topic" ? "Тема пройдена!" : "Модуль завершён!"}</b><span class="muted">${esc(e.title)} · +${e.kind === "topic" ? 50 : 20} XP</span></div></div>`;
-    if (e.type === "achievement") return `<div class="reward card" ${delay}><div class="ri">${esc(e.icon)}</div><div>
+    if (e.type === "achievement") return `<div class="reward card" ${delay}><div class="ri">${achMini(e.code)}</div><div>
       <b>${esc(e.title)}</b><span class="muted">${esc(e.description)}</span></div></div>`;
     if (e.type === "level_up") return `<div class="reward card" ${delay}><div class="ri">${ic("star")}</div><div><b>Уровень ${e.level}!</b><span class="muted">Так держать</span></div></div>`;
     return `<div class="reward card" ${delay}><div class="ri">${ic("sparkle")}</div><div><b>Без ошибок</b><span class="muted">+5 XP бонус</span></div></div>`;

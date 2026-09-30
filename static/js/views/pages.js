@@ -3,6 +3,7 @@ import { api, esc, modal, soundOn, sound, plural, toast, ic, owl } from "../util
 import { store, setState, pills } from "../store.js";
 import { runSession } from "./lesson.js";
 import { glyph } from "../glyphs.js";
+import { achBadge } from "../achievements.js";
 
 // ---------- Повторение ----------
 const KIND = { code: ["code", "Напиши код"], command: ["term", "Терминал"], output: ["eye", "Что выведет"] };
@@ -174,35 +175,40 @@ export async function renderTraining(view) {
   draw();
 }
 
-// ---------- Награды ----------
+// ---------- Награды (вариант B: зал трофеев по темам) ----------
 export async function renderAwards(view) {
   const { achievements, trophies } = await api("/achievements");
   const got = achievements.filter((a) => a.unlocked_at).length;
-  view.innerHTML = `
-    <h1 class="section-title">🏆 Зал трофеев</h1>
-    ${trophies.length ? trophies.map((t) => `
-      <div class="card trophy-topic">
-        <div class="row"><h2 style="margin:0">${esc(t.icon)} ${esc(t.title)}</h2><div class="spacer"></div>
-          <span class="muted">${t.modules.filter((m) => m.earned_at).length} / ${t.modules.length} модулей</span></div>
-        <div class="trophy-row">
-          ${t.modules.map((m) => medal(m.icon, m.title, m.earned_at)).join("")}
-          ${medal("🏆", `Кубок темы`, t.earned_at, "cup")}
-        </div>
-      </div>`).join("") : `<p class="muted">Тем пока нет.</p>`}
-    <h1 class="section-title">🎖️ Достижения <small class="muted">${got} / ${achievements.length}</small></h1>
-    <div class="ach-grid">${achievements.map((a) => `
-      <div class="card ach ${a.unlocked_at ? "" : "off"}">
-        <div class="ai">${esc(a.icon)}</div>
-        <div style="flex:1;min-width:0"><b>${esc(a.title)}</b><small class="muted">${esc(a.description)}</small>
-          ${a.unlocked_at ? `<div><small style="color:var(--good-text);font-weight:800">✔ ${new Date(a.unlocked_at).toLocaleDateString("ru")}</small></div>`
-            : `<div class="bar" style="--c:var(--purple)"><i style="width:${Math.round(100 * a.progress / a.goal)}%"></i></div>
-               <small class="muted">${a.progress} / ${a.goal}</small>`}
-        </div></div>`).join("")}</div>`;
+  const cups = trophies.filter((t) => t.earned_at).length;
+  const medals = trophies.reduce((n, t) => n + t.modules.filter((m) => m.earned_at).length, 0);
+  const medalChip = (m) => `<span class="medal-chip ${m.earned_at ? "" : "off"}" title="${m.earned_at ? `Получено ${new Date(m.earned_at).toLocaleDateString("ru")}` : "Ещё не получено"}">${m.earned_at ? ic("medalI") : ""}${esc(m.title)}</span>`;
+  const topicCard = (t) => {
+    const n = t.modules.filter((m) => m.earned_at).length;
+    const state = t.earned_at ? "done" : n ? "going" : "new";
+    const head = t.earned_at ? `<span class="aw-cup">${ic("cup")}</span>` : glyph(t, 40);
+    const sub = t.earned_at ? "тема пройдена" : n ? `${n} из ${t.modules.length} ${plural(t.modules.length, "модуля", "модулей", "модулей")}` : "ещё нет медалей";
+    return `<a class="card aw-topic ${state}" href="#/topic/${t.id}" style="--tc:${esc(t.color)}">
+      <div class="aw-row">${head}<div class="aw-name"><b>${esc(t.title)}</b><small class="muted">${sub}</small></div></div>
+      ${state === "new" ? "" : `<div class="aw-medals">${t.modules.map(medalChip).join("")}</div>`}</a>`;
+  };
+  const started = trophies.filter((t) => t.earned_at || t.modules.some((m) => m.earned_at));
+  const ahead = trophies.filter((t) => !started.includes(t));
+  view.innerHTML = `<div class="topbar path-top">${pills()}</div>
+    <div class="card aw-hero">${owl("trophy", "hop")}
+      <div class="kind">Зал трофеев</div>
+      <div class="aw-nums">
+        <div><b>${cups}</b><small>${plural(cups, "кубок", "кубка", "кубков")} за темы</small></div>
+        <div><b>${medals}</b><small>${plural(medals, "медаль", "медали", "медалей")} за модули</small></div>
+        <div><b>${got}<span> / ${achievements.length}</span></b><small>достижений</small></div>
+      </div></div>
+    <h3 class="rv-sec">Темы</h3>
+    ${started.length ? `<div class="aw-grid">${started.map(topicCard).join("")}</div>`
+      : `<p class="muted">Медали выдаются за пройденные модули, кубок — за всю тему. Пройди все уроки первого модуля — и здесь появится первая медаль.</p>`}
+    <h3 class="rv-sec">Достижения <small class="muted">${got} / ${achievements.length}</small></h3>
+    <div class="badges">${[...achievements].sort((x, y) => !!y.unlocked_at - !!x.unlocked_at).map(achBadge).join("")}</div>
+    ${ahead.length ? `<h3 class="rv-sec">Впереди <small class="muted">${ahead.length} ${plural(ahead.length, "тема", "темы", "тем")} без медалей</small></h3>
+      <div class="aw-ahead">${ahead.map((t) => `<a href="#/topic/${t.id}" title="${esc(t.title)}">${glyph(t, 38)}<span>${esc(t.title)}</span></a>`).join("")}</div>` : ""}`;
 }
-
-const medal = (icon, title, earned, extra = "") => `
-  <div class="medal ${extra} ${earned ? "" : "off"}" title="${earned ? `Получено ${new Date(earned).toLocaleDateString("ru")}` : "Ещё не получено"}">
-    <div class="m">${esc(icon)}</div>${esc(title)}</div>`;
 
 // ---------- Статистика ----------
 const ACTIVITY_PERIODS = [[30, "Месяц"], [91, "3 месяца"], [182, "Полгода"], [365, "Год"]];
