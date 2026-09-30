@@ -26,7 +26,8 @@
                   "code": "f = open(\"hello.txt\", \"w\", encoding=\"utf-8\")\nf.write(\"Привет, файл!\")\nf.close()\n\nf = open(\"hello.txt\", encoding=\"utf-8\")\ntext = f.read()\nf.close()\nprint(text, len(text))\n",
                   "expected_output": "Привет, файл! 13",
                   "hint": "Режим 'w' — запись, без режима — чтение.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`open` возвращает файловый объект: `\\\"w\\\"` — запись, по умолчанию — чтение. После работы файл закрывают.\", \"lines\": [[\"f = open(\\\"hello.txt\\\", \\\"w\\\", encoding=\\\"utf-8\\\")\", \"Создать или перезаписать.\"], [\"f.write(\\\"Привет, файл!\\\")\", \"Записали строку.\"], [\"f.close()\", \"Закрыть — данные точно окажутся на диске.\"], [\"text = f.read()\", \"Всё содержимое строкой.\"], [\"print(text, len(text))\", \"13 символов, включая пробел и `!`.\"]], \"mistake\": \"Не закрыть файл после записи — при чтении он может оказаться пустым.\"}"
                 },
                 {
                   "slug": "fil-open-e2",
@@ -35,7 +36,8 @@
                   "code": "with open(\"notes.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"первая строка\\n\")\n    f.write(\"вторая строка\\n\")\nprint(f.closed)\n\nwith open(\"notes.txt\", encoding=\"utf-8\") as f:\n    print(repr(f.read()))\n",
                   "expected_output": "True\n'первая строка\\nвторая строка\\n'",
                   "hint": "with сам закрывает файл, даже при ошибке.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`with` закрывает файл сам, когда блок закончился — даже при ошибке.\", \"lines\": [[\"f.write(\\\"первая строка\\\\n\\\")\", \"`\\\\n` пишем сами.\"], [\"print(f.closed)\", \"Блок кончился — файл закрыт.\"], [\"print(repr(f.read()))\", \"`repr` показывает `\\\\n`.\"]], \"mistake\": \"Ожидать `False`: переменная `f` жива, но файл уже закрыт.\"}"
                 },
                 {
                   "slug": "fil-open-e3",
@@ -44,7 +46,8 @@
                   "code": "with open(\"log.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"старое\")\nwith open(\"log.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"новое\")\nwith open(\"log.txt\", \"a\", encoding=\"utf-8\") as f:\n    f.write(\"+ещё\")\nwith open(\"log.txt\", encoding=\"utf-8\") as f:\n    print(f.read())\n",
                   "expected_output": "новое+ещё",
                   "hint": "'w' очищает файл при открытии, 'a' дописывает в конец.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`\\\"w\\\"` стирает файл при открытии, `\\\"a\\\"` — дописывает в конец.\", \"lines\": [[\"f.write(\\\"новое\\\")\", \"Второе `\\\"w\\\"` стёрло «старое».\"], [\"with open(\\\"log.txt\\\", \\\"a\\\", encoding=\\\"utf-8\\\") as f:\", \"Дописывание.\"], [\"print(f.read())\", \"Без пробела и переноса — их не писали.\"]], \"mistake\": \"Ожидать `старое` в файле.\"}"
                 },
                 {
                   "slug": "fil-open-e4",
@@ -54,7 +57,8 @@
                   "tests": "def test_values():\n    save_text(\"t1.txt\", \"первый\")\n    save_text(\"t1.txt\", \"Привет\")\n    with open(\"t1.txt\", encoding=\"utf-8\") as f:\n        assert f.read() == \"Привет\", \"Файл должен быть перезаписан\"\n",
                   "solution": "def save_text(path, text):\n    with open(path, \"w\", encoding=\"utf-8\") as f:\n        f.write(text)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Запись: режим `\\\"w\\\"`, кодировка явно, `with` закроет файл.\", \"lines\": [[\"with open(path, \\\"w\\\", encoding=\\\"utf-8\\\") as f:\", \"Перезапись.\"], [\"f.write(text)\", \"Строка целиком.\"]], \"mistake\": \"Не указать кодировку — на Windows кириллица запишется в cp1251.\"}"
                 },
                 {
                   "slug": "fil-open-e5",
@@ -64,7 +68,8 @@
                   "tests": "def test_values():\n    with open(\"t2.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"строка 1\\nстрока 2\")\n    assert load_text(\"t2.txt\") == \"строка 1\\nстрока 2\", \"Неверное содержимое\"\n",
                   "solution": "def load_text(path):\n    with open(path, encoding=\"utf-8\") as f:\n        return f.read()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`return` внутри `with` безопасен — файл закроется при выходе.\", \"lines\": [[\"with open(path, encoding=\\\"utf-8\\\") as f:\", \"Режим по умолчанию — чтение.\"], [\"return f.read()\", \"Всё содержимое.\"]], \"mistake\": \"Думать, что `return` оставит файл открытым.\"}"
                 },
                 {
                   "slug": "fil-open-e6",
@@ -74,7 +79,8 @@
                   "tests": "import os\n\ndef test_values():\n    if os.path.exists(\"t3.txt\"):\n        os.remove(\"t3.txt\")\n    append_line(\"t3.txt\", \"первая\")\n    append_line(\"t3.txt\", \"вторая\")\n    with open(\"t3.txt\", encoding=\"utf-8\") as f:\n        assert f.read() == \"первая\\nвторая\\n\", \"Неверное содержимое\"\n",
                   "solution": "def append_line(path, line):\n    with open(path, \"a\", encoding=\"utf-8\") as f:\n        f.write(line + \"\\n\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Режим `\\\"a\\\"` дописывает в конец и создаёт файл, если его нет.\", \"lines\": [[\"with open(path, \\\"a\\\", encoding=\\\"utf-8\\\") as f:\", \"Дописывание.\"], [\"f.write(line + \\\"\\\\n\\\")\", \"Перевод строки добавляем сами.\"]], \"mistake\": \"`\\\"w\\\"` — сотрёт прежние строки.\"}"
                 },
                 {
                   "slug": "fil-open-e7",
@@ -84,7 +90,8 @@
                   "tests": "def test_values():\n    with open(\"src.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"данные\\nещё\")\n    assert copy_file(\"src.txt\", \"dst.txt\") == 10, \"Количество символов\"\n    with open(\"dst.txt\", encoding=\"utf-8\") as f:\n        assert f.read() == \"данные\\nещё\", \"Содержимое копии\"\n",
                   "solution": "def copy_file(src, dst):\n    with open(src, encoding=\"utf-8\") as f:\n        text = f.read()\n    with open(dst, \"w\", encoding=\"utf-8\") as f:\n        return f.write(text)\n",
                   "hint": "f.write() возвращает количество записанных символов.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Прочитать один файл, записать в другой. `write` возвращает число записанных символов.\", \"lines\": [[\"text = f.read()\", \"Содержимое источника.\"], [\"with open(dst, \\\"w\\\", encoding=\\\"utf-8\\\") as f:\", \"Второй `with` — после закрытия первого.\"], [\"return f.write(text)\", \"Количество символов.\"]], \"mistake\": \"Считать `len` в байтах — просили символы.\"}"
                 },
                 {
                   "slug": "fil-open-e8",
@@ -94,7 +101,8 @@
                   "tests": "import os\n\ndef test_values():\n    if os.path.exists(\"count.txt\"):\n        os.remove(\"count.txt\")\n    assert [counter_file(\"count.txt\") for _ in range(3)] == [1, 2, 3], \"Счётчик\"\n    with open(\"count.txt\", encoding=\"utf-8\") as f:\n        assert f.read().strip() == \"3\", \"В файле должно быть 3\"\n",
                   "solution": "def counter_file(path):\n    try:\n        with open(path, encoding=\"utf-8\") as f:\n            value = int(f.read())\n    except FileNotFoundError:\n        value = 0\n    value += 1\n    with open(path, \"w\", encoding=\"utf-8\") as f:\n        f.write(str(value))\n    return value\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Нет файла — начинаем с нуля. Читаем, увеличиваем, записываем число как строку.\", \"lines\": [[\"value = int(f.read())\", \"Файл хранит текст — переводим в число.\"], [\"except FileNotFoundError:\\n        value = 0\", \"Первый запуск.\"], [\"value += 1\", \"Новое значение.\"], [\"f.write(str(value))\", \"`write` принимает только строки.\"]], \"mistake\": \"`f.write(value)` — `TypeError`: нужна строка.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nВсё, что хранится между запусками программы, лежит в файлах: логи, отчёты тестов, конфиги, тестовые данные, скриншоты. Переменные исчезают, когда программа завершается, а файл остаётся. Работа с файлом всегда идёт по схеме: **открыть → читать или писать → закрыть**.\n\n## open, write, read, close\n\n```python\nf = open(\"hello.txt\", \"w\", encoding=\"utf-8\")\nf.write(\"Привет, файл!\")\nf.close()\n\nf = open(\"hello.txt\", encoding=\"utf-8\")\ntext = f.read()\nf.close()\nprint(text, len(text))\n```\n\nЧто делает каждая строка:\n\n- `open(путь, режим, encoding=...)` — открыть файл и получить объект-файл `f`. Путь без папок — файл в текущей рабочей папке.\n- `\"w\"` — режим записи (write). Если файла нет — он создаётся.\n- `encoding=\"utf-8\"` — в какой кодировке хранить русские буквы. Пиши **всегда** (подробно — в уроке про кодировки).\n- `f.write(строка)` — записать текст.\n- `f.close()` — закрыть файл. Только после этого данные гарантированно попадают на диск, а файл освобождается для других программ.\n- `open(\"hello.txt\", encoding=\"utf-8\")` — без режима файл открывается на **чтение** (`\"r\"`).\n- `f.read()` — прочитать всё содержимое в одну строку.\n- Вывод: `Привет, файл! 13`.\n\n## with: файл закроется сам\n\n```python\nwith open(\"notes.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"первая строка\\n\")\n    f.write(\"вторая строка\\n\")\nprint(f.closed)\n\nwith open(\"notes.txt\", encoding=\"utf-8\") as f:\n    print(repr(f.read()))\n```\n\n- `with open(...) as f:` — открыть файл и положить его в `f` на время блока.\n- Когда блок заканчивается — **даже из-за ошибки** — файл закрывается автоматически. Забыть `close()` невозможно.\n- `f.closed` — закрыт ли файл.\n- `write` **не** добавляет перевод строки — `\\n` пишем сами.\n- `repr(...)` показывает строку с кавычками и `\\n`.\n- Вывод: `True`, `'первая строка\\nвторая строка\\n'`.\n- Правило: **всегда открывай файлы через `with`**.\n\n## Режимы открытия\n\n```python\nwith open(\"log.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"старое\")\nwith open(\"log.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"новое\")\nwith open(\"log.txt\", \"a\", encoding=\"utf-8\") as f:\n    f.write(\"+ещё\")\nwith open(\"log.txt\", encoding=\"utf-8\") as f:\n    print(f.read())\n```\n\n- `\"r\"` — чтение (по умолчанию). Файла нет → `FileNotFoundError`.\n- `\"w\"` — запись. **Существующий файл сразу очищается!** Старое содержимое теряется.\n- `\"a\"` — дозапись (append): новое добавляется в конец.\n- `\"x\"` — создать новый файл; если он уже есть → `FileExistsError`.\n- К любому режиму можно добавить `b` (двоичный) или `+` (чтение и запись), например `\"rb\"`, `\"r+\"`.\n- Вывод: `новое+ещё`.\n\n## Прочитать, изменить, записать\n\n```python\nwith open(\"count.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"41\")\n\nwith open(\"count.txt\", encoding=\"utf-8\") as f:\n    value = int(f.read())\nwith open(\"count.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(str(value + 1))\n\nwith open(\"count.txt\", encoding=\"utf-8\") as f:\n    print(f.read())\n```\n\n- В файл пишутся только **строки**: число переводим через `str()`, при чтении — обратно через `int()`.\n- Нельзя открыть файл на `\"w\"` и сразу прочитать из него старое — он уже очищен. Поэтому сначала читаем, потом записываем.\n- Вывод: `42`.\n\n## Итог\n\n- `with open(путь, режим, encoding=\"utf-8\") as f:` — всегда так.\n- `\"r\"` читать, `\"w\"` перезаписать, `\"a\"` дописать, `\"x\"` создать новый.\n- `f.read()` — всё содержимое; `f.write(s)` — записать (без автоматического `\\n`).\n- В текстовый файл пишутся только строки.",
@@ -146,7 +154,8 @@
                   "code": "with open(\"list.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"яблоко\\nгруша\\nслива\\n\")\n\nwith open(\"list.txt\", encoding=\"utf-8\") as f:\n    for line in f:\n        print(repr(line))\n",
                   "expected_output": "'яблоко\\n'\n'груша\\n'\n'слива\\n'",
                   "hint": "Каждая строка приходит вместе с \\n в конце.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Файл перебирается по строкам, каждая — вместе с `\\\\n` в конце.\", \"lines\": [[\"for line in f:\", \"Строка за строкой, без загрузки всего файла.\"], [\"print(repr(line))\", \"Видно `\\\\n`.\"]], \"mistake\": \"Ожидать строки без `\\\\n`.\"}"
                 },
                 {
                   "slug": "fil-read-e2",
@@ -155,7 +164,8 @@
                   "code": "with open(\"list.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"a\\nb\\nc\\n\")\n\nwith open(\"list.txt\", encoding=\"utf-8\") as f:\n    print(repr(f.readline()))\n    print(f.readlines())\n    print(repr(f.read()))\n\nwith open(\"list.txt\", encoding=\"utf-8\") as f:\n    print(f.read().splitlines())\n",
                   "expected_output": "'a\\n'\n['b\\n', 'c\\n']\n''\n['a', 'b', 'c']",
                   "hint": "Файл читается «курсором»: прочитанное второй раз не выдаётся.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Файл читается с текущей позиции. `readline` — одна строка, `readlines` — остальные списком, дальше — пусто. `splitlines` убирает `\\\\n`.\", \"lines\": [[\"print(repr(f.readline()))\", \"Первая строка.\"], [\"print(f.readlines())\", \"Оставшиеся.\"], [\"print(repr(f.read()))\", \"Конец файла — пустая строка.\"], [\"print(f.read().splitlines())\", \"Новый `open` — снова с начала.\"]], \"mistake\": \"Ожидать, что `readlines` вернёт все строки после `readline`.\"}"
                 },
                 {
                   "slug": "fil-read-e3",
@@ -164,7 +174,8 @@
                   "code": "with open(\"data.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"  10 \\n\\n20\\n   \\n30\")\n\nwith open(\"data.txt\", encoding=\"utf-8\") as f:\n    numbers = [int(line) for line in f if line.strip()]\nprint(numbers, sum(numbers))\n",
                   "expected_output": "[10, 20, 30] 60",
                   "hint": "int() сам игнорирует пробелы и \\n вокруг числа.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`strip()` отбрасывает пустые строки и строки из пробелов. `int` сам терпит пробелы и `\\\\n` по краям.\", \"lines\": [[\"f.write(\\\"  10 \\\\n\\\\n20\\\\n   \\\\n30\\\")\", \"Пять строк, две пустые.\"], [\"numbers = [int(line) for line in f if line.strip()]\", \"Фильтр пустых.\"]], \"mistake\": \"`int(\\\"\\\\n\\\")` без фильтра — `ValueError`.\"}"
                 },
                 {
                   "slug": "fil-read-e4",
@@ -174,7 +185,8 @@
                   "tests": "def test_values():\n    with open(\"r1.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"один\\nдва\\nтри\\n\")\n    assert read_lines(\"r1.txt\") == [\"один\", \"два\", \"три\"], read_lines(\"r1.txt\")\n    with open(\"r2.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"\")\n    assert read_lines(\"r2.txt\") == [], \"Пустой файл\"\n",
                   "solution": "def read_lines(path):\n    with open(path, encoding=\"utf-8\") as f:\n        return f.read().splitlines()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`splitlines()` делит по переводам строк и убирает их.\", \"lines\": [[\"return f.read().splitlines()\", \"Без `\\\\n`.\"]], \"mistake\": \"`f.readlines()` — строки останутся с `\\\\n`.\"}"
                 },
                 {
                   "slug": "fil-read-e5",
@@ -184,7 +196,8 @@
                   "tests": "def test_values():\n    with open(\"r3.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"a\\n\\n  \\nb\\nc\")\n    assert count_lines(\"r3.txt\") == 3, count_lines(\"r3.txt\")\n",
                   "solution": "def count_lines(path):\n    count = 0\n    with open(path, encoding=\"utf-8\") as f:\n        for line in f:\n            if line.strip():\n                count += 1\n    return count\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Перебор файла по строкам не загружает его в память целиком.\", \"lines\": [[\"for line in f:\", \"Построчно.\"], [\"if line.strip():\\n                count += 1\", \"Строки из пробелов — пустые.\"]], \"mistake\": \"`if line:` — `\\\"\\\\n\\\"` непустая строка.\"}"
                 },
                 {
                   "slug": "fil-read-e6",
@@ -194,7 +207,8 @@
                   "tests": "def test_values():\n    with open(\"r4.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"заголовок\\nданные\\n\")\n    with open(\"r5.txt\", \"w\", encoding=\"utf-8\") as f:\n        pass\n    assert first_line(\"r4.txt\") == \"заголовок\" and first_line(\"r5.txt\") == \"\", \"Неверный результат\"\n",
                   "solution": "def first_line(path):\n    with open(path, encoding=\"utf-8\") as f:\n        return f.readline().rstrip(\"\\n\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`readline` читает одну строку; в конце файла — пустую строку.\", \"lines\": [[\"return f.readline().rstrip(\\\"\\\\n\\\")\", \"Убираем только перевод строки.\"]], \"mistake\": \"`f.read().split(\\\"\\\\n\\\")[0]` — читает весь файл.\"}"
                 },
                 {
                   "slug": "fil-read-e7",
@@ -204,7 +218,8 @@
                   "tests": "def test_values():\n    with open(\"r6.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"INFO старт\\nERROR база\\nINFO ок\\nERROR сеть\\n\")\n    assert grep(\"r6.txt\", \"ERROR\") == [(2, \"ERROR база\"), (4, \"ERROR сеть\")] and grep(\"r6.txt\", \"WARN\") == [], grep(\"r6.txt\", \"ERROR\")\n",
                   "solution": "def grep(path, word):\n    result = []\n    with open(path, encoding=\"utf-8\") as f:\n        for number, line in enumerate(f, start=1):\n            line = line.rstrip(\"\\n\")\n            if word in line:\n                result.append((number, line))\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`enumerate(f, start=1)` нумерует строки с единицы.\", \"lines\": [[\"for number, line in enumerate(f, start=1):\", \"Номер и строка.\"], [\"line = line.rstrip(\\\"\\\\n\\\")\", \"Без перевода строки.\"], [\"if word in line:\\n                result.append((number, line))\", \"Кортеж.\"]], \"mistake\": \"Забыть `start=1` — нумерация с 0.\"}"
                 },
                 {
                   "slug": "fil-read-e8",
@@ -214,7 +229,8 @@
                   "tests": "def test_values():\n    with open(\"r7.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"раз два\\nтри\\n\\nчетыре пять шесть\\n\")\n    assert word_stats(\"r7.txt\") == {\"lines\": 4, \"words\": 6, \"chars\": 31}, word_stats(\"r7.txt\")\n",
                   "solution": "def word_stats(path):\n    with open(path, encoding=\"utf-8\") as f:\n        text = f.read()\n    return {\"lines\": text.count(\"\\n\"), \"words\": len(text.split()), \"chars\": len(text)}\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Строки — число `\\\\n`, слова — `split()` по любым пробелам, символы — длина текста.\", \"lines\": [[\"text = f.read()\", \"Всё сразу.\"], [\"return {\\\"lines\\\": text.count(\\\"\\\\n\\\"), \\\"words\\\": len(text.split()), \\\"chars\\\": len(text)}\", \"Как в `wc`.\"]], \"mistake\": \"`len(text.splitlines())` — последняя строка без `\\\\n` тоже посчитается.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЛоги, списки пользователей, CSV — это текст из множества строк. Часто нужно обработать файл **построчно**: найти ошибки, посчитать строки, взять заголовок. Есть несколько способов прочитать строки — у каждого свои особенности.\n\n## Перебор строк в цикле\n\n```python\nwith open(\"list.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"яблоко\\nгруша\\nслива\\n\")\n\nwith open(\"list.txt\", encoding=\"utf-8\") as f:\n    for line in f:\n        print(repr(line))\n```\n\n- Файловый объект можно перебирать в `for`: каждая итерация — одна строка.\n- Строка приходит **вместе с `\\n`** в конце (кроме, возможно, последней).\n- Такой перебор читает файл по кусочкам — подходит для файлов любого размера.\n- Вывод: `'яблоко\\n'`, `'груша\\n'`, `'слива\\n'`.\n\n## Убрать \\n\n\n```python\nwith open(\"list.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"яблоко\\nгруша\\nслива\\n\")\n\nwith open(\"list.txt\", encoding=\"utf-8\") as f:\n    for line in f:\n        print(line.rstrip(\"\\n\"), len(line.rstrip(\"\\n\")))\n```\n\n- `line.rstrip(\"\\n\")` — убрать перевод строки справа. `line.strip()` уберёт ещё и пробелы с обеих сторон.\n- Если не убрать `\\n`, `print(line)` напечатает пустые строки между строками, а сравнение `line == \"груша\"` не сработает.\n- Вывод: `яблоко 6`, `груша 5`, `слива 5`.\n\n## readline, readlines, read и курсор\n\n```python\nwith open(\"list.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"a\\nb\\nc\\n\")\n\nwith open(\"list.txt\", encoding=\"utf-8\") as f:\n    print(repr(f.readline()))\n    print(f.readlines())\n    print(repr(f.read()))\n\nwith open(\"list.txt\", encoding=\"utf-8\") as f:\n    print(f.read().splitlines())\n```\n\n- `readline()` — одна следующая строка (с `\\n`). В конце файла — пустая строка `''`.\n- `readlines()` — список **оставшихся** строк (с `\\n`).\n- У открытого файла есть **курсор** — позиция, до которой уже прочитано. Каждое чтение сдвигает его. После `readlines()` читать больше нечего — `read()` вернул `''`.\n- `read().splitlines()` — самый удобный способ получить список строк **без** `\\n`.\n- Вывод: `'a\\n'`, `['b\\n', 'c\\n']`, `''`, `['a', 'b', 'c']`.\n\n## Пустые строки и числа\n\n```python\nwith open(\"data.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"  10 \\n\\n20\\n   \\n30\")\n\nwith open(\"data.txt\", encoding=\"utf-8\") as f:\n    numbers = [int(line) for line in f if line.strip()]\nprint(numbers, sum(numbers))\n```\n\n- `if line.strip()` — пропустить строки из одних пробелов и пустые (`strip()` даёт `\"\"`, а это ложь).\n- `int(\" 10 \\n\")` сам игнорирует пробелы и `\\n` по краям.\n- Вывод: `[10, 20, 30] 60`.\n\n## Номера строк\n\n```python\nwith open(\"app.log\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"INFO старт\\nERROR база\\nINFO ок\\n\")\n\nwith open(\"app.log\", encoding=\"utf-8\") as f:\n    for number, line in enumerate(f, start=1):\n        if \"ERROR\" in line:\n            print(number, line.rstrip(\"\\n\"))\n```\n\n- `enumerate(f, start=1)` — нумерация строк с единицы, как в редакторе.\n- Вывод: `2 ERROR база`.\n\n## Какой способ выбрать\n\n- `for line in f` — большие файлы, построчная обработка.\n- `f.read()` — небольшой файл целиком одной строкой.\n- `f.read().splitlines()` — небольшой файл списком строк без `\\n`.\n- `f.readline()` — только первая строка (заголовок).\n\n## Итог\n\n- `for line in f:` — строки по одной, с `\\n`.\n- `line.rstrip(\"\\n\")` / `line.strip()` — убрать перевод строки.\n- `readline()`, `readlines()`, `read()`; курсор двигается только вперёд.\n- `read().splitlines()` — список строк без `\\n`.",
@@ -266,7 +282,8 @@
                   "code": "with open(\"w.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"a\")\n    f.write(\"b\")\n    f.writelines([\"c\", \"d\\n\", \"e\"])\n    n = f.write(\"\\nконец\")\nprint(n)\nwith open(\"w.txt\", encoding=\"utf-8\") as f:\n    print(f.read().splitlines())\n",
                   "expected_output": "6\n['abcd', 'e', 'конец']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`write` и `writelines` не добавляют переводы строк. `write` возвращает число записанных символов.\", \"lines\": [[\"f.writelines([\\\"c\\\", \\\"d\\\\n\\\", \\\"e\\\"])\", \"Склеивает как есть.\"], [\"n = f.write(\\\"\\\\nконец\\\")\", \"`\\\\n` + 5 букв = 6.\"], [\"print(f.read().splitlines())\", \"`abcd`, `e`, `конец`.\"]], \"mistake\": \"Думать, что `writelines` пишет каждый элемент на новой строке.\"}"
                 },
                 {
                   "slug": "fil-write-e2",
@@ -275,7 +292,8 @@
                   "code": "with open(\"report.txt\", \"w\", encoding=\"utf-8\") as f:\n    print(\"Отчёт\", file=f)\n    print(\"пройдено:\", 5, file=f)\n    print(\"упало:\", 1, sep=\" \", end=\"!\\n\", file=f)\nwith open(\"report.txt\", encoding=\"utf-8\") as f:\n    print(f.read(), end=\"\")\n",
                   "expected_output": "Отчёт\nпройдено: 5\nупало: 1!",
                   "hint": "print(..., file=f) пишет в файл, добавляя пробелы и \\n как обычно.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`print(..., file=f)` пишет в файл как на экран: с пробелами и `\\\\n`.\", \"lines\": [[\"print(\\\"пройдено:\\\", 5, file=f)\", \"Число само станет текстом.\"], [\"print(\\\"упало:\\\", 1, sep=\\\" \\\", end=\\\"!\\\\n\\\", file=f)\", \"`end` — свой конец строки.\"], [\"print(f.read(), end=\\\"\\\")\", \"Без лишней пустой строки.\"]], \"mistake\": \"Забыть, что `print` сам добавит `\\\\n`.\"}"
                 },
                 {
                   "slug": "fil-write-e3",
@@ -284,7 +302,8 @@
                   "code": "import os\n\nif os.path.exists(\"once.txt\"):\n    os.remove(\"once.txt\")\nwith open(\"once.txt\", \"x\", encoding=\"utf-8\") as f:\n    f.write(\"создан\")\ntry:\n    open(\"once.txt\", \"x\", encoding=\"utf-8\")\nexcept FileExistsError:\n    print(\"файл уже есть\")\n",
                   "expected_output": "файл уже есть",
                   "hint": "'x' — создать только новый файл, существующий не трогать.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Режим `\\\"x\\\"` создаёт новый файл; если файл уже есть — `FileExistsError`.\", \"lines\": [[\"os.remove(\\\"once.txt\\\")\", \"Удаляем от прошлых запусков.\"], [\"with open(\\\"once.txt\\\", \\\"x\\\", encoding=\\\"utf-8\\\") as f:\", \"Создан.\"], [\"open(\\\"once.txt\\\", \\\"x\\\", encoding=\\\"utf-8\\\")\", \"Второй раз — ошибка.\"]], \"mistake\": \"Ожидать перезапись, как с `\\\"w\\\"`.\"}"
                 },
                 {
                   "slug": "fil-write-e4",
@@ -294,7 +313,8 @@
                   "tests": "def test_values():\n    write_lines(\"w1.txt\", [\"a\", \"b\", \"c\"])\n    with open(\"w1.txt\", encoding=\"utf-8\") as f:\n        assert f.read() == \"a\\nb\\nc\\n\", \"Неверное содержимое\"\n    write_lines(\"w2.txt\", [])\n    with open(\"w2.txt\", encoding=\"utf-8\") as f:\n        assert f.read() == \"\", \"Пустой список — пустой файл\"\n",
                   "solution": "def write_lines(path, lines):\n    with open(path, \"w\", encoding=\"utf-8\") as f:\n        for line in lines:\n            f.write(line + \"\\n\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Каждой строке — свой `\\\\n`.\", \"lines\": [[\"for line in lines:\", \"По одной.\"], [\"f.write(line + \\\"\\\\n\\\")\", \"Перевод и после последней.\"]], \"mistake\": \"`\\\"\\\\n\\\".join(lines)` — после последней не будет `\\\\n`.\"}"
                 },
                 {
                   "slug": "fil-write-e5",
@@ -304,7 +324,8 @@
                   "tests": "def test_values():\n    save_table(\"tab.txt\", [(\"имя\", \"балл\"), (\"Аня\", 90), (\"Боря\", 85)])\n    with open(\"tab.txt\", encoding=\"utf-8\") as f:\n        assert f.read() == \"имя\\tбалл\\nАня\\t90\\nБоря\\t85\\n\", \"Неверное содержимое\"\n",
                   "solution": "def save_table(path, rows):\n    with open(path, \"w\", encoding=\"utf-8\") as f:\n        for row in rows:\n            print(*row, sep=\"\\t\", file=f)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`*row` распаковывает кортеж в аргументы `print`, `sep=\\\"\\\\t\\\"` ставит табуляции.\", \"lines\": [[\"print(*row, sep=\\\"\\\\t\\\", file=f)\", \"Значения — через табуляцию.\"]], \"mistake\": \"`print(row, ...)` — запишется `(1, 2)` со скобками.\"}"
                 },
                 {
                   "slug": "fil-write-e6",
@@ -314,7 +335,8 @@
                   "tests": "import os\n\ndef test_values():\n    if os.path.exists(\"w3.txt\"):\n        os.remove(\"w3.txt\")\n    assert create_once(\"w3.txt\", \"первый\") is True and create_once(\"w3.txt\", \"второй\") is False, \"Результаты\"\n    with open(\"w3.txt\", encoding=\"utf-8\") as f:\n        assert f.read() == \"первый\", \"Содержимое не должно меняться\"\n",
                   "solution": "def create_once(path, text):\n    try:\n        with open(path, \"x\", encoding=\"utf-8\") as f:\n            f.write(text)\n    except FileExistsError:\n        return False\n    return True\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`\\\"x\\\"` не даёт затереть существующий файл.\", \"lines\": [[\"with open(path, \\\"x\\\", encoding=\\\"utf-8\\\") as f:\", \"Только новый.\"], [\"except FileExistsError:\\n        return False\", \"Уже был.\"], [\"return True\", \"Создан.\"]], \"mistake\": \"Проверять `exists`, потом открывать `\\\"w\\\"` — между проверкой и записью файл может появиться.\"}"
                 },
                 {
                   "slug": "fil-write-e7",
@@ -324,7 +346,8 @@
                   "tests": "import os\n\ndef test_values():\n    if os.path.exists(\"res.log\"):\n        os.remove(\"res.log\")\n    log_results(\"res.log\", {\"login\": True, \"cart\": False})\n    log_results(\"res.log\", {\"api\": True})\n    with open(\"res.log\", encoding=\"utf-8\") as f:\n        assert f.read() == \"PASS login\\nFAIL cart\\nитого: 1/2\\nPASS api\\nитого: 1/1\\n\", \"Неверное содержимое\"\n",
                   "solution": "def log_results(path, results):\n    with open(path, \"a\", encoding=\"utf-8\") as f:\n        for name, ok in results.items():\n            print(\"PASS\" if ok else \"FAIL\", name, file=f)\n        print(f\"итого: {sum(results.values())}/{len(results)}\", file=f)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Дописываем результаты; `True` считается как 1, поэтому `sum` значений — число прошедших.\", \"lines\": [[\"with open(path, \\\"a\\\", encoding=\\\"utf-8\\\") as f:\", \"Не стираем прошлые логи.\"], [\"print(\\\"PASS\\\" if ok else \\\"FAIL\\\", name, file=f)\", \"Статус и имя через пробел.\"], [\"print(f\\\"итого: {sum(results.values())}/{len(results)}\\\", file=f)\", \"Прошло/всего.\"]], \"mistake\": \"Режим `\\\"w\\\"` — прошлые результаты пропадут.\"}"
                 },
                 {
                   "slug": "fil-write-e8",
@@ -334,7 +357,8 @@
                   "tests": "def test_values():\n    with open(\"w4.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"host=dev\\nurl=http://dev/api\\n\")\n    assert replace_in_file(\"w4.txt\", \"dev\", \"prod\") == 2, \"Количество замен\"\n    with open(\"w4.txt\", encoding=\"utf-8\") as f:\n        assert f.read() == \"host=prod\\nurl=http://prod/api\\n\", \"Содержимое\"\n    assert replace_in_file(\"w4.txt\", \"xxx\", \"y\") == 0, \"Нет вхождений\"\n",
                   "solution": "def replace_in_file(path, old, new):\n    with open(path, encoding=\"utf-8\") as f:\n        text = f.read()\n    count = text.count(old)\n    with open(path, \"w\", encoding=\"utf-8\") as f:\n        f.write(text.replace(old, new))\n    return count\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Прочитать, посчитать, заменить, записать обратно. Одновременно читать и писать один файл нельзя.\", \"lines\": [[\"count = text.count(old)\", \"Сколько будет замен.\"], [\"f.write(text.replace(old, new))\", \"Перезапись.\"]], \"mistake\": \"Открыть `\\\"w\\\"` до чтения — файл уже пуст.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПрограмма пишет в файлы отчёты, логи, результаты тестов, экспорт данных. Есть несколько способов записи, и важно помнить, кто добавляет переводы строк и что происходит со старым содержимым.\n\n## write и writelines\n\n```python\nwith open(\"w.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"a\")\n    f.write(\"b\")\n    f.writelines([\"c\", \"d\\n\", \"e\"])\n    n = f.write(\"\\nконец\")\nprint(n)\nwith open(\"w.txt\", encoding=\"utf-8\") as f:\n    print(f.read().splitlines())\n```\n\n- `write(строка)` пишет строку как есть и возвращает количество записанных символов.\n- `writelines(список)` пишет строки подряд — **без** разделителей и `\\n`. Название обманчиво!\n- Всё, что пишется в одном `with`, идёт подряд: `\"a\" + \"b\" + \"c\" + \"d\\n\" + ...`.\n- Вывод: `6`, `['abcd', 'e', 'конец']`.\n\n## Список строк в файл\n\n```python\nlines = [\"первая\", \"вторая\", \"третья\"]\nwith open(\"lines.txt\", \"w\", encoding=\"utf-8\") as f:\n    for line in lines:\n        f.write(line + \"\\n\")\n\nwith open(\"lines.txt\", encoding=\"utf-8\") as f:\n    print(repr(f.read()))\n```\n\n- Добавляем `\\n` после каждой строки сами.\n- Альтернатива: `f.write(\"\\n\".join(lines) + \"\\n\")`.\n- Вывод: `'первая\\nвторая\\nтретья\\n'`.\n\n## print в файл\n\n```python\nwith open(\"report.txt\", \"w\", encoding=\"utf-8\") as f:\n    print(\"Отчёт\", file=f)\n    print(\"пройдено:\", 5, file=f)\n    print(\"упало:\", 1, sep=\" \", end=\"!\\n\", file=f)\nwith open(\"report.txt\", encoding=\"utf-8\") as f:\n    print(f.read(), end=\"\")\n```\n\n- `print(..., file=f)` — всё как обычный `print` (пробелы между аргументами, `\\n` в конце, любые типы), но в файл.\n- Удобно для отчётов: не нужно вручную переводить числа в строки и добавлять `\\n`.\n- `sep` и `end` работают как обычно.\n- Вывод: `Отчёт`, `пройдено: 5`, `упало: 1!`.\n\n## Дозапись\n\n```python\nwith open(\"results.log\", \"w\", encoding=\"utf-8\") as f:\n    pass\nfor run in range(1, 4):\n    with open(\"results.log\", \"a\", encoding=\"utf-8\") as f:\n        print(f\"запуск {run}: ok\", file=f)\nwith open(\"results.log\", encoding=\"utf-8\") as f:\n    print(f.read().splitlines())\n```\n\n- `with open(..., \"w\") as f: pass` — создать пустой файл (или очистить существующий).\n- Режим `\"a\"` при каждом открытии дописывает в конец — так растут логи.\n- Вывод: `['запуск 1: ok', 'запуск 2: ok', 'запуск 3: ok']`.\n\n## Только новый файл: режим \"x\"\n\n```python\nimport os\n\nif os.path.exists(\"once.txt\"):\n    os.remove(\"once.txt\")\nwith open(\"once.txt\", \"x\", encoding=\"utf-8\") as f:\n    f.write(\"создан\")\ntry:\n    open(\"once.txt\", \"x\", encoding=\"utf-8\")\nexcept FileExistsError:\n    print(\"файл уже есть\")\n```\n\n- `\"x\"` защищает от случайной перезаписи: если файл существует — `FileExistsError`.\n- `os.path.exists(путь)` — есть ли файл; `os.remove(путь)` — удалить (подробно — в уроке про os).\n- Вывод: `файл уже есть`.\n\n## Замена текста в файле\n\n```python\nwith open(\"cfg.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"host=dev\\nurl=http://dev/api\\n\")\n\nwith open(\"cfg.txt\", encoding=\"utf-8\") as f:\n    text = f.read()\nwith open(\"cfg.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(text.replace(\"dev\", \"prod\"))\n\nwith open(\"cfg.txt\", encoding=\"utf-8\") as f:\n    print(f.read().splitlines())\n```\n\n- «Изменить файл на месте» = прочитать целиком, изменить строку, записать обратно.\n- Вывод: `['host=prod', 'url=http://prod/api']`.\n\n## Итог\n\n- `write(s)` — как есть; `writelines(list)` — подряд, без `\\n`.\n- `print(..., file=f)` — удобная запись с пробелами и `\\n`.\n- `\"a\"` — дописать, `\"x\"` — только новый.\n- Изменение файла: прочитать → изменить → перезаписать.",
@@ -386,7 +410,8 @@
                   "code": "text = \"Код\"\ndata = text.encode(\"utf-8\")\nprint(len(text), len(data))\nprint(data)\nprint(data.decode(\"utf-8\"))\nprint(len(\"Code\".encode(\"utf-8\")))\n",
                   "expected_output": "3 6\nb'\\xd0\\x9a\\xd0\\xbe\\xd0\\xb4'\nКод\n4",
                   "hint": "Русская буква в UTF-8 занимает 2 байта, латинская — 1.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Строка — символы, `bytes` — байты. В UTF-8 кириллица занимает 2 байта, латиница — 1.\", \"lines\": [[\"data = text.encode(\\\"utf-8\\\")\", \"Строка → байты.\"], [\"print(len(text), len(data))\", \"3 символа, 6 байт.\"], [\"print(data.decode(\\\"utf-8\\\"))\", \"Обратно в строку.\"], [\"print(len(\\\"Code\\\".encode(\\\"utf-8\\\")))\", \"Латиница — 1 байт.\"]], \"mistake\": \"Считать, что символ всегда занимает байт.\"}"
                 },
                 {
                   "slug": "fil-encoding-e2",
@@ -395,7 +420,8 @@
                   "code": "with open(\"ru.txt\", \"w\", encoding=\"cp1251\") as f:\n    f.write(\"Привет\")\n\ntry:\n    with open(\"ru.txt\", encoding=\"utf-8\") as f:\n        f.read()\nexcept UnicodeDecodeError:\n    print(\"ошибка декодирования\")\n\nwith open(\"ru.txt\", encoding=\"cp1251\") as f:\n    print(f.read())\nwith open(\"ru.txt\", encoding=\"utf-8\", errors=\"replace\") as f:\n    print(f.read().count(\"\\ufffd\"))\n",
                   "expected_output": "ошибка декодирования\nПривет\n6",
                   "hint": "cp1251 — старая кодировка Windows.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Читать нужно в той кодировке, в которой писали. `errors=\\\"replace\\\"` заменяет неразборчивые байты на `�`.\", \"lines\": [[\"with open(\\\"ru.txt\\\", \\\"w\\\", encoding=\\\"cp1251\\\") as f:\", \"По байту на букву.\"], [\"except UnicodeDecodeError:\", \"Эти байты — не UTF-8.\"], [\"with open(\\\"ru.txt\\\", encoding=\\\"cp1251\\\") as f:\", \"Правильная кодировка.\"], [\"print(f.read().count(\\\"\\\\ufffd\\\"))\", \"Шесть букв — шесть замен.\"]], \"mistake\": \"Думать, что UTF-8 прочитает любой текст.\"}"
                 },
                 {
                   "slug": "fil-encoding-e3",
@@ -404,7 +430,8 @@
                   "code": "with open(\"data.bin\", \"wb\") as f:\n    f.write(bytes([0, 1, 2, 255]))\n    f.write(b\"OK\")\n\nwith open(\"data.bin\", \"rb\") as f:\n    content = f.read()\nprint(content, len(content))\nprint(content[3], content[-2:])\nprint(type(content).__name__)\n",
                   "expected_output": "b'\\x00\\x01\\x02\\xffOK' 6\n255 b'OK'\nbytes",
                   "hint": "В режиме 'b' читаются и пишутся байты, а не строки.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Режимы `\\\"wb\\\"`/`\\\"rb\\\"` работают с `bytes`: без кодировки, индекс даёт число 0–255.\", \"lines\": [[\"f.write(bytes([0, 1, 2, 255]))\", \"Байты из чисел.\"], [\"print(content, len(content))\", \"Непечатные — как `\\\\x..`.\"], [\"print(content[3], content[-2:])\", \"Индекс — число, срез — `bytes`.\"]], \"mistake\": \"Ожидать символ от `content[3]`.\"}"
                 },
                 {
                   "slug": "fil-encoding-e4",
@@ -414,7 +441,8 @@
                   "tests": "def test_values():\n    assert byte_size(\"abc\") == 3 and byte_size(\"абв\") == 6 and byte_size(\"\") == 0 and byte_size(\"😀\") == 4, \"Неверный размер\"\n",
                   "solution": "def byte_size(text):\n    return len(text.encode(\"utf-8\"))\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Размер в байтах — длина закодированной строки.\", \"lines\": [[\"return len(text.encode(\\\"utf-8\\\"))\", \"Не `len(text)`.\"]], \"mistake\": \"`len(text)` — число символов.\"}"
                 },
                 {
                   "slug": "fil-encoding-e5",
@@ -424,7 +452,8 @@
                   "tests": "def test_values():\n    with open(\"e1.txt\", \"w\", encoding=\"cp1251\") as f:\n        f.write(\"Привет, мир\")\n    convert_encoding(\"e1.txt\", \"e2.txt\", \"cp1251\", \"utf-8\")\n    with open(\"e2.txt\", encoding=\"utf-8\") as f:\n        assert f.read() == \"Привет, мир\", \"Неверное содержимое\"\n",
                   "solution": "def convert_encoding(src, dst, from_enc, to_enc):\n    with open(src, encoding=from_enc) as f:\n        text = f.read()\n    with open(dst, \"w\", encoding=to_enc) as f:\n        f.write(text)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Читаем в одной кодировке — получаем строку; пишем в другой.\", \"lines\": [[\"with open(src, encoding=from_enc) as f:\", \"Байты → строка.\"], [\"with open(dst, \\\"w\\\", encoding=to_enc) as f:\", \"Строка → другие байты.\"]], \"mistake\": \"Копировать байты — кодировка не изменится.\"}"
                 },
                 {
                   "slug": "fil-encoding-e6",
@@ -434,7 +463,8 @@
                   "tests": "def test_values():\n    with open(\"e3.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"юникод\")\n    with open(\"e4.txt\", \"w\", encoding=\"cp1251\") as f:\n        f.write(\"виндовс\")\n    assert read_any(\"e3.txt\") == \"юникод\" and read_any(\"e4.txt\") == \"виндовс\", \"Неверный результат\"\n",
                   "solution": "def read_any(path):\n    try:\n        with open(path, encoding=\"utf-8\") as f:\n            return f.read()\n    except UnicodeDecodeError:\n        with open(path, encoding=\"cp1251\") as f:\n            return f.read()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Пробуем UTF-8; не вышло — открываем заново в cp1251.\", \"lines\": [[\"with open(path, encoding=\\\"utf-8\\\") as f:\\n            return f.read()\", \"Основной вариант.\"], [\"except UnicodeDecodeError:\\n        with open(path, encoding=\\\"cp1251\\\") as f:\\n            return f.read()\", \"Запасной.\"]], \"mistake\": \"Сначала cp1251 — он «прочитает» любые байты, но UTF-8-текст станет кракозябрами.\"}"
                 },
                 {
                   "slug": "fil-encoding-e7",
@@ -444,7 +474,8 @@
                   "tests": "def test_values():\n    payload = bytes(range(256)) * 3\n    with open(\"b1.bin\", \"wb\") as f:\n        f.write(payload)\n    assert copy_binary(\"b1.bin\", \"b2.bin\") == 768, \"Размер\"\n    with open(\"b2.bin\", \"rb\") as f:\n        assert f.read() == payload, \"Содержимое\"\n",
                   "solution": "def copy_binary(src, dst):\n    with open(src, \"rb\") as f:\n        data = f.read()\n    with open(dst, \"wb\") as f:\n        f.write(data)\n    return len(data)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Картинки и архивы копируют в двоичном режиме — никакого декодирования.\", \"lines\": [[\"with open(src, \\\"rb\\\") as f:\", \"Байты.\"], [\"with open(dst, \\\"wb\\\") as f:\", \"Байты.\"], [\"return len(data)\", \"Размер в байтах.\"]], \"mistake\": \"Текстовый режим — `UnicodeDecodeError` на картинке.\"}"
                 },
                 {
                   "slug": "fil-encoding-e8",
@@ -454,7 +485,8 @@
                   "tests": "def test_values():\n    samples = {\"a.png\": b\"\\x89PNG\\r\\n\", \"a.pdf\": b\"%PDF-1.7\", \"a.zip\": b\"PK\\x03\\x04\", \"a.txt\": b\"hello\"}\n    for name, data in samples.items():\n        with open(name, \"wb\") as f:\n            f.write(data)\n    assert [file_type(n) for n in samples] == [\"png\", \"pdf\", \"zip\", \"unknown\"], [file_type(n) for n in samples]\n",
                   "solution": "def file_type(path):\n    with open(path, \"rb\") as f:\n        head = f.read(4)\n    if head.startswith(b\"\\x89PNG\"):\n        return \"png\"\n    if head.startswith(b\"%PDF\"):\n        return \"pdf\"\n    if head.startswith(b\"PK\"):\n        return \"zip\"\n    return \"unknown\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Тип файла определяют по первым байтам — «магическим числам», а не по расширению.\", \"lines\": [[\"head = f.read(4)\", \"Только 4 байта.\"], [\"if head.startswith(b\\\"\\\\x89PNG\\\"):\", \"Сравниваем с `bytes`.\"], [\"if head.startswith(b\\\"PK\\\"):\", \"ZIP — два байта.\"], [\"return \\\"unknown\\\"\", \"Остальное.\"]], \"mistake\": \"Сравнивать с `\\\"PK\\\"` — строка не равна `bytes`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nКомпьютер хранит в файле не буквы, а **байты** — числа от 0 до 255. **Кодировка** — правило, по которому буквы превращаются в байты и обратно. Если записать файл в одной кодировке, а прочитать в другой, получится ошибка или «кракозябры». Картинки, архивы и PDF — вообще не текст, их читают как байты.\n\n## Строка и байты\n\n```python\ntext = \"Код\"\ndata = text.encode(\"utf-8\")\nprint(len(text), len(data))\nprint(data)\nprint(data.decode(\"utf-8\"))\nprint(len(\"Code\".encode(\"utf-8\")))\n```\n\n- `str` — текст из символов, `bytes` — последовательность байтов. Байтовая строка записывается как `b'...'`.\n- `encode(кодировка)` — текст → байты, `decode(кодировка)` — байты → текст.\n- **UTF-8** — самая распространённая кодировка: латиница — 1 байт, кириллица — 2, эмодзи — 4.\n- `\\xd0\\x9a` — байт в шестнадцатеричной записи: байты, которые не являются печатными ASCII-символами, показываются так.\n- Вывод: `3 6`, `b'\\xd0\\x9a\\xd0\\xbe\\xd0\\xb4'`, `Код`, `4`.\n\n## Почему всегда encoding=\"utf-8\"\n\n- Без `encoding` Python берёт кодировку **системы**. На Linux и macOS это UTF-8, а на Windows часто `cp1251`. Код, который работает у тебя, упадёт у коллеги или на CI-сервере.\n- Поэтому в `open` для текстовых файлов **всегда** указывай `encoding=\"utf-8\"`.\n\n## Не та кодировка\n\n```python\nwith open(\"ru.txt\", \"w\", encoding=\"cp1251\") as f:\n    f.write(\"Привет\")\n\ntry:\n    with open(\"ru.txt\", encoding=\"utf-8\") as f:\n        f.read()\nexcept UnicodeDecodeError:\n    print(\"ошибка декодирования\")\n\nwith open(\"ru.txt\", encoding=\"cp1251\") as f:\n    print(f.read())\nwith open(\"ru.txt\", encoding=\"utf-8\", errors=\"replace\") as f:\n    print(f.read().count(\"�\"))\n```\n\n- `cp1251` — старая кодировка Windows для кириллицы. В ней каждая буква — 1 байт.\n- Прочитать такие байты как UTF-8 не получится → `UnicodeDecodeError`.\n- Правильная кодировка при чтении — и текст на месте.\n- `errors=\"replace\"` — не падать, а заменять нераспознанные байты символом `�` (`�`). Шесть байт — шесть замен.\n- Вывод: `ошибка декодирования`, `Привет`, `6`.\n\n## Двоичный режим\n\n```python\nwith open(\"data.bin\", \"wb\") as f:\n    f.write(bytes([0, 1, 2, 255]))\n    f.write(b\"OK\")\n\nwith open(\"data.bin\", \"rb\") as f:\n    content = f.read()\nprint(content, len(content))\nprint(content[3], content[-2:])\nprint(type(content).__name__)\n```\n\n- `\"wb\"`, `\"rb\"` — запись и чтение **байтов**. `encoding` в двоичном режиме не указывают.\n- `bytes([0, 1, 2, 255])` — байты из списка чисел.\n- Индекс байтовой строки даёт **число** (`255`), срез — снова `bytes`.\n- Так читают и копируют картинки, архивы, PDF.\n- Вывод: `b'\\x00\\x01\\x02\\xffOK' 6`, `255 b'OK'`, `bytes`.\n\n## Магические числа\n\n```python\nwith open(\"pic.png\", \"wb\") as f:\n    f.write(b\"\\x89PNG\\r\\n\\x1a\\n\" + bytes(10))\n\nwith open(\"pic.png\", \"rb\") as f:\n    head = f.read(4)\nprint(head, head == b\"\\x89PNG\")\n```\n\n- `f.read(n)` — прочитать только `n` байт (или символов в текстовом режиме).\n- Многие форматы начинаются с фиксированных байтов: PNG — `\\x89PNG`, PDF — `%PDF`, ZIP — `PK`. По ним проверяют, что скачанный файл действительно картинка, а не HTML-страница с ошибкой.\n- Вывод: `b'\\x89PNG' True`.\n\n## Итог\n\n- Текст (`str`) ↔ байты (`bytes`): `encode` / `decode`.\n- Для текстовых файлов всегда `encoding=\"utf-8\"`.\n- Не та кодировка → `UnicodeDecodeError`; `errors=\"replace\"` — заменить нераспознанное.\n- `\"rb\"` / `\"wb\"` — двоичные файлы, без `encoding`.",
@@ -514,7 +546,8 @@
                   "code": "from pathlib import PurePosixPath as Path\n\np = Path(\"reports/2024/allure-report.html\")\nprint(p.name)\nprint(p.stem, p.suffix)\nprint(p.parent, p.parent.name)\nprint(p.parts)\n",
                   "expected_output": "allure-report.html\nallure-report .html\nreports/2024 2024\n('reports', '2024', 'allure-report.html')",
                   "hint": "PurePosixPath ведёт себя как Path, но всегда с прямыми слешами — чтобы вывод не зависел от ОС.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`Path` разбирает путь на части: `name` — имя, `stem` — без расширения, `suffix` — расширение, `parent` — папка.\", \"lines\": [[\"print(p.stem, p.suffix)\", \"Расширение — с точкой.\"], [\"print(p.parent, p.parent.name)\", \"Папка и её имя.\"], [\"print(p.parts)\", \"Кортеж частей.\"]], \"mistake\": \"Ожидать `html` без точки.\"}"
                 },
                 {
                   "slug": "fil-path-e2",
@@ -523,7 +556,8 @@
                   "code": "from pathlib import PurePosixPath as Path\n\nbase = Path(\"project\")\ncfg = base / \"config\" / \"settings.json\"\nprint(cfg)\nprint(cfg.with_suffix(\".yaml\"))\nprint(cfg.with_name(\"local.json\"))\nprint(Path(\"a/b/../c\").parts)\n",
                   "expected_output": "project/config/settings.json\nproject/config/settings.yaml\nproject/config/local.json\n('a', 'b', '..', 'c')",
                   "hint": "Оператор / склеивает части пути.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Оператор `/` склеивает пути. `with_suffix`/`with_name` дают новый путь. `..` без обращения к диску не сокращается.\", \"lines\": [[\"cfg = base / \\\"config\\\" / \\\"settings.json\\\"\", \"Склейка.\"], [\"print(cfg.with_suffix(\\\".yaml\\\"))\", \"Замена расширения.\"], [\"print(cfg.with_name(\\\"local.json\\\"))\", \"Замена имени.\"], [\"print(Path(\\\"a/b/../c\\\").parts)\", \"`..` остаётся частью.\"]], \"mistake\": \"Ожидать `('a', 'c')`.\"}"
                 },
                 {
                   "slug": "fil-path-e3",
@@ -532,7 +566,8 @@
                   "code": "from pathlib import Path\n\nfolder = Path(\"demo_dir\")\nfolder.mkdir(exist_ok=True)\nfile = folder / \"a.txt\"\nfile.write_text(\"данные\", encoding=\"utf-8\")\nprint(folder.exists(), folder.is_dir(), folder.is_file())\nprint(file.exists(), file.is_file())\nprint((folder / \"нет.txt\").exists())\n",
                   "expected_output": "True True False\nTrue True\nFalse",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`mkdir(exist_ok=True)` не падает, если папка есть. `exists`, `is_dir`, `is_file` проверяют диск.\", \"lines\": [[\"folder.mkdir(exist_ok=True)\", \"Создать, если нет.\"], [\"file.write_text(\\\"данные\\\", encoding=\\\"utf-8\\\")\", \"Открыть, записать, закрыть — одной строкой.\"], [\"print(folder.exists(), folder.is_dir(), folder.is_file())\", \"Папка — не файл.\"]], \"mistake\": \"Думать, что `folder / \\\"нет.txt\\\"` создаёт файл.\"}"
                 },
                 {
                   "slug": "fil-path-e4",
@@ -542,7 +577,8 @@
                   "tests": "def test_values():\n    assert extension(\"Report.HTML\") == \"html\" and extension(\"archive.tar.gz\") == \"gz\" and extension(\"Makefile\") == \"\" and extension(\"dir/photo.JPG\") == \"jpg\", \"Неверный результат\"\n",
                   "solution": "from pathlib import Path\n\n\ndef extension(filename):\n    return Path(filename).suffix.lower().lstrip(\".\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`suffix` — последнее расширение с точкой; приводим к нижнему регистру и убираем точку.\", \"lines\": [[\"return Path(filename).suffix.lower().lstrip(\\\".\\\")\", \"У `Makefile` суффикс пустой.\"]], \"mistake\": \"`filename.split(\\\".\\\")[-1]` — для `Makefile` вернёт само имя.\"}"
                 },
                 {
                   "slug": "fil-path-e5",
@@ -552,7 +588,8 @@
                   "tests": "def test_values():\n    assert report_path(\"/tmp/app\", \"2024-03-08\", \"smoke\") == \"/tmp/app/reports/2024-03-08/smoke.html\" and report_path(\"out\", \"d\", \"x\") == \"out/reports/d/x.html\", report_path(\"out\", \"d\", \"x\")\n",
                   "solution": "from pathlib import PurePosixPath\n\n\ndef report_path(base, date_str, name):\n    return str(PurePosixPath(base) / \"reports\" / date_str / f\"{name}.html\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`PurePosixPath` всегда ставит `/`, независимо от системы.\", \"lines\": [[\"return str(PurePosixPath(base) / \\\"reports\\\" / date_str / f\\\"{name}.html\\\")\", \"Склейка и перевод в строку.\"]], \"mistake\": \"Вернуть объект пути, а не строку.\"}"
                 },
                 {
                   "slug": "fil-path-e6",
@@ -562,7 +599,8 @@
                   "tests": "def test_values():\n    assert rename_ext([\"a.txt\", \"dir/b.log\", \"c\"], \".bak\") == [\"a.bak\", \"dir/b.bak\", \"c.bak\"] and rename_ext([], \".x\") == [], \"Неверный результат\"\n",
                   "solution": "from pathlib import PurePosixPath\n\n\ndef rename_ext(filenames, new_ext):\n    return [str(PurePosixPath(name).with_suffix(new_ext)) for name in filenames]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`with_suffix` заменяет расширение, папка сохраняется.\", \"lines\": [[\"return [str(PurePosixPath(name).with_suffix(new_ext)) for name in filenames]\", \"Для каждого имени.\"]], \"mistake\": \"`name.replace(\\\".txt\\\", new_ext)` — не сработает для других расширений.\"}"
                 },
                 {
                   "slug": "fil-path-e7",
@@ -572,7 +610,8 @@
                   "tests": "def test_values():\n    r = group_by_ext([\"a/x.PY\", \"b.py\", \"c.txt\", \"Makefile\"])\n    assert r == {\".py\": [\"x.PY\", \"b.py\"], \".txt\": [\"c.txt\"], \"\": [\"Makefile\"]}, r\n",
                   "solution": "from pathlib import PurePosixPath\n\n\ndef group_by_ext(filenames):\n    result = {}\n    for name in filenames:\n        p = PurePosixPath(name)\n        result.setdefault(p.suffix.lower(), []).append(p.name)\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Ключ — суффикс в нижнем регистре, значение — список имён без папок.\", \"lines\": [[\"p = PurePosixPath(name)\", \"Разбор пути.\"], [\"result.setdefault(p.suffix.lower(), []).append(p.name)\", \"Без расширения — ключ `\\\"\\\"`.\"]], \"mistake\": \"Добавлять `name` целиком — попадут папки.\"}"
                 },
                 {
                   "slug": "fil-path-e8",
@@ -582,7 +621,8 @@
                   "tests": "def test_values():\n    assert safe_filename(\"Вход: неверный пароль?\") == \"Вход_неверный_пароль.png\", safe_filename(\"Вход: неверный пароль?\")\n    assert safe_filename(\"a/b\\\\c*d\") == \"abcd.png\" and safe_filename(\"x\" * 80) == \"x\" * 50 + \".png\", \"Спецсимволы и длина\"\n",
                   "solution": "def safe_filename(title):\n    chars = []\n    for ch in title.replace(\" \", \"_\"):\n        if ch.isalnum() or ch in \"-_\":\n            chars.append(ch)\n    return \"\".join(chars)[:50] + \".png\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Пробелы → `_`, лишние символы выкидываем, длину ограничиваем до добавления расширения.\", \"lines\": [[\"for ch in title.replace(\\\" \\\", \\\"_\\\"):\", \"Сначала пробелы.\"], [\"if ch.isalnum() or ch in \\\"-_\\\":\", \"`isalnum` пропускает и кириллицу.\"], [\"return \\\"\\\".join(chars)[:50] + \\\".png\\\"\", \"Обрезка до `.png`.\"]], \"mistake\": \"Обрезать после добавления `.png` — расширение может отрезаться.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПуть к файлу — это не просто строка. В Windows части пути разделяются `\\`, в Linux и macOS — `/`. Нужно достать имя файла, расширение, папку; склеить путь из частей; проверить, существует ли файл. Современный способ — модуль `pathlib` и класс `Path`.\n\n## Части пути\n\n```python\nfrom pathlib import PurePosixPath as Path\n\np = Path(\"reports/2024/allure-report.html\")\nprint(p.name)\nprint(p.stem, p.suffix)\nprint(p.parent, p.parent.name)\nprint(p.parts)\n```\n\n- `Path(\"строка\")` — объект-путь.\n- `name` — последняя часть (имя файла с расширением).\n- `stem` — имя без расширения, `suffix` — расширение **с точкой**.\n- `parent` — папка, в которой лежит файл (тоже `Path`).\n- `parts` — кортеж всех частей.\n- Здесь `PurePosixPath` — «чистый» путь с прямыми слешами, чтобы вывод не зависел от системы. В обычном коде пишут просто `from pathlib import Path` — у него те же атрибуты.\n- Вывод: `allure-report.html`, `allure-report .html`, `reports/2024 2024`, `('reports', '2024', 'allure-report.html')`.\n\n## Склеивание: оператор /\n\n```python\nfrom pathlib import PurePosixPath as Path\n\nbase = Path(\"project\")\ncfg = base / \"config\" / \"settings.json\"\nprint(cfg)\nprint(cfg.with_suffix(\".yaml\"))\nprint(cfg.with_name(\"local.json\"))\n```\n\n- `путь / \"часть\"` — добавить часть пути. Правильный разделитель подставится сам — не нужно склеивать строки через `+ \"/\" +`.\n- `with_suffix(\".yaml\")` — тот же путь с другим расширением.\n- `with_name(\"local.json\")` — тот же путь с другим именем файла.\n- Вывод: `project/config/settings.json`, `project/config/settings.yaml`, `project/config/local.json`.\n\n## Проверки на диске\n\n```python\nfrom pathlib import Path\n\nfolder = Path(\"demo_dir\")\nfolder.mkdir(exist_ok=True)\nfile = folder / \"a.txt\"\nfile.write_text(\"данные\", encoding=\"utf-8\")\nprint(folder.exists(), folder.is_dir(), folder.is_file())\nprint(file.exists(), file.is_file())\nprint((folder / \"нет.txt\").exists())\n```\n\n- `exists()` — есть ли что-то по этому пути; `is_file()` — это файл; `is_dir()` — это папка.\n- `mkdir(exist_ok=True)` — создать папку, не падая, если она уже есть.\n- `write_text(текст, encoding=...)` — записать файл одной строкой (подробнее — в следующем уроке).\n- Вывод: `True True False`, `True True`, `False`.\n\n## Полезное\n\n```python\nfrom pathlib import Path\n\np = Path(\"demo_dir/a.txt\")\nprint(p.suffix == \".txt\", str(p).endswith(\"a.txt\"))\nprint(p.resolve().is_absolute())\n```\n\n- `str(p)` — путь как строка (для функций, которые ждут строку).\n- `resolve()` — полный (абсолютный) путь от корня диска.\n- `Path.cwd()` — текущая рабочая папка, `Path.home()` — домашняя папка пользователя.\n- Вывод: `True True`, `True`.\n\n## Безопасные имена файлов\n\nИмена файлов не могут содержать `/`, а в Windows — ещё `\\ : * ? \" < > |`. Если имя строится из названия теста или данных пользователя, лишние символы нужно убрать:\n\n```python\ntitle = \"Вход: неверный пароль?\"\nsafe = \"\".join(ch for ch in title.replace(\" \", \"_\") if ch.isalnum() or ch in \"-_\")\nprint(safe + \".png\")\n```\n\n- `ch.isalnum()` — буква или цифра (включая русские).\n- Вывод: `Вход_неверный_пароль.png`.\n\n## Итог\n\n- `from pathlib import Path`; `Path(\"a\") / \"b\" / \"c.txt\"`.\n- `name`, `stem`, `suffix`, `parent`, `parts`.\n- `with_suffix()`, `with_name()`.\n- `exists()`, `is_file()`, `is_dir()`, `resolve()`, `Path.cwd()`.",
@@ -634,7 +674,8 @@
                   "code": "from pathlib import Path\n\nroot = Path(\"proj\")\n(root / \"src\").mkdir(parents=True, exist_ok=True)\n(root / \"tests\").mkdir(exist_ok=True)\n(root / \"src\" / \"app.py\").write_text(\"print(1)\", encoding=\"utf-8\")\n(root / \"README.md\").write_text(\"# Проект\", encoding=\"utf-8\")\n\nprint(sorted(p.name for p in root.iterdir()))\nprint((root / \"src\" / \"app.py\").read_text(encoding=\"utf-8\"))\n",
                   "expected_output": "['README.md', 'src', 'tests']\nprint(1)",
                   "hint": "iterdir() — содержимое папки (без вложенных). Порядок не гарантирован, поэтому sorted.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`parents=True` создаёт промежуточные папки. `iterdir` — содержимое одной папки, без вложенных.\", \"lines\": [[\"(root / \\\"src\\\").mkdir(parents=True, exist_ok=True)\", \"Создаст и `proj`.\"], [\"print(sorted(p.name for p in root.iterdir()))\", \"Заглавные буквы идут раньше строчных.\"], [\"print((root / \\\"src\\\" / \\\"app.py\\\").read_text(encoding=\\\"utf-8\\\"))\", \"Содержимое файла.\"]], \"mistake\": \"Ожидать `app.py` в списке — он во вложенной папке.\"}"
                 },
                 {
                   "slug": "fil-dirs-e2",
@@ -643,7 +684,8 @@
                   "code": "from pathlib import Path\n\nroot = Path(\"site\")\nfor rel in [\"index.html\", \"css/main.css\", \"js/app.js\", \"js/lib/util.js\", \"about.html\"]:\n    path = root / rel\n    path.parent.mkdir(parents=True, exist_ok=True)\n    path.write_text(\"\", encoding=\"utf-8\")\n\nprint(sorted(p.name for p in root.glob(\"*.html\")))\nprint(sorted(p.name for p in root.rglob(\"*.js\")))\nprint(sorted(str(p.relative_to(root)) for p in root.glob(\"js/*\")))\n",
                   "expected_output": "['about.html', 'index.html']\n['app.js', 'util.js']\n['js/app.js', 'js/lib']",
                   "hint": "glob — только в этой папке, rglob — во всех вложенных.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`glob` ищет в одной папке, `rglob` — во всех вложенных. `js/*` совпадает и с папкой `lib`.\", \"lines\": [[\"print(sorted(p.name for p in root.glob(\\\"*.html\\\")))\", \"Только верхний уровень.\"], [\"print(sorted(p.name for p in root.rglob(\\\"*.js\\\")))\", \"И `js/lib/util.js`.\"], [\"print(sorted(str(p.relative_to(root)) for p in root.glob(\\\"js/*\\\")))\", \"`*` — и файлы, и папки.\"]], \"mistake\": \"Ожидать `util.js` от `glob(\\\"*.js\\\")` или без `lib` в последней строке.\"}"
                 },
                 {
                   "slug": "fil-dirs-e3",
@@ -652,7 +694,8 @@
                   "code": "from pathlib import Path\n\nd = Path(\"sizes\")\nd.mkdir(exist_ok=True)\n(d / \"a.txt\").write_text(\"12345\", encoding=\"utf-8\")\n(d / \"b.txt\").write_text(\"яя\", encoding=\"utf-8\")\nfor p in sorted(d.iterdir()):\n    print(p.name, p.stat().st_size)\nprint(sum(p.stat().st_size for p in d.iterdir()))\n",
                   "expected_output": "a.txt 5\nb.txt 4\n9",
                   "hint": "st_size — размер в байтах, а не в символах.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`stat().st_size` — размер в байтах. Кириллица в UTF-8 — 2 байта на букву.\", \"lines\": [[\"(d / \\\"b.txt\\\").write_text(\\\"яя\\\", encoding=\\\"utf-8\\\")\", \"4 байта.\"], [\"print(p.name, p.stat().st_size)\", \"Байты, не символы.\"], [\"print(sum(p.stat().st_size for p in d.iterdir()))\", \"5 + 4.\"]], \"mistake\": \"Ожидать `b.txt 2`.\"}"
                 },
                 {
                   "slug": "fil-dirs-e4",
@@ -662,7 +705,8 @@
                   "tests": "from pathlib import Path\n\ndef test_values():\n    make_dirs(\"mk/deep/base\", [\"logs\", \"reports\"])\n    make_dirs(\"mk/deep/base\", [\"logs\", \"screens\"])\n    assert sorted(p.name for p in Path(\"mk/deep/base\").iterdir()) == [\"logs\", \"reports\", \"screens\"], \"Неверные папки\"\n",
                   "solution": "from pathlib import Path\n\n\ndef make_dirs(base, names):\n    for name in names:\n        (Path(base) / name).mkdir(parents=True, exist_ok=True)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`parents=True` создаст и `base`, `exist_ok=True` — повторный вызов без ошибки.\", \"lines\": [[\"(Path(base) / name).mkdir(parents=True, exist_ok=True)\", \"Оба флага.\"]], \"mistake\": \"Без `exist_ok` — второй вызов упадёт.\"}"
                 },
                 {
                   "slug": "fil-dirs-e5",
@@ -672,7 +716,8 @@
                   "tests": "from pathlib import Path\n\ndef test_values():\n    d = Path(\"lf\")\n    (d / \"sub.log\").mkdir(parents=True, exist_ok=True)\n    for n in [\"b.log\", \"a.log\", \"c.txt\"]:\n        (d / n).write_text(\"x\", encoding=\"utf-8\")\n    assert list_files(\"lf\", \".log\") == [\"a.log\", \"b.log\"] and list_files(\"lf\", \".csv\") == [], list_files(\"lf\", \".log\")\n",
                   "solution": "from pathlib import Path\n\n\ndef list_files(folder, ext):\n    return sorted(p.name for p in Path(folder).iterdir() if p.is_file() and p.suffix == ext)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Фильтр по двум условиям: это файл и расширение совпадает.\", \"lines\": [[\"return sorted(p.name for p in Path(folder).iterdir() if p.is_file() and p.suffix == ext)\", \"Папка `x.log` не попадёт.\"]], \"mistake\": \"Не проверить `is_file` — попадут папки с точкой в имени.\"}"
                 },
                 {
                   "slug": "fil-dirs-e6",
@@ -682,7 +727,8 @@
                   "tests": "from pathlib import Path\n\ndef test_values():\n    r = Path(\"ft\")\n    for rel in [\"test_a.py\", \"api/test_users.py\", \"api/helpers.py\", \"ui/pages/test_login.py\", \"ui/conftest.py\"]:\n        p = r / rel\n        p.parent.mkdir(parents=True, exist_ok=True)\n        p.write_text(\"\", encoding=\"utf-8\")\n    assert find_tests(\"ft\") == [\"api/test_users.py\", \"test_a.py\", \"ui/pages/test_login.py\"], find_tests(\"ft\")\n",
                   "solution": "from pathlib import Path\n\n\ndef find_tests(root):\n    root = Path(root)\n    return sorted(p.relative_to(root).as_posix() for p in root.rglob(\"test_*.py\"))\n",
                   "hint": "p.relative_to(root).as_posix() — относительный путь с прямыми слешами.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`rglob` обходит все вложенные папки; `relative_to` отрезает корень, `as_posix` ставит `/`.\", \"lines\": [[\"root = Path(root)\", \"Строку — в путь.\"], [\"return sorted(p.relative_to(root).as_posix() for p in root.rglob(\\\"test_*.py\\\"))\", \"Относительные пути.\"]], \"mistake\": \"`str(p)` — на Windows будут `\\\\`.\"}"
                 },
                 {
                   "slug": "fil-dirs-e7",
@@ -692,7 +738,8 @@
                   "tests": "from pathlib import Path\n\ndef test_values():\n    r = Path(\"fs\")\n    (r / \"x\" / \"y\").mkdir(parents=True, exist_ok=True)\n    (r / \"a.bin\").write_bytes(b\"12345\")\n    (r / \"x\" / \"b.bin\").write_bytes(b\"123\")\n    (r / \"x\" / \"y\" / \"c.bin\").write_bytes(b\"1\" * 10)\n    assert folder_size(\"fs\") == 18, folder_size(\"fs\")\n",
                   "solution": "from pathlib import Path\n\n\ndef folder_size(folder):\n    return sum(p.stat().st_size for p in Path(folder).rglob(\"*\") if p.is_file())\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`rglob(\\\"*\\\")` — всё содержимое; суммируем размеры только файлов.\", \"lines\": [[\"return sum(p.stat().st_size for p in Path(folder).rglob(\\\"*\\\") if p.is_file())\", \"Папки пропускаем.\"]], \"mistake\": \"Складывать размеры папок — это служебные числа, не содержимое.\"}"
                 },
                 {
                   "slug": "fil-dirs-e8",
@@ -702,7 +749,8 @@
                   "tests": "from pathlib import Path\n\ndef test_values():\n    r = Path(\"tr\")\n    (r / \"a\" / \"c\").mkdir(parents=True, exist_ok=True)\n    (r / \"b.txt\").write_text(\"\", encoding=\"utf-8\")\n    (r / \"a\" / \"x.txt\").write_text(\"\", encoding=\"utf-8\")\n    assert tree(\"tr\") == [\"a/\", \"  c/\", \"  x.txt\", \"b.txt\"], tree(\"tr\")\n",
                   "solution": "from pathlib import Path\n\n\ndef tree(folder, indent=0):\n    lines = []\n    items = sorted(Path(folder).iterdir(), key=lambda p: (not p.is_dir(), p.name))\n    for p in items:\n        if p.is_dir():\n            lines.append(\" \" * indent + p.name + \"/\")\n            lines.extend(tree(p, indent + 2))\n        else:\n            lines.append(\" \" * indent + p.name)\n    return lines\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Рекурсия: для папки — её строка и дерево её содержимого с отступом +2. Ключ сортировки `(не папка, имя)` ставит папки первыми.\", \"lines\": [[\"items = sorted(Path(folder).iterdir(), key=lambda p: (not p.is_dir(), p.name))\", \"`False` < `True` — папки раньше.\"], [\"lines.append(\\\" \\\" * indent + p.name + \\\"/\\\")\", \"Папка со слешем.\"], [\"lines.extend(tree(p, indent + 2))\", \"Вложенное — глубже.\"], [\"lines.append(\\\" \\\" * indent + p.name)\", \"Файл.\"]], \"mistake\": \"`append` вместо `extend` — внутрь попадёт список.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nОтчёты складывают в папку с датой, скриншоты — в папку упавших тестов, тестовые данные ищут по всему проекту. Нужно уметь создавать папки, смотреть их содержимое, искать файлы по шаблону.\n\n## Создание папок и файлов\n\n```python\nfrom pathlib import Path\n\nroot = Path(\"proj\")\n(root / \"src\").mkdir(parents=True, exist_ok=True)\n(root / \"tests\").mkdir(exist_ok=True)\n(root / \"src\" / \"app.py\").write_text(\"print(1)\", encoding=\"utf-8\")\n(root / \"README.md\").write_text(\"# Проект\", encoding=\"utf-8\")\n\nprint(sorted(p.name for p in root.iterdir()))\nprint((root / \"src\" / \"app.py\").read_text(encoding=\"utf-8\"))\n```\n\n- `mkdir(parents=True)` — создать и все недостающие папки на пути (`proj`, затем `proj/src`).\n- `exist_ok=True` — не падать, если папка уже есть. Без него — `FileExistsError`.\n- `write_text(текст)` / `read_text()` — записать или прочитать файл целиком одной строкой, без `with` и `open`.\n- `iterdir()` — всё, что лежит в папке (файлы и папки, без вложенных). Порядок **не гарантирован** — поэтому `sorted`.\n- Вывод: `['README.md', 'src', 'tests']`, `print(1)`.\n\n## Байты целиком\n\n```python\nfrom pathlib import Path\n\np = Path(\"logo.bin\")\np.write_bytes(b\"\\x89PNG\")\nprint(p.read_bytes(), p.stat().st_size)\n```\n\n- `write_bytes` / `read_bytes` — то же для двоичных данных.\n- `stat().st_size` — размер файла в **байтах**.\n- Вывод: `b'\\x89PNG' 4`.\n\n## Поиск по шаблону: glob и rglob\n\n```python\nfrom pathlib import Path\n\nroot = Path(\"site\")\nfor rel in [\"index.html\", \"css/main.css\", \"js/app.js\", \"js/lib/util.js\", \"about.html\"]:\n    path = root / rel\n    path.parent.mkdir(parents=True, exist_ok=True)\n    path.write_text(\"\", encoding=\"utf-8\")\n\nprint(sorted(p.name for p in root.glob(\"*.html\")))\nprint(sorted(p.name for p in root.rglob(\"*.js\")))\nprint(sorted(str(p.relative_to(root)) for p in root.glob(\"js/*\")))\n```\n\n- `path.parent.mkdir(parents=True, exist_ok=True)` — перед записью файла создать его папку. Частый приём.\n- `glob(\"*.html\")` — файлы по шаблону в **этой** папке. `*` — любые символы, `?` — один символ.\n- `rglob(\"*.js\")` — во всех вложенных папках (recursive). То же, что `glob(\"**/*.js\")`.\n- `relative_to(root)` — путь относительно папки: `site/js/app.js` → `js/app.js`.\n- Вывод: `['about.html', 'index.html']`, `['app.js', 'util.js']`, `['js/app.js', 'js/lib']`.\n\n## Только файлы\n\n```python\nfrom pathlib import Path\n\nd = Path(\"site\")\nfor rel in [\"index.html\", \"about.html\", \"css/main.css\", \"js/app.js\"]:\n    (d / rel).parent.mkdir(parents=True, exist_ok=True)\n    (d / rel).write_text(\"\", encoding=\"utf-8\")\nprint(sorted(p.name for p in d.iterdir() if p.is_file()))\nprint(sorted(p.name for p in d.iterdir() if p.is_dir()))\n```\n\n- `iterdir()` отдаёт и файлы, и папки — фильтруй через `is_file()` / `is_dir()`.\n- Вывод: `['about.html', 'index.html']`, `['css', 'js']`.\n\n## Размер папки\n\n```python\nfrom pathlib import Path\n\nd = Path(\"sizes\")\nd.mkdir(exist_ok=True)\n(d / \"a.txt\").write_text(\"12345\", encoding=\"utf-8\")\n(d / \"b.txt\").write_text(\"яя\", encoding=\"utf-8\")\ntotal = sum(p.stat().st_size for p in d.rglob(\"*\") if p.is_file())\nprint(total)\n```\n\n- `rglob(\"*\")` — всё содержимое на любой глубине. Размер кириллицы — 2 байта на букву.\n- Вывод: `9`.\n\n## Итог\n\n- `mkdir(parents=True, exist_ok=True)`.\n- `read_text` / `write_text`, `read_bytes` / `write_bytes` — файл целиком.\n- `iterdir()` — содержимое папки; `glob(\"*.ext\")`, `rglob(\"*.ext\")` — поиск.\n- `relative_to(root)`, `stat().st_size`.",
@@ -754,7 +802,8 @@
                   "code": "import os\nimport shutil\n\nos.makedirs(\"box/in\", exist_ok=True)\nwith open(\"box/in/a.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"A\")\nshutil.copy(\"box/in/a.txt\", \"box/b.txt\")\nos.rename(\"box/b.txt\", \"box/c.txt\")\nprint(sorted(os.listdir(\"box\")))\nos.remove(\"box/c.txt\")\nprint(sorted(os.listdir(\"box\")), os.path.exists(\"box/c.txt\"))\n",
                   "expected_output": "['c.txt', 'in']\n['in'] False",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`shutil.copy` копирует, `os.rename` переименовывает, `os.remove` удаляет файл. `os.listdir` — имена в папке.\", \"lines\": [[\"os.makedirs(\\\"box/in\\\", exist_ok=True)\", \"Папки с вложенными.\"], [\"shutil.copy(\\\"box/in/a.txt\\\", \\\"box/b.txt\\\")\", \"Копия.\"], [\"os.rename(\\\"box/b.txt\\\", \\\"box/c.txt\\\")\", \"b → c.\"], [\"print(sorted(os.listdir(\\\"box\\\")))\", \"`c.txt` и папка `in`.\"], [\"os.remove(\\\"box/c.txt\\\")\", \"Удалён.\"]], \"mistake\": \"Ожидать `b.txt` — после `rename` его нет.\"}"
                 },
                 {
                   "slug": "fil-os-e2",
@@ -763,7 +812,8 @@
                   "code": "import os.path\n\npath = \"reports/2024/result.json\"\nprint(os.path.basename(path), os.path.dirname(path))\nprint(os.path.splitext(path))\nprint(os.path.join(\"a\", \"b\", \"c.txt\").replace(os.sep, \"/\"))\nprint(os.path.isabs(\"/etc/hosts\"), os.path.isabs(\"etc/hosts\"))\n",
                   "expected_output": "result.json reports/2024\n('reports/2024/result', '.json')\na/b/c.txt\nTrue False",
                   "hint": "Это старый способ работы с путями — pathlib его заменяет, но встречается повсюду.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`os.path` работает со строками: `basename` — имя, `dirname` — папка, `splitext` — (без расширения, расширение), `join` — склейка.\", \"lines\": [[\"print(os.path.basename(path), os.path.dirname(path))\", \"Имя и папка.\"], [\"print(os.path.splitext(path))\", \"Путь остаётся в первой части.\"], [\"print(os.path.join(\\\"a\\\", \\\"b\\\", \\\"c.txt\\\").replace(os.sep, \\\"/\\\"))\", \"`join` ставит разделитель системы.\"], [\"print(os.path.isabs(\\\"/etc/hosts\\\"), os.path.isabs(\\\"etc/hosts\\\"))\", \"Абсолютный — от корня.\"]], \"mistake\": \"Ожидать `('result', '.json')` — `splitext` не отрезает папки.\"}"
                 },
                 {
                   "slug": "fil-os-e3",
@@ -772,7 +822,8 @@
                   "code": "import os\nimport shutil\nfrom pathlib import Path\n\nPath(\"trash/sub\").mkdir(parents=True, exist_ok=True)\nPath(\"trash/sub/f.txt\").write_text(\"x\", encoding=\"utf-8\")\ntry:\n    os.rmdir(\"trash\")\nexcept OSError:\n    print(\"rmdir: папка не пуста\")\nshutil.rmtree(\"trash\")\nprint(Path(\"trash\").exists())\n",
                   "expected_output": "rmdir: папка не пуста\nFalse",
                   "hint": "rmdir удаляет только пустую папку, shutil.rmtree — со всем содержимым. Осторожно!",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`os.rmdir` удаляет только пустую папку; `shutil.rmtree` — со всем содержимым.\", \"lines\": [[\"os.rmdir(\\\"trash\\\")\", \"Не пуста — `OSError`.\"], [\"shutil.rmtree(\\\"trash\\\")\", \"Удалена целиком.\"], [\"print(Path(\\\"trash\\\").exists())\", \"Больше нет.\"]], \"mistake\": \"Пользоваться `rmtree` без оглядки — удаляет без корзины и без вопросов.\"}"
                 },
                 {
                   "slug": "fil-os-e4",
@@ -782,7 +833,8 @@
                   "tests": "def test_values():\n    with open(\"config.json\", \"w\", encoding=\"utf-8\") as f:\n        f.write('{\"a\": 1}')\n    assert backup(\"config.json\") == \"config.json.bak\", \"Путь копии\"\n    with open(\"config.json.bak\", encoding=\"utf-8\") as f:\n        assert f.read() == '{\"a\": 1}', \"Содержимое копии\"\n",
                   "solution": "import shutil\n\n\ndef backup(path):\n    target = path + \".bak\"\n    shutil.copy(path, target)\n    return target\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Имя копии — исходное + `.bak`; `shutil.copy` копирует содержимое.\", \"lines\": [[\"target = path + \\\".bak\\\"\", \"config.json.bak.\"], [\"shutil.copy(path, target)\", \"Копия.\"], [\"return target\", \"Путь копии.\"]], \"mistake\": \"`os.rename` — оригинал исчезнет.\"}"
                 },
                 {
                   "slug": "fil-os-e5",
@@ -792,7 +844,8 @@
                   "tests": "from pathlib import Path\n\ndef test_values():\n    d = Path(\"cf\")\n    d.mkdir(exist_ok=True)\n    for n in [\"a.tmp\", \"b.tmp\", \"c.txt\"]:\n        (d / n).write_text(\"x\", encoding=\"utf-8\")\n    assert clean_folder(\"cf\", \".tmp\") == 2 and sorted(p.name for p in d.iterdir()) == [\"c.txt\"], \"Удаление\"\n    assert clean_folder(\"cf\", \".tmp\") == 0, \"Повторный вызов\"\n",
                   "solution": "from pathlib import Path\n\n\ndef clean_folder(folder, ext):\n    count = 0\n    for p in Path(folder).iterdir():\n        if p.is_file() and p.suffix == ext:\n            p.unlink()\n            count += 1\n    return count\n",
                   "hint": "Path.unlink() удаляет файл.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Удалить файл — `Path.unlink()`. Папки и чужие расширения не трогаем.\", \"lines\": [[\"if p.is_file() and p.suffix == ext:\", \"Только нужные файлы.\"], [\"p.unlink()\", \"Удаление.\"], [\"count += 1\", \"Счёт.\"]], \"mistake\": \"Удалять без `is_file` — `unlink` на папке упадёт.\"}"
                 },
                 {
                   "slug": "fil-os-e6",
@@ -802,7 +855,8 @@
                   "tests": "from pathlib import Path\n\ndef test_values():\n    s = Path(\"al_src\")\n    s.mkdir(exist_ok=True)\n    for n in [\"b.log\", \"a.log\", \"keep.txt\"]:\n        (s / n).write_text(n, encoding=\"utf-8\")\n    assert archive_logs(\"al_src\", \"al_dst/old\") == [\"a.log\", \"b.log\"], \"Список\"\n    assert sorted(p.name for p in s.iterdir()) == [\"keep.txt\"] and (Path(\"al_dst/old\") / \"a.log\").read_text(encoding=\"utf-8\") == \"a.log\", \"Перемещение\"\n",
                   "solution": "import shutil\nfrom pathlib import Path\n\n\ndef archive_logs(src, dst):\n    Path(dst).mkdir(parents=True, exist_ok=True)\n    moved = []\n    for p in sorted(Path(src).glob(\"*.log\")):\n        shutil.move(str(p), str(Path(dst) / p.name))\n        moved.append(p.name)\n    return moved\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`shutil.move` переносит файл. Папку назначения создаём заранее.\", \"lines\": [[\"Path(dst).mkdir(parents=True, exist_ok=True)\", \"Куда класть.\"], [\"for p in sorted(Path(src).glob(\\\"*.log\\\")):\", \"Только логи, по порядку.\"], [\"shutil.move(str(p), str(Path(dst) / p.name))\", \"Перенос с тем же именем.\"], [\"moved.append(p.name)\", \"Запоминаем имя.\"]], \"mistake\": \"`shutil.copy` — файлы останутся в `src`.\"}"
                 },
                 {
                   "slug": "fil-os-e7",
@@ -812,7 +866,8 @@
                   "tests": "def test_values():\n    assert split_path(\"logs/2024/run.log\") == (\"logs/2024\", \"run\", \".log\") and split_path(\"a.tar.gz\") == (\"\", \"a.tar\", \".gz\") and split_path(\"dir/Makefile\") == (\"dir\", \"Makefile\", \"\"), \"Неверный результат\"\n",
                   "solution": "import os.path\n\n\ndef split_path(path):\n    folder = os.path.dirname(path)\n    stem, ext = os.path.splitext(os.path.basename(path))\n    return folder, stem, ext\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Сначала папка, затем имя разделяем на основу и расширение.\", \"lines\": [[\"folder = os.path.dirname(path)\", \"logs/2024.\"], [\"stem, ext = os.path.splitext(os.path.basename(path))\", \"run и .log.\"]], \"mistake\": \"`splitext(path)` — в основе останется папка.\"}"
                 },
                 {
                   "slug": "fil-os-e8",
@@ -822,7 +877,8 @@
                   "tests": "from pathlib import Path\n\ndef test_values():\n    d = Path(\"kl\")\n    d.mkdir(exist_ok=True)\n    names = [\"report_2024-03-01.html\", \"report_2024-03-08.html\", \"report_2024-02-20.html\", \"report_2024-03-05.html\"]\n    for name in names:\n        (d / name).write_text(\"\", encoding=\"utf-8\")\n    assert keep_latest(\"kl\", 2) == [\"report_2024-02-20.html\", \"report_2024-03-01.html\"], \"Удалённые\"\n    assert sorted(p.name for p in d.iterdir()) == [\"report_2024-03-05.html\", \"report_2024-03-08.html\"], \"Оставшиеся\"\n    assert keep_latest(\"kl\", 5) == [], \"Удалять нечего\"\n",
                   "solution": "from pathlib import Path\n\n\ndef keep_latest(folder, n):\n    files = sorted((p for p in Path(folder).iterdir() if p.is_file()), key=lambda p: p.name)\n    to_delete = files[:max(len(files) - n, 0)]\n    for p in to_delete:\n        p.unlink()\n    return [p.name for p in to_delete]\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Имена с датой сортируются хронологически. Удаляем всё, кроме последних `n`.\", \"lines\": [[\"files = sorted((p for p in Path(folder).iterdir() if p.is_file()), key=lambda p: p.name)\", \"Старые — в начале.\"], [\"to_delete = files[:max(len(files) - n, 0)]\", \"Лишние сначала; `max` на случай, когда файлов меньше `n`.\"], [\"p.unlink()\", \"Удаление.\"]], \"mistake\": \"`files[:-n]` — при `n = 0` не удалится ничего вместо всех.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nФайлы нужно копировать (бэкап конфига), перемещать (архив старых логов), переименовывать и удалять (очистка временных данных). Для этого есть модули `os` и `shutil`. Модуль `os.path` — старый способ работы с путями, он встречается в огромном количестве кода.\n\n## Копировать, переименовать, удалить\n\n```python\nimport os\nimport shutil\n\nos.makedirs(\"box/in\", exist_ok=True)\nwith open(\"box/in/a.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"A\")\nshutil.copy(\"box/in/a.txt\", \"box/b.txt\")\nos.rename(\"box/b.txt\", \"box/c.txt\")\nprint(sorted(os.listdir(\"box\")))\nos.remove(\"box/c.txt\")\nprint(sorted(os.listdir(\"box\")), os.path.exists(\"box/c.txt\"))\n```\n\n- `os.makedirs(путь, exist_ok=True)` — как `Path.mkdir(parents=True, exist_ok=True)`.\n- `shutil.copy(откуда, куда)` — скопировать файл.\n- `os.rename(старое, новое)` — переименовать или переместить в пределах диска.\n- `os.listdir(папка)` — список имён в папке (строки, не пути).\n- `os.remove(путь)` — удалить файл **навсегда** (не в корзину).\n- Вывод: `['c.txt', 'in']`, `['in'] False`.\n\n## То же через pathlib\n\n- `Path(\"a\").rename(\"b\")` — переименовать.\n- `Path(\"a\").unlink()` — удалить файл; `unlink(missing_ok=True)` — не падать, если его нет.\n- `Path(\"d\").rmdir()` — удалить пустую папку.\n- Копирования в `pathlib` нет — используют `shutil`.\n\n## Перемещение и удаление папок\n\n```python\nimport os\nimport shutil\nfrom pathlib import Path\n\nPath(\"trash/sub\").mkdir(parents=True, exist_ok=True)\nPath(\"trash/sub/f.txt\").write_text(\"x\", encoding=\"utf-8\")\ntry:\n    os.rmdir(\"trash\")\nexcept OSError:\n    print(\"rmdir: папка не пуста\")\nshutil.rmtree(\"trash\")\nprint(Path(\"trash\").exists())\n```\n\n- `os.rmdir` удаляет только **пустую** папку.\n- `shutil.rmtree(папка)` — удалить папку со всем содержимым. Опасная команда: проверяй путь!\n- `shutil.move(откуда, куда)` — переместить файл или папку, в том числе на другой диск.\n- `shutil.copytree(откуда, куда)` — скопировать папку целиком.\n- Вывод: `rmdir: папка не пуста`, `False`.\n\n## os.path\n\n```python\nimport os.path\n\npath = \"reports/2024/result.json\"\nprint(os.path.basename(path), os.path.dirname(path))\nprint(os.path.splitext(path))\nprint(os.path.isabs(\"/etc/hosts\"), os.path.isabs(\"etc/hosts\"))\n```\n\n- `basename` — имя файла (`Path.name`), `dirname` — папка (`Path.parent`).\n- `splitext` — кортеж (всё до расширения, расширение) — аналог `stem` и `suffix`.\n- `os.path.join(\"a\", \"b\")` — склеить части пути (`Path(\"a\") / \"b\"`).\n- `isabs` — абсолютный ли путь (начинается от корня).\n- Вывод: `result.json reports/2024`, `('reports/2024/result', '.json')`, `True False`.\n\n## Бэкап и ротация\n\n```python\nimport shutil\nfrom pathlib import Path\n\nd = Path(\"rot\")\nd.mkdir(exist_ok=True)\nfor day in [\"01\", \"02\", \"03\", \"04\"]:\n    (d / f\"report_2024-03-{day}.html\").write_text(\"\", encoding=\"utf-8\")\n\nfiles = sorted(d.iterdir())\nfor old in files[:-2]:\n    old.unlink()\nprint([p.name for p in sorted(d.iterdir())])\n```\n\n- Имена с датой в формате `ГГГГ-ММ-ДД` сортируются хронологически.\n- Удаляем всё, кроме двух последних, — так не даём отчётам заполнить диск.\n- Вывод: `['report_2024-03-03.html', 'report_2024-03-04.html']`.\n\n## Итог\n\n- `shutil.copy`, `shutil.move`, `shutil.copytree`, `shutil.rmtree`.\n- `os.rename`, `os.remove`, `os.rmdir`, `os.makedirs`, `os.listdir`.\n- `os.path.basename/dirname/splitext/join/exists`.\n- Удаление — навсегда. Перед `rmtree` проверь путь.",
@@ -874,7 +930,8 @@
                   "code": "from pathlib import Path\n\nPath(\"err_dir\").mkdir(exist_ok=True)\nchecks = [\n    lambda: open(\"нет_такого.txt\", encoding=\"utf-8\"),\n    lambda: open(\"err_dir\", encoding=\"utf-8\"),\n    lambda: Path(\"err_dir\").mkdir(),\n]\nfor check in checks:\n    try:\n        check()\n    except OSError as e:\n        print(type(e).__name__)\n",
                   "expected_output": "FileNotFoundError\nIsADirectoryError\nFileExistsError",
                   "hint": "Все ошибки файловой системы — наследники OSError.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Все файловые ошибки — наследники `OSError`, у каждой своё имя по причине.\", \"lines\": [[\"lambda: open(\\\"нет_такого.txt\\\", encoding=\\\"utf-8\\\"),\", \"Нет файла.\"], [\"lambda: open(\\\"err_dir\\\", encoding=\\\"utf-8\\\"),\", \"Это папка.\"], [\"lambda: Path(\\\"err_dir\\\").mkdir(),\", \"Уже есть.\"], [\"print(type(e).__name__)\", \"Конкретный класс.\"]], \"mistake\": \"Ожидать `OSError` в выводе — печатается реальный класс.\"}"
                 },
                 {
                   "slug": "fil-errors-e2",
@@ -883,7 +940,8 @@
                   "code": "try:\n    open(\"missing/config.json\", encoding=\"utf-8\")\nexcept FileNotFoundError as e:\n    print(e.filename)\n    print(e.strerror)\n    print(isinstance(e, OSError))\n",
                   "expected_output": "missing/config.json\nNo such file or directory\nTrue",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"В ошибке есть подробности: `filename` — путь, `strerror` — описание от системы.\", \"lines\": [[\"print(e.filename)\", \"Путь из `open`.\"], [\"print(e.strerror)\", \"Текст системы.\"], [\"print(isinstance(e, OSError))\", \"Наследник.\"]], \"mistake\": \"Ожидать только имя файла без папки.\"}"
                 },
                 {
                   "slug": "fil-errors-e3",
@@ -892,7 +950,8 @@
                   "code": "import os\n\npath = \"maybe.txt\"\nif os.path.exists(path):\n    os.remove(path)\n\nif os.path.exists(path):\n    print(\"LBYL: читаю\")\nelse:\n    print(\"LBYL: файла нет\")\n\ntry:\n    with open(path, encoding=\"utf-8\") as f:\n        print(f.read())\nexcept FileNotFoundError:\n    print(\"EAFP: файла нет\")\n",
                   "expected_output": "LBYL: файла нет\nEAFP: файла нет",
                   "hint": "LBYL — «посмотри, прежде чем прыгать», EAFP — «проще попросить прощения».",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"LBYL — проверить заранее, EAFP — попробовать и поймать ошибку. В Python чаще второе: между проверкой и открытием файл может исчезнуть.\", \"lines\": [[\"if os.path.exists(path):\\n    os.remove(path)\", \"Гарантируем, что файла нет.\"], [\"if os.path.exists(path):\", \"LBYL.\"], [\"except FileNotFoundError:\", \"EAFP.\"]], \"mistake\": \"Думать, что одно сработает, а другое — нет.\"}"
                 },
                 {
                   "slug": "fil-errors-e4",
@@ -902,7 +961,8 @@
                   "tests": "def test_values():\n    with open(\"rd.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"есть\")\n    assert read_or_default(\"rd.txt\") == \"есть\" and read_or_default(\"нет.txt\") == \"\" and read_or_default(\"нет.txt\", \"пусто\") == \"пусто\", \"Неверный результат\"\n",
                   "solution": "def read_or_default(path, default=\"\"):\n    try:\n        with open(path, encoding=\"utf-8\") as f:\n            return f.read()\n    except FileNotFoundError:\n        return default\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Нет файла — значение по умолчанию.\", \"lines\": [[\"with open(path, encoding=\\\"utf-8\\\") as f:\\n            return f.read()\", \"Есть файл.\"], [\"except FileNotFoundError:\\n        return default\", \"Нет файла.\"]], \"mistake\": \"`except OSError` — спрячет и «нет прав», и «это папка».\"}"
                 },
                 {
                   "slug": "fil-errors-e5",
@@ -912,7 +972,8 @@
                   "tests": "def test_values():\n    with open(\"good.json\", \"w\", encoding=\"utf-8\") as f:\n        f.write('{\"url\": \"http://x\"}')\n    with open(\"bad.json\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"{url: \")\n    assert load_config(\"good.json\") == {\"url\": \"http://x\"}, \"Хороший конфиг\"\n    for path, exc, msg in [(\"none.json\", FileNotFoundError, \"нет конфига: none.json\"), (\"bad.json\", ValueError, \"битый конфиг: bad.json\")]:\n        try:\n            load_config(path)\n        except exc as e:\n            assert str(e) == msg, str(e)\n        else:\n            assert False, f\"Нужен {exc.__name__}\"\n",
                   "solution": "import json\n\n\ndef load_config(path):\n    try:\n        with open(path, encoding=\"utf-8\") as f:\n            return json.load(f)\n    except FileNotFoundError:\n        raise FileNotFoundError(f\"нет конфига: {path}\") from None\n    except json.JSONDecodeError:\n        raise ValueError(f\"битый конфиг: {path}\") from None\n",
                   "hint": "json.JSONDecodeError — наследник ValueError.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Переводим технические ошибки в понятные. `from None` скрывает исходную цепочку.\", \"lines\": [[\"return json.load(f)\", \"Разбор прямо из файла.\"], [\"raise FileNotFoundError(f\\\"нет конфига: {path}\\\") from None\", \"Своё сообщение.\"], [\"raise ValueError(f\\\"битый конфиг: {path}\\\") from None\", \"`JSONDecodeError` → `ValueError`.\"]], \"mistake\": \"Без `from None` — в выводе будет длинная цепочка из двух ошибок.\"}"
                 },
                 {
                   "slug": "fil-errors-e6",
@@ -922,7 +983,8 @@
                   "tests": "from pathlib import Path\n\ndef test_values():\n    Path(\"rm_dir\").mkdir(exist_ok=True)\n    with open(\"rm1.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"один\")\n    data, errors = read_many([\"rm1.txt\", \"нет.txt\", \"rm_dir\"])\n    assert data == {\"rm1.txt\": \"один\"} and errors == [\"нет.txt\", \"rm_dir\"], (data, errors)\n",
                   "solution": "def read_many(paths):\n    data = {}\n    errors = []\n    for path in paths:\n        try:\n            with open(path, encoding=\"utf-8\") as f:\n                data[path] = f.read()\n        except OSError:\n            errors.append(path)\n    return data, errors\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Ошибка одного файла не мешает остальным: `try` — внутри цикла.\", \"lines\": [[\"for path in paths:\", \"По одному.\"], [\"data[path] = f.read()\", \"Прочитан.\"], [\"except OSError:\\n            errors.append(path)\", \"Любая файловая ошибка.\"], [\"return data, errors\", \"Кортеж.\"]], \"mistake\": \"`try` вокруг цикла — первая ошибка остановит всё.\"}"
                 },
                 {
                   "slug": "fil-errors-e7",
@@ -932,7 +994,8 @@
                   "tests": "import os\n\ndef test_values():\n    safe_write(\"atomic.txt\", \"v1\")\n    safe_write(\"atomic.txt\", \"v2\")\n    with open(\"atomic.txt\", encoding=\"utf-8\") as f:\n        assert f.read() == \"v2\", \"Содержимое\"\n    assert not os.path.exists(\"atomic.txt.tmp\"), \"Временный файл не должен оставаться\"\n    assert \"os.replace\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй os.replace\"\n",
                   "solution": "import os\n\n\ndef safe_write(path, text):\n    tmp = path + \".tmp\"\n    with open(tmp, \"w\", encoding=\"utf-8\") as f:\n        f.write(text)\n    os.replace(tmp, path)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Атомарная запись: пишем во временный файл, затем одной операцией подменяем исходный.\", \"lines\": [[\"tmp = path + \\\".tmp\\\"\", \"Временное имя рядом.\"], [\"f.write(text)\", \"Сбой здесь не тронет оригинал.\"], [\"os.replace(tmp, path)\", \"Подмена — одним шагом.\"]], \"mistake\": \"Писать сразу в `path` — при сбое файл останется полупустым.\"}"
                 },
                 {
                   "slug": "fil-errors-e8",
@@ -942,7 +1005,8 @@
                   "tests": "from pathlib import Path\n\ndef test_values():\n    p = Path(\"ef/sub/settings.ini\")\n    if p.exists():\n        p.unlink()\n    assert ensure_file(\"ef/sub/settings.ini\", \"[main]\") == \"[main]\", \"Создание\"\n    p.write_text(\"изменено\", encoding=\"utf-8\")\n    assert ensure_file(\"ef/sub/settings.ini\", \"[main]\") == \"изменено\", \"Существующий не трогаем\"\n    try:\n        ensure_file(\"ef/sub\", \"x\")\n    except IsADirectoryError as e:\n        assert str(e) == \"ef/sub — это папка\", str(e)\n        return\n    assert False, \"Нужен IsADirectoryError\"\n",
                   "solution": "from pathlib import Path\n\n\ndef ensure_file(path, default_text):\n    p = Path(path)\n    if p.is_dir():\n        raise IsADirectoryError(f\"{path} — это папка\")\n    if not p.exists():\n        p.parent.mkdir(parents=True, exist_ok=True)\n        p.write_text(default_text, encoding=\"utf-8\")\n    return p.read_text(encoding=\"utf-8\")\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Сначала исключаем папку, потом создаём файл при отсутствии, в конце читаем.\", \"lines\": [[\"if p.is_dir():\", \"Папка — ошибка.\"], [\"raise IsADirectoryError(f\\\"{path} — это папка\\\")\", \"Понятное сообщение.\"], [\"p.parent.mkdir(parents=True, exist_ok=True)\", \"Папки по пути.\"], [\"p.write_text(default_text, encoding=\\\"utf-8\\\")\", \"Файл по умолчанию.\"], [\"return p.read_text(encoding=\\\"utf-8\\\")\", \"Содержимое.\"]], \"mistake\": \"Проверять только `exists` — для папки он тоже `True`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nС файлами постоянно что-то идёт не так: файла нет, по пути лежит папка, нет прав, диск переполнен. Программа не должна падать с непонятной трассировкой — нужно ловить конкретные ошибки и сообщать, что случилось.\n\n## Ошибки файловой системы\n\n```python\nfrom pathlib import Path\n\nPath(\"err_dir\").mkdir(exist_ok=True)\nchecks = [\n    lambda: open(\"нет_такого.txt\", encoding=\"utf-8\"),\n    lambda: open(\"err_dir\", encoding=\"utf-8\"),\n    lambda: Path(\"err_dir\").mkdir(),\n]\nfor check in checks:\n    try:\n        check()\n    except OSError as e:\n        print(type(e).__name__)\n```\n\n- `FileNotFoundError` — файла или папки нет.\n- `IsADirectoryError` — ожидали файл, а там папка.\n- `FileExistsError` — файл уже есть (режим `\"x\"`, `mkdir` без `exist_ok`).\n- `PermissionError` — нет прав.\n- `NotADirectoryError` — ожидали папку, а там файл.\n- Все они — наследники **`OSError`**: `except OSError` ловит их все.\n- Вывод: `FileNotFoundError`, `IsADirectoryError`, `FileExistsError`.\n\n## Что внутри ошибки\n\n```python\ntry:\n    open(\"missing/config.json\", encoding=\"utf-8\")\nexcept FileNotFoundError as e:\n    print(e.filename)\n    print(e.strerror)\n    print(isinstance(e, OSError))\n```\n\n- `e.filename` — путь, с которым была проблема; `e.strerror` — описание от системы.\n- Вывод: `missing/config.json`, `No such file or directory`, `True`.\n\n## Проверить заранее или попробовать\n\n```python\nimport os\n\npath = \"maybe.txt\"\nif os.path.exists(path):\n    os.remove(path)\n\nif os.path.exists(path):\n    print(\"LBYL: читаю\")\nelse:\n    print(\"LBYL: файла нет\")\n\ntry:\n    with open(path, encoding=\"utf-8\") as f:\n        print(f.read())\nexcept FileNotFoundError:\n    print(\"EAFP: файла нет\")\n```\n\n- **LBYL** («look before you leap») — проверить `exists()`, потом действовать.\n- **EAFP** («easier to ask forgiveness than permission») — просто попробовать и поймать ошибку.\n- В Python предпочитают EAFP: между проверкой и открытием файл могут удалить, а `try` ловит и эту ситуацию, и нехватку прав.\n- Вывод: `LBYL: файла нет`, `EAFP: файла нет`.\n\n## Понятные сообщения\n\n```python\nimport json\n\ndef load_config(path):\n    try:\n        with open(path, encoding=\"utf-8\") as f:\n            return json.load(f)\n    except FileNotFoundError:\n        raise FileNotFoundError(f\"нет конфига: {path}\") from None\n    except json.JSONDecodeError:\n        raise ValueError(f\"битый конфиг: {path}\") from None\n\ntry:\n    load_config(\"config.json\")\nexcept FileNotFoundError as e:\n    print(e)\n```\n\n- Перехватываем низкоуровневую ошибку и выбрасываем свою, с понятным текстом.\n- `from None` — не показывать исходную ошибку в трассировке (она уже «переведена»).\n- `json.JSONDecodeError` — ошибка разбора JSON, наследник `ValueError`.\n- Вывод: `нет конфига: config.json`.\n\n## Атомарная запись\n\n```python\nimport os\n\ndef safe_write(path, text):\n    tmp = path + \".tmp\"\n    with open(tmp, \"w\", encoding=\"utf-8\") as f:\n        f.write(text)\n    os.replace(tmp, path)\n\nsafe_write(\"state.json\", '{\"v\": 1}')\nsafe_write(\"state.json\", '{\"v\": 2}')\nwith open(\"state.json\", encoding=\"utf-8\") as f:\n    print(f.read(), os.path.exists(\"state.json.tmp\"))\n```\n\n- Если программа упадёт посреди записи в `\"w\"`, файл останется **обрезанным** — старые данные уже стёрты, новые не дописаны.\n- Решение: писать во временный файл, а потом одним действием подменить им исходный. `os.replace` заменяет файл целиком за одну операцию.\n- Вывод: `{\"v\": 2} False`.\n\n## Итог\n\n- `FileNotFoundError`, `FileExistsError`, `IsADirectoryError`, `PermissionError` — все `OSError`.\n- `e.filename`, `e.strerror`.\n- EAFP (`try/except`) предпочтительнее проверки `exists()`.\n- Свои понятные ошибки: `raise ... from None`.\n- Важные файлы — через временный файл и `os.replace`.",
@@ -1002,7 +1066,8 @@
                   "code": "import csv\n\nrows = [[\"name\", \"score\"], [\"Аня\", 90], [\"Боря, мл.\", 85]]\nwith open(\"scores.csv\", \"w\", encoding=\"utf-8\", newline=\"\") as f:\n    csv.writer(f).writerows(rows)\n\nwith open(\"scores.csv\", encoding=\"utf-8\") as f:\n    print(f.read(), end=\"\")\n\nwith open(\"scores.csv\", encoding=\"utf-8\", newline=\"\") as f:\n    for row in csv.reader(f):\n        print(row)\n",
                   "expected_output": "name,score\nАня,90\n\"Боря, мл.\",85\n['name', 'score']\n['Аня', '90']\n['Боря, мл.', '85']",
                   "hint": "Значение с запятой csv сам берёт в кавычки. Все значения читаются как строки.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`csv.writer` сам берёт в кавычки значения с запятой, `csv.reader` снимает их. Всё читается строками.\", \"lines\": [[\"with open(\\\"scores.csv\\\", \\\"w\\\", encoding=\\\"utf-8\\\", newline=\\\"\\\") as f:\", \"`newline=\\\"\\\"` — обязательно для csv.\"], [\"csv.writer(f).writerows(rows)\", \"Числа станут текстом.\"], [\"print(row)\", \"`'90'` — строка.\"]], \"mistake\": \"Ожидать `90` числом после чтения.\"}"
                 },
                 {
                   "slug": "fil-csv-e2",
@@ -1011,7 +1076,8 @@
                   "code": "import csv\n\nwith open(\"users.csv\", \"w\", encoding=\"utf-8\", newline=\"\") as f:\n    f.write(\"id,name,active\\n1,Аня,yes\\n2,Боря,no\\n\")\n\nwith open(\"users.csv\", encoding=\"utf-8\", newline=\"\") as f:\n    reader = csv.DictReader(f)\n    print(reader.fieldnames)\n    for row in reader:\n        print(row[\"name\"], row[\"active\"] == \"yes\", type(row[\"id\"]).__name__)\n",
                   "expected_output": "['id', 'name', 'active']\nАня True str\nБоря False str",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`DictReader` берёт заголовок из первой строки; каждая строка — словарь. Значения — строки.\", \"lines\": [[\"print(reader.fieldnames)\", \"Заголовки.\"], [\"print(row[\\\"name\\\"], row[\\\"active\\\"] == \\\"yes\\\", type(row[\\\"id\\\"]).__name__)\", \"`id` — строка.\"]], \"mistake\": \"Ожидать `int` у `id`.\"}"
                 },
                 {
                   "slug": "fil-csv-e3",
@@ -1020,7 +1086,8 @@
                   "code": "import csv\n\nusers = [{\"id\": 1, \"name\": \"Аня\"}, {\"id\": 2, \"name\": \"Боря\"}]\nwith open(\"out.csv\", \"w\", encoding=\"utf-8\", newline=\"\") as f:\n    writer = csv.DictWriter(f, fieldnames=[\"id\", \"name\"], delimiter=\";\")\n    writer.writeheader()\n    writer.writerows(users)\n\nwith open(\"out.csv\", encoding=\"utf-8\") as f:\n    print(f.read().splitlines())\n",
                   "expected_output": "['id;name', '1;Аня', '2;Боря']",
                   "hint": "В русском Excel разделитель часто ';'.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`DictWriter` пишет словари в порядке `fieldnames`; `writeheader` — строка заголовка; `delimiter` меняет разделитель.\", \"lines\": [[\"writer = csv.DictWriter(f, fieldnames=[\\\"id\\\", \\\"name\\\"], delimiter=\\\";\\\")\", \"Колонки и разделитель.\"], [\"writer.writeheader()\", \"id;name.\"], [\"writer.writerows(users)\", \"По строке на словарь.\"]], \"mistake\": \"Забыть `writeheader` — не будет заголовка.\"}"
                 },
                 {
                   "slug": "fil-csv-e4",
@@ -1030,7 +1097,8 @@
                   "tests": "def test_values():\n    write_csv(\"wc.csv\", [\"a\", \"b\"], [[1, \"x, y\"], [2, \"z\"]])\n    with open(\"wc.csv\", encoding=\"utf-8\", newline=\"\") as f:\n        assert f.read() == 'a,b\\r\\n1,\"x, y\"\\r\\n2,z\\r\\n', \"Неверное содержимое\"\n",
                   "solution": "import csv\n\n\ndef write_csv(path, header, rows):\n    with open(path, \"w\", encoding=\"utf-8\", newline=\"\") as f:\n        writer = csv.writer(f)\n        writer.writerow(header)\n        writer.writerows(rows)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Заголовок — `writerow`, данные — `writerows`.\", \"lines\": [[\"with open(path, \\\"w\\\", encoding=\\\"utf-8\\\", newline=\\\"\\\") as f:\", \"Без `newline` на Windows — пустые строки между записями.\"], [\"writer.writerow(header)\", \"Одна строка.\"], [\"writer.writerows(rows)\", \"Все остальные.\"]], \"mistake\": \"`writerows(header)` — каждая буква станет строкой.\"}"
                 },
                 {
                   "slug": "fil-csv-e5",
@@ -1040,7 +1108,8 @@
                   "tests": "def test_values():\n    with open(\"ru.csv\", \"w\", encoding=\"utf-8\", newline=\"\") as f:\n        f.write(\"id,name,age\\n1,Аня,30\\n2,Боря,25\\n\")\n    assert read_users(\"ru.csv\") == [{\"id\": 1, \"name\": \"Аня\", \"age\": 30}, {\"id\": 2, \"name\": \"Боря\", \"age\": 25}], read_users(\"ru.csv\")\n",
                   "solution": "import csv\n\n\ndef read_users(path):\n    with open(path, encoding=\"utf-8\", newline=\"\") as f:\n        return [\n            {\"id\": int(row[\"id\"]), \"name\": row[\"name\"], \"age\": int(row[\"age\"])}\n            for row in csv.DictReader(f)\n        ]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`DictReader` даёт строки — числовые поля переводим `int`.\", \"lines\": [[\"{\\\"id\\\": int(row[\\\"id\\\"]), \\\"name\\\": row[\\\"name\\\"], \\\"age\\\": int(row[\\\"age\\\"])}\", \"Новый словарь с числами.\"], [\"for row in csv.DictReader(f)\", \"Строка за строкой.\"]], \"mistake\": \"Возвращать генератор после закрытия файла — читать будет уже нечего.\"}"
                 },
                 {
                   "slug": "fil-csv-e6",
@@ -1050,7 +1119,8 @@
                   "tests": "def test_values():\n    with open(\"avg.csv\", \"w\", encoding=\"utf-8\", newline=\"\") as f:\n        f.write(\"test,time\\na,1.5\\nb,\\nc,2.25\\nd,3\\n\")\n    assert column_avg(\"avg.csv\", \"time\") == 2.25, column_avg(\"avg.csv\", \"time\")\n    with open(\"avg2.csv\", \"w\", encoding=\"utf-8\", newline=\"\") as f:\n        f.write(\"test,time\\na,\\n\")\n    assert column_avg(\"avg2.csv\", \"time\") is None, \"Нет чисел\"\n",
                   "solution": "import csv\n\n\ndef column_avg(path, column):\n    with open(path, encoding=\"utf-8\", newline=\"\") as f:\n        values = [float(row[column]) for row in csv.DictReader(f) if row[column].strip()]\n    if not values:\n        return None\n    return round(sum(values) / len(values), 2)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Собираем непустые значения колонки как числа и считаем среднее.\", \"lines\": [[\"values = [float(row[column]) for row in csv.DictReader(f) if row[column].strip()]\", \"Пустые ячейки пропускаем.\"], [\"if not values:\\n        return None\", \"Делить на ноль нельзя.\"], [\"return round(sum(values) / len(values), 2)\", \"Среднее.\"]], \"mistake\": \"Не пропустить пустые — `float(\\\"\\\")` упадёт.\"}"
                 },
                 {
                   "slug": "fil-csv-e7",
@@ -1060,7 +1130,8 @@
                   "tests": "def test_values():\n    export_results(\"er.csv\", [{\"test\": \"login\", \"status\": \"passed\", \"duration\": 1.2, \"extra\": 1}, {\"test\": \"cart\", \"status\": \"failed\", \"duration\": 3}])\n    with open(\"er.csv\", encoding=\"utf-8\") as f:\n        assert f.read().splitlines() == [\"test;status;duration\", \"login;passed;1.2\", \"cart;failed;3\"], \"Неверное содержимое\"\n",
                   "solution": "import csv\n\n\ndef export_results(path, results):\n    with open(path, \"w\", encoding=\"utf-8\", newline=\"\") as f:\n        writer = csv.DictWriter(f, fieldnames=[\"test\", \"status\", \"duration\"], delimiter=\";\", extrasaction=\"ignore\")\n        writer.writeheader()\n        writer.writerows(results)\n",
                   "hint": "extrasaction=\"ignore\" — не падать на лишних ключах.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`extrasaction=\\\"ignore\\\"` — лишние ключи не вызывают ошибку.\", \"lines\": [[\"writer = csv.DictWriter(f, fieldnames=[\\\"test\\\", \\\"status\\\", \\\"duration\\\"], delimiter=\\\";\\\", extrasaction=\\\"ignore\\\")\", \"Колонки, разделитель, игнор лишнего.\"], [\"writer.writeheader()\", \"Заголовок.\"]], \"mistake\": \"Без `extrasaction` — `ValueError` на первом лишнем ключе.\"}"
                 },
                 {
                   "slug": "fil-csv-e8",
@@ -1070,7 +1141,8 @@
                   "tests": "def test_values():\n    with open(\"fs.csv\", \"w\", encoding=\"utf-8\", newline=\"\") as f:\n        f.write(\"suite,test,status\\napi,a,failed\\nui,b,passed\\nui,c,failed\\napi,d,failed\\ndb,e,passed\\n\")\n    r = failed_by_suite(\"fs.csv\")\n    assert r == {\"api\": 2, \"ui\": 1} and list(r) == [\"api\", \"ui\"], r\n",
                   "solution": "import csv\n\n\ndef failed_by_suite(path):\n    counts = {}\n    with open(path, encoding=\"utf-8\", newline=\"\") as f:\n        for row in csv.DictReader(f):\n            if row[\"status\"] == \"failed\":\n                counts[row[\"suite\"]] = counts.get(row[\"suite\"], 0) + 1\n    return dict(sorted(counts.items(), key=lambda kv: -kv[1]))\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Считаем падения по сьютам, затем сортируем пары по убыванию и собираем словарь.\", \"lines\": [[\"if row[\\\"status\\\"] == \\\"failed\\\":\", \"Только падения.\"], [\"counts[row[\\\"suite\\\"]] = counts.get(row[\\\"suite\\\"], 0) + 1\", \"Счётчик.\"], [\"return dict(sorted(counts.items(), key=lambda kv: -kv[1]))\", \"По убыванию количества.\"]], \"mistake\": \"Считать все сьюты — появятся нули.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n**CSV** (comma-separated values) — таблица в текстовом файле: строка — запись, значения разделены запятыми. В CSV выгружают отчёты, результаты тестов, тестовые данные; его открывает Excel. Разбирать CSV через `split(\",\")` нельзя: значение может само содержать запятую. Для этого есть модуль `csv`.\n\n## writer и reader\n\n```python\nimport csv\n\nrows = [[\"name\", \"score\"], [\"Аня\", 90], [\"Боря, мл.\", 85]]\nwith open(\"scores.csv\", \"w\", encoding=\"utf-8\", newline=\"\") as f:\n    csv.writer(f).writerows(rows)\n\nwith open(\"scores.csv\", encoding=\"utf-8\") as f:\n    print(f.read(), end=\"\")\n\nwith open(\"scores.csv\", encoding=\"utf-8\", newline=\"\") as f:\n    for row in csv.reader(f):\n        print(row)\n```\n\n- `newline=\"\"` в `open` — обязательно для CSV: модуль сам управляет переводами строк. Без этого в Windows появятся пустые строки между записями.\n- `csv.writer(f)` — объект для записи; `writerow(список)` — одна строка, `writerows(список_списков)` — много.\n- Значение с запятой автоматически взято в **кавычки**: `\"Боря, мл.\"`.\n- `csv.reader(f)` — перебор строк, каждая — **список строк**. Числа тоже читаются строками (`'90'`)!\n- Вывод: `name,score`, `Аня,90`, `\"Боря, мл.\",85`, `['name', 'score']`, `['Аня', '90']`, `['Боря, мл.', '85']`.\n\n## DictReader: строки как словари\n\n```python\nimport csv\n\nwith open(\"users.csv\", \"w\", encoding=\"utf-8\", newline=\"\") as f:\n    f.write(\"id,name,active\\n1,Аня,yes\\n2,Боря,no\\n\")\n\nwith open(\"users.csv\", encoding=\"utf-8\", newline=\"\") as f:\n    reader = csv.DictReader(f)\n    print(reader.fieldnames)\n    for row in reader:\n        print(row[\"name\"], row[\"active\"] == \"yes\", type(row[\"id\"]).__name__)\n```\n\n- `DictReader` берёт первую строку как заголовок, а каждую следующую отдаёт словарём «колонка → значение».\n- Обращаться по имени колонки удобнее и надёжнее, чем по индексу.\n- `fieldnames` — список колонок.\n- Вывод: `['id', 'name', 'active']`, `Аня True str`, `Боря False str`.\n\n## Преобразование типов\n\n```python\nimport csv\nimport io\n\ntext = \"id,name,age\\n1,Аня,30\\n2,Боря,25\\n\"\nusers = [\n    {\"id\": int(r[\"id\"]), \"name\": r[\"name\"], \"age\": int(r[\"age\"])}\n    for r in csv.DictReader(io.StringIO(text))\n]\nprint(users)\nprint(sum(u[\"age\"] for u in users))\n```\n\n- Всё из CSV — строки, числа переводим сами.\n- `io.StringIO(text)` — «файл» из строки (подробно — в уроке про временные файлы).\n- Вывод: `[{'id': 1, 'name': 'Аня', 'age': 30}, {'id': 2, 'name': 'Боря', 'age': 25}]`, `55`.\n\n## DictWriter и разделитель\n\n```python\nimport csv\n\nusers = [{\"id\": 1, \"name\": \"Аня\"}, {\"id\": 2, \"name\": \"Боря\"}]\nwith open(\"out.csv\", \"w\", encoding=\"utf-8\", newline=\"\") as f:\n    writer = csv.DictWriter(f, fieldnames=[\"id\", \"name\"], delimiter=\";\")\n    writer.writeheader()\n    writer.writerows(users)\n\nwith open(\"out.csv\", encoding=\"utf-8\") as f:\n    print(f.read().splitlines())\n```\n\n- `DictWriter(f, fieldnames=[...])` — запись словарей; `fieldnames` задаёт порядок колонок.\n- `writeheader()` — записать строку заголовка.\n- `delimiter=\";\"` — другой разделитель. Русский Excel по умолчанию ждёт `;`.\n- `extrasaction=\"ignore\"` — не падать, если в словаре есть лишние ключи.\n- Вывод: `['id;name', '1;Аня', '2;Боря']`.\n\n## Excel и кодировка\n\nЧтобы Excel в Windows правильно показал кириллицу из CSV, используют кодировку `\"utf-8-sig\"` — она добавляет в начало файла специальную метку (BOM).\n\n## Итог\n\n- `open(..., newline=\"\", encoding=\"utf-8\")` для CSV.\n- `csv.writer` / `csv.reader` — списки; `DictWriter` / `DictReader` — словари.\n- Все значения читаются строками.\n- `delimiter=\";\"`, `extrasaction=\"ignore\"`, `\"utf-8-sig\"` для Excel.",
@@ -1122,7 +1194,8 @@
                   "code": "with open(\"big.log\", \"w\", encoding=\"utf-8\") as f:\n    for i in range(1, 20_001):\n        f.write(f\"{i} {'ERROR' if i % 5_000 == 0 else 'INFO'} событие\\n\")\n\nerrors = 0\nwith open(\"big.log\", encoding=\"utf-8\") as f:\n    for line in f:\n        if \" ERROR \" in line:\n            errors += 1\nprint(errors)\n",
                   "expected_output": "4",
                   "hint": "for line in f читает по одной строке — память не зависит от размера файла.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Перебор файла идёт строка за строкой — память не зависит от размера файла.\", \"lines\": [[\"f.write(f\\\"{i} {'ERROR' if i % 5_000 == 0 else 'INFO'} событие\\\\n\\\")\", \"ERROR на 5000, 10000, 15000, 20000.\"], [\"if \\\" ERROR \\\" in line:\", \"С пробелами — именно слово.\"]], \"mistake\": \"Посчитать 5 — `range(1, 20_001)` не включает 25000.\"}"
                 },
                 {
                   "slug": "fil-logs-e2",
@@ -1131,7 +1204,8 @@
                   "code": "with open(\"app.log\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"INFO старт\\nERROR база\\nWARN диск\\nERROR сеть\\nINFO стоп\\n\")\n\ndef errors(path):\n    with open(path, encoding=\"utf-8\") as f:\n        for line in f:\n            if line.startswith(\"ERROR\"):\n                yield line.split(\" \", 1)[1].strip()\n\nprint(list(errors(\"app.log\")))\nprint(next(errors(\"app.log\")))\n",
                   "expected_output": "['база', 'сеть']\nбаза",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Генератор над файлом выдаёт по одному значению. `next` берёт только первое.\", \"lines\": [[\"if line.startswith(\\\"ERROR\\\"):\", \"Только ошибки.\"], [\"yield line.split(\\\" \\\", 1)[1].strip()\", \"Текст после уровня.\"], [\"print(next(errors(\\\"app.log\\\")))\", \"Новый генератор — с начала.\"]], \"mistake\": \"Ожидать `сеть` от `next` — это новый генератор.\"}"
                 },
                 {
                   "slug": "fil-logs-e3",
@@ -1140,7 +1214,8 @@
                   "code": "from collections import deque\n\nwith open(\"tail.log\", \"w\", encoding=\"utf-8\") as f:\n    for i in range(1, 11):\n        f.write(f\"строка {i}\\n\")\n\nwith open(\"tail.log\", encoding=\"utf-8\") as f:\n    last = deque(f, maxlen=3)\nprint([line.strip() for line in last])\n",
                   "expected_output": "['строка 8', 'строка 9', 'строка 10']",
                   "hint": "deque с maxlen хранит только последние элементы.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`deque(maxlen=3)` хранит только последние три элемента — хвост файла без загрузки всего.\", \"lines\": [[\"last = deque(f, maxlen=3)\", \"Старые строки вытесняются.\"], [\"print([line.strip() for line in last])\", \"8, 9, 10.\"]], \"mistake\": \"Ожидать первые три строки.\"}"
                 },
                 {
                   "slug": "fil-logs-e4",
@@ -1150,7 +1225,8 @@
                   "tests": "def test_values():\n    with open(\"cl.log\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"INFO a\\nERROR b\\n\\nINFO c\\nWARN d\\nERROR e\\n\")\n    assert count_levels(\"cl.log\") == {\"INFO\": 2, \"ERROR\": 2, \"WARN\": 1}, count_levels(\"cl.log\")\n",
                   "solution": "def count_levels(path):\n    counts = {}\n    with open(path, encoding=\"utf-8\") as f:\n        for line in f:\n            if not line.strip():\n                continue\n            level = line.split()[0]\n            counts[level] = counts.get(level, 0) + 1\n    return counts\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Первое слово — уровень; считаем через `get`.\", \"lines\": [[\"if not line.strip():\\n                continue\", \"Пустые пропускаем.\"], [\"level = line.split()[0]\", \"Первое слово.\"], [\"counts[level] = counts.get(level, 0) + 1\", \"Счётчик.\"]], \"mistake\": \"`split()[0]` у пустой строки — `IndexError`.\"}"
                 },
                 {
                   "slug": "fil-logs-e5",
@@ -1160,7 +1236,8 @@
                   "tests": "import types\n\ndef test_values():\n    with open(\"re.log\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"ok\\nERROR 1\\nok\\nxx ERROR 2\\n\")\n    g = read_errors(\"re.log\")\n    assert isinstance(g, types.GeneratorType), \"Нужен генератор (yield)\"\n    assert list(g) == [\"ERROR 1\", \"xx ERROR 2\"], \"Неверные строки\"\n",
                   "solution": "def read_errors(path):\n    with open(path, encoding=\"utf-8\") as f:\n        for line in f:\n            if \"ERROR\" in line:\n                yield line.rstrip(\"\\n\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`yield` внутри `with`: файл открыт, пока генератор работает.\", \"lines\": [[\"for line in f:\", \"Построчно.\"], [\"if \\\"ERROR\\\" in line:\", \"Фильтр.\"], [\"yield line.rstrip(\\\"\\\\n\\\")\", \"Без перевода строки.\"]], \"mistake\": \"`return [...]` — это список, а не генератор.\"}"
                 },
                 {
                   "slug": "fil-logs-e6",
@@ -1170,7 +1247,8 @@
                   "tests": "def test_values():\n    with open(\"tl.log\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"\".join(f\"{i}\\n\" for i in range(1, 8)))\n    assert tail(\"tl.log\", 3) == [\"5\", \"6\", \"7\"] and tail(\"tl.log\", 10) == [str(i) for i in range(1, 8)], tail(\"tl.log\", 3)\n",
                   "solution": "from collections import deque\n\n\ndef tail(path, n):\n    with open(path, encoding=\"utf-8\") as f:\n        return [line.rstrip(\"\\n\") for line in deque(f, maxlen=n)]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`deque(f, maxlen=n)` проходит файл и держит только последние `n` строк.\", \"lines\": [[\"return [line.rstrip(\\\"\\\\n\\\") for line in deque(f, maxlen=n)]\", \"Хвост без `\\\\n`.\"]], \"mistake\": \"`f.readlines()[-n:]` — весь файл в памяти.\"}"
                 },
                 {
                   "slug": "fil-logs-e7",
@@ -1180,7 +1258,8 @@
                   "tests": "def test_values():\n    with open(\"access.log\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"GET /api/users 200 153ms\\nPOST /api/login 200 950ms\\nGET /health 200 3ms\\nGET /api/report 500 1200ms\\n\")\n    assert slow_requests(\"access.log\", 500) == [(\"GET\", \"/api/report\", 1200), (\"POST\", \"/api/login\", 950)] and slow_requests(\"access.log\", 5000) == [], slow_requests(\"access.log\", 500)\n",
                   "solution": "def slow_requests(path, limit_ms):\n    result = []\n    with open(path, encoding=\"utf-8\") as f:\n        for line in f:\n            method, url, status, took = line.split()\n            ms = int(took.removesuffix(\"ms\"))\n            if ms > limit_ms:\n                result.append((method, url, ms))\n    return sorted(result, key=lambda r: -r[2])\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Разбиваем строку на 4 поля, время — число без `ms`.\", \"lines\": [[\"method, url, status, took = line.split()\", \"Четыре части.\"], [\"ms = int(took.removesuffix(\\\"ms\\\"))\", \"153ms → 153.\"], [\"if ms > limit_ms:\", \"Медленные.\"], [\"return sorted(result, key=lambda r: -r[2])\", \"По убыванию времени.\"]], \"mistake\": \"`took.strip(\\\"ms\\\")` — сработает, но удаляет любые `m` и `s` по краям.\"}"
                 },
                 {
                   "slug": "fil-logs-e8",
@@ -1190,7 +1269,8 @@
                   "tests": "def test_values():\n    with open(\"sp.txt\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"\".join(f\"{i}\\n\" for i in range(1, 8)))\n    assert split_file(\"sp.txt\", 3) == 3, \"Количество частей\"\n    parts = []\n    for k in (1, 2, 3):\n        with open(f\"sp.txt.part{k}\", encoding=\"utf-8\") as f:\n            parts.append(f.read())\n    assert parts == [\"1\\n2\\n3\\n\", \"4\\n5\\n6\\n\", \"7\\n\"], parts\n",
                   "solution": "def split_file(path, lines_per_part):\n    part = 0\n    out = None\n    with open(path, encoding=\"utf-8\") as f:\n        for i, line in enumerate(f):\n            if i % lines_per_part == 0:\n                if out:\n                    out.close()\n                part += 1\n                out = open(f\"{path}.part{part}\", \"w\", encoding=\"utf-8\")\n            out.write(line)\n    if out:\n        out.close()\n    return part\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Каждые `lines_per_part` строк закрываем текущую часть и открываем следующую.\", \"lines\": [[\"if i % lines_per_part == 0:\", \"Начало новой части.\"], [\"if out:\\n                    out.close()\", \"Предыдущую — закрыть.\"], [\"out = open(f\\\"{path}.part{part}\\\", \\\"w\\\", encoding=\\\"utf-8\\\")\", \"Новый файл.\"], [\"out.write(line)\", \"Строка в текущую часть.\"], [\"if out:\\n        out.close()\", \"Последнюю — тоже закрыть.\"]], \"mistake\": \"Забыть закрыть последнюю часть — её конец может не записаться.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЛоги серверов бывают на гигабайты. `f.read()` на таком файле займёт всю память, и программа упадёт. Большие файлы обрабатывают **построчно** — в памяти одновременно только одна строка. Это основной навык при разборе логов после падения тестов.\n\n## Перебор не загружает файл целиком\n\n```python\nwith open(\"big.log\", \"w\", encoding=\"utf-8\") as f:\n    for i in range(1, 20_001):\n        f.write(f\"{i} {'ERROR' if i % 5_000 == 0 else 'INFO'} событие\\n\")\n\nerrors = 0\nwith open(\"big.log\", encoding=\"utf-8\") as f:\n    for line in f:\n        if \" ERROR \" in line:\n            errors += 1\nprint(errors)\n```\n\n- `for line in f` читает файл блоками и отдаёт по строке. Память не зависит от размера файла.\n- `20_001` — подчёркивание в числе для читаемости.\n- Вывод: `4`.\n\n## Генератор над файлом\n\n```python\nwith open(\"app.log\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"INFO старт\\nERROR база\\nWARN диск\\nERROR сеть\\nINFO стоп\\n\")\n\ndef errors(path):\n    with open(path, encoding=\"utf-8\") as f:\n        for line in f:\n            if line.startswith(\"ERROR\"):\n                yield line.split(\" \", 1)[1].strip()\n\nprint(list(errors(\"app.log\")))\nprint(next(errors(\"app.log\")))\n```\n\n- `yield` превращает функцию в **генератор**: она отдаёт значения по одному, когда их просят (подробно — в теме «Генераторы»).\n- Файл читается только до тех пор, пока нужны значения: `next(...)` прочитал лишь две строки.\n- `split(\" \", 1)[1]` — всё после первого пробела.\n- Вывод: `['база', 'сеть']`, `база`.\n\n## Подсчёт по уровням\n\n```python\nwith open(\"app.log\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"INFO a\\nERROR b\\n\\nINFO c\\nWARN d\\nERROR e\\n\")\n\ncounts = {}\nwith open(\"app.log\", encoding=\"utf-8\") as f:\n    for line in f:\n        if not line.strip():\n            continue\n        level = line.split()[0]\n        counts[level] = counts.get(level, 0) + 1\nprint(counts)\n```\n\n- `line.split()[0]` — первое слово строки.\n- Пустые строки пропускаем, иначе `split()[0]` упадёт с `IndexError`.\n- Вывод: `{'INFO': 2, 'ERROR': 2, 'WARN': 1}`.\n\n## Последние строки\n\n```python\nfrom collections import deque\n\nwith open(\"tail.log\", \"w\", encoding=\"utf-8\") as f:\n    for i in range(1, 11):\n        f.write(f\"строка {i}\\n\")\n\nwith open(\"tail.log\", encoding=\"utf-8\") as f:\n    last = deque(f, maxlen=3)\nprint([line.strip() for line in last])\n```\n\n- `deque(итерируемое, maxlen=3)` — очередь, которая хранит только 3 последних элемента: новые вытесняют старые.\n- Файл перебирается целиком, но в памяти — максимум 3 строки. Это аналог команды `tail -n 3`.\n- Вывод: `['строка 8', 'строка 9', 'строка 10']`.\n\n## Разбор строк лога доступа\n\n```python\nwith open(\"access.log\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"GET /api/users 200 153ms\\nPOST /api/login 200 950ms\\nGET /health 200 3ms\\n\")\n\nslow = []\nwith open(\"access.log\", encoding=\"utf-8\") as f:\n    for line in f:\n        method, url, status, took = line.split()\n        ms = int(took.removesuffix(\"ms\"))\n        if ms > 100:\n            slow.append((url, ms))\nprint(sorted(slow, key=lambda r: -r[1]))\n```\n\n- Распаковка `method, url, status, took = line.split()` — строка из 4 слов в 4 переменные.\n- `removesuffix(\"ms\")` — убрать окончание, если оно есть.\n- Вывод: `[('/api/login', 950), ('/api/users', 153)]`.\n\n## Итог\n\n- Большие файлы — только `for line in f`, не `read()`.\n- Генератор с `yield` — ленивая обработка.\n- `deque(f, maxlen=n)` — последние n строк.\n- Пропускай пустые строки перед `split()[0]`.",
@@ -1242,7 +1322,8 @@
                   "code": "import tempfile\nfrom pathlib import Path\n\nwith tempfile.TemporaryDirectory() as tmp:\n    folder = Path(tmp)\n    (folder / \"data.txt\").write_text(\"временно\", encoding=\"utf-8\")\n    print([p.name for p in folder.iterdir()])\n    saved = folder\nprint(saved.exists())\n",
                   "expected_output": "['data.txt']\nFalse",
                   "hint": "После выхода из with папка удаляется со всем содержимым.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`TemporaryDirectory` удаляет папку со всем содержимым при выходе из `with`.\", \"lines\": [[\"with tempfile.TemporaryDirectory() as tmp:\", \"Путь к новой папке.\"], [\"print([p.name for p in folder.iterdir()])\", \"Внутри блока файл есть.\"], [\"print(saved.exists())\", \"После блока папки нет.\"]], \"mistake\": \"Думать, что сохранённый путь сохранит и папку.\"}"
                 },
                 {
                   "slug": "fil-temp-e2",
@@ -1251,7 +1332,8 @@
                   "code": "import io\n\nbuf = io.StringIO()\nbuf.write(\"строка 1\\n\")\nprint(\"строка 2\", file=buf)\nprint(repr(buf.getvalue()))\n\nfake = io.StringIO(\"a\\nb\\nc\\n\")\nprint([line.strip() for line in fake])\n",
                   "expected_output": "'строка 1\\nстрока 2\\n'\n['a', 'b', 'c']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`StringIO` — «файл» в памяти: в него можно писать и из него читать.\", \"lines\": [[\"print(\\\"строка 2\\\", file=buf)\", \"`print` пишет туда же.\"], [\"print(repr(buf.getvalue()))\", \"Всё записанное.\"], [\"fake = io.StringIO(\\\"a\\\\nb\\\\nc\\\\n\\\")\", \"Готовый «файл» для чтения.\"]], \"mistake\": \"Читать `buf.read()` после записи — позиция в конце, результат пуст.\"}"
                 },
                 {
                   "slug": "fil-temp-e3",
@@ -1260,7 +1342,8 @@
                   "code": "import io\nimport csv\n\ndef count_rows(f):\n    return sum(1 for _ in csv.DictReader(f))\n\ndata = io.StringIO(\"id,name\\n1,Аня\\n2,Боря\\n\")\nprint(count_rows(data))\n\nwith open(\"real.csv\", \"w\", encoding=\"utf-8\", newline=\"\") as f:\n    f.write(\"id\\n1\\n2\\n3\\n\")\nwith open(\"real.csv\", encoding=\"utf-8\", newline=\"\") as f:\n    print(count_rows(f))\n",
                   "expected_output": "2\n3",
                   "hint": "Функция работает и с настоящим файлом, и с StringIO — ей важны только методы.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Функция, принимающая файловый объект, работает и с настоящим файлом, и со `StringIO` — это удобно тестировать.\", \"lines\": [[\"return sum(1 for _ in csv.DictReader(f))\", \"Строки без заголовка.\"], [\"print(count_rows(data))\", \"Две строки данных.\"], [\"print(count_rows(f))\", \"Три строки.\"]], \"mistake\": \"Считать заголовок строкой.\"}"
                 },
                 {
                   "slug": "fil-temp-e4",
@@ -1270,7 +1353,8 @@
                   "tests": "import io\n\ndef test_values():\n    assert sum_numbers(io.StringIO(\"1\\n2\\n\\n3.5\\n\")) == 6.5 and sum_numbers(io.StringIO(\"\")) == 0, \"Неверная сумма\"\n",
                   "solution": "def sum_numbers(f):\n    return sum(float(line) for line in f if line.strip())\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Принимаем объект, а не путь — функцию легко проверить через `StringIO`.\", \"lines\": [[\"return sum(float(line) for line in f if line.strip())\", \"Пустые пропускаем.\"]], \"mistake\": \"Вызывать `open(f)` — `f` уже открыт.\"}"
                 },
                 {
                   "slug": "fil-temp-e5",
@@ -1280,7 +1364,8 @@
                   "tests": "def test_values():\n    assert render_report([(\"login\", True), (\"cart\", False)]) == \"✓ login\\n✗ cart\\nитого: 2\\n\", repr(render_report([(\"login\", True), (\"cart\", False)]))\n    assert \"StringIO\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй io.StringIO\"\n",
                   "solution": "import io\n\n\ndef render_report(results):\n    buf = io.StringIO()\n    for name, ok in results:\n        print(\"✓\" if ok else \"✗\", name, file=buf)\n    print(f\"итого: {len(results)}\", file=buf)\n    return buf.getvalue()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Собираем текст через `print(..., file=buf)` и забираем `getvalue()`.\", \"lines\": [[\"buf = io.StringIO()\", \"Пустой буфер.\"], [\"print(\\\"✓\\\" if ok else \\\"✗\\\", name, file=buf)\", \"Строка отчёта.\"], [\"return buf.getvalue()\", \"Весь текст.\"]], \"mistake\": \"`buf.read()` — вернёт пустую строку.\"}"
                 },
                 {
                   "slug": "fil-temp-e6",
@@ -1290,7 +1375,8 @@
                   "tests": "def test_values():\n    assert roundtrip([\"a\", \"б\", \"c\"]) == [\"a\", \"б\", \"c\"] and roundtrip([]) == [], \"Неверный результат\"\n    assert \"tempfile\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй tempfile\"\n",
                   "solution": "import tempfile\nfrom pathlib import Path\n\n\ndef roundtrip(lines):\n    with tempfile.TemporaryDirectory() as tmp:\n        path = Path(tmp) / \"data.txt\"\n        path.write_text(\"\".join(line + \"\\n\" for line in lines), encoding=\"utf-8\")\n        return path.read_text(encoding=\"utf-8\").splitlines()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Все файлы — во временной папке; при выходе из `with` она исчезнет.\", \"lines\": [[\"path = Path(tmp) / \\\"data.txt\\\"\", \"Файл во временной папке.\"], [\"path.write_text(\\\"\\\".join(line + \\\"\\\\n\\\" for line in lines), encoding=\\\"utf-8\\\")\", \"Каждая строка с `\\\\n`.\"], [\"return path.read_text(encoding=\\\"utf-8\\\").splitlines()\", \"Читаем до удаления папки.\"]], \"mistake\": \"Читать после `with` — файла уже нет.\"}"
                 },
                 {
                   "slug": "fil-temp-e7",
@@ -1300,7 +1386,8 @@
                   "tests": "def test_values():\n    assert parse_csv_text(\"id,name\\n1,Аня\\n2,\\\"Боря, мл.\\\"\\n\") == [{\"id\": \"1\", \"name\": \"Аня\"}, {\"id\": \"2\", \"name\": \"Боря, мл.\"}], \"Неверный результат\"\n",
                   "solution": "import csv\nimport io\n\n\ndef parse_csv_text(text):\n    return list(csv.DictReader(io.StringIO(text)))\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`StringIO` превращает строку в файловый объект — `DictReader` его понимает.\", \"lines\": [[\"return list(csv.DictReader(io.StringIO(text)))\", \"Список словарей.\"]], \"mistake\": \"`csv.DictReader(text)` — переберёт символы строки.\"}"
                 },
                 {
                   "slug": "fil-temp-e8",
@@ -1310,7 +1397,8 @@
                   "tests": "import tempfile\nfrom pathlib import Path\n\ndef test_values():\n    with tempfile.TemporaryDirectory() as tmp:\n        src = Path(tmp) / \"in.txt\"\n        dst = Path(tmp) / \"out.txt\"\n        src.write_text(\"аня\\nборя\\n\", encoding=\"utf-8\")\n        process_file(src, dst, str.upper)\n        assert dst.read_text(encoding=\"utf-8\") == \"АНЯ\\nБОРЯ\\n\", dst.read_text(encoding=\"utf-8\")\n",
                   "solution": "def process_file(src, dst, transform):\n    with open(src, encoding=\"utf-8\") as fin, open(dst, \"w\", encoding=\"utf-8\") as fout:\n        for line in fin:\n            fout.write(transform(line.rstrip(\"\\n\")) + \"\\n\")\n",
                   "hint": "В одном with можно открыть два файла через запятую.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Два файла в одном `with`: читаем построчно и сразу пишем результат.\", \"lines\": [[\"with open(src, encoding=\\\"utf-8\\\") as fin, open(dst, \\\"w\\\", encoding=\\\"utf-8\\\") as fout:\", \"Оба закроются.\"], [\"fout.write(transform(line.rstrip(\\\"\\\\n\\\")) + \\\"\\\\n\\\")\", \"Без `\\\\n` в функцию, с `\\\\n` в файл.\"]], \"mistake\": \"Передавать строку с `\\\\n` в `transform`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nТестам часто нужны файлы: проверить функцию, которая читает конфиг или пишет отчёт. Создавать их в папке проекта плохо: они мешают, конфликтуют между тестами и остаются мусором. Решения: **временные папки**, которые удаляются сами, и **файлы в памяти** — `io.StringIO`.\n\n## Временная папка\n\n```python\nimport tempfile\nfrom pathlib import Path\n\nwith tempfile.TemporaryDirectory() as tmp:\n    folder = Path(tmp)\n    (folder / \"data.txt\").write_text(\"временно\", encoding=\"utf-8\")\n    print([p.name for p in folder.iterdir()])\n    saved = folder\nprint(saved.exists())\n```\n\n- `tempfile.TemporaryDirectory()` создаёт пустую папку в системном месте для временных файлов (например, `/tmp`) с уникальным именем.\n- `as tmp` — путь к ней строкой.\n- После выхода из `with` папка удаляется **со всем содержимым**.\n- Вывод: `['data.txt']`, `False`.\n- В pytest то же даёт фикстура `tmp_path`: `def test_x(tmp_path): (tmp_path / \"a.txt\").write_text(...)`.\n\n## StringIO: файл в памяти\n\n```python\nimport io\n\nbuf = io.StringIO()\nbuf.write(\"строка 1\\n\")\nprint(\"строка 2\", file=buf)\nprint(repr(buf.getvalue()))\n\nfake = io.StringIO(\"a\\nb\\nc\\n\")\nprint([line.strip() for line in fake])\n```\n\n- `io.StringIO()` — объект, который ведёт себя как открытый текстовый файл, но хранит данные в памяти.\n- Работают `write`, `print(file=...)`, `read`, перебор строк.\n- `getvalue()` — всё записанное одной строкой.\n- `io.StringIO(\"текст\")` — «файл» с заранее заданным содержимым — для чтения.\n- Для байтов есть `io.BytesIO`.\n- Вывод: `'строка 1\\nстрока 2\\n'`, `['a', 'b', 'c']`.\n\n## Функции, принимающие файл, а не путь\n\n```python\nimport io\nimport csv\n\ndef count_rows(f):\n    return sum(1 for _ in csv.DictReader(f))\n\nprint(count_rows(io.StringIO(\"id,name\\n1,Аня\\n2,Боря\\n\")))\n\nwith open(\"real.csv\", \"w\", encoding=\"utf-8\", newline=\"\") as f:\n    f.write(\"id\\n1\\n2\\n3\\n\")\nwith open(\"real.csv\", encoding=\"utf-8\", newline=\"\") as f:\n    print(count_rows(f))\n```\n\n- Функция получает **открытый файлоподобный объект**. Ей всё равно, настоящий это файл или `StringIO` — важны методы (утиная типизация).\n- В тестах передаём `StringIO` — без файлов на диске. В бою — настоящий файл.\n- `sum(1 for _ in ...)` — посчитать элементы.\n- Вывод: `2`, `3`.\n\n## Разбор CSV из ответа API\n\n```python\nimport csv\nimport io\n\nbody = \"id,status\\n1,passed\\n2,failed\\n\"\nrows = list(csv.DictReader(io.StringIO(body)))\nprint([r[\"status\"] for r in rows])\n```\n\n- API вернул CSV строкой — оборачиваем в `StringIO` и разбираем модулем `csv`, не сохраняя на диск.\n- Вывод: `['passed', 'failed']`.\n\n## Два файла в одном with\n\n```python\nfrom pathlib import Path\n\nPath(\"in.txt\").write_text(\"аня\\nборя\\n\", encoding=\"utf-8\")\nwith open(\"in.txt\", encoding=\"utf-8\") as fin, open(\"out.txt\", \"w\", encoding=\"utf-8\") as fout:\n    for line in fin:\n        fout.write(line.upper())\nprint(Path(\"out.txt\").read_text(encoding=\"utf-8\").splitlines())\n```\n\n- В одном `with` можно открыть несколько файлов через запятую — закроются оба.\n- Вывод: `['АНЯ', 'БОРЯ']`.\n\n## Итог\n\n- `tempfile.TemporaryDirectory()` — папка, которая удалится сама; в pytest — `tmp_path`.\n- `io.StringIO` — текстовый файл в памяти, `getvalue()`; `io.BytesIO` — для байтов.\n- Функции лучше писать так, чтобы они принимали открытый файл, — их легко тестировать.",
@@ -1362,7 +1450,8 @@
                   "code": "env_text = '''# настройки\nBASE_URL=https://api.test\nTIMEOUT = 5\n\nTOKEN=\"abc=123\"\n'''\nwith open(\".env\", \"w\", encoding=\"utf-8\") as f:\n    f.write(env_text)\n\nsettings = {}\nwith open(\".env\", encoding=\"utf-8\") as f:\n    for line in f:\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        key, value = line.split(\"=\", 1)\n        settings[key.strip()] = value.strip().strip('\"')\nprint(settings)\n",
                   "expected_output": "{'BASE_URL': 'https://api.test', 'TIMEOUT': '5', 'TOKEN': 'abc=123'}",
                   "hint": "split('=', 1) режет только по первому '=' — значение может его содержать.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Разбор .env: пропуск пустых и комментариев, деление по первому `=`, снятие кавычек.\", \"lines\": [[\"if not line or line.startswith(\\\"#\\\"):\\n            continue\", \"Пусто или комментарий.\"], [\"key, value = line.split(\\\"=\\\", 1)\", \"`abc=123` не разрежется.\"], [\"settings[key.strip()] = value.strip().strip('\\\"')\", \"Пробелы и кавычки.\"]], \"mistake\": \"`split(\\\"=\\\")` без ограничения — ошибка распаковки на TOKEN.\"}"
                 },
                 {
                   "slug": "fil-config-e2",
@@ -1371,7 +1460,8 @@
                   "code": "import configparser\n\nwith open(\"settings.ini\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"[api]\\nurl = https://api.test\\ntimeout = 5\\n\\n[ui]\\nbrowser = chrome\\nheadless = yes\\n\")\n\nconfig = configparser.ConfigParser()\nconfig.read(\"settings.ini\", encoding=\"utf-8\")\nprint(config.sections())\nprint(config[\"api\"][\"url\"], config.getint(\"api\", \"timeout\") + 1)\nprint(config.getboolean(\"ui\", \"headless\"), config.get(\"ui\", \"window\", fallback=\"1920x1080\"))\n",
                   "expected_output": "['api', 'ui']\nhttps://api.test 6\nTrue 1920x1080",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`configparser` читает INI: секции и ключи. `getint`/`getboolean` переводят типы, `fallback` — значение по умолчанию.\", \"lines\": [[\"print(config.sections())\", \"Секции.\"], [\"print(config[\\\"api\\\"][\\\"url\\\"], config.getint(\\\"api\\\", \\\"timeout\\\") + 1)\", \"5 → число.\"], [\"print(config.getboolean(\\\"ui\\\", \\\"headless\\\"), config.get(\\\"ui\\\", \\\"window\\\", fallback=\\\"1920x1080\\\"))\", \"`yes` → True; ключа нет — fallback.\"]], \"mistake\": \"`config[\\\"api\\\"][\\\"timeout\\\"] + 1` — это строка.\"}"
                 },
                 {
                   "slug": "fil-config-e3",
@@ -1380,7 +1470,8 @@
                   "code": "import json\nfrom pathlib import Path\n\nPath(\"testdata\").mkdir(exist_ok=True)\nPath(\"testdata/users.json\").write_text(json.dumps([\n    {\"login\": \"admin\", \"password\": \"secret\", \"expected\": 200},\n    {\"login\": \"guest\", \"password\": \"\", \"expected\": 400},\n]), encoding=\"utf-8\")\n\ndef login(user, password):\n    return 200 if password else 400\n\ncases = json.loads(Path(\"testdata/users.json\").read_text(encoding=\"utf-8\"))\nfor case in cases:\n    status = login(case[\"login\"], case[\"password\"])\n    print(case[\"login\"], \"PASS\" if status == case[\"expected\"] else \"FAIL\")\n",
                   "expected_output": "admin PASS\nguest PASS",
                   "hint": "Данные отделены от кода теста — их можно менять без правки кода.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Тестовые данные в JSON-файле: один тест прогоняется на всех случаях.\", \"lines\": [[\"cases = json.loads(Path(\\\"testdata/users.json\\\").read_text(encoding=\\\"utf-8\\\"))\", \"Список словарей.\"], [\"status = login(case[\\\"login\\\"], case[\\\"password\\\"])\", \"Пустой пароль — 400.\"], [\"print(case[\\\"login\\\"], \\\"PASS\\\" if status == case[\\\"expected\\\"] else \\\"FAIL\\\")\", \"Оба совпали с ожиданием.\"]], \"mistake\": \"Считать guest проваленным — 400 и есть ожидаемый ответ.\"}"
                 },
                 {
                   "slug": "fil-config-e4",
@@ -1390,7 +1481,8 @@
                   "tests": "def test_values():\n    with open(\"t.env\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"# comment\\nA=1\\n\\n B = two words \\nC=\\\"x=y\\\"\\nD='q'\\n\")\n    assert load_env(\"t.env\") == {\"A\": \"1\", \"B\": \"two words\", \"C\": \"x=y\", \"D\": \"q\"}, load_env(\"t.env\")\n",
                   "solution": "def load_env(path):\n    result = {}\n    with open(path, encoding=\"utf-8\") as f:\n        for line in f:\n            line = line.strip()\n            if not line or line.startswith(\"#\"):\n                continue\n            key, value = line.split(\"=\", 1)\n            result[key.strip()] = value.strip().strip(\"\\\"'\")\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Разбор по строкам: пропуски, первый `=`, очистка.\", \"lines\": [[\"line = line.strip()\", \"Без пробелов и `\\\\n`.\"], [\"if not line or line.startswith(\\\"#\\\"):\\n                continue\", \"Пропуск.\"], [\"key, value = line.split(\\\"=\\\", 1)\", \"По первому `=`.\"], [\"result[key.strip()] = value.strip().strip(\\\"\\\\\\\"'\\\")\", \"Снять оба вида кавычек.\"]], \"mistake\": \"Снимать кавычки до `strip()` — пробелы помешают.\"}"
                 },
                 {
                   "slug": "fil-config-e5",
@@ -1400,7 +1492,8 @@
                   "tests": "def test_values():\n    with open(\"s1.ini\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"[api]\\nurl = http://a\\ntimeout = 3\\n[ui]\\nheadless = true\\n\")\n    with open(\"s2.ini\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"[api]\\nurl = http://b\\n[ui]\\n\")\n    assert read_settings(\"s1.ini\") == {\"url\": \"http://a\", \"timeout\": 3, \"headless\": True}, read_settings(\"s1.ini\")\n    assert read_settings(\"s2.ini\") == {\"url\": \"http://b\", \"timeout\": 10, \"headless\": False}, read_settings(\"s2.ini\")\n",
                   "solution": "import configparser\n\n\ndef read_settings(path):\n    config = configparser.ConfigParser()\n    config.read(path, encoding=\"utf-8\")\n    return {\n        \"url\": config.get(\"api\", \"url\"),\n        \"timeout\": config.getint(\"api\", \"timeout\", fallback=10),\n        \"headless\": config.getboolean(\"ui\", \"headless\", fallback=False),\n    }\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Типизированные геттеры с `fallback`.\", \"lines\": [[\"\\\"url\\\": config.get(\\\"api\\\", \\\"url\\\"),\", \"Строка.\"], [\"\\\"timeout\\\": config.getint(\\\"api\\\", \\\"timeout\\\", fallback=10),\", \"Число или 10.\"], [\"\\\"headless\\\": config.getboolean(\\\"ui\\\", \\\"headless\\\", fallback=False),\", \"yes/no/true/1 → bool.\"]], \"mistake\": \"`bool(config.get(...))` — `\\\"no\\\"` станет `True`.\"}"
                 },
                 {
                   "slug": "fil-config-e6",
@@ -1410,7 +1503,8 @@
                   "tests": "import json\n\ndef test_values():\n    with open(\"default.json\", \"w\", encoding=\"utf-8\") as f:\n        json.dump({\"url\": \"http://prod\", \"timeout\": 10}, f)\n    with open(\"local.json\", \"w\", encoding=\"utf-8\") as f:\n        json.dump({\"url\": \"http://localhost\"}, f)\n    assert merge_configs(\"default.json\", \"local.json\") == {\"url\": \"http://localhost\", \"timeout\": 10}, \"С local\"\n    assert merge_configs(\"default.json\", \"нет.json\") == {\"url\": \"http://prod\", \"timeout\": 10}, \"Без local\"\n",
                   "solution": "import json\n\n\ndef merge_configs(default_path, local_path):\n    with open(default_path, encoding=\"utf-8\") as f:\n        config = json.load(f)\n    try:\n        with open(local_path, encoding=\"utf-8\") as f:\n            config.update(json.load(f))\n    except FileNotFoundError:\n        pass\n    return config\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Базовый конфиг + локальные переопределения через `update`; нет локального — ничего страшного.\", \"lines\": [[\"config = json.load(f)\", \"Базовый.\"], [\"config.update(json.load(f))\", \"Локальный поверх.\"], [\"except FileNotFoundError:\\n        pass\", \"Нет — пропускаем.\"]], \"mistake\": \"`try` вокруг обоих файлов — пропажа базового тоже будет скрыта.\"}"
                 },
                 {
                   "slug": "fil-config-e7",
@@ -1420,7 +1514,8 @@
                   "tests": "import json\nfrom pathlib import Path\n\ndef test_values():\n    d = Path(\"cases\")\n    d.mkdir(exist_ok=True)\n    (d / \"b_empty_login.json\").write_text(json.dumps({\"login\": \"\"}), encoding=\"utf-8\")\n    (d / \"a_ok.json\").write_text(json.dumps({\"login\": \"anna\"}), encoding=\"utf-8\")\n    (d / \"notes.txt\").write_text(\"не тест\", encoding=\"utf-8\")\n    assert load_cases(\"cases\") == [(\"a_ok\", {\"login\": \"anna\"}), (\"b_empty_login\", {\"login\": \"\"})], load_cases(\"cases\")\n",
                   "solution": "import json\nfrom pathlib import Path\n\n\ndef load_cases(folder):\n    result = []\n    for p in sorted(Path(folder).glob(\"*.json\")):\n        result.append((p.stem, json.loads(p.read_text(encoding=\"utf-8\"))))\n    return result\n",
                   "hint": "Так готовят данные для @pytest.mark.parametrize.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`glob(\\\"*.json\\\")` отбирает нужные файлы, `stem` — имя без расширения.\", \"lines\": [[\"for p in sorted(Path(folder).glob(\\\"*.json\\\")):\", \"По имени.\"], [\"result.append((p.stem, json.loads(p.read_text(encoding=\\\"utf-8\\\"))))\", \"Пара.\"]], \"mistake\": \"`p.name` — останется `.json`.\"}"
                 },
                 {
                   "slug": "fil-config-e8",
@@ -1430,7 +1525,8 @@
                   "tests": "import shutil\nfrom pathlib import Path\n\ndef test_values():\n    shutil.rmtree(\"shots\", ignore_errors=True)\n    names = [save_screenshot(\"shots/fail\", \"test_login\", b\"PNG\" + bytes([i])) for i in range(3)]\n    assert names == [\"test_login.png\", \"test_login_2.png\", \"test_login_3.png\"], names\n    assert (Path(\"shots/fail\") / \"test_login_2.png\").read_bytes() == b\"PNG\\x01\", \"Содержимое\"\n",
                   "solution": "from pathlib import Path\n\n\ndef save_screenshot(folder, test_name, data):\n    folder = Path(folder)\n    folder.mkdir(parents=True, exist_ok=True)\n    path = folder / f\"{test_name}.png\"\n    n = 2\n    while path.exists():\n        path = folder / f\"{test_name}_{n}.png\"\n        n += 1\n    path.write_bytes(data)\n    return path.name\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Подбираем свободное имя: пока файл есть — пробуем следующий номер.\", \"lines\": [[\"folder.mkdir(parents=True, exist_ok=True)\", \"Папка.\"], [\"path = folder / f\\\"{test_name}.png\\\"\", \"Первый вариант.\"], [\"while path.exists():\\n        path = folder / f\\\"{test_name}_{n}.png\\\"\\n        n += 1\", \"_2, _3, …\"], [\"path.write_bytes(data)\", \"Байты скриншота.\"], [\"return path.name\", \"Только имя.\"]], \"mistake\": \"`write_text` — скриншот не текст.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nАдрес стенда, таймауты, браузер, логины тестовых пользователей не пишут прямо в коде тестов — их выносят в **конфиги** и **файлы тестовых данных**. Тогда один и тот же набор тестов запускают на разных стендах, меняя только файл. Самые частые форматы — `.env`, `.ini` и JSON.\n\n## .env-файл\n\n```python\nenv_text = \"\"\"# настройки\nBASE_URL=https://api.test\nTIMEOUT = 5\n\nTOKEN=\"abc=123\"\n\"\"\"\nwith open(\".env\", \"w\", encoding=\"utf-8\") as f:\n    f.write(env_text)\n\nsettings = {}\nwith open(\".env\", encoding=\"utf-8\") as f:\n    for line in f:\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        key, value = line.split(\"=\", 1)\n        settings[key.strip()] = value.strip().strip('\"')\nprint(settings)\n```\n\n- `.env` — строки `КЛЮЧ=значение`; `#` — комментарий.\n- `split(\"=\", 1)` — разрезать только по **первому** `=`: в значении (токене) могут быть свои `=`.\n- `strip('\"')` — снять кавычки вокруг значения.\n- Все значения — строки: `TIMEOUT` нужно перевести в число самим.\n- В проектах для этого есть библиотека `python-dotenv`, а секреты в `.env` **не коммитят** в git.\n- Вывод: `{'BASE_URL': 'https://api.test', 'TIMEOUT': '5', 'TOKEN': 'abc=123'}`.\n\n## INI-файлы и configparser\n\n```python\nimport configparser\n\nwith open(\"settings.ini\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"[api]\\nurl = https://api.test\\ntimeout = 5\\n\\n[ui]\\nbrowser = chrome\\nheadless = yes\\n\")\n\nconfig = configparser.ConfigParser()\nconfig.read(\"settings.ini\", encoding=\"utf-8\")\nprint(config.sections())\nprint(config[\"api\"][\"url\"], config.getint(\"api\", \"timeout\") + 1)\nprint(config.getboolean(\"ui\", \"headless\"), config.get(\"ui\", \"window\", fallback=\"1920x1080\"))\n```\n\n- INI — файл с **секциями** в квадратных скобках и парами `ключ = значение`. Такой формат у `pytest.ini`, `setup.cfg`, `tox.ini`.\n- `config.read(путь)` — прочитать; если файла нет — молча ничего не прочитает.\n- `config[\"секция\"][\"ключ\"]` — строка.\n- `getint`, `getfloat`, `getboolean` — с преобразованием. `getboolean` понимает `yes/no`, `true/false`, `on/off`, `1/0`.\n- `fallback=` — значение, если ключа нет.\n- Вывод: `['api', 'ui']`, `https://api.test 6`, `True 1920x1080`.\n\n## JSON-конфиг с локальным переопределением\n\n```python\nimport json\n\nwith open(\"default.json\", \"w\", encoding=\"utf-8\") as f:\n    json.dump({\"url\": \"http://prod\", \"timeout\": 10}, f)\nwith open(\"local.json\", \"w\", encoding=\"utf-8\") as f:\n    json.dump({\"url\": \"http://localhost\"}, f)\n\nwith open(\"default.json\", encoding=\"utf-8\") as f:\n    config = json.load(f)\ntry:\n    with open(\"local.json\", encoding=\"utf-8\") as f:\n        config.update(json.load(f))\nexcept FileNotFoundError:\n    pass\nprint(config)\n```\n\n- Общие настройки лежат в репозитории, а локальные (у каждого свои) — в отдельном файле, который перекрывает общие.\n- `dict.update` — значения из второго словаря заменяют первые.\n- Вывод: `{'url': 'http://localhost', 'timeout': 10}`.\n\n## Тестовые данные в файлах\n\n```python\nimport json\nfrom pathlib import Path\n\nPath(\"testdata\").mkdir(exist_ok=True)\nPath(\"testdata/users.json\").write_text(json.dumps([\n    {\"login\": \"admin\", \"password\": \"secret\", \"expected\": 200},\n    {\"login\": \"guest\", \"password\": \"\", \"expected\": 400},\n]), encoding=\"utf-8\")\n\ndef login(user, password):\n    return 200 if password else 400\n\ncases = json.loads(Path(\"testdata/users.json\").read_text(encoding=\"utf-8\"))\nfor case in cases:\n    status = login(case[\"login\"], case[\"password\"])\n    print(case[\"login\"], \"PASS\" if status == case[\"expected\"] else \"FAIL\")\n```\n\n- Данные отделены от логики: добавить новый случай — дописать строку в JSON, код теста не меняется.\n- В pytest такие списки передают в `@pytest.mark.parametrize`.\n- Вывод: `admin PASS`, `guest PASS`.\n\n## Итог\n\n- `.env`: строки `KEY=value`, делить по первому `=`, значения — строки.\n- `configparser`: секции, `getint`/`getboolean`, `fallback`.\n- JSON-конфиги: общий + локальный через `update`.\n- Тестовые данные — в отдельных файлах; секреты — не в git.",
