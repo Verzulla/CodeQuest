@@ -26,7 +26,8 @@
                   "code": "def f():\n    x = 10\n    return x * 2\n\nprint(f())\ntry:\n    print(x)\nexcept NameError:\n    print(\"x не существует снаружи\")\n",
                   "expected_output": "20\nx не существует снаружи",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Переменная, созданная внутри функции, — **локальная**: она живёт только во время вызова и снаружи не видна.\", \"lines\": [[\"x = 10\", \"Локальная `x` — только внутри `f`.\"], [\"print(f())\", \"`20`.\"], [\"print(x)\", \"Снаружи `x` нет — `NameError`, его ловит `except`.\"]], \"mistake\": \"Ожидать, что после вызова `x` станет доступна снаружи.\"}"
                 },
                 {
                   "slug": "scp-m1-l1-e2",
@@ -35,7 +36,8 @@
                   "code": "def a():\n    value = \"из a\"\n    return value\n\ndef b():\n    value = \"из b\"\n    return value\n\nprint(a(), \"|\", b())\n",
                   "expected_output": "из a | из b",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Одинаковые имена в разных функциях не мешают друг другу: у каждой функции свои локальные переменные.\", \"lines\": [[\"value = \\\"из a\\\"\", \"Локальная для `a`.\"], [\"value = \\\"из b\\\"\", \"Другая переменная — локальная для `b`.\"]], \"mistake\": \"Решить, что второе присваивание перезапишет первое.\"}"
                 },
                 {
                   "slug": "scp-m1-l1-e6",
@@ -44,7 +46,8 @@
                   "code": "def f():\n    y = 1\n    y += 1\n    return y\n\nprint(f(), f(), f())\n",
                   "expected_output": "2 2 2",
                   "hint": "Локальная y создаётся заново при каждом вызове.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Каждый вызов начинается с чистого листа: локальные переменные создаются заново.\", \"lines\": [[\"y = 1\\n    y += 1\", \"Всегда 1 + 1.\"], [\"print(f(), f(), f())\", \"`2 2 2` — ничего не накапливается.\"]], \"mistake\": \"Ожидать `2 3 4`, будто `y` помнит прошлый вызов.\"}"
                 },
                 {
                   "slug": "scp-m1-l1-e3",
@@ -54,7 +57,8 @@
                   "tests": "def test_value():\n    assert make_greeting(\"Аня\") == \"Привет, Аня!\", \"Неверное приветствие\"\n\ndef test_local():\n    make_greeting(\"x\")\n    assert \"greeting\" not in globals(), \"greeting не должна быть глобальной\"\n",
                   "solution": "def make_greeting(name):\n    greeting = f\"Привет, {name}!\"\n    return greeting\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Локальная переменная — промежуточный результат внутри функции. Наружу уходит только то, что вернули.\", \"lines\": [[\"greeting = f\\\"Привет, {name}!\\\"\", \"Существует только внутри вызова.\"], [\"return greeting\", \"Значение уходит наружу, сама переменная — нет.\"]], \"mistake\": \"Объявить `greeting` снаружи функции — тест проверяет, что её там нет.\"}"
                 },
                 {
                   "slug": "scp-m1-l1-e4",
@@ -64,7 +68,8 @@
                   "tests": "def test_output():\n    assert OUTPUT.strip() == \"450\", f\"Напечатано {OUTPUT.strip()!r}\"\n\ndef test_function():\n    assert total_price([1, 2]) == 3, \"total_price должна возвращать сумму\"\n    assert total == 450, \"Результат сохрани в переменную total\"\n",
                   "solution": "def total_price(prices):\n    s = sum(prices)\n    return s\n\ntotal = total_price([100, 200, 150])\nprint(total)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Локальная `s` снаружи не видна. Результат передаётся через `return` и сохраняется в новую переменную.\", \"lines\": [[\"return s\", \"Отдаём сумму.\"], [\"total = total_price([100, 200, 150])\", \"Снаружи — своя переменная с результатом.\"]], \"mistake\": \"Печатать `s` снаружи — `NameError`.\"}"
                 },
                 {
                   "slug": "scp-m1-l1-e5",
@@ -74,7 +79,8 @@
                   "tests": "def test_values():\n    assert call_counter_demo() == [1, 1, 1], f\"Получено {call_counter_demo()}\"\n",
                   "solution": "def call_counter_demo():\n    def step():\n        n = 0\n        n += 1\n        return n\n    return [step(), step(), step()]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Вложенная функция `step` при каждом вызове создаёт `n` заново, поэтому всегда возвращает 1.\", \"lines\": [[\"n = 0\\n        n += 1\", \"Каждый вызов — от нуля.\"], [\"return [step(), step(), step()]\", \"`[1, 1, 1]`.\"]], \"mistake\": \"Ожидать `[1, 2, 3]`. Для счётчика нужно хранить состояние вне вызова.\"}"
                 },
                 {
                   "slug": "scp-m1-l1-e7",
@@ -84,7 +90,8 @@
                   "tests": "def test_value():\n    assert summary([1, 2, 3]) == \"n=3, sum=6\" and summary([]) == \"n=0, sum=0\", \"Неверная строка\"\n\ndef test_local():\n    summary([5])\n    assert \"count\" not in globals() and \"total\" not in globals(), \"count и total должны быть локальными\"\n",
                   "solution": "def summary(nums):\n    count = len(nums)\n    total = sum(nums)\n    return f\"n={count}, sum={total}\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Промежуточные значения — в локальных переменных, наружу — готовая строка.\", \"lines\": [[\"count = len(nums)\\n    total = sum(nums)\", \"Локальные.\"], [\"return f\\\"n={count}, sum={total}\\\"\", \"`n=3, sum=6`.\"]], \"mistake\": \"Сделать `count` и `total` глобальными — тест проверяет, что снаружи их нет.\"}"
                 },
                 {
                   "slug": "scp-m1-l1-e8",
@@ -94,7 +101,8 @@
                   "tests": "def test_value():\n    assert describe(1, 2) == [\"a\", \"b\", \"c\"], f\"Получено {describe(1, 2)}\"\n",
                   "solution": "def describe(a, b):\n    c = a + b\n    return sorted(locals())\n",
                   "hint": "Параметры — тоже локальные переменные, поэтому a и b попадут в список.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`locals()` — словарь локальных переменных. Параметры тоже локальные.\", \"lines\": [[\"c = a + b\", \"Третья локальная.\"], [\"return sorted(locals())\", \"Перебор словаря даёт ключи — имена: `a`, `b`, `c`.\"]], \"mistake\": \"Не считать параметры локальными. `a` и `b` — тоже локальные переменные функции.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n**Область видимости** (scope) — часть программы, где имя переменной «видно» и доступно. Если бы все переменные были видны отовсюду, любая функция могла бы случайно испортить данные другой: две функции со счётчиком `i` мешали бы друг другу. Поэтому переменные внутри функции **локальные** — они живут только внутри неё.\n\n## Локальная переменная\n\n```python\ndef f():\n    x = 10\n    return x * 2\n\nprint(f())\ntry:\n    print(x)\nexcept NameError:\n    print(\"x не существует снаружи\")\n```\n\n- `x = 10` внутри функции создаёт **локальную** переменную — она существует только во время работы `f`.\n- Снаружи имени `x` нет → `NameError`.\n- Вывод: `20`, `x не существует снаружи`.\n\nЧтобы результат попал наружу, его **возвращают** через `return` и сохраняют в переменную:\n\n```python\ndef total_price(prices):\n    s = sum(prices)\n    return s\n\ntotal = total_price([100, 200, 150])\nprint(total)\n```\n\n- `s` — локальная, снаружи её нет. Наружу уходит **значение** через `return`, и его сохраняют под другим (или тем же) именем. Вывод: `450`.\n\n## Одинаковые имена не мешают\n\n```python\ndef a():\n    value = \"из a\"\n    return value\n\ndef b():\n    value = \"из b\"\n    return value\n\nprint(a(), \"|\", b())\n```\n\n- У каждой функции своя локальная `value` — это **разные** переменные с одинаковым именем.\n- Вывод: `из a | из b`. Поэтому в функциях можно спокойно называть переменные `i`, `result`, `total`, не боясь конфликтов.\n\n## Каждый вызов — с чистого листа\n\n```python\ndef f():\n    y = 1\n    y += 1\n    return y\n\nprint(f(), f(), f())\n```\n\n- При каждом вызове локальные переменные создаются **заново**, а после `return` исчезают. Функция не помнит прошлых вызовов.\n- Вывод: `2 2 2`. (Как сделать функцию, которая помнит состояние, — уроки про `global` и замыкания.)\n\n## locals() — посмотреть локальные\n\n```python\ndef describe(a, b):\n    c = a + b\n    return sorted(locals())\n\nprint(describe(1, 2))\n```\n\n- `locals()` — словарь локальных переменных в текущий момент; `sorted(...)` — отсортированные имена.\n- Параметры `a`, `b` — тоже локальные переменные. Вывод: `['a', 'b', 'c']`.\n\n## Итог\n\n- Переменная, созданная присваиванием внутри функции, — **локальная**: видна только внутри.\n- Снаружи её имени нет → `NameError`; результат передают через `return`.\n- Одинаковые имена в разных функциях — разные переменные.\n- Локальные создаются заново при каждом вызове и исчезают после него.\n- `locals()` — словарь текущих локальных переменных.",
@@ -146,7 +154,8 @@
                   "code": "def change(x):\n    x = x * 100\n    return x\n\nn = 5\nprint(change(n), n)\n",
                   "expected_output": "500 5",
                   "hint": "x — отдельное локальное имя; переприсваивание x не трогает n.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Параметр — локальная переменная. Присвоить ему новое значение не значит изменить переменную снаружи.\", \"lines\": [[\"x = x * 100\", \"Меняется только локальная `x`.\"], [\"print(change(n), n)\", \"`500 5` — `n` не изменилась.\"]], \"mistake\": \"Ожидать `500 500`.\"}"
                 },
                 {
                   "slug": "scp-params-e2",
@@ -155,7 +164,8 @@
                   "code": "def rename(name):\n    name = name.upper()\n    print(\"внутри:\", name)\n\nuser = \"аня\"\nrename(user)\nprint(\"снаружи:\", user)\n",
                   "expected_output": "внутри: АНЯ\nснаружи: аня",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Строки неизменяемы: `upper()` создаёт новую строку, и параметр теперь указывает на неё. Снаружи всё по-старому.\", \"lines\": [[\"name = name.upper()\", \"Новая строка в локальном `name`.\"], [\"print(\\\"снаружи:\\\", user)\", \"`user` не тронут.\"]], \"mistake\": \"Решить, что `user` станет `АНЯ`.\"}"
                 },
                 {
                   "slug": "scp-params-e3",
@@ -164,7 +174,8 @@
                   "code": "def depth(n):\n    label = \"уровень \" + str(n)\n    if n < 2:\n        depth(n + 1)\n    print(label)\n\ndepth(0)\n",
                   "expected_output": "уровень 2\nуровень 1\nуровень 0",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"У каждого вызова рекурсии свои локальные переменные. `print` стоит после вложенного вызова, поэтому печать идёт с самого глубокого уровня.\", \"lines\": [[\"label = \\\"уровень \\\" + str(n)\", \"У каждого уровня своя `label`.\"], [\"if n < 2:\\n        depth(n + 1)\", \"Сначала спускаемся.\"], [\"print(label)\", \"Печать при возврате: 2, 1, 0.\"]], \"mistake\": \"Ответить `уровень 0, 1, 2`. Печать стоит после рекурсивного вызова.\"}"
                 },
                 {
                   "slug": "scp-params-e4",
@@ -174,7 +185,8 @@
                   "tests": "def test_output():\n    assert OUTPUT.strip() == \"anna@mail.ru\", f\"Напечатано {OUTPUT.strip()!r}\"\n\ndef test_function():\n    assert normalize(\" X \") == \"x\", \"normalize должна возвращать результат\"\n",
                   "solution": "def normalize(text):\n    text = text.strip().lower()\n    return text\n\nemail = \"  Anna@Mail.RU \"\nemail = normalize(email)\nprint(email)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Изменение параметра внутри функции не видно снаружи. Результат нужно вернуть и присвоить.\", \"lines\": [[\"return text\", \"Отдаём очищенную строку.\"], [\"email = normalize(email)\", \"Перезаписываем внешнюю переменную результатом.\"]], \"mistake\": \"Вызвать `normalize(email)` без присваивания — результат пропадёт.\"}"
                 },
                 {
                   "slug": "scp-params-e5",
@@ -184,7 +196,8 @@
                   "tests": "def test_values():\n    assert [clamp(15, 0, 10), clamp(-3, 0, 10), clamp(5, 0, 10)] == [10, 0, 5], \"Неверный результат\"\n",
                   "solution": "def clamp(value, low, high):\n    if value < low:\n        value = low\n    if value > high:\n        value = high\n    return value\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Параметр можно переприсваивать внутри функции, как обычную переменную.\", \"lines\": [[\"if value < low:\\n        value = low\", \"−3 → 0.\"], [\"if value > high:\\n        value = high\", \"15 → 10.\"]], \"mistake\": \"Думать, что так изменится переменная у вызывающего кода.\"}"
                 },
                 {
                   "slug": "scp-params-e6",
@@ -194,7 +207,8 @@
                   "tests": "def test_values():\n    assert greet(\"Аня\") == \"Привет, Аня!\" and greet() == \"Привет, гость!\", \"Неверное приветствие\"\n",
                   "solution": "def greet(name=None):\n    if name is None:\n        name = \"гость\"\n    return f\"Привет, {name}!\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Значение по умолчанию `None` — «не передали». Внутри подставляем реальное значение.\", \"lines\": [[\"if name is None:\\n        name = \\\"гость\\\"\", \"Переприсваиваем параметр.\"]], \"mistake\": \"`if not name` — пустая строка тоже станет «гостем», хотя её передали явно.\"}"
                 },
                 {
                   "slug": "scp-params-e7",
@@ -204,7 +218,8 @@
                   "tests": "def test_values():\n    start = 3\n    assert double_n_times(start, 3) == 24 and start == 3 and double_n_times(5, 0) == 5, \"Неверный результат\"\n",
                   "solution": "def double_n_times(x, n):\n    for _ in range(n):\n        x *= 2\n    return x\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Число неизменяемо: `x *= 2` создаёт новое значение в локальной `x`. Внешняя переменная остаётся прежней.\", \"lines\": [[\"for _ in range(n):\\n        x *= 2\", \"3 → 6 → 12 → 24.\"]], \"mistake\": \"Ожидать, что `start` тоже станет 24.\"}"
                 },
                 {
                   "slug": "scp-params-e8",
@@ -214,7 +229,8 @@
                   "tests": "def test_values():\n    assert countdown_str(3) == \"3 2 1 старт\" and countdown_str(0) == \"старт\" and countdown_str(1) == \"1 старт\", \"Неверная строка\"\n",
                   "solution": "def countdown_str(n):\n    if n == 0:\n        return \"старт\"\n    return f\"{n} \" + countdown_str(n - 1)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Каждый рекурсивный вызов получает своё `n`. Строка собирается от внешнего вызова к внутреннему.\", \"lines\": [[\"if n == 0:\\n        return \\\"старт\\\"\", \"База.\"], [\"return f\\\"{n} \\\" + countdown_str(n - 1)\", \"`\\\"3 \\\" + \\\"2 \\\" + \\\"1 \\\" + \\\"старт\\\"`.\"]], \"mistake\": \"Забыть пробел после числа — `321старт`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nНовички часто ждут, что функция изменит переменную, переданную ей в аргументе: «я же поменял `name` внутри!». Но параметр — это **отдельное локальное имя**, которое при вызове просто получает то же значение. Понимание этого избавляет от целого класса ошибок.\n\n## Как передаётся аргумент\n\n```python\ndef change(x):\n    x = x * 100\n    return x\n\nn = 5\nprint(change(n), n)\n```\n\n- При вызове `change(n)` создаётся локальное имя `x`, которое указывает на **то же значение**, что и `n` (число 5).\n- `x = x * 100` привязывает имя `x` к **новому** значению 500. Имя `n` снаружи по-прежнему указывает на 5.\n- Вывод: `500 5`.\n\nПредставь, что переменные — это **ярлыки** на объектах. `x` и `n` — два ярлыка на одном числе. Присваивание `x = ...` перевешивает ярлык `x` на другой объект; ярлык `n` остаётся на месте.\n\n## Строки: то же самое\n\n```python\ndef rename(name):\n    name = name.upper()\n    print(\"внутри:\", name)\n\nuser = \"аня\"\nrename(user)\nprint(\"снаружи:\", user)\n```\n\n- `name.upper()` создаёт **новую** строку; `name = ...` перевешивает локальный ярлык.\n- Вывод: `внутри: АНЯ`, `снаружи: аня`.\n\nПравильно — вернуть результат и **переприсвоить** снаружи:\n\n```python\ndef normalize(text):\n    return text.strip().lower()\n\nemail = \"  Anna@Mail.RU \"\nemail = normalize(email)\nprint(email)\n```\n\nВывод: `anna@mail.ru`.\n\n## Переприсваивать параметр внутри — нормально\n\nВнутри функции параметр — обычная локальная переменная, и менять её можно:\n\n```python\ndef clamp(value, low, high):\n    if value < low:\n        value = low\n    if value > high:\n        value = high\n    return value\n\ndef greet(name=None):\n    if name is None:\n        name = \"гость\"\n    return f\"Привет, {name}!\"\n\nprint(clamp(15, 0, 10), greet())\n```\n\n- Это никак не влияет на переменные снаружи. Вывод: `10 Привет, гость!`.\n\n(Со **списками и словарями** есть тонкость: их можно изменить на месте, и это будет видно снаружи — урок «Изменяемые объекты и области».)\n\n## Рекурсия: у каждого вызова свои локальные\n\n```python\ndef depth(n):\n    label = \"уровень \" + str(n)\n    if n < 2:\n        depth(n + 1)\n    print(label)\n\ndepth(0)\n```\n\n- Каждый вызов получает **свой** параметр `n` и свою `label`. Пока вложенный вызов работает, внешний ждёт со своими значениями.\n- Вывод: `уровень 2`, `уровень 1`, `уровень 0` — каждая функция печатает **свою** метку на обратном пути.\n\n## Итог\n\n- Параметр — локальное имя, которое при вызове указывает на переданное значение.\n- Присваивание параметру не меняет переменную снаружи.\n- Чтобы изменить значение снаружи — `return` + переприсваивание: `x = f(x)`.\n- Внутри функции параметр можно спокойно переприсваивать.\n- У каждого вызова (в том числе рекурсивного) свой набор локальных.",
@@ -266,7 +282,8 @@
                   "code": "TIMEOUT = 30\n\ndef show():\n    return f\"таймаут {TIMEOUT}\"\n\nprint(show())\nTIMEOUT = 60\nprint(show())\n",
                   "expected_output": "таймаут 30\nтаймаут 60",
                   "hint": "Функция читает глобальную переменную в момент вызова.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Функция читает глобальную переменную в момент **вызова**, а не определения.\", \"lines\": [[\"print(show())\", \"Сейчас `TIMEOUT` = 30.\"], [\"TIMEOUT = 60\", \"Изменили глобальную.\"], [\"print(show())\", \"Функция видит новое значение — 60.\"]], \"mistake\": \"Ожидать 30 во второй раз. Значение не «запоминается» при `def`.\"}"
                 },
                 {
                   "slug": "scp-m1-l2-e2",
@@ -275,7 +292,8 @@
                   "code": "x = \"глобальная\"\n\ndef f():\n    x = \"локальная\"\n    return x\n\nprint(f())\nprint(x)\n",
                   "expected_output": "локальная\nглобальная",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Присваивание внутри функции создаёт **новую локальную** переменную, даже если есть глобальная с тем же именем.\", \"lines\": [[\"x = \\\"локальная\\\"\", \"Своя `x` внутри `f`.\"], [\"print(x)\", \"Глобальная не изменилась.\"]], \"mistake\": \"Решить, что функция перезаписала глобальную `x`.\"}"
                 },
                 {
                   "slug": "scp-m1-l2-e6",
@@ -284,7 +302,8 @@
                   "code": "LIMIT = 3\n\ndef check(n):\n    return n <= LIMIT\n\nprint(check(2), check(5))\nLIMIT = 10\nprint(check(5))\n",
                   "expected_output": "True False\nTrue",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Читать глобальную можно без объявлений — значение берётся в момент вызова.\", \"lines\": [[\"print(check(2), check(5))\", \"Лимит 3: `True False`.\"], [\"LIMIT = 10\", \"Теперь лимит 10.\"], [\"print(check(5))\", \"`True`.\"]], \"mistake\": \"Ожидать `False` в конце.\"}"
                 },
                 {
                   "slug": "scp-m1-l2-e3",
@@ -294,7 +313,8 @@
                   "tests": "def test_values():\n    assert endpoint(\"/users\") == \"https://api.shop.ru/users\", \"Неверный адрес\"\n\ndef test_reads_global():\n    g = endpoint.__globals__\n    old = g[\"BASE_URL\"]\n    g[\"BASE_URL\"] = \"http://localhost\"\n    try:\n        assert endpoint(\"/x\") == \"http://localhost/x\", \"Функция должна читать глобальную BASE_URL, а не хардкодить адрес\"\n    finally:\n        g[\"BASE_URL\"] = old\n",
                   "solution": "BASE_URL = \"https://api.shop.ru\"\n\ndef endpoint(path):\n    return BASE_URL + path\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Константы на уровне модуля удобно читать из функций — никаких объявлений не нужно.\", \"lines\": [[\"BASE_URL = \\\"https://api.shop.ru\\\"\", \"Имя большими буквами — по договорённости константа.\"], [\"return BASE_URL + path\", \"Только чтение.\"]], \"mistake\": \"Передавать адрес в каждую функцию вручную — дублирование.\"}"
                 },
                 {
                   "slug": "scp-m1-l2-e4",
@@ -304,7 +324,8 @@
                   "tests": "def test_value():\n    assert describe_env() == \"staging: chrome\", f\"Получено {describe_env()!r}\"\n",
                   "solution": "ENV = \"staging\"\nBROWSER = \"chrome\"\n\ndef describe_env():\n    return f\"{ENV}: {BROWSER}\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Функция читает глобальные настройки. Нельзя создавать внутри одноимённые переменные — они заслонят глобальные.\", \"lines\": [[\"return f\\\"{ENV}: {BROWSER}\\\"\", \"`staging: chrome`.\"]], \"mistake\": \"Написать внутри `ENV = \\\"prod\\\"` — функция начнёт видеть свою локальную.\"}"
                 },
                 {
                   "slug": "scp-m1-l2-e5",
@@ -314,7 +335,8 @@
                   "tests": "def test_value():\n    assert apply_tax(100) == 120.0, f\"Получено {apply_tax(100)}\"\n",
                   "solution": "TAX = 20\n\ndef apply_tax(price):\n    return price * (1 + TAX / 100)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Локальная `TAX = 0` заслоняла глобальную ставку. Убираем её — функция начнёт читать глобальную.\", \"lines\": [[\"return price * (1 + TAX / 100)\", \"Глобальная ставка 20%: 100 → 120.0.\"]], \"mistake\": \"Добавить `global TAX` — не нужно, мы только читаем.\"}"
                 },
                 {
                   "slug": "scp-m1-l2-e7",
@@ -324,7 +346,8 @@
                   "tests": "def test_values():\n    assert is_admin(\"anna\") is True and is_admin(\"bob\") is False, \"Неверный результат\"\n\ndef test_reads_global():\n    g = is_admin.__globals__\n    old = g[\"ADMINS\"]\n    g[\"ADMINS\"] = [\"bob\"]\n    try:\n        assert is_admin(\"bob\") is True, \"Функция должна читать глобальный ADMINS\"\n    finally:\n        g[\"ADMINS\"] = old\n",
                   "solution": "ADMINS = [\"root\", \"anna\"]\n\ndef is_admin(user):\n    return user in ADMINS\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Проверка вхождения в глобальный список — это чтение, `global` не нужен.\", \"lines\": [[\"return user in ADMINS\", \"`anna` есть, `bob` нет.\"]], \"mistake\": \"Копировать список внутрь функции.\"}"
                 },
                 {
                   "slug": "scp-m1-l2-e8",
@@ -334,7 +357,8 @@
                   "tests": "def test_output():\n    assert OUTPUT.strip() == \"Привет, мир\", f\"Напечатано {OUTPUT.strip()!r}\"\n",
                   "solution": "def greet():\n    return GREETING + \", мир\"\n\nGREETING = \"Привет\"\nprint(greet())\n",
                   "hint": "Глобальная переменная должна существовать к моменту вызова, а не к моменту def.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Глобальная переменная должна существовать к моменту **вызова** функции. Определять функцию можно раньше.\", \"lines\": [[\"GREETING = \\\"Привет\\\"\", \"Сначала переменная.\"], [\"print(greet())\", \"Потом вызов.\"]], \"mistake\": \"Решить, что функцию надо переносить ниже переменной. Важен порядок вызова, а не определения.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПеременные, созданные **вне всех функций** (на верхнем уровне файла), называются **глобальными**. Их видно из любой функции модуля. Так обычно хранят **константы** и настройки: адрес API, таймаут, список администраторов. Важно понимать: функции могут **читать** глобальные переменные свободно, а вот **изменять** — нет.\n\n## Чтение глобальной переменной\n\n```python\nTIMEOUT = 30\n\ndef show():\n    return f\"таймаут {TIMEOUT}\"\n\nprint(show())\nTIMEOUT = 60\nprint(show())\n```\n\n- Внутри `show` нет своей `TIMEOUT`, поэтому Python ищет её снаружи и находит глобальную.\n- Значение читается **в момент вызова**, а не в момент `def`: после `TIMEOUT = 60` функция видит новое значение.\n- Вывод: `таймаут 30`, `таймаут 60`.\n\nИмена констант по соглашению пишут **ЗАГЛАВНЫМИ**: `BASE_URL`, `MAX_RETRIES`. Python их не защищает, но это сигнал «не меняй меня в коде».\n\n```python\nBASE_URL = \"https://api.shop.ru\"\nADMINS = [\"root\", \"anna\"]\n\ndef endpoint(path):\n    return BASE_URL + path\n\ndef is_admin(user):\n    return user in ADMINS\n\nprint(endpoint(\"/users\"), is_admin(\"anna\"))\n```\n\nВывод: `https://api.shop.ru/users True`.\n\n## Глобальная должна существовать к моменту вызова\n\n```python\ndef greet():\n    return GREETING + \", мир\"\n\nGREETING = \"Привет\"\nprint(greet())\n```\n\n- В момент `def` переменной `GREETING` ещё нет — и это нормально: тело функции не выполняется при определении.\n- Важно, чтобы переменная существовала к моменту **вызова**. Если поменять две последние строки местами — `NameError`.\n- Вывод: `Привет, мир`.\n\n## Присваивание создаёт локальную\n\n```python\nx = \"глобальная\"\n\ndef f():\n    x = \"локальная\"\n    return x\n\nprint(f())\nprint(x)\n```\n\n- `x = ...` внутри функции создаёт **новую локальную** `x`, которая **затеняет** глобальную. Глобальная не меняется.\n- Вывод: `локальная`, `глобальная`.\n\nОтсюда частый баг: хотели прочитать глобальную настройку, а случайно создали локальную с тем же именем:\n\n```python\nTAX = 20\n\ndef apply_tax_bug(price):\n    TAX = 0\n    return price * (1 + TAX / 100)\n\ndef apply_tax(price):\n    return price * (1 + TAX / 100)\n\nprint(apply_tax_bug(100), apply_tax(100))\n```\n\nВывод: `100.0 120.0`.\n\n## Правило: читать можно, присваивать — нельзя\n\n- **Чтение** глобальной внутри функции работает без всяких объявлений.\n- **Присваивание** (`=`, `+=`, `for x in`, `import x` …) имени внутри функции делает это имя **локальным**. Изменить глобальную так не получится — об этом следующие уроки.\n\n## Итог\n\n- Глобальные — переменные верхнего уровня модуля; видны во всех функциях.\n- Функция читает глобальную в момент **вызова**.\n- Константы — ЗАГЛАВНЫМИ буквами.\n- Присваивание внутри функции создаёт **локальную** переменную, затеняющую глобальную.",
@@ -386,7 +410,8 @@
                   "code": "x = 1\n\ndef f():\n    print(\"до\")\n    try:\n        print(x)\n    except UnboundLocalError:\n        print(\"UnboundLocalError\")\n    x = 2\n\nf()\nprint(x)\n",
                   "expected_output": "до\nUnboundLocalError\n1",
                   "hint": "Python решает, что x локальная, ещё до запуска функции — по наличию присваивания.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Если внутри функции есть присваивание `x = …`, Python считает `x` локальной **во всей функции** — даже в строках выше присваивания.\", \"lines\": [[\"print(x)\", \"`x` уже локальная, но значения ещё нет — `UnboundLocalError`.\"], [\"x = 2\", \"Это присваивание и сделало `x` локальной.\"], [\"print(x)\", \"Глобальная не менялась — 1.\"]], \"mistake\": \"Ожидать, что `print(x)` выведет глобальную 1. Python решает, какое имя локальное, до выполнения функции.\"}"
                 },
                 {
                   "slug": "scp-unbound-e2",
@@ -395,7 +420,8 @@
                   "code": "value = \"глобальная\"\n\ndef g(flag):\n    if flag:\n        value = \"локальная\"\n    return value\n\nprint(g(True))\ntry:\n    print(g(False))\nexcept UnboundLocalError:\n    print(\"ошибка при flag=False\")\n",
                   "expected_output": "локальная\nошибка при flag=False",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Присваивание делает имя локальным, даже если его ветка не выполнилась.\", \"lines\": [[\"if flag:\\n        value = \\\"локальная\\\"\", \"Из-за этой строки `value` локальная всегда.\"], [\"return value\", \"При `False` локальной не присвоили — ошибка.\"]], \"mistake\": \"Ожидать, что при `False` вернётся глобальная.\"}"
                 },
                 {
                   "slug": "scp-unbound-e3",
@@ -404,7 +430,8 @@
                   "code": "i = 100\n\ndef h():\n    for i in range(3):\n        pass\n    return i\n\nprint(h(), i)\n",
                   "expected_output": "2 100",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Цикл `for` тоже присваивает переменной — `i` в функции локальная и после цикла хранит последнее значение.\", \"lines\": [[\"for i in range(3):\", \"Локальная `i`: 0, 1, 2.\"], [\"print(h(), i)\", \"Функция вернула 2, глобальная `i` — 100.\"]], \"mistake\": \"Ожидать, что цикл изменит глобальную `i`.\"}"
                 },
                 {
                   "slug": "scp-unbound-e4",
@@ -414,7 +441,8 @@
                   "tests": "def test_values():\n    assert total_pay(40000) == 41000 and total_pay(60000) == 60000, \"Неверная выплата\"\n    assert total_pay.__globals__[\"BONUS\"] == 1000, \"Глобальный BONUS не должен меняться\"\n\ndef test_no_global():\n    assert \"global\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Реши без global\"\n",
                   "solution": "BONUS = 1000\n\ndef total_pay(salary):\n    bonus = 0 if salary > 50000 else BONUS\n    return salary + bonus\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Чтобы не делать `BONUS` локальным, результат кладём в переменную с **другим** именем.\", \"lines\": [[\"bonus = 0 if salary > 50000 else BONUS\", \"`bonus` — локальная, `BONUS` — только читается.\"], [\"return salary + bonus\", \"40000 → 41000.\"]], \"mistake\": \"`BONUS = 0` внутри функции — это и делало имя локальным.\"}"
                 },
                 {
                   "slug": "scp-unbound-e5",
@@ -424,7 +452,8 @@
                   "tests": "def test_values():\n    LOG.clear()\n    log(\"a\")\n    log(\"b\")\n    assert LOG == [\"a\", \"b\"], f\"LOG = {LOG}\"\n\ndef test_no_global():\n    assert \"global\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Реши без global — append\"\n",
                   "solution": "LOG = []\n\ndef log(msg):\n    LOG.append(msg)\n",
                   "hint": "LOG.append(msg) — не присваивание, а вызов метода; имя остаётся глобальным.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`+=` — это присваивание, поэтому имя становится локальным. А вызов метода `append` — нет: мы меняем объект, не имя.\", \"lines\": [[\"LOG.append(msg)\", \"Меняем глобальный список на месте.\"]], \"mistake\": \"`LOG = LOG + [msg]` — тоже присваивание, та же ошибка.\"}"
                 },
                 {
                   "slug": "scp-unbound-e6",
@@ -434,7 +463,8 @@
                   "tests": "def test_values():\n    def f(a):\n        b = a\n        return c\n    def g():\n        for i in range(1):\n            pass\n    assert [is_local(f, \"a\"), is_local(f, \"b\"), is_local(f, \"c\"), is_local(g, \"i\")] == [True, True, False, True], \"Неверный результат\"\n",
                   "solution": "def is_local(func, name):\n    return name in func.__code__.co_varnames\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Python заранее знает, какие имена в функции локальные, — это видно в `__code__.co_varnames`. Туда попадают параметры и всё, чему присваивали.\", \"lines\": [[\"return name in func.__code__.co_varnames\", \"`a` — параметр, `b` — присвоили, `c` только читается — не локальная.\"]], \"mistake\": \"Проверять через `locals()` снаружи — там локальные текущего места, а не чужой функции.\"}"
                 },
                 {
                   "slug": "scp-unbound-e7",
@@ -444,7 +474,8 @@
                   "tests": "def test_values():\n    assert sum_list([1, 2, 3]) == 6 and sum_list([]) == 0, \"Неверная сумма\"\n    assert sum_list.__globals__[\"total\"] == 0, \"Глобальная total не должна меняться\"\n",
                   "solution": "total = 0\n\ndef sum_list(nums):\n    total = 0\n    for n in nums:\n        total = total + n\n    return total\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Своя локальная сумма, начиная с 0, — и никаких конфликтов с глобальной.\", \"lines\": [[\"total = 0\", \"Сначала присваивание — локальная сразу получает значение.\"], [\"total = total + n\", \"Работаем со своей переменной.\"]], \"mistake\": \"Писать `global total` — функция начнёт портить глобальную и накапливать сумму между вызовами.\"}"
                 },
                 {
                   "slug": "scp-unbound-e8",
@@ -454,7 +485,8 @@
                   "tests": "def test_values():\n    assert circle_area(1) == 3.14 and circle_area(2) == 12.57, \"Неверная площадь\"\n",
                   "solution": "import math\n\ndef circle_area(r):\n    result = math.pi * r * r\n    return round(result, 2)\n",
                   "hint": "Строка import math внутри функции делает math локальным во ВСЕЙ функции.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`import math` внутри функции тоже создаёт локальное имя `math` — во всей функции. Если строка с `math.pi` выше импорта, будет `UnboundLocalError`.\", \"lines\": [[\"import math\", \"Импорт — на уровне модуля.\"], [\"result = math.pi * r * r\", \"Используем глобальное имя.\"]], \"mistake\": \"Переносить внутренний `import` выше — работает, но импорт внутри функции без нужды — лишнее.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n`UnboundLocalError` — одна из самых загадочных ошибок для новичка: «переменная же есть, вот она, глобальная!». Причина в том, **как** Python решает, локальное имя или нет. Поймёшь правило — ошибка перестанет удивлять.\n\n## Правило: решение принимается до запуска функции\n\nКогда Python читает `def`, он просматривает **всё тело** функции. Если имени где-либо внутри **присваивается** значение, это имя считается **локальным во всей функции** — с первой до последней строки. Даже если присваивание стоит ниже или в ветке, которая не выполняется.\n\n```python\nx = 1\n\ndef f():\n    print(\"до\")\n    try:\n        print(x)\n    except UnboundLocalError:\n        print(\"UnboundLocalError\")\n    x = 2\n\nf()\nprint(x)\n```\n\n- Из-за строки `x = 2` внизу имя `x` локально во всей `f`.\n- `print(x)` пытается прочитать локальную `x`, которой ещё **не присвоено** значение, — отсюда название: «локальная переменная, не привязанная к значению».\n- Глобальная `x` не участвует вовсе. Вывод: `до`, `UnboundLocalError`, `1`.\n\n## Присваивание в невыполненной ветке\n\n```python\nvalue = \"глобальная\"\n\ndef g(flag):\n    if flag:\n        value = \"локальная\"\n    return value\n\nprint(g(True))\ntry:\n    print(g(False))\nexcept UnboundLocalError:\n    print(\"ошибка при flag=False\")\n```\n\n- Решение «`value` локальная» принято по тексту функции, а не по тому, какая ветка выполнится.\n- При `flag=False` присваивания не было, а читать надо локальную → ошибка.\n- Вывод: `локальная`, `ошибка при flag=False`.\n\n## Что считается присваиванием\n\nНе только `=`. Имя становится локальным, если внутри функции оно появляется в:\n- `x = ...`, `x += ...`, `x -= ...` (любые составные операторы);\n- `for x in ...` — переменная цикла;\n- `import x`, `from m import x`;\n- `def x():`, `class x:`;\n- `with ... as x`, `except ... as x`;\n- `del x`.\n\n```python\ni = 100\n\ndef h():\n    for i in range(3):\n        pass\n    return i\n\nprint(h(), i)\n```\n\n- `for i` — присваивание, `i` локальная. Глобальная `i` не тронута. Вывод: `2 100`.\n\nОсобенно коварен `import` внутри функции:\n\n```python\nimport math\n\ndef circle_area(r):\n    try:\n        return math.pi * r * r\n    except UnboundLocalError:\n        return \"UnboundLocalError\"\n    import math\n\nprint(circle_area(1))\n```\n\n- Строка `import math` в конце (даже недостижимая!) делает `math` локальным во всей функции. Вывод: `UnboundLocalError`.\n\n## Посмотреть, какие имена локальные\n\n```python\ndef f(a):\n    b = a\n    return c\n\nprint(f.__code__.co_varnames)\n```\n\n- `__code__.co_varnames` — имена локальных переменных, которые Python определил при чтении `def`. `c` там нет — её будут искать снаружи.\n- Вывод: `('a', 'b')`.\n\n## Как исправлять\n\n1. **Хотел прочитать глобальную** — не присваивай этому имени внутри; заведи локальную с **другим** именем:\n\n```python\nBONUS = 1000\n\ndef total_pay(salary):\n    bonus = 0 if salary > 50000 else BONUS\n    return salary + bonus\n\nprint(total_pay(40000), total_pay(60000))\n```\n\nВывод: `41000 60000`.\n\n2. **Хотел изменить глобальный список/словарь** — вызывай метод вместо присваивания: `LOG.append(msg)` вместо `LOG += [msg]`. Метод меняет объект, а имя не переприсваивается.\n\n3. **Хотел свою локальную переменную** — присвой ей начальное значение в начале функции (`total = 0`).\n\n4. **Действительно нужно изменить глобальную** — `global` (следующий урок), но лучше передавать значение параметром и возвращать результат.\n\n## Итог\n\n- Присваивание имени **где угодно** в теле делает его локальным во **всей** функции.\n- Чтение такого имени до присваивания — `UnboundLocalError`.\n- Присваивание — это и `+=`, и `for x`, и `import x`, и `except … as x`.\n- Лечение: другое имя, метод вместо присваивания, начальное значение, либо `global`.",
@@ -506,7 +538,8 @@
                   "code": "counter = 0\n\ndef increment():\n    global counter\n    counter += 1\n    return counter\n\nincrement()\nincrement()\nprint(counter)\n",
                   "expected_output": "2",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`global` говорит: это имя — глобальная переменная, присваивать нужно ей.\", \"lines\": [[\"global counter\", \"Без этой строки `counter += 1` создал бы локальную и упал.\"], [\"print(counter)\", \"Два вызова — 2.\"]], \"mistake\": \"Ожидать 0. С `global` изменения видны снаружи.\"}"
                 },
                 {
                   "slug": "scp-m1-l3-e2",
@@ -515,7 +548,8 @@
                   "code": "total = 10\n\ndef add():\n    try:\n        total += 5\n    except UnboundLocalError as e:\n        return \"ошибка: \" + type(e).__name__\n    return total\n\nprint(add())\n",
                   "expected_output": "ошибка: UnboundLocalError",
                   "hint": "Присваивание делает total локальной во всей функции, а читать её до присваивания нельзя.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`total += 5` внутри функции без `global` — присваивание, значит `total` локальная, но значения у неё нет.\", \"lines\": [[\"total += 5\", \"Нужно прочитать локальную `total` — а её ещё нет.\"], [\"return \\\"ошибка: \\\" + type(e).__name__\", \"Имя класса ошибки.\"]], \"mistake\": \"Ожидать 15. Глобальную так не изменить.\"}"
                 },
                 {
                   "slug": "scp-m1-l3-e6",
@@ -524,7 +558,8 @@
                   "code": "x = 1\n\ndef set_x():\n    global x\n    x = 5\n\ndef read_x():\n    return x\n\nprint(read_x())\nset_x()\nprint(read_x())\n",
                   "expected_output": "1\n5",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Одна функция меняет глобальную через `global`, другая читает — и видит изменение.\", \"lines\": [[\"global x\\n    x = 5\", \"Меняется глобальная.\"], [\"print(read_x())\", \"До — 1, после — 5.\"]], \"mistake\": \"Думать, что `read_x` тоже нуждается в `global`. Для чтения он не нужен.\"}"
                 },
                 {
                   "slug": "scp-m1-l3-e3",
@@ -534,7 +569,8 @@
                   "tests": "def test_values():\n    g = register.__globals__\n    g[\"users_count\"] = 0\n    assert register() == 1 and register() == 2 and g[\"users_count\"] == 2, \"Глобальный счётчик должен расти\"\n",
                   "solution": "users_count = 0\n\ndef register():\n    global users_count\n    users_count += 1\n    return users_count\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Изменить глобальную переменную можно только с объявлением `global`.\", \"lines\": [[\"global users_count\", \"Работаем с внешним счётчиком.\"], [\"users_count += 1\\n    return users_count\", \"1, 2, …\"]], \"mistake\": \"Поставить `global` после `+=` — `SyntaxError`: объявление должно быть до использования.\"}"
                 },
                 {
                   "slug": "scp-m1-l3-e4",
@@ -544,7 +580,8 @@
                   "tests": "import inspect\n\ndef test_output():\n    assert OUTPUT.strip() == \"15\", f\"Напечатано {OUTPUT.strip()!r}\"\n\ndef test_pure():\n    assert add_points(3, 4) == 7, \"add_points(score, points) должна вернуть сумму\"\n    assert \"global\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Избавься от global\"\n",
                   "solution": "def add_points(score, points):\n    return score + points\n\nscore = 0\nscore = add_points(score, 10)\nscore = add_points(score, 5)\nprint(score)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Без `global`: состояние передаётся параметром, новое значение возвращается и сохраняется снаружи. Функция становится чистой.\", \"lines\": [[\"return score + points\", \"Ничего не меняет, только считает.\"], [\"score = add_points(score, 10)\\nscore = add_points(score, 5)\", \"Обновляем снаружи.\"]], \"mistake\": \"Вызывать `add_points(score, 10)` без присваивания — счёт останется 0.\"}"
                 },
                 {
                   "slug": "scp-m1-l3-e5",
@@ -554,7 +591,8 @@
                   "tests": "def test_values():\n    stats = {}\n    assert [track(stats, \"/users\"), track(stats, \"/users\"), track(stats, \"/items\")] == [1, 2, 1], \"Неверные счётчики\"\n    assert stats == {\"/users\": 2, \"/items\": 1}, f\"Состояние: {stats}\"\n\ndef test_no_global():\n    assert \"global\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Реши без global\"\n",
                   "solution": "def track(stats, endpoint):\n    stats[endpoint] = stats.get(endpoint, 0) + 1\n    return stats[endpoint]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Изменяемый словарь, переданный в функцию, можно менять на месте — `global` не нужен.\", \"lines\": [[\"stats[endpoint] = stats.get(endpoint, 0) + 1\", \"Меняем содержимое словаря, а не имя `stats`.\"], [\"return stats[endpoint]\", \"Новое значение счётчика.\"]], \"mistake\": \"`stats = {...}` внутри функции — это новый локальный словарь, внешний не изменится.\"}"
                 },
                 {
                   "slug": "scp-m1-l3-e7",
@@ -564,7 +602,8 @@
                   "tests": "def test_creates():\n    g = init_config.__globals__\n    g.pop(\"CONFIG\", None)\n    init_config()\n    assert g.get(\"CONFIG\") == {\"debug\": False}, \"CONFIG должна появиться после вызова\"\n\ndef test_global():\n    assert \"global CONFIG\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй global CONFIG\"\n",
                   "solution": "def init_config():\n    global CONFIG\n    CONFIG = {\"debug\": False}\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Если глобальной переменной ещё нет, `global` + присваивание создаст её.\", \"lines\": [[\"global CONFIG\", \"Имя будет глобальным.\"], [\"CONFIG = {\\\"debug\\\": False}\", \"После вызова `CONFIG` доступна везде.\"]], \"mistake\": \"Забыть `global` — словарь станет локальным и исчезнет после вызова.\"}"
                 },
                 {
                   "slug": "scp-m1-l3-e8",
@@ -574,7 +613,8 @@
                   "tests": "def test_output():\n    assert OUTPUT.split() == [\"True\", \"False\"], f\"Напечатано {OUTPUT.split()}\"\n\ndef test_pure():\n    assert toggle(True) is False and toggle(False) is True, \"toggle(state) должна вернуть not state\"\n    assert \"global\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Избавься от global\"\n",
                   "solution": "def toggle(state):\n    return not state\n\ndark_mode = False\ndark_mode = toggle(dark_mode)\nprint(dark_mode)\ndark_mode = toggle(dark_mode)\nprint(dark_mode)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Переключатель без `global`: функция получает состояние и возвращает противоположное.\", \"lines\": [[\"return not state\", \"`False` → `True`.\"], [\"dark_mode = toggle(dark_mode)\", \"Сохраняем результат.\"]], \"mistake\": \"Вызвать `toggle(dark_mode)` без присваивания — значение не изменится.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nИногда функции действительно нужно **изменить** глобальную переменную: счётчик вызовов, флаг «уже инициализировано». Для этого есть объявление **`global`**. Но у глобального состояния много скрытых проблем, поэтому опытные разработчики используют `global` очень редко и знают, чем его заменить.\n\n## Как работает global\n\n```python\ncounter = 0\n\ndef increment():\n    global counter\n    counter += 1\n    return counter\n\nincrement()\nincrement()\nprint(counter)\n```\n\n- `global counter` — «в этой функции имя `counter` означает **глобальную** переменную». Присваивание теперь меняет её, а не создаёт локальную.\n- Объявление пишут в начале функции, до использования имени.\n- Вывод: `2`.\n\n```python\nx = 1\n\ndef set_x():\n    global x\n    x = 5\n\ndef read_x():\n    return x\n\nprint(read_x())\nset_x()\nprint(read_x())\n```\n\n- `read_x` только читает — ей `global` не нужен. Вывод: `1`, `5`.\n\n## global может создать переменную\n\n```python\ndef init_config():\n    global CONFIG\n    CONFIG = {\"debug\": False}\n\ninit_config()\nprint(CONFIG)\n```\n\n- Если глобальной `CONFIG` ещё не было, присваивание с `global` её **создаёт**. Вывод: `{'debug': False}`.\n\n## Без global — UnboundLocalError\n\n```python\ntotal = 10\n\ndef add():\n    try:\n        total += 5\n    except UnboundLocalError as e:\n        return \"ошибка: \" + type(e).__name__\n    return total\n\nprint(add())\n```\n\n- `total += 5` — присваивание, значит `total` локальная, а прочитать её до присваивания нельзя. Вывод: `ошибка: UnboundLocalError`.\n\n## Почему global — плохая привычка\n\n- **Скрытые зависимости.** По вызову `increment()` не видно, что он что-то меняет. Нужно читать тело функции.\n- **Непредсказуемость.** Одинаковые вызовы дают разные результаты — всё зависит от истории.\n- **Трудно тестировать.** Тесты начинают влиять друг на друга через общее состояние; перед каждым тестом его нужно сбрасывать.\n- **Опасно в параллельном коде.** Два потока меняют одну переменную одновременно.\n\n## Чем заменить global\n\n### 1. Передать и вернуть\n\n```python\ndef add_points(score, points):\n    return score + points\n\nscore = 0\nscore = add_points(score, 10)\nscore = add_points(score, 5)\nprint(score)\n```\n\n- Функция **чистая**: все данные — в параметрах, результат — в `return`. Все изменения видны в месте вызова. Вывод: `15`.\n\n```python\ndef toggle(state):\n    return not state\n\ndark_mode = False\ndark_mode = toggle(dark_mode)\nprint(dark_mode)\n```\n\nВывод: `True`.\n\n### 2. Изменяемый объект-хранилище\n\n```python\ndef track(stats, endpoint):\n    stats[endpoint] = stats.get(endpoint, 0) + 1\n    return stats[endpoint]\n\nstats = {}\ntrack(stats, \"/users\")\ntrack(stats, \"/users\")\nprint(stats)\n```\n\n- Словарь передаётся параметром и **меняется на месте** — `global` не нужен, а зависимость видна в вызове. Вывод: `{'/users': 2}`.\n\n### 3. Замыкание или класс\n\nФункция, которая помнит своё состояние, — это замыкание (модуль «Вложенные функции») или объект класса (тема «Классы»).\n\n## Итог\n\n- `global имя` — в функции имя означает глобальную переменную; присваивание её меняет или создаёт.\n- Для **чтения** глобальной `global` не нужен.\n- Глобальное состояние скрывает зависимости и мешает тестам.\n- Замены: передать и вернуть, изменяемый объект-параметр, замыкание, класс.",
@@ -634,7 +674,8 @@
                   "code": "x = \"global\"\n\ndef outer():\n    x = \"enclosing\"\n    def inner():\n        return x\n    return inner()\n\nprint(outer())\n",
                   "expected_output": "enclosing",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Имя ищется по правилу LEGB: Local (своя функция) → Enclosing (внешние функции) → Global (модуль) → Built-in (встроенные). Берётся первое найденное.\", \"lines\": [[\"return x\", \"Своей `x` у `inner` нет, во внешней `outer` есть — `enclosing`.\"]], \"mistake\": \"Ответить `global`. Объемлющая функция ближе глобальной области.\"}"
                 },
                 {
                   "slug": "scp-m2-l1-e2",
@@ -643,7 +684,8 @@
                   "code": "x = \"global\"\n\ndef outer():\n    def inner():\n        return x\n    return inner()\n\ndef outer2():\n    x = \"enclosing\"\n    def inner():\n        x = \"local\"\n        return x\n    return inner(), x\n\nprint(outer())\nprint(outer2())\n",
                   "expected_output": "global\n('local', 'enclosing')",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Нет ни локальной, ни объемлющей — берётся глобальная. Своя локальная заслоняет все внешние.\", \"lines\": [[\"return x\", \"В `outer` своей `x` нет — глобальная.\"], [\"x = \\\"local\\\"\\n        return x\", \"У `inner` своя `x`.\"], [\"return inner(), x\", \"А у `outer2` — своя `enclosing`, её не трогали.\"]], \"mistake\": \"Решить, что `x = \\\"local\\\"` изменит `x` во внешней функции.\"}"
                 },
                 {
                   "slug": "scp-m2-l1-e6",
@@ -652,7 +694,8 @@
                   "code": "x = \"G\"\n\ndef a():\n    x = \"E1\"\n    def b():\n        def c():\n            return x\n        return c()\n    return b()\n\nprint(a())\n",
                   "expected_output": "E1",
                   "hint": "Поиск идёт от ближайшей объемлющей функции наружу.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Поиск идёт наружу через все уровни вложенности, пока не найдёт имя.\", \"lines\": [[\"return x\", \"В `c` нет, в `b` нет, в `a` есть — `E1`.\"]], \"mistake\": \"Ответить `G`. До глобальной дело не доходит — `a` ближе.\"}"
                 },
                 {
                   "slug": "scp-m2-l1-e3",
@@ -662,7 +705,8 @@
                   "tests": "def test_value():\n    assert make_formatter(\"INFO\") == \"INFO: готово\" and make_formatter(\"ERR\") == \"ERR: готово\", \"Неверная строка\"\n",
                   "solution": "def make_formatter(prefix):\n    def fmt(message):\n        return f\"{prefix}: {message}\"\n    return fmt(\"готово\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Вложенная функция видит параметры внешней — они для неё объемлющая область.\", \"lines\": [[\"return f\\\"{prefix}: {message}\\\"\", \"`prefix` — из `make_formatter`.\"], [\"return fmt(\\\"готово\\\")\", \"Вызываем вложенную.\"]], \"mistake\": \"Передавать `prefix` во `fmt` параметром — задание проверяет именно чтение из объемлющей области.\"}"
                 },
                 {
                   "slug": "scp-m2-l1-e4",
@@ -672,7 +716,8 @@
                   "tests": "def test_value():\n    assert which_scope() == [\"L\", \"E\", \"G\"], f\"Получено {which_scope()}\"\n",
                   "solution": "level = \"G\"\n\ndef which_scope():\n    level = \"E\"\n    def inner():\n        level = \"L\"\n        return level\n    return [inner(), level, globals()[\"level\"]]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Три переменные с одним именем на трёх уровнях. Глобальную из функции, где есть своя `level`, можно достать через `globals()`.\", \"lines\": [[\"level = \\\"L\\\"\\n        return level\", \"Локальная `inner`.\"], [\"return [inner(), level, globals()[\\\"level\\\"]]\", \"`L`, своя `E`, глобальная `G`.\"]], \"mistake\": \"Просто вернуть `level` третьим элементом — это будет `E`, а не глобальная.\"}"
                 },
                 {
                   "slug": "scp-m2-l1-e5",
@@ -682,7 +727,8 @@
                   "tests": "def test_value():\n    assert count_items([1, 2, 3]) == 3 and count_items([]) == 0, \"count_items должна вернуть длину\"\n",
                   "solution": "def count_items(items):\n    return len(items)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Глобальная переменная `len = 5` заслоняет встроенную функцию `len` (уровень B в LEGB). Удаляем её — и `len` снова работает.\", \"lines\": [[\"return len(items)\", \"Встроенная функция.\"]], \"mistake\": \"Называть переменные именами встроенных функций: `list`, `str`, `len`, `sum` — потом они «ломаются».\"}"
                 },
                 {
                   "slug": "scp-m2-l1-e7",
@@ -692,7 +738,8 @@
                   "tests": "def test_values():\n    assert make_labels(\"id\", 3) == [\"id-1\", \"id-2\", \"id-3\"] and make_labels(\"x\", 0) == [], \"Неверные метки\"\n\ndef test_reads_global():\n    g = make_labels.__globals__\n    old = g[\"SEPARATOR\"]\n    g[\"SEPARATOR\"] = \"_\"\n    try:\n        assert make_labels(\"a\", 1) == [\"a_1\"], \"Разделитель должен браться из глобальной SEPARATOR\"\n    finally:\n        g[\"SEPARATOR\"] = old\n",
                   "solution": "SEPARATOR = \"-\"\n\ndef make_labels(prefix, n):\n    def label(i):\n        return f\"{prefix}{SEPARATOR}{i}\"\n    return [label(i) for i in range(1, n + 1)]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Одна вложенная функция берёт имена с разных уровней: `prefix` — из объемлющей, `SEPARATOR` — из глобальной.\", \"lines\": [[\"return f\\\"{prefix}{SEPARATOR}{i}\\\"\", \"`id-1`.\"], [\"return [label(i) for i in range(1, n + 1)]\", \"От 1 до `n`.\"]], \"mistake\": \"`range(n)` — нумерация начнётся с 0.\"}"
                 },
                 {
                   "slug": "scp-m2-l1-e8",
@@ -702,7 +749,8 @@
                   "tests": "def test_values():\n    assert price_list([100, 50], 20) == [120.0, 60.0] and price_list([], 5) == [], \"Неверные цены\"\n",
                   "solution": "def price_list(prices, rate):\n    def with_rate(p):\n        r = rate / 100\n        return round(p * (1 + r), 2)\n    return [with_rate(p) for p in prices]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Присваивание `rate = …` во вложенной функции делает `rate` её локальной — и прочитать внешнюю уже нельзя. Новое имя решает проблему.\", \"lines\": [[\"r = rate / 100\", \"`rate` только читается — из объемлющей области.\"], [\"return round(p * (1 + r), 2)\", \"100 → 120.0.\"]], \"mistake\": \"Добавить `nonlocal rate` — функция начнёт портить общее значение при каждом вызове.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nКогда в коде встречается имя, Python должен решить, **какую** переменную оно означает: локальную, глобальную, встроенную функцию? Порядок поиска описывается правилом **LEGB**. Зная его, ты всегда сможешь сказать, откуда берётся значение.\n\n## Четыре области\n\nPython ищет имя по очереди в четырёх областях, от ближней к дальней, и берёт **первое найденное**:\n\n1. **L — Local**: локальные имена текущей функции.\n2. **E — Enclosing**: локальные имена **объемлющих** функций (если функция вложена в другую).\n3. **G — Global**: глобальные имена модуля.\n4. **B — Built-in**: встроенные имена Python: `len`, `print`, `sum`, `int`…\n\nЕсли имя не найдено нигде — `NameError`.\n\n```python\nx = \"global\"\n\ndef outer():\n    x = \"enclosing\"\n    def inner():\n        return x\n    return inner()\n\nprint(outer())\n```\n\n- В `inner` нет своей `x` (L) → ищем в объемлющей `outer` (E) и находим. Вывод: `enclosing`.\n\n## Каждая область по очереди\n\n```python\nx = \"global\"\n\ndef outer():\n    def inner():\n        return x\n    return inner()\n\ndef outer2():\n    x = \"enclosing\"\n    def inner():\n        x = \"local\"\n        return x\n    return inner(), x\n\nprint(outer())\nprint(outer2())\n```\n\n- `outer`: ни в L, ни в E нет `x` → G: `global`.\n- `outer2`: в `inner` есть своя `x` (L) — берётся она; сама `outer2` видит свою `x`.\n- Вывод: `global`, `('local', 'enclosing')`.\n\n## Ближайшая объемлющая\n\n```python\nx = \"G\"\n\ndef a():\n    x = \"E1\"\n    def b():\n        def c():\n            return x\n        return c()\n    return b()\n\nprint(a())\n```\n\n- В `c` и `b` нет `x`; поиск идёт наружу **по уровням вложенности** и останавливается на ближайшей — в `a`. Вывод: `E1`.\n\n## B — встроенные имена\n\n```python\nprint(len(\"abc\"), sum([1, 2]), max(3, 7))\n```\n\n- `len`, `sum`, `max` не определены ни локально, ни глобально — их находят в последней области, встроенной. Вывод: `3 3 7`.\n- Если создать глобальную (или локальную) переменную с таким же именем, она **затенит** встроенную — поиск остановится раньше (урок «Затенение имён»).\n\n## Одна переменная — разные области одновременно\n\n```python\nlevel = \"G\"\n\ndef which_scope():\n    level = \"E\"\n    def inner():\n        level = \"L\"\n        return level\n    return [inner(), level, globals()[\"level\"]]\n\nprint(which_scope())\n```\n\n- `globals()` — словарь глобальных имён модуля; `globals()[\"level\"]` — глобальная, даже когда её затеняют.\n- Вывод: `['L', 'E', 'G']`.\n\n## Присваивание во вложенной функции\n\nПравило «присваивание делает имя локальным» действует и здесь:\n\n```python\ndef price_list(prices, rate):\n    def with_rate(p):\n        r = rate / 100\n        return round(p * (1 + r), 2)\n    return [with_rate(p) for p in prices]\n\nprint(price_list([100, 50], 20))\n```\n\n- `rate` только **читается** во вложенной функции — берётся из E. Если бы там было `rate = rate / 100`, `rate` стала бы локальной для `with_rate`, и получился бы `UnboundLocalError`. Поэтому результат — в новое имя `r`.\n- Вывод: `[120.0, 60.0]`.\n\n## Итог\n\n- Порядок поиска имени: **L**ocal → **E**nclosing → **G**lobal → **B**uilt-in; берётся первое найденное.\n- Не нашли нигде — `NameError`.\n- Enclosing — локальные объемлющих функций, от ближайшей наружу.\n- Присваивание во вложенной функции делает имя локальным для неё.",
@@ -754,7 +802,8 @@
                   "code": "def outer():\n    def helper(x):\n        return x * 2\n    return helper(5)\n\nprint(outer())\ntry:\n    helper(1)\nexcept NameError:\n    print(\"helper снаружи не виден\")\n",
                   "expected_output": "10\nhelper снаружи не виден",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Функция, объявленная внутри другой, — её локальное имя. Снаружи она не видна.\", \"lines\": [[\"return helper(5)\", \"Внутри — пожалуйста: 10.\"], [\"helper(1)\", \"Снаружи — `NameError`.\"]], \"mistake\": \"Ожидать, что вложенная функция доступна глобально.\"}"
                 },
                 {
                   "slug": "scp-nested-e2",
@@ -763,7 +812,8 @@
                   "code": "def greet_all(greeting, names):\n    def one(name):\n        return f\"{greeting}, {name}!\"\n    return [one(n) for n in names]\n\nprint(greet_all(\"Привет\", [\"Аня\", \"Боря\"]))\n",
                   "expected_output": "['Привет, Аня!', 'Привет, Боря!']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Вложенная функция видит параметры внешней, поэтому ей не нужно передавать `greeting` каждый раз.\", \"lines\": [[\"return f\\\"{greeting}, {name}!\\\"\", \"`greeting` — из `greet_all`.\"]], \"mistake\": \"Думать, что `one` не знает о `greeting`, раз его нет в её параметрах.\"}"
                 },
                 {
                   "slug": "scp-nested-e3",
@@ -772,7 +822,8 @@
                   "code": "def outer():\n    msg = \"раз\"\n    def show():\n        return msg\n    first = show()\n    msg = \"два\"\n    return first, show()\n\nprint(outer())\n",
                   "expected_output": "('раз', 'два')",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Вложенная функция читает переменную внешней в момент **вызова**, а не определения.\", \"lines\": [[\"first = show()\", \"Сейчас `msg` = `раз`.\"], [\"msg = \\\"два\\\"\", \"Меняем.\"], [\"return first, show()\", \"Второй вызов видит `два`.\"]], \"mistake\": \"Ответить `('раз', 'раз')`.\"}"
                 },
                 {
                   "slug": "scp-nested-e4",
@@ -782,7 +833,8 @@
                   "tests": "def test_values():\n    got = [missing_fields({\"name\": \"Аня\", \"email\": \"\"}), missing_fields({}), missing_fields({\"name\": \"a\", \"email\": \"b\"})]\n    assert got == [[\"email\"], [\"name\", \"email\"], []], f\"Получено {got}\"\n",
                   "solution": "def missing_fields(user):\n    def is_filled(field):\n        return bool(user.get(field))\n    return [f for f in [\"name\", \"email\"] if not is_filled(f)]\n",
                   "hint": "user.get(field) вернёт None, если поля нет; bool(\"\") — False.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Вспомогательная вложенная функция проверяет одно поле и читает `user` из внешней функции.\", \"lines\": [[\"return bool(user.get(field))\", \"Нет ключа или пусто — `False`.\"], [\"return [f for f in [\\\"name\\\", \\\"email\\\"] if not is_filled(f)]\", \"Незаполненные поля.\"]], \"mistake\": \"`field in user` — пустая строка будет считаться заполненной.\"}"
                 },
                 {
                   "slug": "scp-nested-e5",
@@ -792,7 +844,8 @@
                   "tests": "def test_values():\n    assert format_table([[\"id\", \"name\"], [1, \"Аня\"]]) == [\"id | name\", \"1 | Аня\"] and format_table([]) == [], \"Неверная таблица\"\n",
                   "solution": "def format_table(rows):\n    def fmt_row(row):\n        return \" | \".join(str(x) for x in row)\n    return [fmt_row(r) for r in rows]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Логика для одной строки — во вложенной функции, для всей таблицы — простой список.\", \"lines\": [[\"return \\\" | \\\".join(str(x) for x in row)\", \"`join` работает только со строками — `str` для чисел.\"]], \"mistake\": \"Без `str` — `TypeError` на числе 1.\"}"
                 },
                 {
                   "slug": "scp-nested-e6",
@@ -802,7 +855,8 @@
                   "tests": "def test_values():\n    assert stats([2, 4, 9]) == (5.0, 7) and stats([]) == (0, 0) and stats([3]) == (3.0, 0), \"Неверный результат\"\n",
                   "solution": "def stats(nums):\n    def mean():\n        return sum(nums) / len(nums)\n    def spread():\n        return max(nums) - min(nums)\n    if not nums:\n        return (0, 0)\n    return (mean(), spread())\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Вложенные функции без параметров берут `nums` из внешней. Вызываем их только после проверки на пустоту.\", \"lines\": [[\"if not nums:\\n        return (0, 0)\", \"Иначе деление на ноль и `max` пустого списка.\"], [\"return (mean(), spread())\", \"`(5.0, 7)`.\"]], \"mistake\": \"Вызвать `mean()` до проверки — упадёт на пустом списке.\"}"
                 },
                 {
                   "slug": "scp-nested-e7",
@@ -812,7 +866,8 @@
                   "tests": "def test_values():\n    assert clean_all([\"**Аня**\", \"*БОРЯ\"], \"*\") == [\"аня\", \"боря\"] and clean_all([\" x \"], \" \") == [\"x\"], \"Неверная очистка\"\n",
                   "solution": "def clean_all(texts, chars):\n    def clean(text):\n        return text.strip(chars).lower()\n    return [clean(t) for t in texts]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`chars` приходит один раз во внешнюю функцию, вложенная `clean` использует его для каждой строки.\", \"lines\": [[\"return text.strip(chars).lower()\", \"`**Аня**` → `аня`.\"]], \"mistake\": \"`strip()` без аргумента — уберёт только пробелы.\"}"
                 },
                 {
                   "slug": "scp-nested-e8",
@@ -822,7 +877,8 @@
                   "tests": "def test_values():\n    assert flatten([1, [2, [3, 4]], 5]) == [1, 2, 3, 4, 5] and flatten([]) == [] and flatten([[[]]]) == [], \"Неверный результат\"\n",
                   "solution": "def flatten(data):\n    result = []\n    def walk(item):\n        if isinstance(item, list):\n            for x in item:\n                walk(x)\n        else:\n            result.append(item)\n    walk(data)\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Рекурсивная вложенная функция складывает числа во внешний список. `append` меняет объект — `nonlocal` не нужен.\", \"lines\": [[\"if isinstance(item, list):\\n            for x in item:\\n                walk(x)\", \"Спускаемся во вложенные списки.\"], [\"else:\\n            result.append(item)\", \"Число — в результат.\"], [\"walk(data)\\n    return result\", \"Запуск и ответ.\"]], \"mistake\": \"`result = result + [item]` — это присваивание, и `result` станет локальной для `walk`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nФункцию можно определить **внутри** другой функции. Зачем? Чтобы спрятать вспомогательный код, который нужен только одной функции, и чтобы этот помощник мог пользоваться её параметрами без передачи аргументов. А ещё вложенные функции — основа замыканий и декораторов.\n\n## Вложенная функция видна только внутри\n\n```python\ndef outer():\n    def helper(x):\n        return x * 2\n    return helper(5)\n\nprint(outer())\ntry:\n    helper(1)\nexcept NameError:\n    print(\"helper снаружи не виден\")\n```\n\n- `def helper` внутри `outer` — это просто **локальная переменная** `helper`, значение которой — функция.\n- Снаружи имени `helper` нет, как и любой другой локальной. Вывод: `10`, `helper снаружи не виден`.\n- Каждый вызов `outer` создаёт `helper` заново.\n\n## Доступ к параметрам внешней функции\n\n```python\ndef greet_all(greeting, names):\n    def one(name):\n        return f\"{greeting}, {name}!\"\n    return [one(n) for n in names]\n\nprint(greet_all(\"Привет\", [\"Аня\", \"Боря\"]))\n```\n\n- `one` получает только `name`, а `greeting` берёт из объемлющей области (буква E в LEGB) — передавать его каждый раз не нужно.\n- Вывод: `['Привет, Аня!', 'Привет, Боря!']`.\n\n## Значение читается в момент вызова\n\n```python\ndef outer():\n    msg = \"раз\"\n    def show():\n        return msg\n    first = show()\n    msg = \"два\"\n    return first, show()\n\nprint(outer())\n```\n\n- Вложенная функция запоминает не значение, а **переменную** внешней функции. При каждом вызове читается её текущее значение.\n- Вывод: `('раз', 'два')`.\n\n## Помощники без параметров\n\n```python\ndef stats(nums):\n    def mean():\n        return sum(nums) / len(nums)\n    def spread():\n        return max(nums) - min(nums)\n    if not nums:\n        return (0, 0)\n    return (mean(), spread())\n\nprint(stats([2, 4, 9]))\n```\n\n- Обе вложенные функции работают с `nums` внешней функции.\n- Функции определены до проверки `if not nums`, но **вызываются** только после неё — поэтому деления на ноль нет.\n- Вывод: `(5.0, 7)`.\n\n## Рекурсивный помощник и общий результат\n\n```python\ndef flatten(data):\n    result = []\n    def walk(item):\n        if isinstance(item, list):\n            for x in item:\n                walk(x)\n        else:\n            result.append(item)\n    walk(data)\n    return result\n\nprint(flatten([1, [2, [3, 4]], 5]))\n```\n\n- `walk` вызывает сама себя и добавляет числа в `result` внешней функции.\n- `result.append(...)` — вызов метода, а не присваивание, поэтому `result` остаётся «внешней» переменной и ничего объявлять не нужно.\n- Вывод: `[1, 2, 3, 4, 5]`.\n\n## Когда выносить наружу\n\nВложенная функция уместна, если помощник:\n- нужен только одной функции;\n- пользуется её параметрами;\n- короткий.\n\nЕсли помощник пригодится в другом месте или его нужно отдельно тестировать — сделай его обычной функцией модуля.\n\n## Итог\n\n- `def` внутри функции создаёт локальную функцию — снаружи её не видно.\n- Вложенная функция читает переменные внешней (E в LEGB) в момент своего вызова.\n- Изменять внешние **объекты** (`append`) можно свободно; переприсвоить внешнее **имя** — только с `nonlocal` (следующий урок).\n- Вложенные функции прячут детали реализации и избавляют от передачи лишних аргументов.",
@@ -874,7 +930,8 @@
                   "code": "def outer():\n    count = 0\n    def inc():\n        nonlocal count\n        count += 1\n    inc()\n    inc()\n    return count\n\nprint(outer())\n",
                   "expected_output": "2",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`nonlocal` позволяет вложенной функции **изменять** переменную внешней функции.\", \"lines\": [[\"nonlocal count\", \"Без него `count += 1` создал бы локальную и упал.\"], [\"inc()\\n    inc()\", \"Дважды.\"], [\"return count\", \"`2`.\"]], \"mistake\": \"Ожидать 0 — изменения через `nonlocal` видны во внешней функции.\"}"
                 },
                 {
                   "slug": "scp-m2-l2-e2",
@@ -883,7 +940,8 @@
                   "code": "def outer():\n    log = []\n    total = 0\n    def add(x):\n        log.append(x)\n    add(1)\n    add(2)\n    return log, total\n\nprint(outer())\n",
                   "expected_output": "([1, 2], 0)",
                   "hint": "append меняет объект, а не переменную; присваивания нет — nonlocal не нужен.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Изменить содержимое списка можно без `nonlocal` — меняется объект, а не имя. А вот число так не изменить.\", \"lines\": [[\"log.append(x)\", \"Меняем общий список.\"], [\"return log, total\", \"`[1, 2]` и нетронутый 0.\"]], \"mistake\": \"Думать, что для `append` нужен `nonlocal`.\"}"
                 },
                 {
                   "slug": "scp-m2-l2-e6",
@@ -892,7 +950,8 @@
                   "code": "def outer():\n    x = 1\n    def no():\n        x = 2\n    def yes():\n        nonlocal x\n        x = 3\n    no()\n    a = x\n    yes()\n    return a, x\n\nprint(outer())\n",
                   "expected_output": "(1, 3)",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Без `nonlocal` присваивание создаёт локальную переменную. С `nonlocal` — меняет внешнюю.\", \"lines\": [[\"def no():\\n        x = 2\", \"Своя `x`, внешняя не тронута.\"], [\"a = x\", \"Всё ещё 1.\"], [\"nonlocal x\\n        x = 3\", \"Меняем внешнюю.\"]], \"mistake\": \"Ответить `(2, 3)`.\"}"
                 },
                 {
                   "slug": "scp-m2-l2-e3",
@@ -902,7 +961,8 @@
                   "tests": "def test_value():\n    assert sum_with_helper([1, 2, 3]) == 6 and sum_with_helper([]) == 0, \"Неверная сумма\"\n",
                   "solution": "def sum_with_helper(nums):\n    total = 0\n    def add(x):\n        nonlocal total\n        total += x\n    for n in nums:\n        add(n)\n    return total\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`total += x` во вложенной функции — присваивание. Чтобы оно попало во внешнюю переменную, нужен `nonlocal`.\", \"lines\": [[\"nonlocal total\", \"Работаем с `total` из `sum_with_helper`.\"], [\"total += x\", \"1 + 2 + 3 = 6.\"]], \"mistake\": \"`global total` — у внешней функции не глобальная переменная, будет `NameError`.\"}"
                 },
                 {
                   "slug": "scp-m2-l2-e4",
@@ -912,7 +972,8 @@
                   "tests": "def test_counter():\n    c = make_counter()\n    assert [c(), c(), c()] == [1, 2, 3], \"Счётчик должен расти\"\n    d = make_counter()\n    assert d() == 1 and c() == 4, \"Счётчики независимы\"\n\ndef test_nonlocal():\n    assert \"nonlocal\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй nonlocal\"\n",
                   "solution": "def make_counter():\n    count = 0\n    def inc():\n        nonlocal count\n        count += 1\n        return count\n    return inc\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Фабрика счётчиков: у каждого вызова `make_counter` своя переменная `count`, а возвращённая функция её помнит.\", \"lines\": [[\"count = 0\", \"Состояние счётчика.\"], [\"nonlocal count\\n        count += 1\\n        return count\", \"1, 2, 3…\"], [\"return inc\", \"Возвращаем саму функцию, без скобок.\"]], \"mistake\": \"`return inc()` — вернётся число 1, а не функция.\"}"
                 },
                 {
                   "slug": "scp-m2-l2-e5",
@@ -922,7 +983,8 @@
                   "tests": "def test_values():\n    acc = make_accumulator(10)\n    assert [acc(5), acc(5), acc(reset=True), acc(1)] == [15, 20, 10, 11], \"Неверные суммы\"\n    other = make_accumulator()\n    assert other(3) == 3, \"Независимые аккумуляторы\"\n",
                   "solution": "def make_accumulator(start=0):\n    total = start\n    def add(x=0, reset=False):\n        nonlocal total\n        if reset:\n            total = start\n        else:\n            total += x\n        return total\n    return add\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Замыкание хранит и текущую сумму, и стартовое значение для сброса.\", \"lines\": [[\"total = start\", \"Начальное состояние.\"], [\"def add(x=0, reset=False):\", \"`reset` — именованный параметр.\"], [\"if reset:\\n            total = start\", \"`start` тоже из замыкания.\"]], \"mistake\": \"Сбрасывать в 0 — задание требует вернуться к `start`.\"}"
                 },
                 {
                   "slug": "scp-m2-l2-e7",
@@ -932,7 +994,8 @@
                   "tests": "def test_values():\n    t = make_toggle()\n    assert [t(), t(), t()] == [True, False, True], \"Неверные значения\"\n    assert make_toggle()() is True, \"Новый переключатель независим\"\n\ndef test_nonlocal():\n    assert \"nonlocal\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй nonlocal\"\n",
                   "solution": "def make_toggle():\n    state = False\n    def toggle():\n        nonlocal state\n        state = not state\n        return state\n    return toggle\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Состояние переключателя живёт в замыкании, каждый вызов меняет его на противоположное.\", \"lines\": [[\"nonlocal state\\n        state = not state\", \"`False` → `True` → `False`.\"]], \"mistake\": \"`return not state` без присваивания — всегда `True`.\"}"
                 },
                 {
                   "slug": "scp-m2-l2-e8",
@@ -942,7 +1005,8 @@
                   "tests": "def test_values():\n    avg = running_average()\n    assert [avg(10), avg(20), avg(0)] == [10.0, 15.0, 10.0], \"Неверные средние\"\n",
                   "solution": "def running_average():\n    total = 0\n    count = 0\n    def add(x):\n        nonlocal total, count\n        total += x\n        count += 1\n        return total / count\n    return add\n",
                   "hint": "nonlocal total, count — несколько имён через запятую.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Для среднего не нужно хранить все числа — достаточно суммы и количества. Обе переменные меняем через один `nonlocal`.\", \"lines\": [[\"nonlocal total, count\", \"Два имени через запятую.\"], [\"return total / count\", \"10 → 10.0, 30 / 2 → 15.0.\"]], \"mistake\": \"`nonlocal total` без `count` — `count += 1` упадёт.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nВложенная функция может **читать** переменные внешней, но если попытаться **присвоить** — получится новая локальная переменная (или `UnboundLocalError`). Чтобы вложенная функция могла изменить переменную объемлющей функции, есть объявление **`nonlocal`** — «родственник» `global`, но для вложенных функций.\n\n## Проблема\n\n```python\ndef outer():\n    count = 0\n    def inc():\n        try:\n            count += 1\n        except UnboundLocalError:\n            return \"UnboundLocalError\"\n    return inc()\n\nprint(outer())\n```\n\n- `count += 1` — присваивание, поэтому `count` локальна для `inc`, а прочитать её до присваивания нельзя. Вывод: `UnboundLocalError`.\n\n## Решение: nonlocal\n\n```python\ndef outer():\n    count = 0\n    def inc():\n        nonlocal count\n        count += 1\n    inc()\n    inc()\n    return count\n\nprint(outer())\n```\n\n- `nonlocal count` — «имя `count` означает переменную из **объемлющей** функции». Теперь присваивание меняет её.\n- Вывод: `2`.\n\n## С nonlocal и без\n\n```python\ndef outer():\n    x = 1\n    def no():\n        x = 2\n    def yes():\n        nonlocal x\n        x = 3\n    no()\n    a = x\n    yes()\n    return a, x\n\nprint(outer())\n```\n\n- `no` создала свою локальную `x` и ничего не изменила снаружи; `yes` изменила `x` внешней функции.\n- Вывод: `(1, 3)`.\n\n## Когда nonlocal не нужен\n\n```python\ndef outer():\n    log = []\n    total = 0\n    def add(x):\n        log.append(x)\n    add(1)\n    add(2)\n    return log, total\n\nprint(outer())\n```\n\n- `log.append(x)` меняет **объект** — список, а имя `log` не переприсваивается. Поэтому `nonlocal` не нужен.\n- Вывод: `([1, 2], 0)`.\n\n`nonlocal` нужен только для **присваивания**: `=`, `+=`, `-=` и т. п.\n\n## Несколько имён сразу\n\n```python\ndef running_average():\n    total = 0\n    count = 0\n    def add(x):\n        nonlocal total, count\n        total += x\n        count += 1\n        return total / count\n    return add\n\navg = running_average()\nprint(avg(10), avg(20), avg(0))\n```\n\n- `nonlocal total, count` — два имени через запятую.\n- Функция `add` возвращается наружу и продолжает помнить `total` и `count` — это **замыкание** (следующий урок).\n- Вывод: `10.0 15.0 10.0`.\n\n## Ограничения\n\n- `nonlocal` ищет имя только в **объемлющих функциях**, не в глобальной области. Для глобальных — `global`.\n- Имя должно уже существовать во внешней функции, иначе `SyntaxError: no binding for nonlocal 'x' found`.\n\n## Итог\n\n- Присваивание во вложенной функции создаёт локальную; изменить внешнюю переменную — `nonlocal имя`.\n- Для изменения объекта (`append`, `d[k] = v`) `nonlocal` не нужен.\n- `nonlocal a, b` — несколько имён.\n- `nonlocal` — для объемлющих функций; `global` — для модуля.",
@@ -994,7 +1058,8 @@
                   "code": "def multiplier(n):\n    def mul(x):\n        return x * n\n    return mul\n\ndouble, triple = multiplier(2), multiplier(3)\nprint(double(10), triple(10))\n",
                   "expected_output": "20 30",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Замыкание — функция, которая помнит переменные места, где её создали. У каждого вызова фабрики — своё `n`.\", \"lines\": [[\"return x * n\", \"`n` из `multiplier`.\"], [\"print(double(10), triple(10))\", \"`20 30`.\"]], \"mistake\": \"Думать, что второй вызов `multiplier` перезапишет `n` у первой функции.\"}"
                 },
                 {
                   "slug": "scp-m2-l3-e2",
@@ -1003,7 +1068,8 @@
                   "code": "funcs = []\nfor i in range(3):\n    funcs.append(lambda: i)\nprint([f() for f in funcs])\n\nfixed = []\nfor i in range(3):\n    fixed.append(lambda i=i: i)\nprint([f() for f in fixed])\n",
                   "expected_output": "[2, 2, 2]\n[0, 1, 2]",
                   "hint": "Замыкание помнит переменную, а не её значение в момент создания.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Лямбда помнит **переменную**, а не её значение. К моменту вызова цикл закончился, и `i` = 2. Параметр по умолчанию фиксирует значение в момент создания.\", \"lines\": [[\"funcs.append(lambda: i)\", \"Все три смотрят на одну `i`.\"], [\"fixed.append(lambda i=i: i)\", \"Значение копируется при создании.\"]], \"mistake\": \"Ответить `[0, 1, 2]` дважды.\"}"
                 },
                 {
                   "slug": "scp-m2-l3-e6",
@@ -1012,7 +1078,8 @@
                   "code": "def make_greeter(greeting):\n    def greet(name):\n        return f\"{greeting}, {name}\"\n    return greet\n\nhi = make_greeter(\"Hi\")\nprint(hi(\"Ann\"), hi.__name__)\nprint(hi.__closure__[0].cell_contents)\n",
                   "expected_output": "Hi, Ann greet\nHi",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Запомненные переменные хранятся в «ячейках» замыкания — `__closure__`.\", \"lines\": [[\"print(hi(\\\"Ann\\\"), hi.__name__)\", \"Имя внутренней функции — `greet`.\"], [\"print(hi.__closure__[0].cell_contents)\", \"В ячейке лежит `Hi`.\"]], \"mistake\": \"Ожидать имя `hi`. Имя принадлежит функции, а не переменной.\"}"
                 },
                 {
                   "slug": "scp-m2-l3-e3",
@@ -1022,7 +1089,8 @@
                   "tests": "def test_values():\n    check8, check2 = make_validator(8), make_validator(2)\n    assert check8(\"12345678\") is True and check8(\"123\") is False and check2(\"ab\") is True, \"Неверная проверка\"\n",
                   "solution": "def make_validator(min_len):\n    def check(s):\n        return len(s) >= min_len\n    return check\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Фабрика проверок: минимальная длина задаётся один раз, проверок можно сделать сколько угодно.\", \"lines\": [[\"return len(s) >= min_len\", \"`min_len` из замыкания.\"], [\"return check\", \"Функция, а не результат.\"]], \"mistake\": \"`return check(s)` — `s` во внешней функции нет.\"}"
                 },
                 {
                   "slug": "scp-m2-l3-e4",
@@ -1032,7 +1100,8 @@
                   "tests": "def test_cache():\n    calls = []\n    def slow_square(x):\n        calls.append(x)\n        return x * x\n    fast = make_cache(slow_square)\n    assert [fast(4), fast(4), fast(5), fast(4)] == [16, 16, 25, 16], \"Неверные результаты\"\n    assert calls == [4, 5], f\"Реальные вызовы: {calls} — повторы должны браться из кэша\"\n",
                   "solution": "def make_cache(func):\n    cache = {}\n    def cached(x):\n        if x not in cache:\n            cache[x] = func(x)\n        return cache[x]\n    return cached\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Кэш в замыкании: словарь живёт между вызовами. Нет результата — считаем и запоминаем, есть — берём готовый.\", \"lines\": [[\"cache = {}\", \"Общий для всех вызовов `cached`.\"], [\"if x not in cache:\\n            cache[x] = func(x)\", \"Считаем только впервые.\"]], \"mistake\": \"Создавать `cache = {}` внутри `cached` — кэш будет пустым при каждом вызове.\"}"
                 },
                 {
                   "slug": "scp-m2-l3-e5",
@@ -1042,7 +1111,8 @@
                   "tests": "def test_values():\n    hs = make_handlers([\"a\", \"b\", \"c\"])\n    assert [h() for h in hs] == [\"обработчик a\", \"обработчик b\", \"обработчик c\"], f\"Получено {[h() for h in hs]}\"\n",
                   "solution": "def make_handlers(names):\n    handlers = []\n    for name in names:\n        handlers.append(lambda name=name: f\"обработчик {name}\")\n    return handlers\n",
                   "hint": "Зафиксируй значение аргументом по умолчанию: `lambda name=name: ...`.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Лечим позднее связывание параметром по умолчанию: `name=name` копирует текущее значение.\", \"lines\": [[\"handlers.append(lambda name=name: f\\\"обработчик {name}\\\")\", \"У каждой лямбды своё имя.\"]], \"mistake\": \"`lambda: f\\\"обработчик {name}\\\"` — все вернут `c`.\"}"
                 },
                 {
                   "slug": "scp-m2-l3-e7",
@@ -1052,7 +1122,8 @@
                   "tests": "def test_values():\n    api = make_url(\"https://api.shop.ru/\")\n    assert api(\"/users\") == \"https://api.shop.ru/users\" and api(\"items\") == \"https://api.shop.ru/items\", \"Неверный адрес\"\n    assert make_url(\"http://x\")(\"y\") == \"http://x/y\", \"Без слэшей — добавить один\"\n",
                   "solution": "def make_url(base):\n    def url(path):\n        return base.rstrip(\"/\") + \"/\" + path.lstrip(\"/\")\n    return url\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Слэши на стыке убираем с обеих сторон и ставим ровно один.\", \"lines\": [[\"return base.rstrip(\\\"/\\\") + \\\"/\\\" + path.lstrip(\\\"/\\\")\", \"Справа у базы и слева у пути.\"]], \"mistake\": \"Просто `base + path` — получится `//users` или `ruitems`.\"}"
                 },
                 {
                   "slug": "scp-m2-l3-e8",
@@ -1062,7 +1133,8 @@
                   "tests": "def test_values():\n    allow = make_limiter(2)\n    assert [allow(), allow(), allow(), allow()] == [True, True, False, False], \"Неверные ответы\"\n    assert make_limiter(0)() is False, \"Лимит 0 — сразу False\"\n",
                   "solution": "def make_limiter(max_calls):\n    calls = 0\n    def allow():\n        nonlocal calls\n        if calls >= max_calls:\n            return False\n        calls += 1\n        return True\n    return allow\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Счётчик вызовов в замыкании: пока лимит не исчерпан — разрешаем и считаем.\", \"lines\": [[\"if calls >= max_calls:\\n            return False\", \"Лимит исчерпан.\"], [\"calls += 1\\n        return True\", \"Разрешили — посчитали.\"]], \"mistake\": \"Увеличивать счётчик и после отказа — ничего не сломает, но проверка «до» понятнее.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n**Замыкание** (closure) — функция, которая «запомнила» переменные той области, где была создана, и пользуется ими даже после того, как внешняя функция завершилась. С помощью замыканий делают **фабрики функций** (множитель, валидатор с настройками), счётчики, кэш, а также декораторы — важная тема для автотестов.\n\n## Фабрика функций\n\n```python\ndef multiplier(n):\n    def mul(x):\n        return x * n\n    return mul\n\ndouble, triple = multiplier(2), multiplier(3)\nprint(double(10), triple(10))\n```\n\n- `multiplier(2)` создаёт функцию `mul`, которая помнит `n = 2`, и **возвращает** её (без скобок — саму функцию).\n- `multiplier` завершилась, её локальные должны были исчезнуть — но `n` продолжает жить, потому что на неё ссылается `mul`.\n- Каждый вызов `multiplier` создаёт **своё** `n`. Вывод: `20 30`.\n\n## Где хранится запомненное\n\n```python\ndef make_greeter(greeting):\n    def greet(name):\n        return f\"{greeting}, {name}\"\n    return greet\n\nhi = make_greeter(\"Hi\")\nprint(hi(\"Ann\"), hi.__name__)\nprint(hi.__closure__[0].cell_contents)\n```\n\n- `hi.__name__` — имя, данное в `def`: `greet`.\n- `__closure__` — кортеж «ячеек» с запомненными переменными; `cell_contents` — значение в ячейке.\n- Вывод: `Hi, Ann greet`, `Hi`.\n\n## Замыкание с настройкой\n\n```python\ndef make_validator(min_len):\n    def check(s):\n        return len(s) >= min_len\n    return check\n\ncheck8 = make_validator(8)\nprint(check8(\"12345678\"), check8(\"123\"))\n```\n\n- Одна фабрика — много проверок с разными порогами. Вывод: `True False`.\n\n## Замыкание с состоянием (nonlocal)\n\n```python\ndef make_counter():\n    count = 0\n    def inc():\n        nonlocal count\n        count += 1\n        return count\n    return inc\n\nc = make_counter()\nd = make_counter()\nprint(c(), c(), c(), d())\n```\n\n- `c` и `d` — разные замыкания со своими `count`. Вывод: `1 2 3 1`.\n\n## Кэш в замыкании\n\n```python\ndef make_cache(func):\n    cache = {}\n    def cached(x):\n        if x not in cache:\n            cache[x] = func(x)\n        return cache[x]\n    return cached\n\ncalls = []\ndef slow_square(x):\n    calls.append(x)\n    return x * x\n\nfast = make_cache(slow_square)\nprint(fast(4), fast(4), fast(5), calls)\n```\n\n- Словарь `cache` живёт в замыкании; повторный вызов с тем же `x` берёт готовый ответ.\n- Вывод: `16 16 25 [4, 5]` — медленная функция вызвана только дважды.\n\n## Ловушка позднего связывания\n\n```python\nfuncs = []\nfor i in range(3):\n    funcs.append(lambda: i)\nprint([f() for f in funcs])\n\nfixed = []\nfor i in range(3):\n    fixed.append(lambda i=i: i)\nprint([f() for f in fixed])\n```\n\n- Замыкание помнит **переменную**, а не её значение в момент создания. Все три лямбды ссылаются на одну `i`, которая к моменту вызова стала 2.\n- Лечение: значение по умолчанию `i=i` — оно вычисляется в момент создания лямбды (тема «Функции», значения по умолчанию). Или фабрика `make(i)`, создающая отдельную область.\n- Вывод: `[2, 2, 2]`, `[0, 1, 2]`.\n\n## Итог\n\n- Замыкание — вложенная функция, которая помнит переменные внешней после её завершения.\n- Фабрика: внешняя функция принимает настройки и возвращает вложенную (без скобок).\n- Каждый вызов фабрики создаёт своё независимое замыкание.\n- Состояние в замыкании меняют через `nonlocal` или методы объекта.\n- Замыкание помнит переменную, а не значение: в цикле фиксируй значение через `x=x` или фабрику.",
@@ -1114,7 +1186,8 @@
                   "code": "def make_account(balance):\n    def deposit(x):\n        nonlocal balance\n        balance += x\n        return balance\n    def get():\n        return balance\n    return deposit, get\n\ndep, get = make_account(100)\ndep(50)\nprint(get())\ndep2, get2 = make_account(0)\nprint(get(), get2())\n",
                   "expected_output": "150\n150 0",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Две функции из одной фабрики делят одно состояние. Другой вызов фабрики — другое состояние.\", \"lines\": [[\"dep(50)\\nprint(get())\", \"Общий `balance`: 150.\"], [\"print(get(), get2())\", \"Новый счёт независим: `150 0`.\"]], \"mistake\": \"Решить, что `make_account(0)` обнулит первый счёт.\"}"
                 },
                 {
                   "slug": "scp-closure2-e2",
@@ -1123,7 +1196,8 @@
                   "code": "def outer():\n    items = []\n    def add(x):\n        items.append(x)\n        return len(items)\n    return add\n\nadd = outer()\nprint(add(\"a\"), add(\"b\"), add(\"c\"))\n",
                   "expected_output": "1 2 3",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Список в замыкании живёт между вызовами и растёт.\", \"lines\": [[\"items.append(x)\\n        return len(items)\", \"1, 2, 3.\"]], \"mistake\": \"Ожидать `1 1 1` — список создаётся один раз, при вызове `outer`.\"}"
                 },
                 {
                   "slug": "scp-closure2-e3",
@@ -1132,7 +1206,8 @@
                   "code": "def make(n):\n    return lambda x: x + n\n\nfs = [make(i) for i in range(3)]\nprint([f(10) for f in fs])\ngs = [lambda x: x + i for i in range(3)]\nprint([g(10) for g in gs])\n",
                   "expected_output": "[10, 11, 12]\n[12, 12, 12]",
                   "hint": "Каждый вызов make создаёт своё n. Лямбды во включении делят одну i.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Фабрика создаёт новую область на каждый вызов — `n` фиксируется. Лямбда в цикле ссылается на общую `i`.\", \"lines\": [[\"fs = [make(i) for i in range(3)]\", \"У каждой функции своё `n`: 0, 1, 2.\"], [\"gs = [lambda x: x + i for i in range(3)]\", \"Все смотрят на последнее `i` = 2.\"]], \"mistake\": \"Ответить `[10, 11, 12]` дважды.\"}"
                 },
                 {
                   "slug": "scp-closure2-e4",
@@ -1142,7 +1217,8 @@
                   "tests": "def test_values():\n    push, pop, size = make_stack()\n    push(1)\n    push(2)\n    assert pop() == 2 and size() == 1 and pop() == 1 and pop() is None and size() == 0, \"Неверная работа стека\"\n    p2, _, s2 = make_stack()\n    p2(\"x\")\n    assert size() == 0 and s2() == 1, \"Стеки независимы\"\n",
                   "solution": "def make_stack():\n    items = []\n    def push(x):\n        items.append(x)\n    def pop():\n        if not items:\n            return None\n        return items.pop()\n    def size():\n        return len(items)\n    return push, pop, size\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Три функции работают с одним списком из замыкания — получается стек без класса.\", \"lines\": [[\"items = []\", \"Общее состояние.\"], [\"if not items:\\n            return None\", \"Пустой стек.\"], [\"return push, pop, size\", \"Кортеж из трёх функций.\"]], \"mistake\": \"Создавать `items = []` внутри каждой функции — у каждой будет свой список, и `pop` не увидит то, что положил `push`.\"}"
                 },
                 {
                   "slug": "scp-closure2-e5",
@@ -1152,7 +1228,8 @@
                   "tests": "def test_values():\n    conv = make_converter({\"USD\": 90, \"EUR\": 100})\n    assert conv(2, \"USD\") == 180 and conv(1, \"EUR\") == 100 and conv(1, \"JPY\") is None, \"Неверная конвертация\"\n",
                   "solution": "def make_converter(rates):\n    def convert(amount, currency):\n        if currency not in rates:\n            return None\n        return amount * rates[currency]\n    return convert\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Курсы задаются один раз, конвертер их помнит.\", \"lines\": [[\"if currency not in rates:\\n            return None\", \"Неизвестная валюта.\"], [\"return amount * rates[currency]\", \"2 · 90 = 180.\"]], \"mistake\": \"`rates[currency]` без проверки — `KeyError` для JPY.\"}"
                 },
                 {
                   "slug": "scp-closure2-e6",
@@ -1162,7 +1239,8 @@
                   "tests": "def test_values():\n    inc, reset = make_counter_pair()\n    assert [inc(), inc(), reset(), inc()] == [1, 2, 0, 1], \"Неверные значения\"\n",
                   "solution": "def make_counter_pair():\n    count = 0\n    def inc():\n        nonlocal count\n        count += 1\n        return count\n    def reset():\n        nonlocal count\n        count = 0\n        return count\n    return inc, reset\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Две функции меняют одну переменную — обеим нужен `nonlocal`.\", \"lines\": [[\"nonlocal count\\n        count += 1\", \"`inc`.\"], [\"nonlocal count\\n        count = 0\", \"`reset`.\"]], \"mistake\": \"Забыть `nonlocal` в `reset` — обнулится локальная копия, следующий `inc()` вернёт 3, а не 1.\"}"
                 },
                 {
                   "slug": "scp-closure2-e7",
@@ -1172,7 +1250,8 @@
                   "tests": "def test_values():\n    inc = lambda x: x + 1\n    double = lambda x: x * 2\n    assert compose(inc, double)(5) == 11 and compose(double, inc)(5) == 12, \"Неверная композиция\"\n    assert compose(str.upper, str.strip)(\"  ok \") == \"OK\", \"Работает с любыми функциями\"\n",
                   "solution": "def compose(f, g):\n    def composed(x):\n        return f(g(x))\n    return composed\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Композиция: новая функция, которая применяет `g`, а потом `f`. Обе запоминаются в замыкании.\", \"lines\": [[\"return f(g(x))\", \"`inc(double(5))` = 11, `double(inc(5))` = 12.\"], [\"return composed\", \"Возвращаем функцию.\"]], \"mistake\": \"`return f(g)` — вызов `f` от функции, а не от числа.\"}"
                 },
                 {
                   "slug": "scp-closure2-e8",
@@ -1182,7 +1261,8 @@
                   "tests": "def test_values():\n    add = make_history(2)\n    assert [add(\"a\"), add(\"b\"), add(\"c\")] == [[\"a\"], [\"a\", \"b\"], [\"b\", \"c\"]], \"Неверная история\"\n\ndef test_copy():\n    add = make_history(3)\n    h = add(\"x\")\n    h.append(\"хак\")\n    assert add(\"y\") == [\"x\", \"y\"], \"Возвращай копию, чтобы историю нельзя было испортить снаружи\"\n",
                   "solution": "def make_history(limit):\n    items = []\n    def add(item):\n        items.append(item)\n        if len(items) > limit:\n            items.pop(0)\n        return list(items)\n    return add\n",
                   "hint": "list(items) — копия списка.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"История в замыкании: добавляем, лишнее из начала выкидываем. Наружу отдаём **копию**, чтобы никто снаружи не испортил внутренний список.\", \"lines\": [[\"if len(items) > limit:\\n            items.pop(0)\", \"Храним только последние `limit`.\"], [\"return list(items)\", \"Копия.\"]], \"mistake\": \"`return items` — вызывающий код сможет изменить внутреннюю историю.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЗамыкания — лёгкий способ сделать «объект с состоянием» без классов: счётчик, стек, счёт, историю. Несколько функций могут делить одно состояние, фабрика может получать словарь настроек, а функции можно комбинировать. Разберём эти приёмы.\n\n## Несколько функций — одно состояние\n\n```python\ndef make_account(balance):\n    def deposit(x):\n        nonlocal balance\n        balance += x\n        return balance\n    def get():\n        return balance\n    return deposit, get\n\ndep, get = make_account(100)\ndep(50)\nprint(get())\ndep2, get2 = make_account(0)\nprint(get(), get2())\n```\n\n- `deposit` и `get` созданы в **одном** вызове `make_account` и видят одну и ту же `balance`.\n- Фабрика возвращает кортеж функций, который распаковывается в `dep, get`.\n- Второй вызов фабрики создаёт независимый «счёт». Вывод: `150`, `150 0`.\n\nТак же устроены стек или пара «увеличить/сбросить»:\n\n```python\ndef make_stack():\n    items = []\n    def push(x):\n        items.append(x)\n    def pop():\n        return items.pop() if items else None\n    def size():\n        return len(items)\n    return push, pop, size\n\npush, pop, size = make_stack()\npush(1)\npush(2)\nprint(pop(), size(), pop(), pop())\n```\n\n- Список `items` скрыт — снаружи к нему нет доступа, кроме как через три функции. Это **инкапсуляция**: данные защищены от случайной порчи.\n- Вывод: `2 1 1 None`.\n\n## Изменение объекта в замыкании\n\n```python\ndef outer():\n    items = []\n    def add(x):\n        items.append(x)\n        return len(items)\n    return add\n\nadd = outer()\nprint(add(\"a\"), add(\"b\"), add(\"c\"))\n```\n\n- `nonlocal` не нужен: меняется список, а не имя. Вывод: `1 2 3`.\n\n## Фабрика с настройками\n\n```python\ndef make_converter(rates):\n    def convert(amount, currency):\n        if currency not in rates:\n            return None\n        return amount * rates[currency]\n    return convert\n\nconv = make_converter({\"USD\": 90, \"EUR\": 100})\nprint(conv(2, \"USD\"), conv(1, \"JPY\"))\n```\n\n- Замыкание запомнило словарь курсов. Вывод: `180 None`.\n\n## Композиция функций\n\n```python\ndef compose(f, g):\n    def composed(x):\n        return f(g(x))\n    return composed\n\ninc = lambda x: x + 1\ndouble = lambda x: x * 2\nprint(compose(inc, double)(5), compose(double, inc)(5))\n```\n\n- `compose` запоминает две функции и возвращает новую — их последовательное применение.\n- Вывод: `11 12` (5·2+1 и (5+1)·2).\n\n## Фабрика против лямбды в цикле\n\n```python\ndef make(n):\n    return lambda x: x + n\n\nfs = [make(i) for i in range(3)]\nprint([f(10) for f in fs])\ngs = [lambda x: x + i for i in range(3)]\nprint([g(10) for g in gs])\n```\n\n- Каждый вызов `make(i)` создаёт **новую область** со своим `n`, поэтому значения фиксируются.\n- Лямбды во включении делят одну переменную `i`. Вывод: `[10, 11, 12]`, `[12, 12, 12]`.\n\n## Возвращай копию\n\n```python\ndef make_history(limit):\n    items = []\n    def add(item):\n        items.append(item)\n        if len(items) > limit:\n            items.pop(0)\n        return list(items)\n    return add\n\nadd = make_history(2)\nprint(add(\"a\"), add(\"b\"), add(\"c\"))\n```\n\n- Если вернуть сам `items`, внешний код сможет изменить скрытое состояние. `list(items)` — **копия**.\n- Вывод: `['a'] ['a', 'b'] ['b', 'c']`.\n\n## Итог\n\n- Фабрика может вернуть несколько функций с общим состоянием — простая замена класса.\n- Скрытое состояние в замыкании недоступно снаружи — возвращай копии, чтобы его не испортили.\n- Фабрики удобны для настроек (курсы, адреса, лимиты) и комбинирования функций (`compose`).\n- Вызов фабрики в цикле фиксирует значения лучше, чем лямбда в цикле.",
@@ -1242,7 +1322,8 @@
                   "code": "def f(sum):\n    try:\n        return sum([1, 2])\n    except TypeError:\n        return \"sum затенён параметром\"\n\nprint(f(10))\nprint(sum([1, 2]))\n",
                   "expected_output": "sum затенён параметром\n3",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Параметр с именем встроенной функции заслоняет её внутри функции. Снаружи встроенная работает как обычно.\", \"lines\": [[\"return sum([1, 2])\", \"Внутри `sum` — это число 10, вызвать его нельзя: `TypeError`.\"], [\"print(sum([1, 2]))\", \"Снаружи — встроенная `sum`: 3.\"]], \"mistake\": \"Думать, что параметр сломал `sum` навсегда.\"}"
                 },
                 {
                   "slug": "scp-m3-l1-e2",
@@ -1251,7 +1332,8 @@
                   "code": "id = 42\ntry:\n    print(id(object()) > 0)\nexcept TypeError:\n    print(\"встроенная id сломана\")\ndel id\nprint(callable(id))\n",
                   "expected_output": "встроенная id сломана\nTrue",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Глобальная переменная `id` заслоняет встроенную функцию. `del id` удаляет своё имя — и встроенная снова доступна.\", \"lines\": [[\"id = 42\", \"Теперь `id` — число.\"], [\"print(id(object()) > 0)\", \"`42(...)` — `TypeError`.\"], [\"del id\", \"Удалили своё имя.\"], [\"print(callable(id))\", \"Встроенная функция вернулась — `True`.\"]], \"mistake\": \"Решить, что `del id` удалит встроенную функцию. Удаляется только наше имя.\"}"
                 },
                 {
                   "slug": "scp-m3-l1-e6",
@@ -1260,7 +1342,8 @@
                   "code": "def total(values):\n    sum = 0\n    for v in values:\n        sum += v\n    return sum\n\nprint(total([1, 2, 3]), sum([4, 5]))\n",
                   "expected_output": "6 9",
                   "hint": "Локальная sum затеняет встроенную только внутри функции.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Локальная `sum` внутри функции затеняет встроенную только там. Снаружи `sum` не тронута.\", \"lines\": [[\"sum = 0\", \"Локальная переменная.\"], [\"print(total([1, 2, 3]), sum([4, 5]))\", \"`6 9` — снаружи встроенная `sum` работает.\"]], \"mistake\": \"Ожидать ошибку снаружи.\"}"
                 },
                 {
                   "slug": "scp-m3-l1-e3",
@@ -1270,7 +1353,8 @@
                   "tests": "import inspect\n\ndef test_values():\n    assert stats([3, 1, 3, 2, 1]) == ([3, 1, 2], 5), f\"Получено {stats([3, 1, 3, 2, 1])}\"\n\ndef test_param_name():\n    params = list(inspect.signature(stats).parameters)\n    assert params == [\"items\"], f\"Параметр должен называться items, сейчас {params}\"\n",
                   "solution": "def stats(items):\n    unique = list(dict.fromkeys(items))\n    return unique, len(items)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Параметр `list` заслонял встроенный `list()`. После переименования можно пользоваться встроенным.\", \"lines\": [[\"unique = list(dict.fromkeys(items))\", \"`dict.fromkeys` сохраняет порядок первого появления и убирает повторы.\"], [\"return unique, len(items)\", \"`[3, 1, 2]` и 5.\"]], \"mistake\": \"`list(set(items))` — порядок не сохранится.\"}"
                 },
                 {
                   "slug": "scp-m3-l1-e4",
@@ -1280,7 +1364,8 @@
                   "tests": "def test_value():\n    assert find_max_id([{\"id\": 3}, {\"id\": 10}, {\"id\": 7}]) == 10 and find_max_id([{\"id\": -5}]) == -5, \"Неверный максимум\"\n\ndef test_uses_builtin():\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"max(\" in src and \"max =\" not in src, \"Используй встроенную max, не затеняя её\"\n",
                   "solution": "def find_max_id(users):\n    return max(u[\"id\"] for u in users)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Не называем переменные именами встроенных функций — тогда встроенная `max` доступна и решает задачу одной строкой.\", \"lines\": [[\"return max(u[\\\"id\\\"] for u in users)\", \"Генератор отдаёт `id`, `max` выбирает наибольший.\"]], \"mistake\": \"Оставить переменную `max = 0` — `max(...)` станет вызовом числа.\"}"
                 },
                 {
                   "slug": "scp-m3-l1-e5",
@@ -1290,7 +1375,8 @@
                   "tests": "def test_values():\n    got = shadowed_builtins([\"items\", \"list\", \"user_id\", \"id\", \"total\", \"sum\"])\n    assert got == [\"list\", \"id\", \"sum\"], f\"Получено {got}\"\n    assert shadowed_builtins([]) == [], \"Пусто — пусто\"\n",
                   "solution": "import builtins\n\ndef shadowed_builtins(names):\n    return [n for n in names if hasattr(builtins, n)]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Все встроенные имена лежат в модуле `builtins`. `hasattr` проверяет, есть ли там такое имя.\", \"lines\": [[\"import builtins\", \"Модуль встроенных имён.\"], [\"return [n for n in names if hasattr(builtins, n)]\", \"`list`, `id` — встроенные; `items`, `user_id` — нет.\"]], \"mistake\": \"Составлять список встроенных вручную — легко что-то пропустить.\"}"
                 },
                 {
                   "slug": "scp-m3-l1-e7",
@@ -1300,7 +1386,8 @@
                   "tests": "import inspect\n\ndef test_values():\n    assert label(\"Тестов\", 5) == \"Тестов: 5\", f\"Получено {label('Тестов', 5)!r}\"\n\ndef test_param_name():\n    assert list(inspect.signature(label).parameters) == [\"text\", \"n\"], \"Параметры: text, n\"\n",
                   "solution": "def label(text, n):\n    return text + \": \" + str(n)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Параметр `str` заслонял встроенный `str()`. Переименовали — `str(n)` снова превращает число в строку.\", \"lines\": [[\"return text + \\\": \\\" + str(n)\", \"`Тестов: 5`.\"]], \"mistake\": \"Заменить `str(n)` на `f\\\"{n}\\\"` и оставить параметр `str` — сработает, но затенение останется ловушкой.\"}"
                 },
                 {
                   "slug": "scp-m3-l1-e8",
@@ -1310,7 +1397,8 @@
                   "tests": "def test_values():\n    assert describe(5) == \"число (int)\" and describe(\"x\") == \"другое (str)\", \"Неверное описание\"\n\ndef test_no_shadow():\n    assert \"type =\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Не называй переменную type\"\n",
                   "solution": "def describe(value):\n    kind = \"число\" if isinstance(value, int) else \"другое\"\n    return f\"{kind} ({type(value).__name__})\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Локальная `type` заслоняла встроенную `type()`. Переименовываем переменную в `kind`.\", \"lines\": [[\"kind = \\\"число\\\" if isinstance(value, int) else \\\"другое\\\"\", \"Своя переменная с безопасным именем.\"], [\"return f\\\"{kind} ({type(value).__name__})\\\"\", \"Встроенная `type` работает.\"]], \"mistake\": \"Переименовать не везде — останется `type = ...`, и ошибка вернётся.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n**Затенение** (shadowing) — когда переменная с тем же именем в более близкой области «закрывает» переменную из дальней. Чаще всего страдают встроенные функции: назвал переменную `list`, `sum`, `id`, `type`, `str`, `input` — и встроенная функция перестала работать. Ошибка проявляется далеко от места, где её сделали.\n\n## Параметр затеняет встроенную\n\n```python\ndef f(sum):\n    try:\n        return sum([1, 2])\n    except TypeError:\n        return \"sum затенён параметром\"\n\nprint(f(10))\nprint(sum([1, 2]))\n```\n\n- Внутри `f` имя `sum` найдено в L (параметр, число 10) — до встроенной `sum` поиск не доходит. `10([1, 2])` → `TypeError: 'int' object is not callable`.\n- Снаружи функции встроенная `sum` работает. Вывод: `sum затенён параметром`, `3`.\n\n## Локальная переменная затеняет встроенную\n\n```python\ndef total(values):\n    sum = 0\n    for v in values:\n        sum += v\n    return sum\n\nprint(total([1, 2, 3]), sum([4, 5]))\n```\n\n- Внутри `total` встроенная `sum` недоступна, но функция её и не вызывает — работает. Снаружи всё в порядке. Вывод: `6 9`.\n- Работает — но это ловушка: стоит позже дописать в функцию `sum(...)`, и она сломается.\n\n## Глобальное затенение — хуже всего\n\n```python\nid = 42\ntry:\n    print(id(object()) > 0)\nexcept TypeError:\n    print(\"встроенная id сломана\")\ndel id\nprint(callable(id))\n```\n\n- Глобальная `id = 42` затеняет встроенную `id` во **всём модуле**.\n- `del id` удаляет глобальное имя — поиск снова доходит до встроенной. `callable(x)` — можно ли вызвать `x`.\n- Вывод: `встроенная id сломана`, `True`.\n\n## Какие имена чаще всего затеняют\n\n`list`, `dict`, `str`, `int`, `type`, `id`, `sum`, `max`, `min`, `len`, `input`, `filter`, `map`, `format`, `object`, `file`, `next`, `iter`.\n\nПроверить, встроенное ли имя, можно через модуль `builtins`:\n\n```python\nimport builtins\nnames = [\"items\", \"list\", \"user_id\", \"id\", \"total\", \"sum\"]\nprint([n for n in names if hasattr(builtins, n)])\n```\n\n- `hasattr(объект, \"имя\")` — есть ли у объекта атрибут с таким именем.\n- Вывод: `['list', 'id', 'sum']`.\n\n## Как называть вместо\n\n- `list` → `items`, `values`, `users`;\n- `dict` → `data`, `mapping`, `config`;\n- `str` → `text`, `s`, `line`;\n- `type` → `kind`, `category`;\n- `id` → `user_id`, `item_id`;\n- `sum`, `max` → `total`, `best`, `max_value`;\n- если очень нужно именно это слово — добавь подчёркивание в конце: `type_`, `id_`.\n\n```python\ndef describe(value):\n    kind = \"число\" if isinstance(value, int) else \"другое\"\n    return f\"{kind} ({type(value).__name__})\"\n\nprint(describe(5), describe(\"x\"))\n```\n\nВывод: `число (int) другое (str)`.\n\n## Итог\n\n- Имя в ближней области закрывает такое же имя в дальней — поиск по LEGB останавливается на первом.\n- Переменная с именем встроенной функции (`list`, `sum`, `type`, `id`…) ломает её в этой области.\n- Глобальное затенение ломает функцию во всём модуле; `del имя` возвращает встроенную.\n- Называй переменные по смыслу, а при конфликте — с подчёркиванием: `type_`.",
@@ -1362,7 +1450,8 @@
                   "code": "items = []\n\ndef add(x):\n    items.append(x)\n\ndef reset():\n    items = []\n\nadd(1)\nadd(2)\nreset()\nprint(items)\n",
                   "expected_output": "[1, 2]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`items.append` меняет глобальный список. `items = []` внутри функции создаёт **новый локальный** — глобальный не трогает.\", \"lines\": [[\"items.append(x)\", \"Меняется общий список.\"], [\"items = []\", \"Локальная переменная в `reset`.\"], [\"print(items)\", \"Глобальный не очищен: `[1, 2]`.\"]], \"mistake\": \"Ожидать `[]`. Присваивание не очищает внешний список.\"}"
                 },
                 {
                   "slug": "scp-m3-l2-e2",
@@ -1371,7 +1460,8 @@
                   "code": "def modify(lst):\n    lst.append(99)\n    lst = [0]\n    lst.append(1)\n    return lst\n\ndata = [1]\nresult = modify(data)\nprint(data, result)\n",
                   "expected_output": "[1, 99] [0, 1]",
                   "hint": "После `lst = [0]` имя внутри функции указывает на новый список.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Пока параметр указывает на переданный список — изменения видны снаружи. После присваивания он указывает на новый.\", \"lines\": [[\"lst.append(99)\", \"Меняется `data`.\"], [\"lst = [0]\", \"Теперь `lst` — другой список.\"], [\"lst.append(1)\", \"Меняется уже новый.\"]], \"mistake\": \"Ожидать `data = [1, 99, 1]`.\"}"
                 },
                 {
                   "slug": "scp-m3-l2-e6",
@@ -1380,7 +1470,8 @@
                   "code": "config = {\"debug\": False}\n\ndef enable():\n    config[\"debug\"] = True\n\ndef replace():\n    config = {\"debug\": \"новый\"}\n\nenable()\nreplace()\nprint(config)\n",
                   "expected_output": "{'debug': True}",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Изменить содержимое словаря можно без `global`. Присвоить новый словарь имени — нельзя: получится локальная переменная.\", \"lines\": [[\"config[\\\"debug\\\"] = True\", \"Изменение объекта.\"], [\"config = {\\\"debug\\\": \\\"новый\\\"}\", \"Локальная переменная в `replace`.\"]], \"mistake\": \"Ответить `{'debug': 'новый'}`.\"}"
                 },
                 {
                   "slug": "scp-m3-l2-e3",
@@ -1390,7 +1481,8 @@
                   "tests": "def test_clear():\n    LOG.append(\"x\")\n    LOG.append(\"y\")\n    clear_log()\n    assert LOG == [], f\"LOG не очищен: {LOG}\"\n\ndef test_no_global():\n    assert \"global\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Реши без global — измени сам объект\"\n",
                   "solution": "LOG = []\n\ndef clear_log():\n    LOG.clear()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Очистить список — значит изменить объект: `LOG.clear()` не создаёт локальную переменную.\", \"lines\": [[\"LOG.clear()\", \"Тот же список становится пустым.\"]], \"mistake\": \"`LOG = []` — это новая локальная, глобальный список не изменится.\"}"
                 },
                 {
                   "slug": "scp-m3-l2-e4",
@@ -1400,7 +1492,8 @@
                   "tests": "def test_new_dict():\n    h = {\"Authorization\": \"Bearer x\"}\n    result = add_default_headers(h)\n    assert result == {\"Authorization\": \"Bearer x\", \"Accept\": \"application/json\"}, \"Неверный результат\"\n    assert h == {\"Authorization\": \"Bearer x\"}, \"Исходный словарь изменён\"\n",
                   "solution": "def add_default_headers(headers):\n    return {**headers, \"Accept\": \"application/json\"}\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Новый словарь из старого плюс добавка — `{**headers, ключ: значение}`. Аргумент не меняется.\", \"lines\": [[\"return {**headers, \\\"Accept\\\": \\\"application/json\\\"}\", \"Копия с новым ключом.\"]], \"mistake\": \"`headers[\\\"Accept\\\"] = …` — испортит переданный словарь.\"}"
                 },
                 {
                   "slug": "scp-m3-l2-e5",
@@ -1410,7 +1503,8 @@
                   "tests": "def test_in_place():\n    a = [1, 2, 3]\n    b = a\n    assert reset_in_place(a, 0) is None, \"Функция ничего не возвращает\"\n    assert a == [0] and b == [0], f\"a={a}, b={b}\"\n",
                   "solution": "def reset_in_place(items, value):\n    items[:] = [value]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Присваивание срезу `items[:] = …` меняет содержимое самого списка — это видно через все ссылки.\", \"lines\": [[\"items[:] = [value]\", \"`a` и `b` — один объект, оба станут `[0]`.\"]], \"mistake\": \"`items = [value]` — поменяется только локальное имя.\"}"
                 },
                 {
                   "slug": "scp-m3-l2-e7",
@@ -1420,7 +1514,8 @@
                   "tests": "def test_values():\n    t = [\"smoke\"]\n    assert add_tag(t, \"api\") == [\"smoke\", \"api\"] and t == [\"smoke\"], \"Исходный список не должен меняться\"\n",
                   "solution": "def add_tag(tags, tag):\n    return tags + [tag]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`+` создаёт новый список, `append` меняет старый.\", \"lines\": [[\"return tags + [tag]\", \"Исходный `t` остаётся `[\\\"smoke\\\"]`.\"]], \"mistake\": \"`tags.append(tag); return tags` — испортит аргумент.\"}"
                 },
                 {
                   "slug": "scp-m3-l2-e8",
@@ -1430,7 +1525,8 @@
                   "tests": "def test_values():\n    d = {\"timeout\": 30, \"retries\": 3}\n    o = {\"timeout\": 5}\n    assert merge_settings(d, o) == {\"timeout\": 5, \"retries\": 3}, \"Неверное слияние\"\n    assert d == {\"timeout\": 30, \"retries\": 3} and o == {\"timeout\": 5}, \"Аргументы не должны меняться\"\n",
                   "solution": "def merge_settings(defaults, overrides):\n    result = dict(defaults)\n    result.update(overrides)\n    return result\n",
                   "hint": "dict(defaults) — копия; update дописывает ключи из другого словаря.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Копия настроек по умолчанию, поверх неё — переопределения. Оба аргумента не трогаем.\", \"lines\": [[\"result = dict(defaults)\", \"Новый словарь-копия.\"], [\"result.update(overrides)\", \"Переопределения перезаписывают совпадающие ключи.\"]], \"mistake\": \"`defaults.update(overrides)` — испортит настройки по умолчанию.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПравила областей видимости относятся к **именам**, а не к **объектам**. Изменяемый объект (список, словарь) можно менять через любое имя, которое на него указывает, — даже без `global` и `nonlocal`. Отсюда и удобство, и неожиданные баги: функция «портит» переданный ей список.\n\n## Изменить объект или переприсвоить имя\n\n```python\nitems = []\n\ndef add(x):\n    items.append(x)\n\ndef reset():\n    items = []\n\nadd(1)\nadd(2)\nreset()\nprint(items)\n```\n\n- `add` вызывает метод `append` у глобального списка — меняет **объект**. Имя не переприсваивается, поэтому `global` не нужен.\n- `reset` делает `items = []` — это **присваивание**, создаётся новая **локальная** переменная. Глобальный список не тронут.\n- Вывод: `[1, 2]`.\n\nТо же со словарём:\n\n```python\nconfig = {\"debug\": False}\n\ndef enable():\n    config[\"debug\"] = True\n\ndef replace():\n    config = {\"debug\": \"новый\"}\n\nenable()\nreplace()\nprint(config)\n```\n\n- `config[\"debug\"] = True` — изменение **содержимого** объекта (это не присваивание имени `config`).\n- Вывод: `{'debug': True}`.\n\nОчистить глобальный список без `global` — методом: `LOG.clear()`.\n\n## Параметр-список: изменения видны снаружи\n\n```python\ndef modify(lst):\n    lst.append(99)\n    lst = [0]\n    lst.append(1)\n    return lst\n\ndata = [1]\nresult = modify(data)\nprint(data, result)\n```\n\n- `lst` и `data` указывают на **один** список. `lst.append(99)` меняет его — это видно и через `data`.\n- `lst = [0]` перевешивает локальное имя на **новый** список; дальнейшие изменения `data` не касаются.\n- Вывод: `[1, 99] [0, 1]`.\n\n## Не порти аргументы\n\nФункция, которая молча меняет переданный список или словарь, — источник трудноуловимых багов: вызывающий код не ожидает, что его данные изменятся.\n\n```python\ndef add_tag_bad(tags, tag):\n    tags.append(tag)\n    return tags\n\ndef add_tag(tags, tag):\n    return tags + [tag]\n\nt = [\"smoke\"]\nadd_tag(t, \"api\")\nprint(t)\nadd_tag_bad(t, \"api\")\nprint(t)\n```\n\n- `tags + [tag]` создаёт **новый** список; исходный цел. Вывод: `['smoke']`, `['smoke', 'api']`.\n\nДля словарей — копия и `update`, или распаковка `{**a, **b}`:\n\n```python\ndefaults = {\"timeout\": 30, \"retries\": 3}\noverrides = {\"timeout\": 5}\nmerged = dict(defaults)\nmerged.update(overrides)\nprint(merged, defaults)\nprint({**defaults, \"Accept\": \"json\"})\n```\n\n- `dict(d)` — копия словаря; `update` дописывает/перезаписывает ключи из другого словаря.\n- `{**d, ключ: значение}` — новый словарь из содержимого `d` и новых пар.\n- Вывод: `{'timeout': 5, 'retries': 3} {'timeout': 30, 'retries': 3}`, `{'timeout': 30, 'retries': 3, 'Accept': 'json'}`.\n\n## Когда менять на месте — осознанно\n\nИногда изменение на месте — цель (как у `list.sort()`). Тогда:\n- функция **ничего не возвращает** (`None`) — это сигнал «я изменила объект»;\n- замена всего содержимого — присваивание срезом `items[:] = [...]`: объект тот же, содержимое новое.\n\n```python\ndef reset_in_place(items, value):\n    items[:] = [value]\n\na = [1, 2, 3]\nb = a\nreset_in_place(a, 0)\nprint(a, b)\n```\n\nВывод: `[0] [0]` — изменение видно через все ссылки.\n\n## Итог\n\n- Области видимости касаются **имён**; изменяемый объект можно менять через любое имя.\n- Метод (`append`, `clear`, `d[k] = v`) меняет объект — `global`/`nonlocal` не нужны.\n- Присваивание (`x = ...`) создаёт локальное имя и не трогает внешний объект.\n- Не меняй аргументы без необходимости: возвращай новый список/словарь (`+`, `dict(d)`, `{**d}`).\n- Изменение на месте — осознанно, функция возвращает `None`; замена содержимого — `items[:] = ...`.",
@@ -1482,7 +1578,8 @@
                   "code": "for i in range(3):\n    pass\nprint(\"после for:\", i)\n\nsquares = [n * n for n in range(3)]\ntry:\n    print(n)\nexcept NameError:\n    print(\"n из включения не видна\")\n",
                   "expected_output": "после for: 2\nn из включения не видна",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Переменная цикла `for` остаётся после цикла. А переменная внутри списочного включения живёт только внутри него.\", \"lines\": [[\"print(\\\"после for:\\\", i)\", \"`i` = 2.\"], [\"squares = [n * n for n in range(3)]\", \"`n` существует только внутри скобок.\"], [\"print(n)\", \"`NameError`.\"]], \"mistake\": \"Ожидать, что `n` будет 2, как у цикла.\"}"
                 },
                 {
                   "slug": "scp-m3-l3-e2",
@@ -1491,7 +1588,8 @@
                   "code": "x = \"снаружи\"\nresult = [x for x in [\"a\", \"b\"]]\nprint(result, x)\n\nfor x in [\"c\", \"d\"]:\n    pass\nprint(x)\n",
                   "expected_output": "['a', 'b'] снаружи\nd",
                   "hint": "Включение не трогает внешнюю x, а обычный цикл — перезаписывает.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Включение не трогает внешнюю переменную с тем же именем, а обычный `for` — перезаписывает.\", \"lines\": [[\"result = [x for x in [\\\"a\\\", \\\"b\\\"]]\", \"Своя `x` внутри включения.\"], [\"print(result, x)\", \"Внешняя — `снаружи`.\"], [\"for x in [\\\"c\\\", \\\"d\\\"]:\", \"`for` перезаписывает `x`.\"]], \"mistake\": \"Ответить `b` во второй строке.\"}"
                 },
                 {
                   "slug": "scp-m3-l3-e6",
@@ -1500,7 +1598,8 @@
                   "code": "x = 10\nsquares = [x * x for x in range(3)]\nprint(squares, x)\ntotal = sum(x for x in range(4))\nprint(total, x)\n",
                   "expected_output": "[0, 1, 4] 10\n6 10",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"И списочные включения, и генераторные выражения имеют свою область видимости.\", \"lines\": [[\"squares = [x * x for x in range(3)]\", \"Внешняя `x` не тронута: 10.\"], [\"total = sum(x for x in range(4))\", \"0 + 1 + 2 + 3 = 6, `x` — всё ещё 10.\"]], \"mistake\": \"Ожидать `x` = 2 или 3 после выражений.\"}"
                 },
                 {
                   "slug": "scp-m3-l3-e3",
@@ -1510,7 +1609,8 @@
                   "tests": "def test_values():\n    assert process([1, 2, 3]) == 3 and process([\"a\"]) == \"a\", \"Нужен последний элемент\"\n    assert process([]) is None, \"Пустой список — None\"\n",
                   "solution": "def process(items):\n    last = None\n    for item in items:\n        last = item\n    return last\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Переменная цикла не создаётся, если цикл не выполнился ни разу. Результат держим в переменной, заданной заранее.\", \"lines\": [[\"last = None\", \"Значение для пустого списка.\"], [\"for item in items:\\n        last = item\", \"Последний элемент.\"]], \"mistake\": \"`return item` после цикла — для пустого списка ошибка.\"}"
                 },
                 {
                   "slug": "scp-m3-l3-e4",
@@ -1520,7 +1620,8 @@
                   "tests": "def test_values():\n    assert name_after_loop([\"a\", \"b\"]) == ([\"A\", \"B\"], \"внешняя\"), f\"Получено {name_after_loop(['a', 'b'])}\"\n",
                   "solution": "def name_after_loop(names):\n    n = \"внешняя\"\n    upper = [n.upper() for n in names]\n    return upper, n\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Переменная включения — своя. Одноимённая внешняя остаётся нетронутой.\", \"lines\": [[\"n = \\\"внешняя\\\"\", \"До включения.\"], [\"upper = [n.upper() for n in names]\", \"Внутри `n` — элементы списка.\"], [\"return upper, n\", \"Внешняя `n` всё ещё `внешняя`.\"]], \"mistake\": \"Ожидать, что `n` станет `b`.\"}"
                 },
                 {
                   "slug": "scp-m3-l3-e5",
@@ -1530,7 +1631,8 @@
                   "tests": "def test_values():\n    ms = make_multipliers(4)\n    assert [m(10) for m in ms] == [0, 10, 20, 30], f\"Получено {[m(10) for m in ms]}\"\n",
                   "solution": "def make_multipliers(n):\n    return [lambda x, i=i: x * i for i in range(n)]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Лямбды в списочном включении тоже ловят общую переменную. `i=i` фиксирует значение для каждой.\", \"lines\": [[\"return [lambda x, i=i: x * i for i in range(n)]\", \"0, 10, 20, 30.\"]], \"mistake\": \"`lambda x: x * i` — все умножат на 3.\"}"
                 },
                 {
                   "slug": "scp-m3-l3-e7",
@@ -1540,7 +1642,8 @@
                   "tests": "def test_values():\n    assert report(\"Аня\", {\"math\": 5, \"art\": 4}) == \"Отчёт для Аня: math: 5; art: 4\", f\"Получено {report('Аня', {'math': 5, 'art': 4})!r}\"\n",
                   "solution": "def report(name, scores):\n    lines = []\n    for subject in scores:\n        lines.append(f\"{subject}: {scores[subject]}\")\n    return f\"Отчёт для {name}: \" + \"; \".join(lines)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Переменная цикла с тем же именем, что у параметра, перезаписывает его. Даём ей своё имя.\", \"lines\": [[\"for subject in scores:\", \"Было `for name in scores` — параметр затирался.\"], [\"return f\\\"Отчёт для {name}: \\\" + \\\"; \\\".join(lines)\", \"`name` — снова исходное имя.\"]], \"mistake\": \"Переименовать параметр — сломаются вызовы с `name=...`.\"}"
                 },
                 {
                   "slug": "scp-m3-l3-e8",
@@ -1550,7 +1653,8 @@
                   "tests": "def test_values():\n    adders = make_adders([1, 10, 100])\n    assert [a(5) for a in adders] == [6, 15, 105], f\"Получено {[a(5) for a in adders]}\"\n",
                   "solution": "def make_adder(n):\n    def add(x):\n        return x + n\n    return add\n\ndef make_adders(values):\n    return [make_adder(v) for v in values]\n",
                   "hint": "Каждый вызов make_adder(n) создаёт отдельную область со своим n.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Фабрика создаёт новую область на каждый вызов, поэтому каждая функция помнит своё число — позднего связывания нет.\", \"lines\": [[\"return x + n\", \"`n` — своё у каждой функции.\"], [\"return [make_adder(v) for v in values]\", \"6, 15, 105.\"]], \"mistake\": \"`[lambda x: x + v for v in values]` — все прибавят 100.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nВ Python у цикла `for` **нет** своей области видимости: переменная цикла — обычная переменная функции (или модуля) и остаётся после цикла. А вот у **списковых включений** и генераторов область своя. Эта разница рождает несколько классических ошибок.\n\n## for не создаёт свою область\n\n```python\nfor i in range(3):\n    pass\nprint(\"после for:\", i)\n```\n\n- `i` существует после цикла и хранит последнее значение. Вывод: `после for: 2`.\n- То же с `if`, `while`, `try`: блоки **не** создают областей. Области создают только функции (и классы, модули).\n\n## Включение — создаёт\n\n```python\nsquares = [n * n for n in range(3)]\ntry:\n    print(n)\nexcept NameError:\n    print(\"n из включения не видна\")\n```\n\n- Переменная `n` внутри `[...]` живёт только во включении. Вывод: `n из включения не видна`.\n\n```python\nx = 10\nsquares = [x * x for x in range(3)]\nprint(squares, x)\ntotal = sum(x for x in range(4))\nprint(total, x)\n```\n\n- Внешняя `x` не изменилась ни после спискового включения, ни после выражения-генератора внутри `sum(...)`.\n- Вывод: `[0, 1, 4] 10`, `6 10`.\n\n## Ловушка: цикл перезаписывает переменную\n\n```python\nx = \"снаружи\"\nfor x in [\"c\", \"d\"]:\n    pass\nprint(x)\n```\n\n- Обычный цикл **перезаписал** внешнюю `x`. Вывод: `d`.\n\nТипичный баг — переменная цикла совпала с параметром функции:\n\n```python\ndef report(name, scores):\n    lines = []\n    for subject in scores:\n        lines.append(f\"{subject}: {scores[subject]}\")\n    return f\"Отчёт для {name}: \" + \"; \".join(lines)\n\nprint(report(\"Аня\", {\"math\": 5, \"art\": 4}))\n```\n\n- Если бы цикл был `for name in scores`, параметр `name` затёрся бы последним предметом. Разные имена — нет проблемы.\n- Вывод: `Отчёт для Аня: math: 5; art: 4`.\n\n## Ловушка: переменная цикла после пустого цикла\n\n```python\ndef process(items):\n    last = None\n    for item in items:\n        last = item\n    return last\n\nprint(process([1, 2, 3]), process([]))\n```\n\n- Если вернуть `item` напрямую, для пустого списка цикл не выполнится, `item` не получит значения → `UnboundLocalError`.\n- Заведи переменную-результат **до** цикла. Вывод: `3 None`.\n\n## Ловушка: лямбды в цикле и включении\n\n```python\nms = [lambda x: x * i for i in range(4)]\nprint([m(10) for m in ms])\nfixed = [lambda x, i=i: x * i for i in range(4)]\nprint([m(10) for m in fixed])\n```\n\n- Все лямбды первого списка ссылаются на **одну** `i` области включения — к моменту вызова она равна 3.\n- `i=i` фиксирует значение в момент создания (значение по умолчанию вычисляется сразу).\n- Вывод: `[30, 30, 30, 30]`, `[0, 10, 20, 30]`.\n\nЕщё надёжнее — фабрика:\n\n```python\ndef make_adder(n):\n    def add(x):\n        return x + n\n    return add\n\nadders = [make_adder(v) for v in [1, 10, 100]]\nprint([a(5) for a in adders])\n```\n\nВывод: `[6, 15, 105]`.\n\n## Итог\n\n- `for`, `while`, `if`, `try` не создают областей: переменная цикла живёт после цикла.\n- Списковые включения и генераторы имеют свою область — внешние имена не портят.\n- Переменная цикла может затереть параметр или внешнюю переменную с тем же именем.\n- После пустого цикла переменной цикла нет — результат заводи до цикла.\n- Функции в цикле: фиксируй значение через `i=i` или фабрику.",
@@ -1602,7 +1706,8 @@
                   "code": "x = 5\ndel x\ntry:\n    print(x)\nexcept NameError as e:\n    print(\"NameError:\", e)\n",
                   "expected_output": "NameError: name 'x' is not defined",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`del` удаляет имя. После этого обращение к нему — `NameError`.\", \"lines\": [[\"del x\", \"Имени больше нет.\"], [\"print(\\\"NameError:\\\", e)\", \"Текст ошибки.\"]], \"mistake\": \"Ожидать, что `x` станет `None`.\"}"
                 },
                 {
                   "slug": "scp-lifetime-e2",
@@ -1611,7 +1716,8 @@
                   "code": "try:\n    1 / 0\nexcept ZeroDivisionError as e:\n    msg = str(e)\nprint(msg)\ntry:\n    print(e)\nexcept NameError:\n    print(\"e удалена после except\")\n",
                   "expected_output": "division by zero\ne удалена после except",
                   "hint": "Python сам удаляет имя из except … as в конце блока except.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Переменная из `except … as e` удаляется после блока `except`. Если нужен текст — сохраняем в другую переменную.\", \"lines\": [[\"msg = str(e)\", \"Сохраняем сообщение.\"], [\"print(msg)\", \"`division by zero`.\"], [\"print(e)\", \"`e` уже удалена — `NameError`.\"]], \"mistake\": \"Ожидать, что `e` доступна после `except`.\"}"
                 },
                 {
                   "slug": "scp-lifetime-e3",
@@ -1620,7 +1726,8 @@
                   "code": "def make_list():\n    data = [1, 2, 3]\n    return data\n\na = make_list()\nb = a\ndel a\nprint(b)\n",
                   "expected_output": "[1, 2, 3]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`del` удаляет имя, а не объект. Пока на список ссылается `b`, он живёт.\", \"lines\": [[\"b = a\", \"Две ссылки на один список.\"], [\"del a\", \"Удалили одно имя.\"], [\"print(b)\", \"Список цел.\"]], \"mistake\": \"Ожидать ошибку. Объект удаляется только когда на него не остаётся ссылок.\"}"
                 },
                 {
                   "slug": "scp-lifetime-e4",
@@ -1630,7 +1737,8 @@
                   "tests": "def test_values():\n    d = {\"a\": 1, \"b\": 2, \"c\": 3}\n    assert remove_keys(d, [\"a\", \"x\"]) is None and d == {\"b\": 2, \"c\": 3}, f\"d = {d}\"\n\ndef test_del():\n    assert \"del \" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй del\"\n",
                   "solution": "def remove_keys(d, keys):\n    for k in keys:\n        if k in d:\n            del d[k]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`del d[k]` удаляет ключ из словаря. Отсутствующий ключ проверяем заранее, иначе `KeyError`.\", \"lines\": [[\"if k in d:\\n            del d[k]\", \"`x` нет — пропускаем.\"]], \"mistake\": \"`del d[k]` без проверки — `KeyError` на `x`.\"}"
                 },
                 {
                   "slug": "scp-lifetime-e5",
@@ -1640,7 +1748,8 @@
                   "tests": "def test_values():\n    assert safe_div(6, 3) == 2.0 and safe_div(1, 0) == \"ошибка: division by zero\", \"Неверный результат\"\n",
                   "solution": "def safe_div(a, b):\n    try:\n        return a / b\n    except ZeroDivisionError as e:\n        return \"ошибка: \" + str(e)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Текст ошибки нужно взять внутри `except` — после блока `e` уже удалена.\", \"lines\": [[\"except ZeroDivisionError as e:\\n        return \\\"ошибка: \\\" + str(e)\", \"Используем `e` на месте.\"]], \"mistake\": \"Собирать сообщение после блока `except` — к тому моменту `e` уже удалена.\"}"
                 },
                 {
                   "slug": "scp-lifetime-e6",
@@ -1650,7 +1759,8 @@
                   "tests": "def test_values():\n    x = [\"a\", \"b\", \"c\", \"d\"]\n    remove_at(x, [0, 2])\n    assert x == [\"b\", \"d\"], f\"x = {x}\"\n    y = [1, 2, 3]\n    remove_at(y, [2, 0, 1])\n    assert y == [], f\"y = {y}\"\n",
                   "solution": "def remove_at(items, indexes):\n    for i in sorted(indexes, reverse=True):\n        del items[i]\n",
                   "hint": "sorted(indexes, reverse=True) — индексы по убыванию.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"После удаления элементы сдвигаются влево. Если удалять с конца, меньшие индексы не «уезжают».\", \"lines\": [[\"for i in sorted(indexes, reverse=True):\", \"Сначала 2, потом 0.\"], [\"del items[i]\", \"`[\\\"a\\\", \\\"b\\\", \\\"c\\\", \\\"d\\\"]` → без `c` → без `a`.\"]], \"mistake\": \"Удалять по возрастанию — после удаления 0 индекс 2 укажет уже на `d`.\"}"
                 },
                 {
                   "slug": "scp-lifetime-e7",
@@ -1660,7 +1770,8 @@
                   "tests": "def test_values():\n    gen = make_id_generator(\"user\")\n    other = make_id_generator(\"order\")\n    assert [gen(), gen(), other(), gen()] == [\"user-1\", \"user-2\", \"order-1\", \"user-3\"], \"Неверные id\"\n",
                   "solution": "def make_id_generator(prefix):\n    n = 0\n    def next_id():\n        nonlocal n\n        n += 1\n        return f\"{prefix}-{n}\"\n    return next_id\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Замыкание держит `n` живой и после того, как `make_id_generator` завершилась.\", \"lines\": [[\"nonlocal n\\n        n += 1\", \"Счётчик растёт между вызовами.\"], [\"return f\\\"{prefix}-{n}\\\"\", \"`user-1`, `user-2`…\"]], \"mistake\": \"Держать `n` внутри `next_id` — всегда будет `-1`.\"}"
                 },
                 {
                   "slug": "scp-lifetime-e8",
@@ -1670,7 +1781,8 @@
                   "tests": "def test_values():\n    assert find_first_even([1, 4, 6]) == 4 and find_first_even([1, 3]) is None and find_first_even([]) is None, \"Неверный результат\"\n",
                   "solution": "def find_first_even(nums):\n    found = None\n    for n in nums:\n        if n % 2 == 0:\n            found = n\n            break\n    return found\n",
                   "hint": "Заведи found = None до цикла — тогда переменная существует на любом пути.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Переменная, созданная только в одной ветке, может не появиться вовсе. Задаём её значение заранее.\", \"lines\": [[\"found = None\", \"Значение «не нашли».\"], [\"found = n\\n            break\", \"Первое чётное.\"]], \"mistake\": \"Оставить создание `found` только внутри `if`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПеременная — это **имя**, привязанное к **объекту**. У имени и у объекта разная «жизнь»: имя исчезает в конце функции или после `del`, а объект живёт, пока на него ссылается хоть что-то. Понимание этого объясняет, почему возвращённый список «выживает», замыкания помнят данные, а переменная из `except … as e` внезапно пропадает.\n\n## del удаляет имя\n\n```python\nx = 5\ndel x\ntry:\n    print(x)\nexcept NameError as e:\n    print(\"NameError:\", e)\n```\n\n- `del x` удаляет **имя** `x` из текущей области. После этого обращение — `NameError`.\n- Вывод: `NameError: name 'x' is not defined`.\n\n`del` работает и с элементами коллекций:\n\n```python\nd = {\"a\": 1, \"b\": 2}\ndel d[\"a\"]\nitems = [\"a\", \"b\", \"c\", \"d\"]\ndel items[0]\ndel items[1:]\nprint(d, items)\n```\n\n- `del d[ключ]` — удалить пару из словаря; `del items[i]` и `del items[срез]` — удалить элементы списка.\n- Вывод: `{'b': 2} ['b']`.\n\n## Имя удалено — объект живёт\n\n```python\ndef make_list():\n    data = [1, 2, 3]\n    return data\n\na = make_list()\nb = a\ndel a\nprint(b)\n```\n\n- Локальное имя `data` исчезло, когда функция завершилась, но **список** вернули — на него ссылается `a`.\n- `del a` удаляет одно имя, но список всё ещё доступен через `b`.\n- Объект уничтожается, только когда на него не осталось **ни одной** ссылки (это делает сборщик мусора). Вывод: `[1, 2, 3]`.\n\n## Замыкание продлевает жизнь\n\n```python\ndef make_id_generator(prefix):\n    n = 0\n    def next_id():\n        nonlocal n\n        n += 1\n        return f\"{prefix}-{n}\"\n    return next_id\n\ngen = make_id_generator(\"user\")\nprint(gen(), gen())\n```\n\n- `make_id_generator` давно завершилась, но `n` и `prefix` живут — на них ссылается `next_id`. Вывод: `user-1 user-2`.\n\n## Сюрприз: except … as e\n\n```python\ntry:\n    1 / 0\nexcept ZeroDivisionError as e:\n    msg = str(e)\nprint(msg)\ntry:\n    print(e)\nexcept NameError:\n    print(\"e удалена после except\")\n```\n\n- Python **автоматически удаляет** имя из `except … as e` в конце блока `except` (чтобы не держать в памяти ошибку со всем её контекстом).\n- Нужно сообщение позже — сохрани его в другую переменную **внутри** блока.\n- Вывод: `division by zero`, `e удалена после except`.\n\n## Переменная, созданная не на всех путях\n\n```python\ndef find_first_even(nums):\n    found = None\n    for n in nums:\n        if n % 2 == 0:\n            found = n\n            break\n    return found\n\nprint(find_first_even([1, 4, 6]), find_first_even([1, 3]))\n```\n\n- Если присваивать `found` только внутри `if`, при отсутствии чётных имя так и не появится → `UnboundLocalError`.\n- Правило: переменная, которая используется после ветвлений и циклов, должна получить значение **на каждом** пути — проще всего до них. Вывод: `4 None`.\n\n## del по нескольким индексам\n\n```python\nitems = [\"a\", \"b\", \"c\", \"d\"]\nfor i in sorted([0, 2], reverse=True):\n    del items[i]\nprint(items)\n```\n\n- После удаления элементы сдвигаются, и оставшиеся индексы «уезжают». Удаление **с конца** (с больших индексов) этого избегает.\n- Вывод: `['b', 'd']`.\n\n## Итог\n\n- `del имя` удаляет имя; обращение после — `NameError`. `del d[k]`, `del lst[i]` — удалить элемент.\n- Объект живёт, пока на него есть ссылки: возвращённые значения, другие имена, замыкания.\n- Имя из `except … as e` удаляется после блока — сохраняй нужное внутри.\n- Переменная должна получать значение на всех путях выполнения.\n- Удаляя несколько индексов из списка — удаляй с конца.",
@@ -1722,7 +1834,8 @@
                   "code": "import math\nfrom math import sqrt\n\nprint(math.sqrt(16), sqrt(25))\nprint(math.pi > 3, \"pi\" in dir(math))\n",
                   "expected_output": "4.0 5.0\nTrue True",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`import math` даёт доступ через `math.`, `from math import sqrt` — прямо по имени. `dir(модуль)` — список его имён.\", \"lines\": [[\"print(math.sqrt(16), sqrt(25))\", \"`4.0 5.0` — `sqrt` всегда дробный.\"], [\"print(math.pi > 3, \\\"pi\\\" in dir(math))\", \"`True True`.\"]], \"mistake\": \"Ожидать целые 4 и 5.\"}"
                 },
                 {
                   "slug": "scp-modules-e2",
@@ -1731,7 +1844,8 @@
                   "code": "from math import pow\n\ndef pow(a, b):\n    return \"моя pow\"\n\nprint(pow(2, 3))\nimport math\nprint(math.pow(2, 3))\n",
                   "expected_output": "моя pow\n8.0",
                   "hint": "def pow перезаписала имя, импортированное из math. А math.pow доступна через модуль.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`from … import pow` кладёт имя в наше пространство имён, а `def pow` его перезаписывает. Через `math.pow` оригинал доступен всегда.\", \"lines\": [[\"def pow(a, b):\", \"Наша функция заменила импортированную.\"], [\"print(math.pow(2, 3))\", \"Оригинал: `8.0`.\"]], \"mistake\": \"Ожидать 8.0 в первой строке.\"}"
                 },
                 {
                   "slug": "scp-modules-e3",
@@ -1740,7 +1854,8 @@
                   "code": "x = 1\nprint(\"x\" in globals(), globals()[\"x\"])\nglobals()[\"y\"] = 42\nprint(y, type(globals()).__name__)\n",
                   "expected_output": "True 1\n42 dict",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`globals()` — обычный словарь глобальных имён модуля. Добавленный в него ключ становится переменной.\", \"lines\": [[\"print(\\\"x\\\" in globals(), globals()[\\\"x\\\"])\", \"`True 1`.\"], [\"globals()[\\\"y\\\"] = 42\", \"Создали глобальную `y`.\"]], \"mistake\": \"Ожидать `NameError` на `y` — так тоже можно создать переменную, хоть и не стоит.\"}"
                 },
                 {
                   "slug": "scp-modules-e4",
@@ -1750,7 +1865,8 @@
                   "tests": "def test_values():\n    assert circle_area(1) == 3.14 and circle_area(3) == 28.27 and circle_area(0) == 0, \"Неверная площадь\"\n\ndef test_import():\n    assert \"import math\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Импортируй модуль math\"\n",
                   "solution": "import math\n\ndef circle_area(r):\n    return round(math.pi * r * r, 2)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Константа π — в модуле `math`.\", \"lines\": [[\"return round(math.pi * r * r, 2)\", \"r = 3 → 28.27.\"]], \"mistake\": \"`3.14` вместо `math.pi` — для r = 3 выйдет 28.26.\"}"
                 },
                 {
                   "slug": "scp-modules-e5",
@@ -1760,7 +1876,8 @@
                   "tests": "def test_values():\n    assert hypotenuse(3, 4) == 5.0 and hypotenuse(5, 12) == 13.0, \"Неверная гипотенуза\"\n\ndef test_from_import():\n    assert \"from math import sqrt\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй from math import sqrt\"\n",
                   "solution": "from math import sqrt\n\ndef hypotenuse(a, b):\n    return sqrt(a * a + b * b)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`from math import sqrt` — импорт одного имени, без префикса `math.`.\", \"lines\": [[\"return sqrt(a * a + b * b)\", \"√25 = 5.0.\"]], \"mistake\": \"`math.sqrt` — модуль `math` не импортирован целиком, будет `NameError`.\"}"
                 },
                 {
                   "slug": "scp-modules-e6",
@@ -1770,7 +1887,8 @@
                   "tests": "def test_values():\n    assert has_global(\"ALPHA\") is True and has_global(\"BETA\") is False and has_global(\"has_global\") is True, \"Неверный результат\"\n",
                   "solution": "ALPHA = 1\n\ndef has_global(name):\n    return name in globals()\n",
                   "hint": "Функции — тоже глобальные имена модуля.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`globals()` — словарь глобальных имён, проверка — через `in`.\", \"lines\": [[\"return name in globals()\", \"`ALPHA` есть, `BETA` нет.\"]], \"mistake\": \"`name in locals()` внутри функции — там только локальные имена.\"}"
                 },
                 {
                   "slug": "scp-modules-e7",
@@ -1780,7 +1898,8 @@
                   "tests": "import random\n\ndef test_values():\n    items = [\"a\", \"b\", \"c\", \"d\", \"e\"]\n    assert pick(items, 42) == random.Random(42).choice(items), \"Используй random.Random(seed).choice(items)\"\n    assert all(pick(items, s) == pick(items, s) for s in range(10)), \"Результат должен повторяться\"\n",
                   "solution": "import random\n\ndef pick(items, seed):\n    return random.Random(seed).choice(items)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Отдельный генератор с заданным `seed` выдаёт одинаковую последовательность «случайных» чисел — удобно для стабильных тестов.\", \"lines\": [[\"return random.Random(seed).choice(items)\", \"Новый генератор — не трогаем общий `random`.\"]], \"mistake\": \"`random.seed(seed)` — изменит общий генератор для всей программы.\"}"
                 },
                 {
                   "slug": "scp-modules-e8",
@@ -1790,7 +1909,8 @@
                   "tests": "def test_values():\n    assert days_between(\"2024-01-01\", \"2024-03-01\") == 60 and days_between(\"2024-05-10\", \"2024-05-01\") == -9, \"Неверное число дней\"\n\ndef test_import():\n    assert \"from datetime import date\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй from datetime import date\"\n",
                   "solution": "from datetime import date\n\ndef days_between(d1, d2):\n    return (date.fromisoformat(d2) - date.fromisoformat(d1)).days\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`date.fromisoformat` превращает строку в дату, разность дат — интервал, `.days` — число дней.\", \"lines\": [[\"return (date.fromisoformat(d2) - date.fromisoformat(d1)).days\", \"31 день января + 29 февраля 2024 = 60.\"]], \"mistake\": \"Считать разницу по месяцам вручную — в месяцах разное число дней.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n«Глобальная» область — это на самом деле область **модуля** (файла). У каждого модуля своё **пространство имён** — словарь «имя → объект». Команда `import` приносит имена из других модулей. Понимание этого объясняет, откуда берутся `math.pi` и `sqrt`, почему `from x import *` опасен и как одно имя может «перебить» другое.\n\n## Пространство имён — словарь\n\n```python\nx = 1\nprint(\"x\" in globals(), globals()[\"x\"])\nglobals()[\"y\"] = 42\nprint(y, type(globals()).__name__)\n```\n\n- `globals()` возвращает словарь глобальных имён текущего модуля. Каждое присваивание на верхнем уровне — это запись в этот словарь.\n- Запись в словарь напрямую тоже создаёт переменную (так делать в обычном коде не нужно — это для понимания).\n- Вывод: `True 1`, `42 dict`.\n- Функции, классы, импортированные модули — тоже просто имена в этом словаре.\n\n## import модуль\n\n```python\nimport math\nfrom math import sqrt\n\nprint(math.sqrt(16), sqrt(25))\nprint(math.pi > 3, \"pi\" in dir(math))\n```\n\n- `import math` добавляет в пространство имён **одно** имя — `math`, сам модуль. Всё остальное достаётся через точку: `math.sqrt`, `math.pi`. Сразу видно, откуда функция.\n- `from math import sqrt` добавляет имя `sqrt` напрямую — короче, но источник менее очевиден.\n- `dir(math)` — список имён внутри модуля.\n- Вывод: `4.0 5.0`, `True True`.\n\nВарианты импорта:\n- `import math` — имя модуля;\n- `import math as m` — модуль под другим именем (`m.sqrt`);\n- `from math import sqrt, pi` — конкретные имена;\n- `from math import sqrt as root` — под другим именем;\n- `from math import *` — **все** имена модуля. Так делать не надо: неизвестно, какие имена появились и что они затёрли.\n\n## Конфликт имён\n\n```python\nfrom math import pow\n\ndef pow(a, b):\n    return \"моя pow\"\n\nprint(pow(2, 3))\nimport math\nprint(math.pow(2, 3))\n```\n\n- `from math import pow` записал имя `pow`, а `def pow` — **перезаписал** его своей функцией. Последнее присваивание побеждает.\n- Через `math.pow` оригинал доступен — ещё один плюс импорта модуля целиком.\n- Вывод: `моя pow`, `8.0`.\n\n## Модули стандартной библиотеки\n\nС Python поставляются сотни модулей. Несколько самых нужных тестировщику:\n\n```python\nimport random\nfrom datetime import date\n\nprint(random.Random(42).choice([\"a\", \"b\", \"c\"]) == random.Random(42).choice([\"a\", \"b\", \"c\"]))\nprint((date.fromisoformat(\"2024-03-01\") - date.fromisoformat(\"2024-01-01\")).days)\n```\n\n- `random.Random(seed)` — генератор случайных чисел с фиксированным «зерном»: одинаковое зерно → одинаковая последовательность. Так делают **воспроизводимые** тестовые данные.\n- `date.fromisoformat(\"ГГГГ-ММ-ДД\")` превращает строку в дату; разность дат — промежуток, `.days` — число дней.\n- Вывод: `True`, `60`.\n\nДругие частые: `os` и `pathlib` (файлы и пути), `json`, `time`, `re` (регулярные выражения), `collections`, `itertools`.\n\n## Глобальные — свои у каждого модуля\n\nЕсли в файле `config.py` написано `TIMEOUT = 30`, а в `tests.py` — `from config import TIMEOUT`, то в `tests.py` появится **своё** имя `TIMEOUT`, указывающее на тот же объект. Присваивание `TIMEOUT = 60` в `tests.py` не изменит `config.TIMEOUT`. Чтобы поменять настройку для всех, пишут `import config` и `config.TIMEOUT = 60`.\n\n## Итог\n\n- Глобальная область = пространство имён модуля, словарь `globals()`.\n- `import m` — одно имя-модуль, доступ через точку; `from m import x` — имя `x` напрямую.\n- Не используй `from m import *`.\n- Последнее присваивание имени побеждает — осторожно с одинаковыми именами.\n- У каждого модуля свои глобальные имена; `from config import X` создаёт отдельное имя.",
