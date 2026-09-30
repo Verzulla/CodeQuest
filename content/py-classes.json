@@ -26,7 +26,8 @@
                   "code": "class Dog:\n    def __init__(self, name):\n        self.name = name\n    def bark(self):\n        return self.name + \": Гав!\"\n\na = Dog(\"Рекс\")\nb = Dog(\"Шарик\")\nprint(a.bark())\nprint(b.name)\n",
                   "expected_output": "Рекс: Гав!\nШарик",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Класс — шаблон, объект — конкретный экземпляр. `__init__` заполняет атрибуты нового объекта, `self` — это сам объект.\", \"lines\": [[\"self.name = name\", \"У каждой собаки своё имя.\"], [\"a = Dog(\\\"Рекс\\\")\\nb = Dog(\\\"Шарик\\\")\", \"Два независимых объекта.\"], [\"print(a.bark())\", \"`self` внутри метода — это `a`.\"]], \"mistake\": \"Думать, что второй объект перезапишет имя первого.\"}"
                 },
                 {
                   "slug": "oop-m1-l1-e2",
@@ -35,7 +36,8 @@
                   "code": "class Counter:\n    def __init__(self):\n        self.value = 0\n    def inc(self, step=1):\n        self.value += step\n\nc = Counter()\nc.inc()\nc.inc(5)\nprint(c.value)\n",
                   "expected_output": "6",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Метод меняет состояние объекта через `self`.\", \"lines\": [[\"self.value += step\", \"Меняется атрибут объекта.\"], [\"c.inc()\\nc.inc(5)\", \"1 + 5 = 6.\"]], \"mistake\": \"Ожидать 0 — изменения сохраняются в объекте.\"}"
                 },
                 {
                   "slug": "oop-m1-l1-e3",
@@ -44,7 +46,8 @@
                   "code": "class Box:\n    def __init__(self, items):\n        self.items = items\n\na = Box([1])\nb = a\nb.items.append(2)\nprint(a.items)\nprint(a is b)\n",
                   "expected_output": "[1, 2]\nTrue",
                   "hint": "`b = a` не копирует объект — это второе имя для того же объекта.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`b = a` — не копия объекта, а второе имя. Изменения через `b` видны и через `a`.\", \"lines\": [[\"b = a\", \"Один объект.\"], [\"b.items.append(2)\", \"Меняется общий список.\"], [\"print(a is b)\", \"`True`.\"]], \"mistake\": \"Думать, что присваивание копирует объект.\"}"
                 },
                 {
                   "slug": "oop-m1-l1-e4",
@@ -54,7 +57,8 @@
                   "tests": "def test_user():\n    u = User(\"Аня\", \"anna@mail.ru\")\n    assert u.name == \"Аня\" and u.email == \"anna@mail.ru\", \"Атрибуты name и email должны сохраняться из конструктора\"\n",
                   "solution": "class User:\n    def __init__(self, name, email):\n        self.name = name\n        self.email = email\n",
                   "hint": "`def __init__(self, name, email):` и внутри `self.name = name`…",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Конструктор принимает значения и раскладывает их по атрибутам `self`.\", \"lines\": [[\"def __init__(self, name, email):\", \"`self` — первый параметр всегда.\"], [\"self.name = name\\n        self.email = email\", \"Атрибуты объекта.\"]], \"mistake\": \"Забыть `self.` — получатся локальные переменные, которые исчезнут после `__init__`.\"}"
                 },
                 {
                   "slug": "oop-m1-l1-e5",
@@ -64,7 +68,8 @@
                   "tests": "def test_area():\n    assert Rectangle(3, 4).area() == 12, \"Площадь 3x4 = 12\"\n\ndef test_perimeter():\n    assert Rectangle(3, 4).perimeter() == 14, \"Периметр 3x4 = 14\"\n",
                   "solution": "class Rectangle:\n    def __init__(self, width, height):\n        self.width = width\n        self.height = height\n\n    def area(self):\n        return self.width * self.height\n\n    def perimeter(self):\n        return 2 * (self.width + self.height)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Методы используют атрибуты, сохранённые конструктором.\", \"lines\": [[\"return self.width * self.height\", \"3 · 4 = 12.\"], [\"return 2 * (self.width + self.height)\", \"2 · 7 = 14.\"]], \"mistake\": \"Писать `width` без `self.` — `NameError`.\"}"
                 },
                 {
                   "slug": "oop-m1-l1-e6",
@@ -74,7 +79,8 @@
                   "tests": "def test_deposit():\n    acc = BankAccount(\"Аня\")\n    acc.deposit(100)\n    assert acc.balance == 100, \"После deposit(100) баланс 100\"\n\ndef test_withdraw():\n    acc = BankAccount(\"Аня\", 50)\n    acc.withdraw(20)\n    assert acc.balance == 30, \"50 - 20 = 30\"\n\ndef test_not_enough():\n    acc = BankAccount(\"Аня\", 10)\n    try:\n        acc.withdraw(100)\n    except ValueError:\n        pass\n    else:\n        assert False, \"При нехватке денег нужен ValueError\"\n    assert acc.balance == 10, \"Баланс не должен меняться при ошибке\"\n",
                   "solution": "class BankAccount:\n    def __init__(self, owner, balance=0):\n        self.owner = owner\n        self.balance = balance\n\n    def deposit(self, amount):\n        self.balance += amount\n\n    def withdraw(self, amount):\n        if amount > self.balance:\n            raise ValueError(\"Недостаточно средств\")\n        self.balance -= amount\n",
                   "hint": "`raise ValueError(\"...\")` — бросить исключение. Проверку делай до изменения баланса.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Объект хранит состояние (баланс), методы его меняют и охраняют правила.\", \"lines\": [[\"def __init__(self, owner, balance=0):\", \"Баланс по умолчанию.\"], [\"self.balance += amount\", \"Пополнение.\"], [\"if amount > self.balance:\\n            raise ValueError(\\\"Недостаточно средств\\\")\", \"Правило.\"]], \"mistake\": \"Проверять после вычитания — баланс уже уйдёт в минус.\"}"
                 },
                 {
                   "slug": "oop-m1-l1-e7",
@@ -84,7 +90,8 @@
                   "tests": "def test_timer():\n    t = Timer(5)\n    t.tick()\n    t.tick()\n    assert t.seconds == 7, f\"После двух tick: {t.seconds}\"\n    t.reset()\n    assert t.seconds == 0 and Timer().seconds == 0, \"reset обнуляет, по умолчанию 0\"\n",
                   "solution": "class Timer:\n    def __init__(self, seconds=0):\n        self.seconds = seconds\n\n    def tick(self):\n        self.seconds += 1\n\n    def reset(self):\n        self.seconds = 0\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Три действия с одним атрибутом: задать, увеличить, обнулить.\", \"lines\": [[\"self.seconds += 1\", \"`tick`.\"], [\"self.seconds = 0\", \"`reset`.\"]], \"mistake\": \"`seconds = 0` без `self.` — изменится локальная переменная.\"}"
                 },
                 {
                   "slug": "oop-m1-l1-e8",
@@ -94,7 +101,8 @@
                   "tests": "def test_stack():\n    s = Stack()\n    s.push(1)\n    s.push(2)\n    assert s.peek() == 2 and s.size() == 2, \"peek и size\"\n    assert s.pop() == 2 and s.pop() == 1 and s.pop() is None and s.peek() is None and s.size() == 0, \"pop\"\n\ndef test_independent():\n    a, b = Stack(), Stack()\n    a.push(1)\n    assert b.size() == 0, \"У каждого стека свой список\"\n",
                   "solution": "class Stack:\n    def __init__(self):\n        self.items = []\n\n    def push(self, x):\n        self.items.append(x)\n\n    def pop(self):\n        if not self.items:\n            return None\n        return self.items.pop()\n\n    def peek(self):\n        if not self.items:\n            return None\n        return self.items[-1]\n\n    def size(self):\n        return len(self.items)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Класс-обёртка над списком: каждый объект получает свой список в `__init__`.\", \"lines\": [[\"self.items = []\", \"Свой список у каждого стека.\"], [\"if not self.items:\\n            return None\", \"Пустой — `None` вместо ошибки.\"], [\"return self.items[-1]\", \"`peek` не снимает.\"]], \"mistake\": \"Объявить `items = []` на уровне класса — стеки будут делить один список.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nДо сих пор данные и функции жили отдельно: словарь пользователя — в одном месте, функции, которые с ним работают, — в другом. **Класс** объединяет их: он описывает, какие данные есть у объекта и что объект умеет делать. Классы — основа почти любой библиотеки: `requests.Response`, `datetime`, страницы в Selenium, фикстуры pytest. В автотестах классы нужны для Page Object, API-клиентов, фабрик тестовых данных.\n\n## Термины\n\n- **Класс** — чертёж, шаблон. Например, «собака»: у каждой есть кличка, каждая умеет лаять.\n- **Объект** (экземпляр) — конкретная вещь, созданная по чертежу: собака Шарик, собака Бобик.\n- **Атрибут** — переменная внутри объекта (`name`).\n- **Метод** — функция внутри класса, которая работает с объектом (`bark()`).\n\nТы уже пользовался объектами: строка `\"abc\"` — объект класса `str`, у неё есть метод `.upper()`. Теперь научимся создавать свои классы.\n\n## Первый класс\n\n```python\nclass Dog:\n    def __init__(self, name):\n        self.name = name\n\n    def bark(self):\n        return f\"{self.name}: Гав!\"\n\nrex = Dog(\"Рекс\")\nbob = Dog(\"Бобик\")\nprint(rex.bark())\nprint(bob.name)\n```\n\nЧто делает каждая строка:\n\n- `class Dog:` — объявляем класс с именем `Dog`. Имена классов принято писать с большой буквы в стиле `CamelCase` (`BankAccount`, `LoginPage`).\n- `def __init__(self, name):` — особый метод-**конструктор**. Python вызывает его сам в момент создания объекта. Два подчёркивания с каждой стороны — признак «магического» (служебного) метода.\n- `self` — первый параметр любого метода: **сам объект**, с которым сейчас работаем. Когда пишем `Dog(\"Рекс\")`, Python создаёт пустой объект и передаёт его в `__init__` как `self`.\n- `self.name = name` — создаём у объекта атрибут `name` и кладём туда переданное значение. Без `self.` это была бы обычная локальная переменная, которая исчезнет после выхода из функции.\n- `def bark(self):` — обычный метод. Он тоже получает `self`, поэтому видит `self.name` именно этого объекта.\n- `rex = Dog(\"Рекс\")` — создаём объект: Python вызывает `Dog.__init__(новый_объект, \"Рекс\")` и возвращает готовый объект.\n- `rex.bark()` — вызываем метод. `self` передаётся **автоматически**: пишем 0 аргументов, а метод получает `self = rex`.\n- `bob.name` — читаем атрибут через точку.\n- Вывод: `Рекс: Гав!`, `Бобик`.\n\n## У каждого объекта — свои данные\n\n```python\nclass Counter:\n    def __init__(self):\n        self.value = 0\n\n    def inc(self):\n        self.value += 1\n\na = Counter()\nb = Counter()\na.inc()\na.inc()\nb.inc()\nprint(a.value, b.value)\n```\n\n- Каждый вызов `Counter()` создаёт **новый** объект со своим `value`.\n- `a.inc()` меняет только `a.value`, потому что внутри метода `self` — это `a`.\n- Как меняются значения: после создания `a.value = 0`, `b.value = 0`; после двух `a.inc()` — `a.value = 2`; после `b.inc()` — `b.value = 1`.\n- Вывод: `2 1`.\n\n## Атрибуты можно читать и менять снаружи\n\n```python\nclass User:\n    def __init__(self, name, email):\n        self.name = name\n        self.email = email\n\nu = User(\"Аня\", \"anna@test.ru\")\nu.email = \"new@test.ru\"\nprint(u.name, u.email)\nprint(vars(u))\n```\n\n- `u.email = \"new@test.ru\"` — присваивание атрибуту объекта снаружи класса.\n- `vars(u)` — словарь всех атрибутов объекта. Удобно для отладки.\n- Вывод: `Аня new@test.ru`, затем `{'name': 'Аня', 'email': 'new@test.ru'}`.\n\n## Метод может вернуть значение и проверить данные\n\n```python\nclass BankAccount:\n    def __init__(self, owner, balance=0):\n        self.owner = owner\n        self.balance = balance\n\n    def deposit(self, amount):\n        self.balance += amount\n\n    def withdraw(self, amount):\n        if amount > self.balance:\n            return False\n        self.balance -= amount\n        return True\n\nacc = BankAccount(\"Аня\", 100)\nacc.deposit(50)\nprint(acc.withdraw(500), acc.balance)\nprint(acc.withdraw(30), acc.balance)\n```\n\n- `balance=0` — у параметров конструктора, как у любой функции, бывают значения по умолчанию.\n- `withdraw` проверяет, хватает ли денег, и возвращает `True`/`False` — так вызывающий код узнаёт результат.\n- По шагам: 100 → `deposit(50)` → 150 → `withdraw(500)` не проходит (150) → `withdraw(30)` → 120.\n- Вывод: `False 150`, `True 120`.\n\n## Типичные ошибки\n\n- Забыть `self` в объявлении метода: `def bark():` → при вызове `rex.bark()` будет `TypeError: ... takes 0 positional arguments but 1 was given` (Python всё равно передал объект).\n- Написать `name = name` вместо `self.name = name` — атрибут не создастся.\n- Вызвать метод без скобок: `rex.bark` — это сам метод, а не результат.\n\n## Итог\n\n- `class Имя:` — объявление класса; `Имя(...)` — создание объекта.\n- `__init__(self, ...)` — конструктор, заполняет атрибуты `self.x = ...`.\n- `self` — текущий объект; при вызове `obj.method()` передаётся автоматически.\n- У каждого объекта свои атрибуты; `vars(obj)` — их словарь.",
@@ -146,7 +154,8 @@
                   "code": "class User:\n    def __init__(self, name, role=\"user\"):\n        self.name = name\n        self.role = role\n        self.active = True\n\nu = User(\"Аня\")\na = User(\"Боря\", role=\"admin\")\nprint(u.name, u.role, u.active)\nprint(a.role, vars(a))\n",
                   "expected_output": "Аня user True\nadmin {'name': 'Боря', 'role': 'admin', 'active': True}",
                   "hint": "vars(объект) — словарь его атрибутов.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Параметры по умолчанию работают в `__init__` как в обычной функции. `vars(obj)` — словарь атрибутов.\", \"lines\": [[\"self.active = True\", \"Атрибут без параметра.\"], [\"print(a.role, vars(a))\", \"Все атрибуты Бори.\"]], \"mistake\": \"Ожидать, что `active` не попадёт в `vars`.\"}"
                 },
                 {
                   "slug": "oop-init-e2",
@@ -155,7 +164,8 @@
                   "code": "class Point:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n\ntry:\n    Point(1)\nexcept TypeError as e:\n    print(e)\np = Point(1, 2)\np.z = 3\nprint(p.x, p.y, p.z)\n",
                   "expected_output": "Point.__init__() missing 1 required positional argument: 'y'\n1 2 3",
                   "hint": "Атрибуты можно добавить объекту и после создания — но лучше описывать всё в __init__.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Недостающий аргумент конструктора — `TypeError`. Атрибуты можно добавить объекту и позже.\", \"lines\": [[\"Point(1)\", \"Нет `y`.\"], [\"p.z = 3\", \"Новый атрибут только у этого объекта.\"]], \"mistake\": \"Ожидать ошибку на `p.z = 3`.\"}"
                 },
                 {
                   "slug": "oop-init-e3",
@@ -164,7 +174,8 @@
                   "code": "class Order:\n    def __init__(self, items=None):\n        self.items = items if items is not None else []\n\na = Order()\nb = Order()\na.items.append(\"чай\")\nprint(a.items, b.items)\n",
                   "expected_output": "['чай'] []",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`None` по умолчанию и новый список внутри — у каждого заказа свой.\", \"lines\": [[\"self.items = items if items is not None else []\", \"Новый `[]` на каждый вызов.\"]], \"mistake\": \"`def __init__(self, items=[])` — общий список на все заказы.\"}"
                 },
                 {
                   "slug": "oop-init-e4",
@@ -174,7 +185,8 @@
                   "tests": "def test_product():\n    p = Product(\"чай\", 300)\n    assert (p.name, p.price, p.qty) == (\"чай\", 300, 1), \"Значения атрибутов\"\n    assert Product(\"кофе\", 500, 2).qty == 2, \"qty передаётся\"\n",
                   "solution": "class Product:\n    def __init__(self, name, price, qty=1):\n        self.name = name\n        self.price = price\n        self.qty = qty\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Три атрибута, у одного значение по умолчанию.\", \"lines\": [[\"def __init__(self, name, price, qty=1):\", \"`qty` — последним.\"]], \"mistake\": \"Поставить `qty=1` раньше обязательных — `SyntaxError`.\"}"
                 },
                 {
                   "slug": "oop-init-e5",
@@ -184,7 +196,8 @@
                   "tests": "def test_config():\n    c = Config()\n    assert (c.host, c.port, c.debug) == (\"localhost\", 8080, False), \"Умолчания\"\n    d = Config(port=5432, debug=True)\n    assert (d.host, d.port, d.debug) == (\"localhost\", 5432, True), \"Переданные значения\"\n",
                   "solution": "class Config:\n    def __init__(self, host=\"localhost\", port=8080, debug=False):\n        self.host = host\n        self.port = port\n        self.debug = debug\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Все параметры необязательны — объект можно создать без аргументов.\", \"lines\": [[\"def __init__(self, host=\\\"localhost\\\", port=8080, debug=False):\", \"`Config()` работает.\"]], \"mistake\": \"Забыть сохранить какой-то параметр в `self`.\"}"
                 },
                 {
                   "slug": "oop-init-e6",
@@ -194,7 +207,8 @@
                   "tests": "def test_independent():\n    a, b = Order(), Order()\n    a.items.append(\"x\")\n    assert b.items == [], \"Списки заказов должны быть независимыми\"\n    assert Order([\"y\"]).items == [\"y\"], \"Переданный список сохраняется\"\n",
                   "solution": "class Order:\n    def __init__(self, items=None):\n        if items is None:\n            items = []\n        self.items = items\n",
                   "hint": "Список в значении по умолчанию — один на все объекты. Используй None.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Изменяемое значение по умолчанию — ловушка. `None` и новый список внутри.\", \"lines\": [[\"if items is None:\\n            items = []\", \"Свой список.\"]], \"mistake\": \"`items=[]` — заказы будут делить список.\"}"
                 },
                 {
                   "slug": "oop-init-e7",
@@ -204,7 +218,8 @@
                   "tests": "def test_values():\n    assert Temperature(20).celsius == 20, \"Корректная температура\"\n    try:\n        Temperature(-300)\n    except ValueError as e:\n        assert str(e) == \"ниже абсолютного нуля\", f\"Текст: {e}\"\n        return\n    assert False, \"Нужен ValueError\"\n",
                   "solution": "class Temperature:\n    def __init__(self, celsius):\n        if celsius < -273.15:\n            raise ValueError(\"ниже абсолютного нуля\")\n        self.celsius = celsius\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Конструктор может проверять данные и не давать создать некорректный объект.\", \"lines\": [[\"if celsius < -273.15:\\n            raise ValueError(\\\"ниже абсолютного нуля\\\")\", \"Проверка до сохранения.\"]], \"mistake\": \"Сохранить значение, а потом проверять — объект с плохими данными уже создан.\"}"
                 },
                 {
                   "slug": "oop-init-e8",
@@ -214,7 +229,8 @@
                   "tests": "def test_values():\n    p = Point(3, 4)\n    assert (p.x, p.y, p.distance) == (3, 4, 5.0) and Point().distance == 0 and Point(1, 1).distance == 1.41, \"Неверные атрибуты\"\n",
                   "solution": "class Point:\n    def __init__(self, x=0, y=0):\n        self.x = x\n        self.y = y\n        self.distance = round((x * x + y * y) ** 0.5, 2)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"В конструкторе можно вычислить производные атрибуты.\", \"lines\": [[\"self.distance = round((x * x + y * y) ** 0.5, 2)\", \"(3, 4) → 5.0.\"]], \"mistake\": \"Если потом изменить `x`, `distance` не пересчитается — это стоит помнить.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nКонструктор `__init__` — единственное место, где объект получает свои начальные данные. Хороший конструктор делает так, чтобы объект **сразу** был в правильном состоянии: все атрибуты заданы, неверные значения отвергнуты. Тогда остальные методы могут на эти данные полагаться.\n\n## Параметры с умолчаниями и именованные аргументы\n\n```python\nclass User:\n    def __init__(self, name, role=\"user\"):\n        self.name = name\n        self.role = role\n        self.active = True\n\nu = User(\"Аня\")\na = User(\"Боря\", role=\"admin\")\nprint(u.name, u.role, u.active)\nprint(a.role, vars(a))\n```\n\n- `__init__` — обычная функция: работают значения по умолчанию, именованные аргументы, `*args`, `**kwargs`.\n- `self.active = True` — атрибут, который не приходит параметром, а задаётся фиксированным начальным значением.\n- `vars(a)` — словарь атрибутов.\n- Вывод: `Аня user True`, затем `admin {'name': 'Боря', 'role': 'admin', 'active': True}`.\n\n## Не хватает аргументов — TypeError\n\n```python\nclass Point:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n\ntry:\n    Point(1)\nexcept TypeError as e:\n    print(e)\np = Point(1, 2)\np.z = 3\nprint(p.x, p.y, p.z)\n```\n\n- `Point(1)` — не передан `y`. Ошибка упоминает `__init__`, потому что именно он ждал аргумент.\n- `p.z = 3` — атрибут можно добавить объекту и позже. Так делать **не рекомендуется**: читатель класса не узнает о `z`. Все атрибуты лучше перечислять в `__init__`.\n- Вывод: `Point.__init__() missing 1 required positional argument: 'y'`, `1 2 3`.\n\n## Ловушка: изменяемое значение по умолчанию\n\n```python\nclass Order:\n    def __init__(self, items=[]):\n        self.items = items\n\na = Order()\nb = Order()\na.items.append(\"чай\")\nprint(b.items)\n```\n\n- Значение по умолчанию `[]` создаётся **один раз** — при объявлении функции. Все заказы без аргумента получают **один и тот же** список.\n- `a.items.append(...)` меняет этот общий список, и `b.items` «тоже» меняется.\n- Вывод: `['чай']` — ошибка!\n\nПравильно — `None` и новый список внутри:\n\n```python\nclass Order:\n    def __init__(self, items=None):\n        self.items = items if items is not None else []\n\na = Order()\nb = Order()\na.items.append(\"чай\")\nprint(a.items, b.items)\n```\n\n- `items if items is not None else []` — если список передали, используем его; если нет — создаём **новый** пустой при каждом вызове.\n- Вывод: `['чай'] []`.\n\n## Проверка данных в конструкторе\n\n```python\nclass Temperature:\n    def __init__(self, celsius):\n        if celsius < -273.15:\n            raise ValueError(\"ниже абсолютного нуля\")\n        self.celsius = celsius\n\nprint(Temperature(20).celsius)\ntry:\n    Temperature(-300)\nexcept ValueError as e:\n    print(\"ошибка:\", e)\n```\n\n- Если данные неверны, конструктор выбрасывает исключение — объект **не создаётся** вовсе.\n- Это лучше, чем создать «сломанный» объект и получить ошибку где-то потом.\n- Вывод: `20`, `ошибка: ниже абсолютного нуля`.\n\n## Вычисляемые атрибуты\n\n```python\nclass Point:\n    def __init__(self, x=0, y=0):\n        self.x = x\n        self.y = y\n        self.distance = round((x * x + y * y) ** 0.5, 2)\n\np = Point(3, 4)\nprint(p.distance, Point().distance)\n```\n\n- В `__init__` можно не только сохранить параметры, но и посчитать из них новые атрибуты.\n- `(x*x + y*y) ** 0.5` — квадратный корень, расстояние до начала координат.\n- Вывод: `5.0 0.0`.\n- Минус: если потом изменить `p.x`, `distance` не пересчитается. Как это исправить — в уроке про `property`.\n\n## __init__ ничего не возвращает\n\n`__init__` должен возвращать `None` (просто не пиши `return` со значением). Объект возвращает сам Python при вызове `Point(...)`. Если вернуть что-то другое — `TypeError: __init__() should return None`.\n\n## Итог\n\n- В `__init__` работают умолчания, именованные аргументы, `*args`, `**kwargs`.\n- Все атрибуты перечисляй в `__init__`.\n- Для списков/словарей по умолчанию — `None` и создание внутри.\n- Неверные данные — `raise` в конструкторе, объект не создаётся.",
@@ -266,7 +282,8 @@
                   "code": "class Counter:\n    def __init__(self):\n        self.value = 0\n\n    def inc(self):\n        self.value += 1\n        return self\n\nc = Counter()\nc.inc().inc().inc()\nprint(c.value)\n",
                   "expected_output": "3",
                   "hint": "Метод вернул сам объект — у результата снова можно вызвать метод.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Метод, который возвращает `self`, позволяет цеплять вызовы.\", \"lines\": [[\"return self\", \"Тот же объект.\"], [\"c.inc().inc().inc()\", \"Три увеличения.\"]], \"mistake\": \"Без `return self` второй `.inc()` вызовется у `None`.\"}"
                 },
                 {
                   "slug": "oop-methods-e2",
@@ -275,7 +292,8 @@
                   "code": "class Cart:\n    def __init__(self):\n        self.items = []\n\n    def add(self, name, price):\n        self.items.append((name, price))\n\n    def total(self):\n        return sum(price for _, price in self.items)\n\n    def summary(self):\n        return f\"{len(self.items)} товара на {self.total()} ₽\"\n\nc = Cart()\nc.add(\"чай\", 300)\nc.add(\"кофе\", 500)\nprint(c.summary())\n",
                   "expected_output": "2 товара на 800 ₽",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Метод может вызывать другой метод того же объекта через `self`.\", \"lines\": [[\"return sum(price for _, price in self.items)\", \"800.\"], [\"return f\\\"{len(self.items)} товара на {self.total()} ₽\\\"\", \"`self.total()`.\"]], \"mistake\": \"Писать `total()` без `self.` — `NameError`.\"}"
                 },
                 {
                   "slug": "oop-methods-e3",
@@ -284,7 +302,8 @@
                   "code": "class Greeter:\n    def __init__(self, name):\n        self.name = name\n\n    def hello(self):\n        return f\"Привет, {self.name}\"\n\ng = Greeter(\"Аня\")\nprint(g.hello(), Greeter.hello(g))\nm = g.hello\nprint(m())\n",
                   "expected_output": "Привет, Аня Привет, Аня\nПривет, Аня",
                   "hint": "g.hello() — то же, что Greeter.hello(g): self — это g.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`g.hello()` — то же, что `Greeter.hello(g)`: объект передаётся как `self`. Метод можно сохранить в переменную — он помнит свой объект.\", \"lines\": [[\"print(g.hello(), Greeter.hello(g))\", \"Одинаковый результат.\"], [\"m = g.hello\", \"Связанный метод.\"]], \"mistake\": \"Думать, что `self` — магия. Это просто первый аргумент.\"}"
                 },
                 {
                   "slug": "oop-methods-e4",
@@ -294,7 +313,8 @@
                   "tests": "def test_cart():\n    c = Cart()\n    assert c.total() == 0 and c.count() == 0, \"Пустая корзина\"\n    c.add(\"чай\", 300)\n    c.add(\"кофе\", 500)\n    assert c.total() == 800 and c.count() == 2, \"Корзина с товарами\"\n",
                   "solution": "class Cart:\n    def __init__(self):\n        self.items = []\n\n    def add(self, name, price):\n        self.items.append((name, price))\n\n    def total(self):\n        return sum(price for _, price in self.items)\n\n    def count(self):\n        return len(self.items)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Список пар в объекте, методы считают по нему.\", \"lines\": [[\"self.items.append((name, price))\", \"Кортеж — один элемент.\"], [\"return len(self.items)\", \"Количество.\"]], \"mistake\": \"`append(name, price)` — два аргумента нельзя.\"}"
                 },
                 {
                   "slug": "oop-methods-e5",
@@ -304,7 +324,8 @@
                   "tests": "def test_account():\n    a = Account(100)\n    assert a.deposit(50) == 150 and a.withdraw(30) == 120 and a.balance == 120, \"Операции\"\n    try:\n        a.withdraw(1000)\n    except ValueError as e:\n        assert str(e) == \"недостаточно средств\" and a.balance == 120, \"Баланс не меняется при ошибке\"\n        return\n    assert False, \"Нужен ValueError\"\n",
                   "solution": "class Account:\n    def __init__(self, balance=0):\n        self.balance = balance\n\n    def deposit(self, amount):\n        self.balance += amount\n        return self.balance\n\n    def withdraw(self, amount):\n        if amount > self.balance:\n            raise ValueError(\"недостаточно средств\")\n        self.balance -= amount\n        return self.balance\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Методы меняют баланс и возвращают новое значение.\", \"lines\": [[\"self.balance += amount\\n        return self.balance\", \"Пополнение и новый баланс.\"], [\"if amount > self.balance:\\n            raise ValueError(\\\"недостаточно средств\\\")\", \"Проверка до изменения.\"]], \"mistake\": \"Не вернуть баланс — вызов даст `None`.\"}"
                 },
                 {
                   "slug": "oop-methods-e6",
@@ -314,7 +335,8 @@
                   "tests": "def test_todo():\n    t = TodoList()\n    t.add(\"код\")\n    t.add(\"тесты\")\n    t.add(\"деплой\")\n    t.done(\"тесты\")\n    assert t.pending() == [\"код\", \"деплой\"], f\"Получено {t.pending()}\"\n",
                   "solution": "class TodoList:\n    def __init__(self):\n        self.tasks = {}\n\n    def add(self, task):\n        self.tasks[task] = False\n\n    def done(self, task):\n        self.tasks[task] = True\n\n    def pending(self):\n        return [task for task, finished in self.tasks.items() if not finished]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Словарь «задача → выполнена» хранит порядок добавления и статус.\", \"lines\": [[\"self.tasks[task] = False\", \"Новая задача.\"], [\"return [task for task, finished in self.tasks.items() if not finished]\", \"Невыполненные.\"]], \"mistake\": \"Два списка — сложнее держать в согласии.\"}"
                 },
                 {
                   "slug": "oop-methods-e7",
@@ -324,7 +346,8 @@
                   "tests": "def test_chain():\n    assert Counter().inc().inc(5).value == 6 and Counter().inc(3).reset().inc().value == 1, \"Цепочка вызовов\"\n",
                   "solution": "class Counter:\n    def __init__(self):\n        self.value = 0\n\n    def inc(self, step=1):\n        self.value += step\n        return self\n\n    def reset(self):\n        self.value = 0\n        return self\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Оба метода возвращают `self` — цепочки работают.\", \"lines\": [[\"self.value += step\\n        return self\", \"`inc`.\"], [\"self.value = 0\\n        return self\", \"`reset` тоже возвращает объект.\"]], \"mistake\": \"Забыть `return self` в `reset`.\"}"
                 },
                 {
                   "slug": "oop-methods-e8",
@@ -334,7 +357,8 @@
                   "tests": "def test_stats():\n    s = TextStats(\"Тест упал тест прошёл\")\n    assert (s.words(), s.chars(), s.most_common()) == (4, 18, \"тест\"), f\"{s.words()}, {s.chars()}, {s.most_common()}\"\n",
                   "solution": "class TextStats:\n    def __init__(self, text):\n        self.text = text\n\n    def words(self):\n        return len(self.text.split())\n\n    def chars(self):\n        return len(self.text.replace(\" \", \"\"))\n\n    def most_common(self):\n        words = self.text.lower().split()\n        return max(words, key=words.count)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Объект хранит текст, методы считают разное.\", \"lines\": [[\"return len(self.text.split())\", \"Слова.\"], [\"return len(self.text.replace(\\\" \\\", \\\"\\\"))\", \"Символы без пробелов.\"], [\"return max(words, key=words.count)\", \"При равенстве — первое.\"]], \"mistake\": \"Не опускать регистр — `Тест` и `тест` станут разными.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nМетоды — это поведение объекта. Правильно написанные методы скрывают детали: код снаружи вызывает `cart.total()` и не знает, как хранятся товары. Это позволяет менять внутренности класса, не ломая код, который им пользуется.\n\n## Как на самом деле работает self\n\n```python\nclass Greeter:\n    def __init__(self, name):\n        self.name = name\n\n    def hello(self):\n        return f\"Привет, {self.name}\"\n\ng = Greeter(\"Аня\")\nprint(g.hello(), Greeter.hello(g))\nm = g.hello\nprint(m())\n```\n\n- `g.hello()` Python превращает в `Greeter.hello(g)`: ищет функцию в классе и подставляет объект первым аргументом. Эти два вызова — одно и то же.\n- `m = g.hello` — метод без скобок. Это «связанный метод»: он запомнил, что `self = g`. Вызвать его можно позже: `m()`.\n- Вывод: `Привет, Аня Привет, Аня`, `Привет, Аня`.\n- Имя `self` — соглашение, а не ключевое слово. Но все пишут `self`, и ты пиши.\n\n## Метод вызывает другой метод\n\n```python\nclass Cart:\n    def __init__(self):\n        self.items = []\n\n    def add(self, name, price):\n        self.items.append((name, price))\n\n    def total(self):\n        return sum(price for _, price in self.items)\n\n    def summary(self):\n        return f\"{len(self.items)} товара на {self.total()} ₽\"\n\nc = Cart()\nc.add(\"чай\", 300)\nc.add(\"кофе\", 500)\nprint(c.summary())\n```\n\n- `self.items.append((name, price))` — храним кортежи «название, цена».\n- `sum(price for _, price in self.items)` — генераторное выражение: распаковываем каждый кортеж, берём цену, суммируем. `_` — имя для ненужной части.\n- `self.total()` — внутри класса другой метод вызывается **через `self.`**. Просто `total()` не сработает: `NameError`.\n- Вывод: `2 товара на 800 ₽`.\n\n## Методы, которые меняют состояние, и методы, которые отвечают\n\n- **Команды** меняют объект: `add`, `deposit`, `reset`. Обычно возвращают `None` (или `self`).\n- **Запросы** только читают и возвращают ответ: `total`, `count`, `is_empty`. Состояние не меняют.\n\nРазделять их полезно: запрос можно вызывать сколько угодно раз без побочных эффектов.\n\n## Ошибки в методах — через исключения\n\n```python\nclass Account:\n    def __init__(self, balance=0):\n        self.balance = balance\n\n    def withdraw(self, amount):\n        if amount > self.balance:\n            raise ValueError(\"недостаточно средств\")\n        self.balance -= amount\n        return self.balance\n\na = Account(100)\nprint(a.withdraw(30))\ntry:\n    a.withdraw(1000)\nexcept ValueError as e:\n    print(e, a.balance)\n```\n\n- Проверка стоит **до** изменения: если денег мало, баланс не трогаем.\n- Вывод: `70`, `недостаточно средств 70`.\n\n## Цепочка вызовов: вернуть self\n\n```python\nclass Counter:\n    def __init__(self):\n        self.value = 0\n\n    def inc(self):\n        self.value += 1\n        return self\n\nc = Counter()\nc.inc().inc().inc()\nprint(c.value)\n```\n\n- `return self` — метод возвращает сам объект.\n- `c.inc()` вернул `c` → у результата снова вызываем `.inc()` → и ещё раз.\n- Вывод: `3`.\n- Такой стиль называется **fluent interface** («текучий интерфейс»). Он встречается в конструкторах запросов и в Page Object: `page.open().login(\"a\", \"b\").go_to_cart()`.\n\n## Хранение внутри: список или словарь\n\n```python\nclass TodoList:\n    def __init__(self):\n        self.tasks = {}\n\n    def add(self, task):\n        self.tasks[task] = False\n\n    def done(self, task):\n        self.tasks[task] = True\n\n    def pending(self):\n        return [t for t, finished in self.tasks.items() if not finished]\n\ntodo = TodoList()\ntodo.add(\"код\")\ntodo.add(\"тесты\")\ntodo.done(\"код\")\nprint(todo.pending())\n```\n\n- Словарь «задача → выполнена ли» даёт быстрый поиск по имени.\n- `pending` — списковое включение по `items()`.\n- Вывод: `['тесты']`.\n\n## Итог\n\n- `obj.m(x)` = `Класс.m(obj, x)`; метод без скобок — связанный метод.\n- Другие методы и атрибуты внутри класса — только через `self.`.\n- Команды меняют состояние, запросы возвращают ответ.\n- Ошибка — `raise` до изменения состояния.\n- `return self` позволяет цеплять вызовы.",
@@ -386,7 +410,8 @@
                   "code": "class Test:\n    count = 0\n    def __init__(self):\n        Test.count += 1\n\nTest(); Test(); Test()\nprint(Test.count)\n",
                   "expected_output": "3",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Атрибут класса общий для всех объектов. Через `Test.count` его меняют все экземпляры.\", \"lines\": [[\"count = 0\", \"Один на класс.\"], [\"Test.count += 1\", \"Каждый новый объект увеличивает.\"]], \"mistake\": \"`self.count += 1` — создаст атрибут объекта, общий счётчик не изменится.\"}"
                 },
                 {
                   "slug": "oop-m1-l2-e2",
@@ -395,7 +420,8 @@
                   "code": "class Point:\n    def __init__(self, x, y):\n        self.x, self.y = x, y\n    def __str__(self):\n        return f\"({self.x}, {self.y})\"\n    def __repr__(self):\n        return f\"Point({self.x}, {self.y})\"\n\np = Point(1, 2)\nprint(p)\nprint([p])\n",
                   "expected_output": "(1, 2)\n[Point(1, 2)]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`__str__` — вид для людей (`print`), `__repr__` — для разработчика, в том числе внутри списков.\", \"lines\": [[\"print(p)\", \"Использует `__str__`.\"], [\"print([p])\", \"Внутри списка — `__repr__`.\"]], \"mistake\": \"Ожидать `[(1, 2)]`.\"}"
                 },
                 {
                   "slug": "oop-m1-l2-e3",
@@ -404,7 +430,8 @@
                   "code": "class Cart:\n    items = []\n    def add(self, x):\n        self.items.append(x)\n\na = Cart()\nb = Cart()\na.add(\"яблоко\")\nprint(b.items)\n",
                   "expected_output": "['яблоко']",
                   "hint": "Список объявлен в классе — он один на всех. Правильно создавать его в __init__.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Изменяемый атрибут класса — общий для всех объектов. Добавление в одну корзину видно во всех.\", \"lines\": [[\"items = []\", \"Один список на класс.\"], [\"print(b.items)\", \"Яблоко и у `b`.\"]], \"mistake\": \"Ожидать `[]`.\"}"
                 },
                 {
                   "slug": "oop-m1-l2-e4",
@@ -414,7 +441,8 @@
                   "tests": "def test_str():\n    assert str(Book(\"Дюна\", \"Герберт\")) == \"«Дюна» — Герберт\", f\"Получено {str(Book('Дюна', 'Герберт'))!r}\"\n",
                   "solution": "class Book:\n    def __init__(self, title, author):\n        self.title = title\n        self.author = author\n\n    def __str__(self):\n        return f\"«{self.title}» — {self.author}\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`__str__` возвращает строку, которую покажет `print`.\", \"lines\": [[\"return f\\\"«{self.title}» — {self.author}\\\"\", \"Ёлочки и длинное тире.\"]], \"mistake\": \"`print` внутри `__str__` — метод должен **вернуть** строку.\"}"
                 },
                 {
                   "slug": "oop-m1-l2-e5",
@@ -424,7 +452,8 @@
                   "tests": "def test_ids():\n    Bug.next_id = 1\n    a, b, c = Bug(\"a\"), Bug(\"b\"), Bug(\"c\")\n    assert (a.id, b.id, c.id) == (1, 2, 3), f\"Получены id {(a.id, b.id, c.id)}\"\n    assert a.title == \"a\", \"title должен сохраняться\"\n",
                   "solution": "class Bug:\n    next_id = 1\n\n    def __init__(self, title):\n        self.title = title\n        self.id = Bug.next_id\n        Bug.next_id += 1\n",
                   "hint": "В `__init__`: `self.id = Bug.next_id`, затем `Bug.next_id += 1`.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Счётчик номеров — атрибут класса. Объект берёт текущий номер и увеличивает счётчик.\", \"lines\": [[\"next_id = 1\", \"Общий.\"], [\"self.id = Bug.next_id\\n        Bug.next_id += 1\", \"Сначала взять, потом увеличить.\"]], \"mistake\": \"`self.next_id += 1` — у каждого объекта своя копия, номера повторятся.\"}"
                 },
                 {
                   "slug": "oop-m1-l2-e6",
@@ -434,7 +463,8 @@
                   "tests": "def test_separate():\n    a, b = Cart(), Cart()\n    a.add(\"яблоко\")\n    assert b.items == [], \"У корзины b не должно быть чужих товаров\"\n    assert a.items == [\"яблоко\"], \"У корзины a должно быть яблоко\"\n",
                   "solution": "class Cart:\n    def __init__(self):\n        self.items = []\n\n    def add(self, x):\n        self.items.append(x)\n",
                   "hint": "Создавай список в `__init__`: `self.items = []`.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Список, объявленный в теле класса, общий. Свой список создают в `__init__`.\", \"lines\": [[\"self.items = []\", \"В конструкторе — у каждой корзины свой.\"]], \"mistake\": \"Оставить `items = []` в теле класса.\"}"
                 },
                 {
                   "slug": "oop-m1-l2-e7",
@@ -444,7 +474,8 @@
                   "tests": "def test_str_repr():\n    u = User(\"Аня\")\n    assert str(u) == \"Аня\" and f\"{u}\" == \"Аня\" and repr(u) == \"User('Аня')\" and repr([u]) == \"[User('Аня')]\", \"Неверное представление\"\n",
                   "solution": "class User:\n    def __init__(self, name):\n        self.name = name\n\n    def __str__(self):\n        return self.name\n\n    def __repr__(self):\n        return f\"User({self.name!r})\"\n",
                   "hint": "!r в f-строке добавит кавычки вокруг строки.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`!r` в f-строке даёт вид «как в коде» — строку в кавычках.\", \"lines\": [[\"return self.name\", \"`__str__`.\"], [\"return f\\\"User({self.name!r})\\\"\", \"`User('Аня')`.\"]], \"mistake\": \"`f\\\"User({self.name})\\\"` — без кавычек.\"}"
                 },
                 {
                   "slug": "oop-m1-l2-e8",
@@ -454,7 +485,8 @@
                   "tests": "def test_sessions():\n    Session.active = 0\n    a, b = Session(), Session()\n    assert Session.active == 2, \"Две сессии\"\n    a.close()\n    a.close()\n    assert Session.active == 1, \"Повторный close не уменьшает счётчик\"\n",
                   "solution": "class Session:\n    active = 0\n\n    def __init__(self):\n        self.closed = False\n        Session.active += 1\n\n    def close(self):\n        if not self.closed:\n            self.closed = True\n            Session.active -= 1\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Общий счётчик в классе и флаг `closed` у каждой сессии — повторный `close` ничего не меняет.\", \"lines\": [[\"Session.active += 1\", \"Открыли.\"], [\"if not self.closed:\\n            self.closed = True\\n            Session.active -= 1\", \"Закрываем один раз.\"]], \"mistake\": \"Уменьшать без флага — повторный `close` уведёт счётчик в минус.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nИногда данные принадлежат не отдельному объекту, а **всему классу**: счётчик созданных объектов, общая настройка, константа. А ещё объекту нужно уметь красиво превращаться в строку — для `print`, логов и сообщений об ошибках в тестах.\n\n## Атрибуты класса и атрибуты объекта\n\n```python\nclass Test:\n    count = 0\n\n    def __init__(self, name):\n        self.name = name\n        Test.count += 1\n\na = Test(\"login\")\nb = Test(\"logout\")\nprint(Test.count, a.count, a.name)\n```\n\n- `count = 0` написан прямо в теле класса, **не** через `self` — это **атрибут класса**: одна переменная на весь класс.\n- `self.name` — атрибут объекта, у каждого свой.\n- `Test.count += 1` — меняем атрибут класса через имя класса.\n- `a.count` — у объекта своего `count` нет, поэтому Python ищет дальше — в классе. Порядок поиска: объект → класс.\n- Вывод: `2 2 login`.\n\n## Ловушка: присваивание через self\n\n```python\nclass Test:\n    count = 0\n\n    def __init__(self):\n        self.count += 1\n\na = Test()\nb = Test()\nprint(Test.count, a.count, b.count)\n```\n\n- `self.count += 1` = `self.count = self.count + 1`. Справа `self.count` читается из класса (0), а слева создаётся **новый атрибут объекта**. Атрибут класса не меняется.\n- Вывод: `0 1 1`.\n- Правило: чтобы изменить атрибут класса, пиши `ИмяКласса.атрибут = ...`.\n\n## Ловушка: изменяемый атрибут класса\n\n```python\nclass Cart:\n    items = []\n\n    def add(self, x):\n        self.items.append(x)\n\na = Cart()\nb = Cart()\na.add(\"чай\")\nprint(b.items)\n```\n\n- `items = []` — один список на **все** корзины. `append` не создаёт новый атрибут, а меняет общий список.\n- Вывод: `['чай']` — товар попал «во все корзины».\n- Изменяемые данные (списки, словари) кладём в `self.` внутри `__init__`.\n- Атрибуты класса подходят для **констант** и настроек: `BASE_URL = \"...\"`, `TIMEOUT = 5`.\n\n## __str__: как объект выглядит в print\n\n```python\nclass Point:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n\np = Point(1, 2)\nprint(type(p).__name__)\n\nclass Point2:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n\n    def __str__(self):\n        return f\"({self.x}, {self.y})\"\n\nprint(Point2(1, 2))\nprint(f\"точка {Point2(3, 4)}\")\n```\n\n- Без `__str__` `print` показывает что-то вроде `<__main__.Point object at 0x...>` — бесполезно.\n- `__str__(self)` должен **вернуть** строку (не печатать!). Его вызывают `print(obj)`, `str(obj)` и f-строки.\n- Вывод: `Point`, `(1, 2)`, `точка (3, 4)`.\n\n## __repr__: как объект выглядит для программиста\n\n```python\nclass User:\n    def __init__(self, name):\n        self.name = name\n\n    def __str__(self):\n        return self.name\n\n    def __repr__(self):\n        return f\"User({self.name!r})\"\n\nu = User(\"Аня\")\nprint(u)\nprint(repr(u))\nprint([u])\n```\n\n- `__repr__` — «техническое» представление, в идеале похожее на код, которым объект создан.\n- `!r` в f-строке вызывает `repr()` значения: строка получает кавычки.\n- Списки, словари, отладчик и сообщения pytest используют `repr` элементов, **а не** `str`.\n- Если есть только `__repr__`, `print` тоже его использует. Поэтому, если выбирать одно, — пиши `__repr__`.\n- Вывод: `Аня`, `User('Аня')`, `[User('Аня')]`.\n\n## Итог\n\n- Атрибут класса — в теле класса, общий для всех; читается и через объект.\n- Менять — через `Класс.атрибут`; `self.атрибут = ...` создаёт атрибут объекта.\n- Списки и словари — в `__init__`, не в теле класса.\n- `__str__` — для людей (`print`), `__repr__` — для программиста (списки, отладка).",
@@ -506,7 +538,8 @@
                   "code": "class Box:\n    def __init__(self, value):\n        self.value = value\n\na = Box(1)\nb = Box(1)\nc = a\nprint(a == b, a is b, a is c)\nc.value = 99\nprint(a.value)\n",
                   "expected_output": "False False True\n99",
                   "hint": "Без __eq__ два разных объекта не равны, даже с одинаковыми атрибутами.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Без своего `__eq__` объекты сравниваются по тому, один ли это объект. `c = a` — тот же объект.\", \"lines\": [[\"print(a == b, a is b, a is c)\", \"Разные объекты с одинаковым значением не равны.\"], [\"c.value = 99\", \"Меняется `a`.\"]], \"mistake\": \"Ожидать `a == b` — `True`.\"}"
                 },
                 {
                   "slug": "oop-identity-e2",
@@ -515,7 +548,8 @@
                   "code": "class User:\n    def __init__(self, name):\n        self.name = name\n\ndef rename(user):\n    user.name = user.name.upper()\n\nu = User(\"аня\")\nrename(u)\nprint(u.name)\n",
                   "expected_output": "АНЯ",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"В функцию передаётся сам объект — изменение его атрибута видно снаружи.\", \"lines\": [[\"user.name = user.name.upper()\", \"Меняется атрибут объекта `u`.\"]], \"mistake\": \"Ожидать `аня`.\"}"
                 },
                 {
                   "slug": "oop-identity-e3",
@@ -524,7 +558,8 @@
                   "code": "import copy\n\nclass Team:\n    def __init__(self, members):\n        self.members = members\n\nt1 = Team([\"Аня\"])\nt2 = copy.copy(t1)\nt3 = copy.deepcopy(t1)\nt1.members.append(\"Боря\")\nprint(t2.members, t3.members)\n",
                   "expected_output": "['Аня', 'Боря'] ['Аня']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`copy.copy` — мелкая копия: новый объект, но список внутри общий. `deepcopy` копирует и вложенное.\", \"lines\": [[\"t2 = copy.copy(t1)\", \"Делит список с `t1`.\"], [\"t3 = copy.deepcopy(t1)\", \"Свой список.\"]], \"mistake\": \"Ожидать, что `copy` защитит список.\"}"
                 },
                 {
                   "slug": "oop-identity-e4",
@@ -534,7 +569,8 @@
                   "tests": "def test_clone():\n    u = User(\"Аня\", [\"qa\"])\n    c = clone_user(u)\n    assert c is not u and c.name == \"Аня\" and c.tags == [\"qa\"], \"Копия с теми же данными\"\n    c.tags.append(\"x\")\n    assert u.tags == [\"qa\"], \"Список тегов должен быть независимым\"\n",
                   "solution": "class User:\n    def __init__(self, name, tags):\n        self.name = name\n        self.tags = tags\n\ndef clone_user(user):\n    return User(user.name, list(user.tags))\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Новый объект со своей копией списка.\", \"lines\": [[\"return User(user.name, list(user.tags))\", \"`list(...)` — новый список.\"]], \"mistake\": \"`User(user.name, user.tags)` — теги будут общими.\"}"
                 },
                 {
                   "slug": "oop-identity-e5",
@@ -544,7 +580,8 @@
                   "tests": "def test_copy():\n    m = Matrix([[1, 2], [3, 4]])\n    c = m.copy()\n    c.rows[0][0] = 99\n    assert m.rows == [[1, 2], [3, 4]] and c.rows[0][0] == 99 and isinstance(c, Matrix), \"Строки должны копироваться\"\n",
                   "solution": "class Matrix:\n    def __init__(self, rows):\n        self.rows = rows\n\n    def copy(self):\n        return Matrix([list(row) for row in self.rows])\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Независимая копия матрицы — копия каждой строки.\", \"lines\": [[\"return Matrix([list(row) for row in self.rows])\", \"Копия каждой строки.\"]], \"mistake\": \"`Matrix(list(self.rows))` — строки останутся общими.\"}"
                 },
                 {
                   "slug": "oop-identity-e6",
@@ -554,7 +591,8 @@
                   "tests": "def test_values():\n    b = Box(1)\n    assert count_distinct_objects([b, b, Box(1)]) == 2 and count_distinct_objects([]) == 0, \"Неверный подсчёт\"\n",
                   "solution": "class Box:\n    def __init__(self, value):\n        self.value = value\n\ndef count_distinct_objects(objs):\n    return len({id(o) for o in objs})\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`id(obj)` — уникальный номер объекта. Множество id считает разные объекты.\", \"lines\": [[\"return len({id(o) for o in objs})\", \"`b` дважды — один id.\"]], \"mistake\": \"Считать по `value` — два разных Box(1) сольются.\"}"
                 },
                 {
                   "slug": "oop-identity-e7",
@@ -564,7 +602,8 @@
                   "tests": "def test_immutable():\n    s = Settings({\"timeout\": 30})\n    s2 = s.with_value(\"timeout\", 5)\n    assert s.values == {\"timeout\": 30} and s2.values == {\"timeout\": 5} and s2 is not s, \"Исходные настройки не меняются\"\n",
                   "solution": "class Settings:\n    def __init__(self, values):\n        self.values = values\n\n    def with_value(self, key, value):\n        return Settings({**self.values, key: value})\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Метод возвращает **новый** объект, не меняя текущий.\", \"lines\": [[\"return Settings({**self.values, key: value})\", \"Новый словарь, новый объект.\"]], \"mistake\": \"`self.values[key] = value` — изменит исходный.\"}"
                 },
                 {
                   "slug": "oop-identity-e8",
@@ -574,7 +613,8 @@
                   "tests": "def test_copy():\n    names = [\"Аня\"]\n    t = Team(names)\n    names.append(\"Боря\")\n    assert t.members == [\"Аня\"], \"Команда не должна зависеть от внешнего списка\"\n",
                   "solution": "class Team:\n    def __init__(self, members):\n        self.members = list(members)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Конструктор копирует переданный список — внешние изменения не затронут команду.\", \"lines\": [[\"self.members = list(members)\", \"Своя копия.\"]], \"mistake\": \"`self.members = members` — общий список.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПеременная в Python не «содержит» объект, а **ссылается** на него. Если это не понимать, появляются загадочные баги: поменял одну переменную — изменилась другая. В тестах это частая проблема: тестовые данные «протекают» из одного теста в другой.\n\n## Две переменные — один объект\n\n```python\nclass Box:\n    def __init__(self, value):\n        self.value = value\n\na = Box(1)\nb = Box(1)\nc = a\nprint(a == b, a is b, a is c)\nc.value = 99\nprint(a.value)\n```\n\n- `a` и `b` — два **разных** объекта с одинаковыми данными.\n- `c = a` — не копия! Это ещё одна ссылка на **тот же** объект.\n- `is` — проверяет, один ли это объект. `==` — равны ли. У своих классов без `__eq__` оператор `==` работает как `is`.\n- `c.value = 99` меняет объект, на который смотрят и `c`, и `a`.\n- Вывод: `False False True`, `99`.\n\n## id — «адрес» объекта\n\n- `id(obj)` — уникальный номер объекта, пока он существует. `a is b` — то же самое, что `id(a) == id(b)`.\n- Сами номера печатать бессмысленно (они меняются от запуска к запуску), но сравнивать — можно.\n\n```python\nclass Box:\n    def __init__(self, value):\n        self.value = value\n\nb = Box(1)\nobjs = [b, b, Box(1)]\nprint(len(objs), len({id(o) for o in objs}))\n```\n\n- Множество номеров содержит 2 элемента: `b` дважды, но это один объект.\n- Вывод: `3 2`.\n\n## Объект в функцию передаётся по ссылке\n\n```python\nclass User:\n    def __init__(self, name):\n        self.name = name\n\ndef rename(user):\n    user.name = user.name.upper()\n\nu = User(\"аня\")\nrename(u)\nprint(u.name)\n```\n\n- Параметр `user` ссылается на тот же объект, что и `u`. Изменение атрибута видно снаружи.\n- Вывод: `АНЯ`.\n- А вот `user = User(\"x\")` внутри функции переназначило бы только локальное имя — снаружи `u` не изменится.\n\n## Копирование: copy и deepcopy\n\n```python\nimport copy\n\nclass Team:\n    def __init__(self, members):\n        self.members = members\n\nt1 = Team([\"Аня\"])\nt2 = copy.copy(t1)\nt3 = copy.deepcopy(t1)\nt1.members.append(\"Боря\")\nprint(t2.members, t3.members)\nprint(t2 is t1, t2.members is t1.members)\n```\n\n- `copy.copy(obj)` — **поверхностная** копия: новый объект, но атрибуты ссылаются на те же списки.\n- `copy.deepcopy(obj)` — **глубокая** копия: копируется всё, включая вложенные списки.\n- `t1.members.append` изменил общий с `t2` список, а у `t3` свой.\n- Вывод: `['Аня', 'Боря'] ['Аня']`, `False True`.\n\n## Защитная копия в конструкторе\n\n```python\nclass Team:\n    def __init__(self, members):\n        self.members = list(members)\n\nnames = [\"Аня\"]\nt = Team(names)\nnames.append(\"Боря\")\nprint(t.members)\n```\n\n- `list(members)` создаёт новый список с теми же элементами. Теперь внешний код не может случайно испортить команду.\n- Вывод: `['Аня']`.\n\n## Не менять, а возвращать новый объект\n\n```python\nclass Settings:\n    def __init__(self, values):\n        self.values = values\n\n    def with_value(self, key, value):\n        return Settings({**self.values, key: value})\n\ns = Settings({\"timeout\": 30})\ns2 = s.with_value(\"timeout\", 5)\nprint(s.values, s2.values)\n```\n\n- `{**self.values, key: value}` — новый словарь: все старые пары плюс изменённая.\n- Исходный объект не меняется. Такой подход избавляет от «протекания» состояния между тестами.\n- Вывод: `{'timeout': 30} {'timeout': 5}`.\n\n## Итог\n\n- Присваивание `c = a` не копирует объект.\n- `is` — тот же объект, `==` — равные (без `__eq__` — то же, что `is`).\n- Функция получает ссылку и может менять объект.\n- `copy.copy` — поверхностно, `copy.deepcopy` — полностью; `list(x)`, `dict(x)` — копия одного уровня.",
@@ -634,7 +674,8 @@
                   "code": "class Animal:\n    def speak(self):\n        return \"...\"\n    def intro(self):\n        return \"Я говорю: \" + self.speak()\n\nclass Cat(Animal):\n    def speak(self):\n        return \"Мяу\"\n\nprint(Animal().intro())\nprint(Cat().intro())\n",
                   "expected_output": "Я говорю: ...\nЯ говорю: Мяу",
                   "hint": "intro вызывает self.speak() — а self у кота свой метод speak.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Наследник может переопределить метод; унаследованные методы, вызывающие его через `self`, используют версию наследника.\", \"lines\": [[\"return \\\"Я говорю: \\\" + self.speak()\", \"Метод родителя.\"], [\"return \\\"Мяу\\\"\", \"Переопределение у `Cat`.\"]], \"mistake\": \"Ожидать `...` для кошки.\"}"
                 },
                 {
                   "slug": "oop-m2-l1-e2",
@@ -643,7 +684,8 @@
                   "code": "class A:\n    def hello(self):\n        return \"A\"\n\nclass B(A):\n    def hello(self):\n        return super().hello() + \"B\"\n\nclass C(B):\n    def hello(self):\n        return super().hello() + \"C\"\n\nprint(C().hello())\n",
                   "expected_output": "ABC",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`super()` вызывает метод родителя. Цепочка: C → B → A, результат собирается обратно.\", \"lines\": [[\"return super().hello() + \\\"C\\\"\", \"`\\\"AB\\\" + \\\"C\\\"`.\"]], \"mistake\": \"Ожидать `CBA` — сначала получаем результат родителя, потом дописываем.\"}"
                 },
                 {
                   "slug": "oop-m2-l1-e3",
@@ -652,7 +694,8 @@
                   "code": "class Animal: pass\nclass Cat(Animal): pass\nclass Dog(Animal): pass\n\nc = Cat()\nprint(isinstance(c, Cat), isinstance(c, Animal), isinstance(c, Dog))\nprint(issubclass(Dog, Animal))\n",
                   "expected_output": "True True False\nTrue",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`isinstance` учитывает наследование: кошка — это и `Cat`, и `Animal`.\", \"lines\": [[\"print(isinstance(c, Cat), isinstance(c, Animal), isinstance(c, Dog))\", \"Кошка — не собака.\"], [\"print(issubclass(Dog, Animal))\", \"Класс — подкласс.\"]], \"mistake\": \"Ожидать `False` для `Animal`.\"}"
                 },
                 {
                   "slug": "oop-m2-l1-e4",
@@ -662,7 +705,8 @@
                   "tests": "def test_admin():\n    a = Admin(\"root\", [\"delete\"])\n    assert isinstance(a, User), \"Admin должен наследовать User\"\n    assert a.name == \"root\" and a.permissions == [\"delete\"], \"name и permissions должны сохраняться\"\n",
                   "solution": "class User:\n    def __init__(self, name):\n        self.name = name\n        self.role = \"user\"\n\nclass Admin(User):\n    def __init__(self, name, permissions):\n        super().__init__(name)\n        self.permissions = permissions\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Наследник вызывает конструктор родителя через `super().__init__`, а потом добавляет своё.\", \"lines\": [[\"class Admin(User):\", \"Наследование.\"], [\"super().__init__(name)\", \"Имя и роль — от родителя.\"], [\"self.permissions = permissions\", \"Своё поле.\"]], \"mistake\": \"Не вызвать `super().__init__` — у админа не будет `name`.\"}"
                 },
                 {
                   "slug": "oop-m2-l1-e5",
@@ -672,7 +716,8 @@
                   "tests": "def test_role():\n    assert Admin(\"root\", []).role == \"admin\", \"У админа role = 'admin'\"\n    assert User(\"anna\").role == \"user\", \"У обычного пользователя role = 'user'\"\n\ndef test_can():\n    a = Admin(\"root\", [\"delete\", \"ban\"])\n    assert a.can(\"ban\") is True and a.can(\"fly\") is False, \"can проверяет наличие действия в permissions\"\n",
                   "solution": "class User:\n    def __init__(self, name):\n        self.name = name\n        self.role = \"user\"\n\nclass Admin(User):\n    def __init__(self, name, permissions):\n        super().__init__(name)\n        self.permissions = permissions\n        self.role = \"admin\"\n\n    def can(self, action):\n        return action in self.permissions\n",
                   "hint": "Присвой `self.role = \"admin\"` **после** вызова `super().__init__`.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Сначала родитель ставит `role = \\\"user\\\"`, потом наследник перезаписывает. Порядок важен.\", \"lines\": [[\"super().__init__(name)\", \"Роль user.\"], [\"self.role = \\\"admin\\\"\", \"Перезапись после.\"], [\"return action in self.permissions\", \"Проверка права.\"]], \"mistake\": \"Поставить `self.role = \\\"admin\\\"` до `super().__init__` — родитель вернёт `user`.\"}"
                 },
                 {
                   "slug": "oop-m2-l1-e6",
@@ -682,7 +727,8 @@
                   "tests": "def test_square():\n    assert Square(3).area() == 9, \"Площадь квадрата 3 = 9\"\n\ndef test_circle():\n    assert Circle(1).area() == 3.14, \"Площадь круга r=1 = 3.14\"\n\ndef test_total():\n    total = total_area([Square(2), Circle(1), Shape()])\n    assert round(total, 2) == 7.14, f\"Ожидалось 7.14, получено {total}\"\n\ndef test_inherits():\n    assert isinstance(Square(1), Shape) and isinstance(Circle(1), Shape), \"Фигуры должны наследовать Shape\"\n",
                   "solution": "class Shape:\n    def area(self):\n        return 0\n\nclass Square(Shape):\n    def __init__(self, side):\n        self.side = side\n\n    def area(self):\n        return self.side * self.side\n\nclass Circle(Shape):\n    def __init__(self, r):\n        self.r = r\n\n    def area(self):\n        return 3.14 * self.r * self.r\n\ndef total_area(shapes):\n    return sum(s.area() for s in shapes)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Каждая фигура по-своему считает площадь, а общая функция просто вызывает `area()` — полиморфизм.\", \"lines\": [[\"class Square(Shape):\", \"Наследник.\"], [\"return 3.14 * self.r * self.r\", \"Площадь круга.\"], [\"return sum(s.area() for s in shapes)\", \"Не важно, какая фигура.\"]], \"mistake\": \"Проверять тип фигуры через `isinstance` в `total_area` — теряется смысл наследования.\"}"
                 },
                 {
                   "slug": "oop-m2-l1-e7",
@@ -692,7 +738,8 @@
                   "tests": "def test_values():\n    assert Employee(\"Аня\", 100).yearly() == 1200, \"Employee\"\n    m = Manager(\"Боря\", 100, 500)\n    assert m.name == \"Боря\" and m.yearly() == 1700 and isinstance(m, Employee), \"Manager\"\n",
                   "solution": "class Employee:\n    def __init__(self, name, salary):\n        self.name = name\n        self.salary = salary\n\n    def yearly(self):\n        return self.salary * 12\n\n\nclass Manager(Employee):\n    def __init__(self, name, salary, bonus):\n        super().__init__(name, salary)\n        self.bonus = bonus\n\n    def yearly(self):\n        return super().yearly() + self.bonus\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Переопределённый метод может использовать результат родителя через `super()`.\", \"lines\": [[\"super().__init__(name, salary)\", \"Общие поля.\"], [\"return super().yearly() + self.bonus\", \"Годовой доход плюс бонус.\"]], \"mistake\": \"Копировать формулу `salary * 12` в наследника — дублирование.\"}"
                 },
                 {
                   "slug": "oop-m2-l1-e8",
@@ -702,7 +749,8 @@
                   "tests": "def test_prefix():\n    l = PrefixLogger(\"API\")\n    l.log(\"старт\")\n    l.log(\"стоп\")\n    assert l.lines == [\"[API] старт\", \"[API] стоп\"], f\"Получено {l.lines}\"\n    assert \"super()\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй super()\"\n",
                   "solution": "class Logger:\n    def __init__(self):\n        self.lines = []\n\n    def log(self, msg):\n        self.lines.append(msg)\n\n\nclass PrefixLogger(Logger):\n    def __init__(self, prefix):\n        super().__init__()\n        self.prefix = prefix\n\n    def log(self, msg):\n        super().log(f\"[{self.prefix}] {msg}\")\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Наследник меняет сообщение и передаёт его в метод родителя — логика хранения остаётся в одном месте.\", \"lines\": [[\"super().__init__()\", \"Родитель создаёт `self.lines`.\"], [\"super().log(f\\\"[{self.prefix}] {msg}\\\")\", \"Добавляем префикс и сохраняем родительским методом.\"]], \"mistake\": \"`self.log(...)` внутри `log` — бесконечная рекурсия.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЧасто классы похожи: обычный пользователь и администратор, кошка и собака, запрос и запрос с авторизацией. **Наследование** позволяет описать общее один раз в родительском классе, а в дочерних добавить только отличия. Во фреймворках для тестов наследование повсюду: `class TestLogin(BaseTest)`, `class LoginPage(BasePage)`.\n\n## Термины\n\n- **Родитель** (базовый класс, суперкласс) — класс, от которого наследуют.\n- **Потомок** (дочерний класс, подкласс) — класс, который наследует.\n- Потомок получает **все** атрибуты и методы родителя и может добавить свои или заменить родительские.\n\n## Простое наследование\n\n```python\nclass Animal:\n    def __init__(self, name):\n        self.name = name\n\n    def intro(self):\n        return f\"Я {self.name}\"\n\nclass Cat(Animal):\n    def meow(self):\n        return \"Мяу\"\n\nc = Cat(\"Мурка\")\nprint(c.intro(), c.meow())\n```\n\n- `class Cat(Animal):` — в скобках указан родитель.\n- У `Cat` нет своего `__init__` и `intro` — они взяты из `Animal`. Поэтому `Cat(\"Мурка\")` вызывает `Animal.__init__`.\n- `meow` есть только у `Cat`; у `Animal` его нет.\n- Вывод: `Я Мурка Мяу`.\n\n## Свой __init__ и super()\n\n```python\nclass User:\n    def __init__(self, name):\n        self.name = name\n        self.permissions = [\"read\"]\n\nclass Admin(User):\n    def __init__(self, name, level):\n        super().__init__(name)\n        self.level = level\n        self.permissions.append(\"delete\")\n\na = Admin(\"Аня\", 3)\nprint(a.name, a.level, a.permissions)\n```\n\n- У `Admin` свой `__init__` — он **заменяет** родительский. Родительский сам не вызовется!\n- `super()` — «родительская часть» текущего объекта. `super().__init__(name)` запускает конструктор `User`, который создаёт `name` и `permissions`.\n- После этого добавляем то, что есть только у админа.\n- Если забыть `super().__init__`, у объекта не будет `name` и `permissions` → `AttributeError` при обращении.\n- Вывод: `Аня 3 ['read', 'delete']`.\n\n## Расширить метод родителя\n\n```python\nclass Employee:\n    def __init__(self, name, salary):\n        self.name = name\n        self.salary = salary\n\n    def yearly(self):\n        return self.salary * 12\n\nclass Manager(Employee):\n    def __init__(self, name, salary, bonus):\n        super().__init__(name, salary)\n        self.bonus = bonus\n\n    def yearly(self):\n        return super().yearly() + self.bonus\n\nprint(Employee(\"Аня\", 100).yearly(), Manager(\"Боря\", 100, 500).yearly())\n```\n\n- `Manager.yearly` **переопределяет** метод, но не копирует его код, а зовёт `super().yearly()` и добавляет бонус.\n- Если в `Employee` поменяется формула, менеджер автоматически её получит.\n- Вывод: `1200 1700`.\n\n## Цепочка из нескольких уровней\n\n```python\nclass A:\n    def hello(self):\n        return \"A\"\n\nclass B(A):\n    def hello(self):\n        return \"B>\" + super().hello()\n\nclass C(B):\n    def hello(self):\n        return \"C>\" + super().hello()\n\nprint(C().hello())\n```\n\n- `super()` в `C` ведёт к `B`, а `super()` в `B` — к `A`.\n- Вывод: `C>B>A`.\n\n## Все классы наследуют object\n\nЕсли родитель не указан, класс неявно наследует встроенный `object`. Оттуда берутся «запасные» `__str__`, `__repr__`, `__eq__` и другие методы — поэтому их можно не писать.\n\n## Итог\n\n- `class Child(Parent):` — наследование, потомок получает всё от родителя.\n- Свой `__init__` у потомка заменяет родительский — вызывай `super().__init__(...)`.\n- `super().method()` — вызвать версию родителя и расширить её.\n- Все классы в итоге наследуют `object`.",
@@ -754,7 +802,8 @@
                   "code": "class Base:\n    def hello(self):\n        return \"Base\"\n\n    def run(self):\n        return \"run: \" + self.hello()\n\nclass Child(Base):\n    def hello(self):\n        return \"Child\"\n\nprint(Base().run())\nprint(Child().run())\n",
                   "expected_output": "run: Base\nrun: Child",
                   "hint": "self.hello() ищется у настоящего класса объекта — даже внутри метода родителя.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Метод родителя, вызывающий `self.hello()`, использует переопределённую версию наследника.\", \"lines\": [[\"return \\\"run: \\\" + self.hello()\", \"`self` — реальный объект.\"], [\"print(Child().run())\", \"`hello` у ребёнка своя.\"]], \"mistake\": \"Ожидать `run: Base` во второй строке.\"}"
                 },
                 {
                   "slug": "oop-override-e2",
@@ -763,7 +812,8 @@
                   "code": "class A:\n    def who(self):\n        return \"A\"\n\nclass B(A):\n    pass\n\nclass C(B):\n    pass\n\nprint(C().who())\nprint([cls.__name__ for cls in C.__mro__])\n",
                   "expected_output": "A\n['C', 'B', 'A', 'object']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Метод ищется по цепочке классов (MRO): сначала сам класс, потом родители, в конце `object`.\", \"lines\": [[\"print(C().who())\", \"В C и B нет — найдено в A.\"], [\"print([cls.__name__ for cls in C.__mro__])\", \"Порядок поиска.\"]], \"mistake\": \"Ожидать ошибку — метод наследуется через несколько уровней.\"}"
                 },
                 {
                   "slug": "oop-override-e3",
@@ -772,7 +822,8 @@
                   "code": "class Loggable:\n    def info(self):\n        return \"log\"\n\nclass Savable:\n    def info(self):\n        return \"save\"\n\n    def save(self):\n        return \"saved\"\n\nclass Report(Loggable, Savable):\n    pass\n\nr = Report()\nprint(r.info(), r.save())\nprint([c.__name__ for c in Report.__mro__])\n",
                   "expected_output": "log saved\n['Report', 'Loggable', 'Savable', 'object']",
                   "hint": "Родители просматриваются слева направо.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"При множественном наследовании родители проверяются слева направо.\", \"lines\": [[\"class Report(Loggable, Savable):\", \"Сначала Loggable.\"], [\"print(r.info(), r.save())\", \"`info` из Loggable, `save` — только в Savable.\"]], \"mistake\": \"Ожидать `save` для `info`.\"}"
                 },
                 {
                   "slug": "oop-override-e4",
@@ -782,7 +833,8 @@
                   "tests": "def test_shapes():\n    assert Square(3).describe() == \"квадрат: площадь 9\", Square(3).describe()\n    assert Circle(1).describe() == \"круг: площадь 3.14\", Circle(1).describe()\n    assert \"describe\" not in open(\"solution.py\", encoding=\"utf-8\").read().split(\"class Square\")[1], \"describe переопределять не нужно\"\n",
                   "solution": "class Shape:\n    name = \"фигура\"\n\n    def area(self):\n        return 0\n\n    def describe(self):\n        return f\"{self.name}: площадь {self.area()}\"\n\n\nclass Square(Shape):\n    name = \"квадрат\"\n\n    def __init__(self, side):\n        self.side = side\n\n    def area(self):\n        return self.side ** 2\n\n\nclass Circle(Shape):\n    name = \"круг\"\n\n    def __init__(self, r):\n        self.r = r\n\n    def area(self):\n        return round(3.14 * self.r ** 2, 2)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Общий метод `describe` в базе, наследники задают своё имя (атрибут класса) и свою площадь.\", \"lines\": [[\"name = \\\"квадрат\\\"\", \"Атрибут класса наследника перекрывает базовый.\"], [\"return self.side ** 2\", \"Своя площадь.\"]], \"mistake\": \"Переписывать `describe` в каждом наследнике.\"}"
                 },
                 {
                   "slug": "oop-override-e5",
@@ -792,7 +844,8 @@
                   "tests": "def test_headers():\n    assert Request(\"/a\").headers() == {\"Accept\": \"json\"}, \"Request\"\n    r = AuthRequest(\"/a\", \"abc\")\n    assert r.url == \"/a\" and r.headers() == {\"Accept\": \"json\", \"Authorization\": \"Bearer abc\"}, f\"Получено {r.headers()}\"\n",
                   "solution": "class Request:\n    def __init__(self, url):\n        self.url = url\n\n    def headers(self):\n        return {\"Accept\": \"json\"}\n\n\nclass AuthRequest(Request):\n    def __init__(self, url, token):\n        super().__init__(url)\n        self.token = token\n\n    def headers(self):\n        h = super().headers()\n        h[\"Authorization\"] = f\"Bearer {self.token}\"\n        return h\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Наследник берёт результат родителя и дополняет его.\", \"lines\": [[\"h = super().headers()\", \"Базовые заголовки.\"], [\"h[\\\"Authorization\\\"] = f\\\"Bearer {self.token}\\\"\", \"Добавка.\"]], \"mistake\": \"Писать заголовки заново — `Accept` можно потерять.\"}"
                 },
                 {
                   "slug": "oop-override-e6",
@@ -802,7 +855,8 @@
                   "tests": "def test_limited():\n    s = LimitedStack(2)\n    s.push(1)\n    s.push(2)\n    try:\n        s.push(3)\n    except OverflowError as e:\n        assert str(e) == \"стек полон\" and s.items == [1, 2], \"Третий элемент не добавляется\"\n    else:\n        assert False, \"Нужен OverflowError\"\n    assert s.pop() == 2 and isinstance(s, Stack), \"pop унаследован\"\n",
                   "solution": "class Stack:\n    def __init__(self):\n        self.items = []\n\n    def push(self, x):\n        self.items.append(x)\n\n    def pop(self):\n        return self.items.pop()\n\n\nclass LimitedStack(Stack):\n    def __init__(self, limit):\n        super().__init__()\n        self.limit = limit\n\n    def push(self, x):\n        if len(self.items) >= self.limit:\n            raise OverflowError(\"стек полон\")\n        super().push(x)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Наследник добавляет проверку и делегирует основную работу родителю.\", \"lines\": [[\"if len(self.items) >= self.limit:\\n            raise OverflowError(\\\"стек полон\\\")\", \"Проверка.\"], [\"super().push(x)\", \"Добавление — у родителя.\"]], \"mistake\": \"`self.push(x)` — бесконечная рекурсия.\"}"
                 },
                 {
                   "slug": "oop-override-e7",
@@ -812,7 +866,8 @@
                   "tests": "def test_values():\n    class A: pass\n    class B(A): pass\n    class C: pass\n    class D(B, C): pass\n    assert mro_names(B) == [\"B\", \"A\"] and mro_names(D) == [\"D\", \"B\", \"A\", \"C\"] and mro_names(int) == [\"int\"], \"Неверный порядок\"\n",
                   "solution": "def mro_names(cls):\n    return [c.__name__ for c in cls.__mro__ if c is not object]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`__mro__` — кортеж классов в порядке поиска. `object` в конце — отфильтровываем.\", \"lines\": [[\"return [c.__name__ for c in cls.__mro__ if c is not object]\", \"B, A.\"]], \"mistake\": \"Сравнивать по имени `\\\"object\\\"` — работает, но `is object` точнее.\"}"
                 },
                 {
                   "slug": "oop-override-e8",
@@ -822,7 +877,8 @@
                   "tests": "def test_mixin():\n    u = User(\"Аня\", 30)\n    d = u.to_dict()\n    assert d == {\"name\": \"Аня\", \"age\": 30}, f\"Получено {d}\"\n    d[\"name\"] = \"X\"\n    assert u.name == \"Аня\", \"Нужна копия\"\n    class Point(JsonMixin):\n        def __init__(self):\n            self.x = 1\n    assert Point().to_dict() == {\"x\": 1}, \"Миксин работает для любого класса\"\n",
                   "solution": "class JsonMixin:\n    def to_dict(self):\n        return dict(vars(self))\n\n\nclass User(JsonMixin):\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Миксин — маленький класс с полезным поведением, который подмешивают к другим. `vars(self)` работает для любого объекта.\", \"lines\": [[\"return dict(vars(self))\", \"Копия атрибутов.\"], [\"class User(JsonMixin):\", \"Подмешали.\"]], \"mistake\": \"`return vars(self)` — изменение словаря изменит объект.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nГлавная сила наследования в том, что родитель может описать **общий алгоритм**, а потомки — подменить отдельные шаги. Чтобы этим пользоваться, нужно понимать, как Python ищет метод, когда их несколько с одинаковым именем.\n\n## Родитель вызывает метод потомка\n\n```python\nclass Base:\n    def hello(self):\n        return \"Base\"\n\n    def run(self):\n        return \"run: \" + self.hello()\n\nclass Child(Base):\n    def hello(self):\n        return \"Child\"\n\nprint(Base().run())\nprint(Child().run())\n```\n\n- `run` определён только в `Base`. Но внутри он вызывает `self.hello()`.\n- Для `Child()` объект `self` — это `Child`, поэтому Python находит `Child.hello`.\n- Поиск метода всегда начинается с **настоящего класса объекта**, где бы ни был написан вызов.\n- Вывод: `run: Base`, `run: Child`.\n\n## Порядок поиска — MRO\n\n```python\nclass A:\n    def who(self):\n        return \"A\"\n\nclass B(A):\n    pass\n\nclass C(B):\n    pass\n\nprint(C().who())\nprint([cls.__name__ for cls in C.__mro__])\n```\n\n- **MRO** (Method Resolution Order) — порядок, в котором Python ищет атрибут: сначала объект, потом класс, потом родители.\n- `C.__mro__` — кортеж классов в этом порядке. У `C` и `B` нет `who`, он найден в `A`.\n- Вывод: `A`, `['C', 'B', 'A', 'object']`.\n\n## Атрибуты класса тоже переопределяются\n\n```python\nclass Shape:\n    name = \"фигура\"\n\n    def area(self):\n        return 0\n\n    def describe(self):\n        return f\"{self.name}: площадь {self.area()}\"\n\nclass Square(Shape):\n    name = \"квадрат\"\n\n    def __init__(self, side):\n        self.side = side\n\n    def area(self):\n        return self.side ** 2\n\nprint(Shape().describe())\nprint(Square(3).describe())\n```\n\n- `self.name` ищется так же, как метод: у `Square` свой `name`.\n- `describe` пишется один раз, а работает для любой фигуры.\n- Вывод: `фигура: площадь 0`, `квадрат: площадь 9`.\n\n## Множественное наследование\n\n```python\nclass Loggable:\n    def info(self):\n        return \"log\"\n\nclass Savable:\n    def info(self):\n        return \"save\"\n\n    def save(self):\n        return \"saved\"\n\nclass Report(Loggable, Savable):\n    pass\n\nr = Report()\nprint(r.info(), r.save())\nprint([c.__name__ for c in Report.__mro__])\n```\n\n- У класса может быть несколько родителей. Метод ищется **слева направо**: сначала `Loggable`, потом `Savable`.\n- `info` есть у обоих — выигрывает левый. `save` только у `Savable`.\n- Вывод: `log saved`, `['Report', 'Loggable', 'Savable', 'object']`.\n\n## Миксины\n\n**Миксин** (mixin) — маленький класс с одной полезной способностью, который «подмешивают» к другим классам:\n\n```python\nclass JsonMixin:\n    def to_dict(self):\n        return dict(vars(self))\n\nclass User(JsonMixin):\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\nprint(User(\"Аня\", 30).to_dict())\n```\n\n- `JsonMixin` ничего не знает про `User` — он работает с любым `self`.\n- `dict(vars(self))` — копия словаря атрибутов.\n- Вывод: `{'name': 'Аня', 'age': 30}`.\n\n## Переопределить и дополнить\n\n```python\nclass Request:\n    def headers(self):\n        return {\"Accept\": \"json\"}\n\nclass AuthRequest(Request):\n    def __init__(self, token):\n        self.token = token\n\n    def headers(self):\n        h = super().headers()\n        h[\"Authorization\"] = f\"Bearer {self.token}\"\n        return h\n\nprint(AuthRequest(\"abc\").headers())\n```\n\n- Частый шаблон: взять результат родителя через `super()`, дополнить, вернуть.\n- Вывод: `{'Accept': 'json', 'Authorization': 'Bearer abc'}`.\n\n## Итог\n\n- Метод ищется от настоящего класса объекта вверх по MRO: `Класс.__mro__`.\n- Родитель может вызывать `self.метод()`, а потомок — подменить этот метод.\n- При нескольких родителях — слева направо.\n- Миксин — маленький класс-способность.",
@@ -874,7 +930,8 @@
                   "code": "class Chrome:\n    def open(self, url):\n        return f\"Chrome открыл {url}\"\n\nclass Firefox:\n    def open(self, url):\n        return f\"Firefox открыл {url}\"\n\nfor driver in [Chrome(), Firefox()]:\n    print(driver.open(\"/login\"))\n",
                   "expected_output": "Chrome открыл /login\nFirefox открыл /login",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Полиморфизм: разные классы с одинаковым методом — один и тот же вызов работает для любого.\", \"lines\": [[\"print(driver.open(\\\"/login\\\"))\", \"Не важно, какой браузер.\"]], \"mistake\": \"Думать, что нужен общий родитель — хватает одинакового метода.\"}"
                 },
                 {
                   "slug": "oop-m2-l2-e2",
@@ -883,7 +940,8 @@
                   "code": "from abc import ABC, abstractmethod\n\nclass Base(ABC):\n    @abstractmethod\n    def run(self): ...\n\nclass Impl(Base):\n    def run(self):\n        return \"работаю\"\n\ntry:\n    Base()\nexcept TypeError:\n    print(\"нельзя создать Base\")\nprint(Impl().run())\n",
                   "expected_output": "нельзя создать Base\nработаю",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Абстрактный класс нельзя создать напрямую; наследник обязан реализовать абстрактные методы.\", \"lines\": [[\"@abstractmethod\", \"Метод без реализации.\"], [\"Base()\", \"`TypeError`.\"], [\"print(Impl().run())\", \"Наследник реализовал — работает.\"]], \"mistake\": \"Ожидать, что `Base()` создастся.\"}"
                 },
                 {
                   "slug": "oop-m2-l2-e3",
@@ -893,7 +951,8 @@
                   "tests": "def test_abstract():\n    try:\n        Notifier()\n    except TypeError:\n        pass\n    else:\n        assert False, \"Notifier должен быть абстрактным (ABC + @abstractmethod)\"\n\ndef test_impls():\n    assert EmailNotifier().send(\"hi\") == \"email: hi\", \"EmailNotifier.send\"\n    assert SmsNotifier().send(\"hi\") == \"sms: hi\", \"SmsNotifier.send\"\n    assert isinstance(SmsNotifier(), Notifier), \"Наследники должны наследовать Notifier\"\n",
                   "solution": "from abc import ABC, abstractmethod\n\nclass Notifier(ABC):\n    @abstractmethod\n    def send(self, text): ...\n\nclass EmailNotifier(Notifier):\n    def send(self, text):\n        return f\"email: {text}\"\n\nclass SmsNotifier(Notifier):\n    def send(self, text):\n        return f\"sms: {text}\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Абстрактный класс задаёт интерфейс, наследники — реализацию.\", \"lines\": [[\"class Notifier(ABC):\", \"Наследник ABC.\"], [\"@abstractmethod\\n    def send(self, text): ...\", \"Обязательный метод.\"], [\"return f\\\"email: {text}\\\"\", \"Реализация.\"]], \"mistake\": \"Забыть `ABC` — `@abstractmethod` не запретит создание.\"}"
                 },
                 {
                   "slug": "oop-m2-l2-e4",
@@ -903,7 +962,8 @@
                   "tests": "class A:\n    def send(self, t):\n        return \"A:\" + t\n\nclass B:\n    def send(self, t):\n        return \"B:\" + t\n\ndef test_all():\n    assert notify_all([A(), B(), A()], \"x\") == [\"A:x\", \"B:x\", \"A:x\"], \"Ожидался список результатов send\"\n",
                   "solution": "def notify_all(notifiers, text):\n    return [n.send(text) for n in notifiers]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Функции всё равно, какой класс у объекта — важно, что есть `send`.\", \"lines\": [[\"return [n.send(text) for n in notifiers]\", \"Результаты по порядку.\"]], \"mistake\": \"Проверять тип каждого объекта — лишнее.\"}"
                 },
                 {
                   "slug": "oop-m2-l2-e5",
@@ -913,7 +973,8 @@
                   "tests": "def test_not_empty():\n    assert NotEmpty().run(\"abc\") == \"PASS\" and NotEmpty().run(\"\") == \"FAIL\", \"NotEmpty\"\n\ndef test_positive():\n    assert IsPositive().run(5) == \"PASS\" and IsPositive().run(-1) == \"FAIL\", \"IsPositive\"\n",
                   "solution": "from abc import ABC, abstractmethod\n\nclass Check(ABC):\n    def run(self, value):\n        return \"PASS\" if self.check(value) else \"FAIL\"\n\n    @abstractmethod\n    def check(self, value): ...\n\nclass NotEmpty(Check):\n    def check(self, value):\n        return value != \"\"\n\nclass IsPositive(Check):\n    def check(self, value):\n        return value > 0\n",
                   "hint": "Общий алгоритм в родителе, детали в наследниках — паттерн «шаблонный метод».",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Шаблонный метод: общий алгоритм в базе (`run`), изменяемый шаг — в наследниках (`check`).\", \"lines\": [[\"return \\\"PASS\\\" if self.check(value) else \\\"FAIL\\\"\", \"Общее для всех проверок.\"], [\"return value != \\\"\\\"\", \"`NotEmpty`.\"], [\"return value > 0\", \"`IsPositive`.\"]], \"mistake\": \"Дублировать `run` в каждом наследнике.\"}"
                 },
                 {
                   "slug": "oop-m2-l2-e6",
@@ -922,7 +983,8 @@
                   "code": "class Email:\n    def send(self, text):\n        return f\"email: {text}\"\n\nclass Sms:\n    def send(self, text):\n        return f\"sms: {text[:5]}\"\n\nclass Push:\n    def send(self, text):\n        return f\"push: {text.upper()}\"\n\nfor channel in [Email(), Sms(), Push()]:\n    print(channel.send(\"тест упал\"))\n",
                   "expected_output": "email: тест упал\nsms: тест \npush: ТЕСТ УПАЛ",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Один вызов `send` — три разных поведения.\", \"lines\": [[\"return f\\\"sms: {text[:5]}\\\"\", \"Первые 5 символов: `тест ` с пробелом.\"], [\"return f\\\"push: {text.upper()}\\\"\", \"Заглавными.\"]], \"mistake\": \"Забыть пробел в `тест `.\"}"
                 },
                 {
                   "slug": "oop-m2-l2-e7",
@@ -932,7 +994,8 @@
                   "tests": "def test_abc():\n    try:\n        Storage()\n    except TypeError:\n        pass\n    else:\n        assert False, \"Storage должен быть абстрактным\"\n    s = MemoryStorage()\n    s.save(\"a\", 1)\n    assert s.load(\"a\") == 1 and s.load(\"b\") is None and isinstance(s, Storage), \"MemoryStorage\"\n",
                   "solution": "from abc import ABC, abstractmethod\n\n\nclass Storage(ABC):\n    @abstractmethod\n    def save(self, key, value):\n        pass\n\n    @abstractmethod\n    def load(self, key):\n        pass\n\n\nclass MemoryStorage(Storage):\n    def __init__(self):\n        self.data = {}\n\n    def save(self, key, value):\n        self.data[key] = value\n\n    def load(self, key):\n        return self.data.get(key)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Интерфейс хранилища задан абстрактно, реализация на словаре — одна из возможных.\", \"lines\": [[\"@abstractmethod\\n    def save(self, key, value):\", \"Обязательные методы.\"], [\"return self.data.get(key)\", \"Нет ключа — `None`.\"]], \"mistake\": \"`self.data[key]` — `KeyError`.\"}"
                 },
                 {
                   "slug": "oop-m2-l2-e8",
@@ -942,7 +1005,8 @@
                   "tests": "def test_total():\n    class Custom:\n        def area(self):\n            return 100\n    assert total_area([Rect(2, 3), Square(2), Custom()]) == 110 and total_area([]) == 0, \"Неверная сумма\"\n    assert \"isinstance\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Без проверок типа\"\n",
                   "solution": "class Rect:\n    def __init__(self, w, h):\n        self.w = w\n        self.h = h\n\n    def area(self):\n        return self.w * self.h\n\n\nclass Square:\n    def __init__(self, side):\n        self.side = side\n\n    def area(self):\n        return self.side ** 2\n\n\ndef total_area(shapes):\n    return sum(s.area() for s in shapes)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Утиная типизация: «если крякает как утка — это утка». Общий родитель не нужен.\", \"lines\": [[\"return sum(s.area() for s in shapes)\", \"Любой объект с `area()`.\"]], \"mistake\": \"`isinstance` в `total_area` — ограничит набор фигур.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n**Полиморфизм** — возможность работать с разными объектами одинаково. Функции `notify_all` всё равно, email это или SMS, — она просто вызывает `send()`. Благодаря этому код легко расширять: добавил новый канал — ничего менять не надо.\n\n## Утиная типизация\n\n«Если оно ходит как утка и крякает как утка — это утка». Python не проверяет тип объекта, а просто вызывает нужный метод:\n\n```python\nclass Email:\n    def send(self, text):\n        return f\"email: {text}\"\n\nclass Sms:\n    def send(self, text):\n        return f\"sms: {text[:5]}\"\n\nclass Push:\n    def send(self, text):\n        return f\"push: {text.upper()}\"\n\nfor channel in [Email(), Sms(), Push()]:\n    print(channel.send(\"тест упал\"))\n```\n\n- Три класса не связаны наследованием, но у всех есть `send`.\n- Цикл одинаково вызывает `send` — и получает разное поведение.\n- Вывод: `email: тест упал`, `sms: тест `, `push: ТЕСТ УПАЛ`.\n- Если у объекта нет метода — `AttributeError` в момент вызова.\n\n## Абстрактный класс\n\nИногда нужно **гарантировать**, что потомок реализует определённые методы. Для этого есть модуль `abc`:\n\n```python\nfrom abc import ABC, abstractmethod\n\nclass Notifier(ABC):\n    @abstractmethod\n    def send(self, text):\n        pass\n\n    def notify(self, text):\n        return \"→ \" + self.send(text)\n\nclass Email(Notifier):\n    def send(self, text):\n        return f\"email: {text}\"\n\nclass Broken(Notifier):\n    pass\n\nprint(Email().notify(\"привет\"))\nfor cls in [Notifier, Broken]:\n    try:\n        cls()\n    except TypeError:\n        print(cls.__name__, \"нельзя создать\")\n```\n\n- `class Notifier(ABC)` — наследуем от `ABC` (Abstract Base Class).\n- `@abstractmethod` — декоратор: «потомок обязан это реализовать». Тело обычно пустое (`pass`).\n- Объект абстрактного класса создать нельзя → `TypeError`. Потомок без реализации — тоже абстрактный.\n- Неабстрактные методы (`notify`) работают как обычно и могут вызывать абстрактные.\n- Вывод: `→ email: привет`, `Notifier нельзя создать`, `Broken нельзя создать`.\n\n## Шаблонный метод\n\nРодитель задаёт порядок шагов, потомки заполняют шаги:\n\n```python\nfrom abc import ABC, abstractmethod\n\nclass Check(ABC):\n    def run(self):\n        self.setup()\n        ok = self.check()\n        return \"PASS\" if ok else \"FAIL\"\n\n    def setup(self):\n        pass\n\n    @abstractmethod\n    def check(self):\n        pass\n\nclass StatusCheck(Check):\n    def check(self):\n        return 200 == 200\n\nprint(StatusCheck().run())\n```\n\n- `run` — «шаблон»: последовательность шагов одна для всех проверок.\n- `setup` — необязательный шаг с пустой реализацией, `check` — обязательный.\n- Именно так устроены тестовые фреймворки: `setUp` → тест → `tearDown`.\n- Вывод: `PASS`.\n\n## Когда что выбирать\n\n- Утиная типизация — проще и гибче, достаточно в большинстве случаев.\n- ABC — когда пишешь базовый класс для других и хочешь, чтобы забытый метод обнаружился **сразу** при создании объекта, а не в момент вызова.\n\n## Итог\n\n- Полиморфизм: один вызов — разное поведение у разных классов.\n- Утиная типизация: важен метод, а не тип.\n- `ABC` + `@abstractmethod` — обязательные методы; абстрактный класс не создать.\n- Шаблонный метод: родитель задаёт порядок, потомки — шаги.",
@@ -994,7 +1058,8 @@
                   "code": "class Animal: pass\nclass Dog(Animal): pass\n\nd = Dog()\nprint(isinstance(d, Dog), isinstance(d, Animal), isinstance(d, object))\nprint(type(d) is Dog, type(d) is Animal)\nprint(issubclass(Dog, Animal), issubclass(Animal, Dog))\n",
                   "expected_output": "True True True\nTrue False\nTrue False",
                   "hint": "isinstance учитывает наследование, type(...) is — нет.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`isinstance` учитывает наследование, `type(x) is` — нет. Любой объект — это `object`.\", \"lines\": [[\"print(type(d) is Dog, type(d) is Animal)\", \"Точный тип — только Dog.\"], [\"print(issubclass(Dog, Animal), issubclass(Animal, Dog))\", \"Наследование в одну сторону.\"]], \"mistake\": \"Ожидать `True` для `type(d) is Animal`.\"}"
                 },
                 {
                   "slug": "oop-isinstance-e2",
@@ -1003,7 +1068,8 @@
                   "code": "values = [1, 2.5, \"3\", True, None, [4]]\nfor v in values:\n    print(type(v).__name__, isinstance(v, (int, float)))\n",
                   "expected_output": "int True\nfloat True\nstr False\nbool True\nNoneType False\nlist False",
                   "hint": "bool — наследник int!",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`bool` — подкласс `int`, поэтому `True` проходит проверку на число.\", \"lines\": [[\"print(type(v).__name__, isinstance(v, (int, float)))\", \"`bool True`.\"]], \"mistake\": \"Ожидать `False` для `True`.\"}"
                 },
                 {
                   "slug": "oop-isinstance-e3",
@@ -1012,7 +1078,8 @@
                   "code": "class HttpError(Exception): pass\nclass NotFound(HttpError): pass\n\ne = NotFound(\"нет страницы\")\nprint(type(e).__name__, e.__class__.__name__)\nprint(NotFound.__bases__[0].__name__)\nprint(isinstance(e, Exception))\n",
                   "expected_output": "NotFound NotFound\nHttpError\nTrue",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Имя класса — `type(e).__name__` или `e.__class__.__name__`; родители — в `__bases__`.\", \"lines\": [[\"print(NotFound.__bases__[0].__name__)\", \"Прямой родитель.\"], [\"print(isinstance(e, Exception))\", \"Через цепочку наследования.\"]], \"mistake\": \"Ожидать `Exception` как прямого родителя.\"}"
                 },
                 {
                   "slug": "oop-isinstance-e4",
@@ -1022,7 +1089,8 @@
                   "tests": "def test_values():\n    assert only_numbers([1, \"2\", 3.5, True, None]) == [1, 3.5] and only_numbers([]) == [] and only_numbers([False, 0]) == [0], \"Неверный фильтр\"\n",
                   "solution": "def only_numbers(values):\n    return [v for v in values if isinstance(v, (int, float)) and not isinstance(v, bool)]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Число, но не `bool` — две проверки.\", \"lines\": [[\"return [v for v in values if isinstance(v, (int, float)) and not isinstance(v, bool)]\", \"`[1, 3.5]`.\"]], \"mistake\": \"Без второй проверки `True` попадёт в результат.\"}"
                 },
                 {
                   "slug": "oop-isinstance-e5",
@@ -1032,7 +1100,8 @@
                   "tests": "def test_values():\n    assert describe(\"abc\") == \"строка из 3 символов\", describe(\"abc\")\n    assert describe([1, 2]) == \"коллекция из 2 элементов\" and describe((1,)) == \"коллекция из 1 элементов\", \"Коллекции\"\n    assert describe({\"a\": 1}) == \"словарь с 1 ключами\" and describe(5) == \"int\" and describe(None) == \"NoneType\", \"Прочее\"\n",
                   "solution": "def describe(value):\n    if isinstance(value, str):\n        return f\"строка из {len(value)} символов\"\n    if isinstance(value, (list, tuple)):\n        return f\"коллекция из {len(value)} элементов\"\n    if isinstance(value, dict):\n        return f\"словарь с {len(value)} ключами\"\n    return type(value).__name__\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Цепочка проверок типа; в конце — имя типа.\", \"lines\": [[\"if isinstance(value, str):\\n        return f\\\"строка из {len(value)} символов\\\"\", \"Строки — первыми.\"], [\"if isinstance(value, (list, tuple)):\", \"Коллекции.\"], [\"return type(value).__name__\", \"Остальное.\"]], \"mistake\": \"Проверять `len` у всего подряд — у чисел длины нет.\"}"
                 },
                 {
                   "slug": "oop-isinstance-e6",
@@ -1042,7 +1111,8 @@
                   "tests": "def test_values():\n    r = count_by_type([1, \"a\", 2, None])\n    assert r == {\"int\": 2, \"str\": 1, \"NoneType\": 1} and list(r) == [\"int\", \"str\", \"NoneType\"] and count_by_type([]) == {}, f\"Получено {r}\"\n",
                   "solution": "def count_by_type(objs):\n    result = {}\n    for o in objs:\n        name = type(o).__name__\n        result[name] = result.get(name, 0) + 1\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Счётчик по имени типа.\", \"lines\": [[\"name = type(o).__name__\", \"`int`, `str`, `NoneType`.\"], [\"result[name] = result.get(name, 0) + 1\", \"Подсчёт.\"]], \"mistake\": \"Использовать сам тип ключом — задание просит имена.\"}"
                 },
                 {
                   "slug": "oop-isinstance-e7",
@@ -1052,7 +1122,8 @@
                   "tests": "def test_values():\n    assert severity(Timeout()) == \"critical\" and severity(ServerError()) == \"critical\", \"Серверные\"\n    assert severity(NotFound()) == \"warning\" and severity(ClientError()) == \"warning\", \"Клиентские\"\n    assert severity(ApiError()) == \"unknown\" and severity(ValueError()) == \"unknown\", \"Прочие\"\n",
                   "solution": "class ApiError(Exception): pass\nclass ClientError(ApiError): pass\nclass NotFound(ClientError): pass\nclass ServerError(ApiError): pass\nclass Timeout(ServerError): pass\n\ndef severity(error):\n    if isinstance(error, ServerError):\n        return \"critical\"\n    if isinstance(error, ClientError):\n        return \"warning\"\n    return \"unknown\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`isinstance` с базовым классом ловит всех наследников: `Timeout` — это `ServerError`.\", \"lines\": [[\"if isinstance(error, ServerError):\\n        return \\\"critical\\\"\", \"`Timeout` тоже сюда.\"], [\"if isinstance(error, ClientError):\\n        return \\\"warning\\\"\", \"`NotFound` — сюда.\"]], \"mistake\": \"`type(error) is ServerError` — `Timeout` не пройдёт.\"}"
                 },
                 {
                   "slug": "oop-isinstance-e8",
@@ -1062,7 +1133,8 @@
                   "tests": "def test_values():\n    assert flatten([1, [2, (3, \"ab\")], [[4]]]) == [1, 2, 3, \"ab\", 4] and flatten([]) == [] and flatten([[[]]]) == [], \"Неверный результат\"\n",
                   "solution": "def flatten(data):\n    result = []\n    for item in data:\n        if isinstance(item, (list, tuple)):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Рекурсивно разворачиваем списки и кортежи; строки — нет, хотя их тоже можно перебирать.\", \"lines\": [[\"if isinstance(item, (list, tuple)):\\n            result.extend(flatten(item))\", \"Спуск.\"], [\"else:\\n            result.append(item)\", \"`\\\"ab\\\"` целиком.\"]], \"mistake\": \"Проверять «можно ли перебрать» — строка развалится на буквы.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nИногда нужно узнать, какого типа объект: обработать строку иначе, чем список, отличить серверную ошибку от клиентской, проверить в тесте, что API вернул правильный тип. Для этого есть `isinstance`, `type` и `issubclass`.\n\n## isinstance и type\n\n```python\nclass Animal: pass\nclass Dog(Animal): pass\n\nd = Dog()\nprint(isinstance(d, Dog), isinstance(d, Animal), isinstance(d, object))\nprint(type(d) is Dog, type(d) is Animal)\nprint(issubclass(Dog, Animal), issubclass(Animal, Dog))\n```\n\n- `isinstance(obj, Класс)` — `True`, если объект этого класса **или его потомка**.\n- `type(obj)` — точный класс объекта. `type(d) is Animal` — `False`, хотя собака — животное.\n- `issubclass(A, B)` — является ли класс `A` потомком `B` (сам себе тоже).\n- `class Animal: pass` — пустой класс в одну строку; `pass` значит «ничего».\n- Вывод: `True True True`, `True False`, `True False`.\n- Почти всегда используют `isinstance`: он уважает наследование.\n\n## Проверка нескольких типов\n\n```python\nvalues = [1, 2.5, \"3\", True, None, [4]]\nfor v in values:\n    print(type(v).__name__, isinstance(v, (int, float)))\n```\n\n- Вторым аргументом можно передать **кортеж** классов: «хотя бы один из них».\n- `type(v).__name__` — имя класса строкой.\n- Внимание: `bool` — потомок `int`, поэтому `isinstance(True, int)` → `True`.\n- Вывод: `int True`, `float True`, `str False`, `bool True`, `NoneType False`, `list False`.\n\nЧтобы исключить `bool`:\n\n```python\ndef only_numbers(values):\n    return [v for v in values if isinstance(v, (int, float)) and not isinstance(v, bool)]\n\nprint(only_numbers([1, \"2\", 3.5, True, None]))\n```\n\n- Вывод: `[1, 3.5]`.\n\n## Информация о классе\n\n```python\nclass HttpError(Exception): pass\nclass NotFound(HttpError): pass\n\ne = NotFound(\"нет страницы\")\nprint(type(e).__name__, e.__class__.__name__)\nprint(NotFound.__bases__[0].__name__)\nprint(isinstance(e, Exception))\n```\n\n- `obj.__class__` — то же, что `type(obj)`.\n- `Класс.__bases__` — кортеж непосредственных родителей.\n- Вывод: `NotFound NotFound`, `HttpError`, `True`.\n\n## Порядок проверок важен\n\n```python\nclass ApiError(Exception): pass\nclass ClientError(ApiError): pass\nclass NotFound(ClientError): pass\n\ndef kind(error):\n    if isinstance(error, NotFound):\n        return \"404\"\n    if isinstance(error, ClientError):\n        return \"4xx\"\n    return \"другое\"\n\nprint(kind(NotFound()), kind(ClientError()), kind(ApiError()))\n```\n\n- Сначала проверяем **более конкретный** класс: `NotFound` — это тоже `ClientError`, поэтому при обратном порядке мы бы никогда не дошли до `\"404\"`.\n- Вывод: `404 4xx другое`.\n\n## Рекурсия с isinstance\n\n```python\ndef flatten(data):\n    result = []\n    for item in data:\n        if isinstance(item, (list, tuple)):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n\nprint(flatten([1, [2, (3, \"ab\")], [[4]]]))\n```\n\n- Если элемент — список или кортеж, разворачиваем его той же функцией; иначе добавляем как есть.\n- Строка — тоже последовательность, но мы её не разворачиваем, потому что она не в кортеже типов.\n- Вывод: `[1, 2, 3, 'ab', 4]`.\n\n## Не злоупотребляй\n\nДлинная цепочка `if isinstance(x, A) ... elif isinstance(x, B)` часто означает, что лучше дать классам общий метод и использовать полиморфизм.\n\n## Итог\n\n- `isinstance(obj, Cls)` / `isinstance(obj, (A, B))` — с учётом наследования.\n- `type(obj) is Cls` — точный класс; `type(obj).__name__` — имя.\n- `issubclass(A, B)`, `Cls.__bases__`, `Cls.__mro__`.\n- `bool` — подкласс `int`. Конкретные классы проверяй раньше общих.",
@@ -1114,7 +1186,8 @@
                   "code": "class Engine:\n    def __init__(self, power):\n        self.power = power\n\n    def start(self):\n        return f\"двигатель {self.power} л.с. завёлся\"\n\nclass Car:\n    def __init__(self, model, power):\n        self.model = model\n        self.engine = Engine(power)\n\n    def start(self):\n        return f\"{self.model}: {self.engine.start()}\"\n\ncar = Car(\"Лада\", 90)\nprint(car.start())\nprint(car.engine.power)\n",
                   "expected_output": "Лада: двигатель 90 л.с. завёлся\n90",
                   "hint": "Car не наследует Engine, а содержит его — «имеет», а не «является».",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Композиция: объект содержит другой объект и делегирует ему работу. «Машина имеет двигатель».\", \"lines\": [[\"self.engine = Engine(power)\", \"Объект внутри объекта.\"], [\"return f\\\"{self.model}: {self.engine.start()}\\\"\", \"Делегирование.\"]], \"mistake\": \"Наследовать `Car` от `Engine` — машина не является двигателем.\"}"
                 },
                 {
                   "slug": "oop-composition-e2",
@@ -1123,7 +1196,8 @@
                   "code": "class Student:\n    def __init__(self, name, score):\n        self.name = name\n        self.score = score\n\nclass Group:\n    def __init__(self):\n        self.students = []\n\n    def add(self, student):\n        self.students.append(student)\n\n    def best(self):\n        return max(self.students, key=lambda s: s.score).name\n\ng = Group()\ng.add(Student(\"Аня\", 90))\ng.add(Student(\"Боря\", 95))\ng.add(Student(\"Вика\", 80))\nprint(g.best(), len(g.students))\n",
                   "expected_output": "Боря 3",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Объект-контейнер хранит список других объектов и работает с их атрибутами.\", \"lines\": [[\"return max(self.students, key=lambda s: s.score).name\", \"Боря — 95.\"]], \"mistake\": \"Сравнивать объекты без ключа — `TypeError`.\"}"
                 },
                 {
                   "slug": "oop-composition-e3",
@@ -1132,7 +1206,8 @@
                   "code": "class RealApi:\n    def get(self):\n        return \"данные с сервера\"\n\nclass FakeApi:\n    def get(self):\n        return \"тестовые данные\"\n\nclass Service:\n    def __init__(self, api):\n        self.api = api\n\n    def report(self):\n        return \"отчёт: \" + self.api.get()\n\nprint(Service(RealApi()).report())\nprint(Service(FakeApi()).report())\n",
                   "expected_output": "отчёт: данные с сервера\nотчёт: тестовые данные",
                   "hint": "Зависимость передаётся снаружи — в тестах её легко подменить.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Зависимость передаётся снаружи — её легко подменить фейком в тестах.\", \"lines\": [[\"self.api = api\", \"Сервис не создаёт API сам.\"], [\"print(Service(FakeApi()).report())\", \"Тест с подменой.\"]], \"mistake\": \"Создавать `RealApi()` внутри `Service` — подменить не получится.\"}"
                 },
                 {
                   "slug": "oop-composition-e4",
@@ -1142,7 +1217,8 @@
                   "tests": "def test_order():\n    o = Order()\n    assert o.total() == 0, \"Пустой заказ\"\n    o.add(Item(\"чай\", 300, 2))\n    o.add(Item(\"кофе\", 500, 1))\n    assert o.total() == 1100, f\"Получено {o.total()}\"\n",
                   "solution": "class Item:\n    def __init__(self, name, price, qty):\n        self.name = name\n        self.price = price\n        self.qty = qty\n\n    def cost(self):\n        return self.price * self.qty\n\n\nclass Order:\n    def __init__(self):\n        self.items = []\n\n    def add(self, item):\n        self.items.append(item)\n\n    def total(self):\n        return sum(item.cost() for item in self.items)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Заказ хранит позиции и суммирует их `cost()`.\", \"lines\": [[\"return self.price * self.qty\", \"Стоимость позиции.\"], [\"return sum(item.cost() for item in self.items)\", \"Итого.\"]], \"mistake\": \"Хранить в заказе только цены — потеряется количество.\"}"
                 },
                 {
                   "slug": "oop-composition-e5",
@@ -1152,7 +1228,8 @@
                   "tests": "def test_service():\n    class FakeStorage:\n        def __init__(self):\n            self.data = {}\n        def save(self, k, v):\n            self.data[k] = v\n        def load(self, k):\n            return self.data.get(k)\n    st = FakeStorage()\n    s = UserService(st)\n    s.register(\"аня\")\n    assert st.data == {\"аня\": True} and s.exists(\"аня\") and not s.exists(\"боря\"), \"register/exists\"\n    try:\n        s.register(\"аня\")\n    except ValueError as e:\n        assert str(e) == \"занято\", str(e)\n        return\n    assert False, \"Нужен ValueError\"\n",
                   "solution": "class UserService:\n    def __init__(self, storage):\n        self.storage = storage\n\n    def register(self, name):\n        if self.storage.load(name) is not None:\n            raise ValueError(\"занято\")\n        self.storage.save(name, True)\n\n    def exists(self, name):\n        return self.storage.load(name) is not None\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Сервис работает с любым хранилищем, у которого есть `save` и `load`.\", \"lines\": [[\"if self.storage.load(name) is not None:\\n            raise ValueError(\\\"занято\\\")\", \"Проверка.\"], [\"self.storage.save(name, True)\", \"Регистрация.\"]], \"mistake\": \"`if self.storage.load(name):` — значение `0` или `False` сломает проверку.\"}"
                 },
                 {
                   "slug": "oop-composition-e6",
@@ -1162,7 +1239,8 @@
                   "tests": "def test_library():\n    lib = Library()\n    lib.add(Book(\"Мцыри\", \"Лермонтов\"))\n    lib.add(Book(\"Онегин\", \"Пушкин\"))\n    lib.add(Book(\"Демон\", \"Лермонтов\"))\n    assert lib.by_author(\"Лермонтов\") == [\"Мцыри\", \"Демон\"] and lib.by_author(\"Гоголь\") == [], \"by_author\"\n    assert lib.authors() == [\"Лермонтов\", \"Пушкин\"], \"authors\"\n",
                   "solution": "class Book:\n    def __init__(self, title, author):\n        self.title = title\n        self.author = author\n\n\nclass Library:\n    def __init__(self):\n        self.books = []\n\n    def add(self, book):\n        self.books.append(book)\n\n    def by_author(self, author):\n        return [b.title for b in self.books if b.author == author]\n\n    def authors(self):\n        return sorted({b.author for b in self.books})\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Библиотека хранит объекты книг и отвечает на вопросы о них.\", \"lines\": [[\"return [b.title for b in self.books if b.author == author]\", \"Порядок добавления.\"], [\"return sorted({b.author for b in self.books})\", \"Уникальные авторы.\"]], \"mistake\": \"Хранить книги словарём по автору — теряется порядок добавления.\"}"
                 },
                 {
                   "slug": "oop-composition-e7",
@@ -1172,7 +1250,8 @@
                   "tests": "def test_broadcast():\n    class A:\n        def send(self, t):\n            return \"A:\" + t\n    class B:\n        def send(self, t):\n            return \"B:\" + t\n    assert Notifier(A(), B()).broadcast(\"x\") == [\"A:x\", \"B:x\"] and Notifier().broadcast(\"x\") == [], \"broadcast\"\n",
                   "solution": "class Notifier:\n    def __init__(self, *channels):\n        self.channels = list(channels)\n\n    def broadcast(self, text):\n        return [ch.send(text) for ch in self.channels]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Каналы приходят как `*channels`, хранятся списком.\", \"lines\": [[\"self.channels = list(channels)\", \"Кортеж → список.\"], [\"return [ch.send(text) for ch in self.channels]\", \"Во все каналы.\"]], \"mistake\": \"Ожидать, что `channels` — список, передаваемый одним аргументом.\"}"
                 },
                 {
                   "slug": "oop-composition-e8",
@@ -1182,7 +1261,8 @@
                   "tests": "def test_runner():\n    def ok(): assert 1 == 1\n    def bad(): assert 1 == 2\n    rep = ListReporter()\n    n = TestRunner(rep).run({\"ok\": ok, \"bad\": bad, \"ok2\": ok})\n    assert n == 1 and rep.log == [\"✓ ok\", \"✗ bad\", \"✓ ok2\"], f\"{n}, {rep.log}\"\n",
                   "solution": "class ListReporter:\n    def __init__(self):\n        self.log = []\n\n    def passed(self, name):\n        self.log.append(\"✓ \" + name)\n\n    def failed(self, name):\n        self.log.append(\"✗ \" + name)\n\n\nclass TestRunner:\n    def __init__(self, reporter):\n        self.reporter = reporter\n\n    def run(self, tests):\n        failed = 0\n        for name, func in tests.items():\n            try:\n                func()\n            except AssertionError:\n                failed += 1\n                self.reporter.failed(name)\n            else:\n                self.reporter.passed(name)\n        return failed\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Раннер получает отчётчик снаружи и сообщает ему результаты. Вывод можно менять, не трогая раннер.\", \"lines\": [[\"except AssertionError:\\n                failed += 1\\n                self.reporter.failed(name)\", \"Провал.\"], [\"else:\\n                self.reporter.passed(name)\", \"Успех.\"]], \"mistake\": \"Вызывать `passed` внутри `try` — при ошибке после него запишутся оба результата.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nНаследование описывает отношение «**является**»: админ является пользователем. Но часто отношение другое — «**имеет**»: у машины есть двигатель, у заказа есть товары, у сервиса есть хранилище. Для этого один объект кладут внутрь другого — это **композиция**. Правило опытных разработчиков: «предпочитай композицию наследованию».\n\n## Объект внутри объекта\n\n```python\nclass Engine:\n    def __init__(self, power):\n        self.power = power\n\n    def start(self):\n        return f\"двигатель {self.power} л.с. завёлся\"\n\nclass Car:\n    def __init__(self, model, power):\n        self.model = model\n        self.engine = Engine(power)\n\n    def start(self):\n        return f\"{self.model}: {self.engine.start()}\"\n\ncar = Car(\"Лада\", 90)\nprint(car.start())\nprint(car.engine.power)\n```\n\n- `self.engine = Engine(power)` — атрибут машины хранит объект другого класса.\n- `Car.start` **делегирует** работу: вызывает `self.engine.start()` и дополняет результат.\n- `car.engine.power` — точки идут цепочкой: машина → двигатель → мощность.\n- Вывод: `Лада: двигатель 90 л.с. завёлся`, `90`.\n\n## Коллекция объектов\n\n```python\nclass Student:\n    def __init__(self, name, score):\n        self.name = name\n        self.score = score\n\nclass Group:\n    def __init__(self):\n        self.students = []\n\n    def add(self, student):\n        self.students.append(student)\n\n    def best(self):\n        return max(self.students, key=lambda s: s.score).name\n\ng = Group()\ng.add(Student(\"Аня\", 90))\ng.add(Student(\"Боря\", 95))\nprint(g.best(), len(g.students))\n```\n\n- Группа хранит список объектов `Student`.\n- `max(..., key=lambda s: s.score)` — объект с наибольшим баллом, затем берём его имя.\n- Вывод: `Боря 2`.\n\n## Зависимость передаётся снаружи\n\n```python\nclass RealApi:\n    def get(self):\n        return \"данные с сервера\"\n\nclass FakeApi:\n    def get(self):\n        return \"тестовые данные\"\n\nclass Service:\n    def __init__(self, api):\n        self.api = api\n\n    def report(self):\n        return \"отчёт: \" + self.api.get()\n\nprint(Service(RealApi()).report())\nprint(Service(FakeApi()).report())\n```\n\n- `Service` не создаёт API сам, а **получает** его в конструкторе. Это называется **внедрение зависимости** (dependency injection).\n- В бою передаём настоящий API, в тестах — подделку (fake / mock). Код сервиса не меняется.\n- Вывод: `отчёт: данные с сервера`, `отчёт: тестовые данные`.\n\n## Почему не наследование\n\n```python\nclass Order:\n    def __init__(self):\n        self.items = []\n\n    def add(self, name):\n        self.items.append(name)\n\n    def count(self):\n        return len(self.items)\n\no = Order()\no.add(\"чай\")\nprint(o.count())\n```\n\n- Можно было бы написать `class Order(list)` — но тогда у заказа появились бы **все** методы списка (`sort`, `clear`, `insert`…), даже ненужные и опасные.\n- С композицией снаружи виден только нужный интерфейс: `add` и `count`.\n- Вывод: `1`.\n\n## Итог\n\n- «Является» → наследование, «имеет» → композиция.\n- Внешний объект делегирует работу внутреннему: `self.engine.start()`.\n- Зависимости лучше передавать в конструктор — так их легко подменить в тестах.\n- Композиция открывает наружу только нужные методы.",
@@ -1242,7 +1322,8 @@
                   "code": "class P:\n    def __init__(self, x):\n        self.x = x\n\nprint(P(1) == P(1))\n\nclass Q:\n    def __init__(self, x):\n        self.x = x\n    def __eq__(self, other):\n        return self.x == other.x\n\nprint(Q(1) == Q(1))\n",
                   "expected_output": "False\nTrue",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Без `__eq__` объекты равны, только если это один и тот же объект. `__eq__` задаёт сравнение по смыслу.\", \"lines\": [[\"print(P(1) == P(1))\", \"Два разных объекта — `False`.\"], [\"return self.x == other.x\", \"Сравнение по значению.\"]], \"mistake\": \"Ожидать `True` в первой строке.\"}"
                 },
                 {
                   "slug": "oop-m3-l1-e2",
@@ -1251,7 +1332,8 @@
                   "code": "class Playlist:\n    def __init__(self, songs):\n        self.songs = songs\n    def __len__(self):\n        return len(self.songs)\n    def __contains__(self, song):\n        return song in self.songs\n    def __getitem__(self, i):\n        return self.songs[i]\n\np = Playlist([\"A\", \"B\", \"C\"])\nprint(len(p), \"B\" in p, p[-1])\n",
                   "expected_output": "3 True C",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Магические методы делают объект похожим на встроенную коллекцию: `len`, `in`, индексы.\", \"lines\": [[\"def __len__(self):\", \"`len(p)`.\"], [\"def __contains__(self, song):\", \"`\\\"B\\\" in p`.\"], [\"def __getitem__(self, i):\", \"`p[-1]`.\"]], \"mistake\": \"Ожидать ошибку от `p[-1]` — индекс передаётся в список.\"}"
                 },
                 {
                   "slug": "oop-m3-l1-e3",
@@ -1261,7 +1343,8 @@
                   "tests": "def test_add():\n    total = Money(100) + Money(50)\n    assert isinstance(total, Money) and total.amount == 150, \"Money(100) + Money(50) → Money(150)\"\n\ndef test_eq():\n    assert Money(10) == Money(10) and not (Money(10) == Money(20)), \"Сравнение по amount\"\n",
                   "solution": "class Money:\n    def __init__(self, amount):\n        self.amount = amount\n\n    def __add__(self, other):\n        return Money(self.amount + other.amount)\n\n    def __eq__(self, other):\n        return self.amount == other.amount\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`__add__` вызывается при `+`, `__eq__` — при `==`. `+` возвращает **новый** объект.\", \"lines\": [[\"return Money(self.amount + other.amount)\", \"Новый объект.\"], [\"return self.amount == other.amount\", \"Сравнение сумм.\"]], \"mistake\": \"`self.amount += other.amount; return self` — испортит левый операнд.\"}"
                 },
                 {
                   "slug": "oop-m3-l1-e4",
@@ -1271,7 +1354,8 @@
                   "tests": "def test_lt():\n    assert Version(\"1.9.2\") < Version(\"1.10.0\"), \"1.9.2 < 1.10.0 (числа, а не строки!)\"\n\ndef test_sorted():\n    vs = [Version(\"2.0.0\"), Version(\"1.10.0\"), Version(\"1.9.2\")]\n    assert [v.text for v in sorted(vs)] == [\"1.9.2\", \"1.10.0\", \"2.0.0\"], \"sorted должен работать\"\n",
                   "solution": "class Version:\n    def __init__(self, text):\n        self.parts = tuple(int(p) for p in text.split(\".\"))\n        self.text = text\n\n    def __lt__(self, other):\n        return self.parts < other.parts\n",
                   "hint": "Кортежи сравниваются поэлементно: `(1, 9, 2) < (1, 10, 0)`.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`__lt__` — сравнение `<`. Кортежи чисел сравниваются поэлементно — как версии.\", \"lines\": [[\"return self.parts < other.parts\", \"(1, 9, 2) < (1, 10, 0).\"]], \"mistake\": \"Сравнивать `self.text` — строки дадут неверный порядок.\"}"
                 },
                 {
                   "slug": "oop-m3-l1-e5",
@@ -1281,7 +1365,8 @@
                   "tests": "def test_suite():\n    s = TestSuite(\"smoke\")\n    s.add(\"login\")\n    s.add(\"search\")\n    assert len(s) == 2, \"len(suite) → 2\"\n    assert \"login\" in s and \"pay\" not in s, \"Проверка in\"\n    assert list(s) == [\"login\", \"search\"], \"Перебор suite в цикле\"\n",
                   "solution": "class TestSuite:\n    def __init__(self, name):\n        self.name = name\n        self.tests = []\n\n    def add(self, test_name):\n        self.tests.append(test_name)\n\n    def __len__(self):\n        return len(self.tests)\n\n    def __contains__(self, item):\n        return item in self.tests\n\n    def __iter__(self):\n        return iter(self.tests)\n",
                   "hint": "`__iter__` может просто вернуть `iter(self.tests)`.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Три метода делают набор похожим на коллекцию: длина, проверка `in`, перебор.\", \"lines\": [[\"return len(self.tests)\", \"`__len__`.\"], [\"return item in self.tests\", \"`__contains__`.\"], [\"return iter(self.tests)\", \"`__iter__` возвращает итератор.\"]], \"mistake\": \"`return self.tests` в `__iter__` — нужен именно итератор.\"}"
                 },
                 {
                   "slug": "oop-m3-l1-e6",
@@ -1290,7 +1375,8 @@
                   "code": "class Queue:\n    def __init__(self, items):\n        self.items = items\n\n    def __len__(self):\n        return len(self.items)\n\nclass Flag:\n    def __init__(self, on):\n        self.on = on\n\n    def __bool__(self):\n        return self.on\n\nprint(bool(Queue([])), bool(Queue([1])))\nif Flag(False):\n    print(\"включён\")\nelse:\n    print(\"выключен\")\n",
                   "expected_output": "False True\nвыключен",
                   "hint": "Без __bool__ Python спрашивает __len__: пустой — значит ложь.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Истинность объекта: `__bool__`, а если его нет — `__len__` (длина 0 — ложь).\", \"lines\": [[\"print(bool(Queue([])), bool(Queue([1])))\", \"Через `__len__`.\"], [\"if Flag(False):\", \"Через `__bool__`.\"]], \"mistake\": \"Считать любой объект истинным — это так только без этих методов.\"}"
                 },
                 {
                   "slug": "oop-m3-l1-e7",
@@ -1300,7 +1386,8 @@
                   "tests": "def test_range():\n    r = Range2(3, 7)\n    assert list(r) == [3, 4, 5, 6] and len(r) == 4 and list(r) == [3, 4, 5, 6], \"Итерация и длина (повторная тоже)\"\n    assert 5 in r and 7 not in r and 2 not in r, \"in\"\n    assert len(Range2(5, 2)) == 0 and list(Range2(5, 2)) == [], \"Пустой диапазон\"\n",
                   "solution": "class Range2:\n    def __init__(self, start, stop):\n        self.start = start\n        self.stop = stop\n\n    def __iter__(self):\n        current = self.start\n        while current < self.stop:\n            yield current\n            current += 1\n\n    def __len__(self):\n        return max(0, self.stop - self.start)\n\n    def __contains__(self, x):\n        return self.start <= x < self.stop\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`__iter__` с `yield` — генератор значений; `__contains__` проверяет диапазон арифметикой, без перебора.\", \"lines\": [[\"while current < self.stop:\\n            yield current\\n            current += 1\", \"Значения по одному.\"], [\"return max(0, self.stop - self.start)\", \"Пустой диапазон — 0, не минус.\"], [\"return self.start <= x < self.stop\", \"Мгновенно.\"]], \"mistake\": \"`stop` включительно — у `range` конец не входит.\"}"
                 },
                 {
                   "slug": "oop-m3-l1-e8",
@@ -1310,7 +1397,8 @@
                   "tests": "def test_call():\n    d = Multiplier(2)\n    assert d(21) == 42 and d(1) == 2 and d.calls == 2, \"Вызов и счётчик\"\n    assert list(map(Multiplier(3), [1, 2])) == [3, 6] and callable(d), \"Вызываемый объект\"\n",
                   "solution": "class Multiplier:\n    def __init__(self, k):\n        self.k = k\n        self.calls = 0\n\n    def __call__(self, x):\n        self.calls += 1\n        return x * self.k\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`__call__` делает объект вызываемым, как функцию, — при этом он может хранить состояние.\", \"lines\": [[\"def __call__(self, x):\", \"`double(21)` вызывает этот метод.\"], [\"self.calls += 1\", \"Счётчик вызовов в объекте.\"]], \"mistake\": \"Назвать метод `call` — объект не станет вызываемым.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПочему `len(\"abc\")` работает, `3 + 4` работает, `x in [1, 2]` работает? Потому что у встроенных классов есть специальные методы с двойными подчёркиваниями — **dunder-методы** (double underscore), или «магические» методы. Добавив их в свой класс, ты научишь его работать с операторами `+`, `==`, `in`, `len()`, `for`, `[]`.\n\n## Как это устроено\n\nPython переводит операторы в вызовы методов:\n\n- `a + b` → `a.__add__(b)`\n- `a == b` → `a.__eq__(b)`\n- `len(a)` → `a.__len__()`\n- `x in a` → `a.__contains__(x)`\n- `a[i]` → `a.__getitem__(i)`\n- `for x in a` → `a.__iter__()`\n- `bool(a)`, `if a:` → `a.__bool__()` (или `__len__`)\n- `a(...)` → `a.__call__(...)`\n- `str(a)` → `__str__`, `repr(a)` → `__repr__`\n\nСами эти методы напрямую обычно не вызывают — их вызывает Python.\n\n## Сложение и равенство\n\n```python\nclass Money:\n    def __init__(self, amount):\n        self.amount = amount\n\n    def __add__(self, other):\n        return Money(self.amount + other.amount)\n\n    def __eq__(self, other):\n        return self.amount == other.amount\n\n    def __repr__(self):\n        return f\"Money({self.amount})\"\n\ntotal = Money(100) + Money(50)\nprint(total, total == Money(150))\n```\n\n- `__add__` возвращает **новый** объект, а не меняет `self` — так же ведут себя числа.\n- `__eq__` возвращает `True`/`False`. Без него `==` сравнивал бы объекты как `is`.\n- Вывод: `Money(150) True`.\n\n## Класс-коллекция\n\n```python\nclass Playlist:\n    def __init__(self, songs):\n        self.songs = songs\n\n    def __len__(self):\n        return len(self.songs)\n\n    def __contains__(self, song):\n        return song in self.songs\n\n    def __getitem__(self, i):\n        return self.songs[i]\n\np = Playlist([\"a\", \"b\", \"c\"])\nprint(len(p), \"b\" in p, p[0], p[-1], p[1:])\nfor song in p:\n    print(song, end=\" \")\nprint()\n```\n\n- `__getitem__` получает индекс или срез и передаёт его списку — поэтому работают и `p[-1]`, и `p[1:]`.\n- Если нет `__iter__`, `for` использует `__getitem__` с индексами 0, 1, 2… до `IndexError`.\n- Вывод: `3 True a c ['b', 'c']`, затем `a b c`.\n\n## Своя итерация: __iter__\n\n```python\nclass Countdown:\n    def __init__(self, start):\n        self.start = start\n\n    def __iter__(self):\n        n = self.start\n        while n > 0:\n            yield n\n            n -= 1\n\nprint(list(Countdown(3)), sum(Countdown(4)))\n```\n\n- `__iter__` с `yield` — самый простой способ сделать объект перебираемым (подробно `yield` — в теме «Генераторы»).\n- Каждый `for` вызывает `__iter__` заново, поэтому объект можно перебирать много раз.\n- Вывод: `[3, 2, 1] 10`.\n\n## Истинность: __bool__ и __len__\n\n```python\nclass Queue:\n    def __init__(self, items):\n        self.items = items\n\n    def __len__(self):\n        return len(self.items)\n\nclass Flag:\n    def __init__(self, on):\n        self.on = on\n\n    def __bool__(self):\n        return self.on\n\nprint(bool(Queue([])), bool(Queue([1])))\nprint(\"включён\" if Flag(True) else \"выключен\")\n```\n\n- `if obj:` сначала ищет `__bool__`, затем `__len__` (0 — ложь). Если нет ни того, ни другого — объект всегда истинный.\n- Вывод: `False True`, `включён`.\n\n## Вызываемый объект: __call__\n\n```python\nclass Multiplier:\n    def __init__(self, k):\n        self.k = k\n\n    def __call__(self, x):\n        return x * self.k\n\ndouble = Multiplier(2)\nprint(double(21), list(map(Multiplier(3), [1, 2])))\n```\n\n- Объект с `__call__` можно вызывать как функцию — и передавать туда, где ждут функцию (`map`, `sorted(key=...)`).\n- В отличие от функции, у него есть состояние (`self.k`).\n- Вывод: `42 [3, 6]`.\n\n## Итог\n\n- Операторы и встроенные функции вызывают dunder-методы.\n- `__add__` возвращает новый объект; `__eq__` — `True`/`False`.\n- Коллекция: `__len__`, `__contains__`, `__getitem__`, `__iter__`.\n- `__bool__` — истинность, `__call__` — вызов как функции.",
@@ -1362,7 +1450,8 @@
                   "code": "class Task:\n    def __init__(self, name, priority):\n        self.name = name\n        self.priority = priority\n\n    def __lt__(self, other):\n        return self.priority < other.priority\n\ntasks = [Task(\"деплой\", 3), Task(\"баг\", 1), Task(\"ревью\", 2)]\nprint([t.name for t in sorted(tasks)])\nprint(max(tasks).name, Task(\"a\", 1) < Task(\"b\", 2))\n",
                   "expected_output": "['баг', 'ревью', 'деплой']\nдеплой True",
                   "hint": "sorted, min и max используют оператор <.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`__lt__` задаёт порядок — после этого работают `sorted`, `max` и `<`.\", \"lines\": [[\"return self.priority < other.priority\", \"Сравнение по приоритету.\"], [\"print(max(tasks).name, Task(\\\"a\\\", 1) < Task(\\\"b\\\", 2))\", \"`max` тоже использует `<`.\"]], \"mistake\": \"Ожидать ошибку от `max` — хватает `__lt__`.\"}"
                 },
                 {
                   "slug": "oop-compare-e2",
@@ -1371,7 +1460,8 @@
                   "code": "class Point:\n    def __init__(self, x, y):\n        self.x, self.y = x, y\n\n    def __eq__(self, other):\n        return (self.x, self.y) == (other.x, other.y)\n\nprint(Point(1, 2) == Point(1, 2), Point(1, 2) != Point(3, 4))\ntry:\n    {Point(1, 2)}\nexcept TypeError as e:\n    print(e)\n",
                   "expected_output": "True True\nunhashable type: 'Point'",
                   "hint": "Определив __eq__, класс теряет __hash__ по умолчанию.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Если определить `__eq__`, но не `__hash__`, объект становится нехешируемым — его нельзя положить в множество.\", \"lines\": [[\"print(Point(1, 2) == Point(1, 2), Point(1, 2) != Point(3, 4))\", \"`!=` работает через `__eq__`.\"], [\"{Point(1, 2)}\", \"`unhashable type`.\"]], \"mistake\": \"Ожидать, что множество создастся.\"}"
                 },
                 {
                   "slug": "oop-compare-e3",
@@ -1380,7 +1470,8 @@
                   "code": "from functools import total_ordering\n\n@total_ordering\nclass Grade:\n    def __init__(self, value):\n        self.value = value\n\n    def __eq__(self, other):\n        return self.value == other.value\n\n    def __lt__(self, other):\n        return self.value < other.value\n\na, b = Grade(4), Grade(5)\nprint(a < b, a <= b, a > b, a >= Grade(4), a != b)\n",
                   "expected_output": "True True False True True",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`@total_ordering` достраивает `<=`, `>`, `>=` из `__eq__` и `__lt__`.\", \"lines\": [[\"@total_ordering\", \"Декоратор класса.\"], [\"print(a < b, a <= b, a > b, a >= Grade(4), a != b)\", \"Все операторы работают.\"]], \"mistake\": \"Ожидать `TypeError` на `<=`.\"}"
                 },
                 {
                   "slug": "oop-compare-e4",
@@ -1390,7 +1481,8 @@
                   "tests": "def test_hash():\n    assert len({Point(1, 2), Point(1, 2), Point(3, 4)}) == 2, \"Множество\"\n    d = {Point(0, 0): \"начало\"}\n    assert d[Point(0, 0)] == \"начало\" and Point(1, 2) == Point(1, 2) and Point(1, 2) != Point(2, 1), \"Ключ словаря\"\n",
                   "solution": "class Point:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n\n    def __eq__(self, other):\n        return (self.x, self.y) == (other.x, other.y)\n\n    def __hash__(self):\n        return hash((self.x, self.y))\n",
                   "hint": "Равные объекты обязаны иметь одинаковый хеш: хешируй тот же кортеж, что сравниваешь.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Для множеств и ключей нужны оба: `__eq__` и согласованный с ним `__hash__`.\", \"lines\": [[\"return (self.x, self.y) == (other.x, other.y)\", \"Равенство.\"], [\"return hash((self.x, self.y))\", \"Хеш кортежа тех же полей.\"]], \"mistake\": \"Хешировать другие поля, чем сравниваешь, — равные объекты окажутся «разными».\"}"
                 },
                 {
                   "slug": "oop-compare-e5",
@@ -1400,7 +1492,8 @@
                   "tests": "def test_sort():\n    bugs = [Bug(\"a\", \"high\"), Bug(\"b\", \"low\"), Bug(\"c\", \"critical\"), Bug(\"d\", \"medium\")]\n    assert [b.title for b in sorted(bugs)] == [\"b\", \"d\", \"a\", \"c\"], \"Сортировка\"\n    assert Bug(\"x\", \"high\") >= Bug(\"y\", \"medium\") and Bug(\"x\", \"low\") <= Bug(\"y\", \"low\") and Bug(\"x\", \"low\") == Bug(\"y\", \"low\"), \"Операторы\"\n",
                   "solution": "from functools import total_ordering\n\nLEVELS = [\"low\", \"medium\", \"high\", \"critical\"]\n\n\n@total_ordering\nclass Bug:\n    def __init__(self, title, severity):\n        self.title = title\n        self.severity = severity\n\n    def rank(self):\n        return LEVELS.index(self.severity)\n\n    def __eq__(self, other):\n        return self.rank() == other.rank()\n\n    def __lt__(self, other):\n        return self.rank() < other.rank()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Место серьёзности в списке — число для сравнения. `@total_ordering` даёт остальные операторы.\", \"lines\": [[\"return LEVELS.index(self.severity)\", \"low → 0, critical → 3.\"], [\"return self.rank() < other.rank()\", \"`__lt__`.\"]], \"mistake\": \"Сравнивать строки severity — алфавитный порядок неверен.\"}"
                 },
                 {
                   "slug": "oop-compare-e6",
@@ -1410,7 +1503,8 @@
                   "tests": "def test_values():\n    us = [User(\"Вика\", 25), User(\"Аня\", 30), User(\"Боря\", 25)]\n    assert sort_users(us) == [\"Аня\", \"Боря\", \"Вика\"] and sort_users([]) == [], f\"Получено {sort_users(us)}\"\n",
                   "solution": "class User:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\ndef sort_users(users):\n    return [u.name for u in sorted(users, key=lambda u: (-u.age, u.name))]\n",
                   "hint": "key=lambda u: (-u.age, u.name)",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Если класс менять нельзя — порядок задают ключом `sorted`.\", \"lines\": [[\"return [u.name for u in sorted(users, key=lambda u: (-u.age, u.name))]\", \"Возраст по убыванию, имя по алфавиту.\"]], \"mistake\": \"`sorted(users)` — `TypeError`: объекты не сравниваются.\"}"
                 },
                 {
                   "slug": "oop-compare-e7",
@@ -1420,7 +1514,8 @@
                   "tests": "def test_money():\n    assert Money(5, \"RUB\") == Money(5, \"RUB\") and Money(5, \"RUB\") != Money(5, \"USD\") and Money(5, \"RUB\") != 5, \"==\"\n    assert Money(1, \"RUB\") < Money(2, \"RUB\"), \"<\"\n    try:\n        Money(1, \"RUB\") < Money(2, \"USD\")\n    except ValueError as e:\n        assert str(e) == \"разные валюты\", str(e)\n        return\n    assert False, \"Нужен ValueError\"\n",
                   "solution": "class Money:\n    def __init__(self, amount, currency):\n        self.amount = amount\n        self.currency = currency\n\n    def __eq__(self, other):\n        if not isinstance(other, Money):\n            return NotImplemented\n        return (self.amount, self.currency) == (other.amount, other.currency)\n\n    def __lt__(self, other):\n        if self.currency != other.currency:\n            raise ValueError(\"разные валюты\")\n        return self.amount < other.amount\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`NotImplemented` — сигнал «не умею сравнивать с этим типом»; Python тогда вернёт `False` для `==`.\", \"lines\": [[\"if not isinstance(other, Money):\\n            return NotImplemented\", \"Сравнение с чужим типом.\"], [\"if self.currency != other.currency:\\n            raise ValueError(\\\"разные валюты\\\")\", \"Рубли с долларами не сравнить.\"]], \"mistake\": \"`return False` вместо `NotImplemented` — работает, но Python не сможет попробовать сравнение с другой стороны.\"}"
                 },
                 {
                   "slug": "oop-compare-e8",
@@ -1430,7 +1525,8 @@
                   "tests": "def test_values():\n    us = [User(\"Аня\", \"A@x.ru\"), User(\"Аня2\", \"a@X.ru\"), User(\"Боря\", \"b@x.ru\")]\n    r = unique_users(us)\n    assert [u.name for u in r] == [\"Аня\", \"Боря\"], [u.name for u in r]\n    assert User(\"x\", \"Q@q.ru\") == User(\"y\", \"q@q.RU\") and len({User(\"x\", \"a@a\"), User(\"y\", \"A@A\")}) == 1, \"__eq__ и __hash__\"\n",
                   "solution": "class User:\n    def __init__(self, name, email):\n        self.name = name\n        self.email = email\n\n    def __eq__(self, other):\n        return self.email.lower() == other.email.lower()\n\n    def __hash__(self):\n        return hash(self.email.lower())\n\ndef unique_users(users):\n    seen = set()\n    result = []\n    for u in users:\n        if u not in seen:\n            seen.add(u)\n            result.append(u)\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Равенство и хеш по email в нижнем регистре — множество само определит дубли.\", \"lines\": [[\"return hash(self.email.lower())\", \"Согласовано с `__eq__`.\"], [\"if u not in seen:\", \"Использует `__hash__` и `__eq__`.\"]], \"mistake\": \"Хеш от email без `lower()` — одинаковые адреса попадут в разные «корзины».\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nОбъекты часто нужно сравнивать, сортировать, класть в множества и использовать как ключи словаря: убрать дубликаты пользователей, отсортировать баги по серьёзности, найти последнюю версию. Для этого у класса должны быть методы сравнения и хеш.\n\n## Операторы сравнения\n\n- `==` → `__eq__`, `!=` → `__ne__` (по умолчанию — «не `__eq__`»)\n- `<` → `__lt__` (less than), `<=` → `__le__`\n- `>` → `__gt__` (greater than), `>=` → `__ge__`\n\n```python\nclass Task:\n    def __init__(self, name, priority):\n        self.name = name\n        self.priority = priority\n\n    def __lt__(self, other):\n        return self.priority < other.priority\n\ntasks = [Task(\"деплой\", 3), Task(\"баг\", 1), Task(\"ревью\", 2)]\nprint([t.name for t in sorted(tasks)])\nprint(max(tasks).name, Task(\"a\", 1) > Task(\"b\", 2))\n```\n\n- `sorted`, `min`, `max` используют только `<` — достаточно `__lt__`.\n- `a > b` Python может выполнить как `b < a` — поэтому работает и `>`.\n- Вывод: `['баг', 'ревью', 'деплой']`, `деплой False`.\n\n## total_ordering: все операторы из двух\n\n```python\nfrom functools import total_ordering\n\n@total_ordering\nclass Grade:\n    def __init__(self, value):\n        self.value = value\n\n    def __eq__(self, other):\n        return self.value == other.value\n\n    def __lt__(self, other):\n        return self.value < other.value\n\na, b = Grade(4), Grade(5)\nprint(a < b, a <= b, a > b, a >= Grade(4), a != b)\n```\n\n- Декоратор `@total_ordering` досоздаёт `<=`, `>`, `>=` по `__eq__` и `__lt__`.\n- Вывод: `True True False True True`.\n\n## Сравнение по кортежу\n\n```python\nfrom functools import total_ordering\n\n@total_ordering\nclass Version:\n    def __init__(self, text):\n        self.parts = tuple(int(p) for p in text.split(\".\"))\n\n    def __eq__(self, other):\n        return self.parts == other.parts\n\n    def __lt__(self, other):\n        return self.parts < other.parts\n\nprint(Version(\"1.10.0\") > Version(\"1.9.3\"), Version(\"2.0\") == Version(\"2.0\"))\n```\n\n- Кортежи сравниваются поэлементно — удобная основа для сравнения объектов по нескольким полям.\n- `(1, 10, 0) > (1, 9, 3)`, потому что `10 > 9`. Строки `\"1.10\" < \"1.9\"` сравнились бы неправильно!\n- Вывод: `True True`.\n\n## NotImplemented\n\n```python\nclass Money:\n    def __init__(self, amount):\n        self.amount = amount\n\n    def __eq__(self, other):\n        if not isinstance(other, Money):\n            return NotImplemented\n        return self.amount == other.amount\n\nprint(Money(5) == Money(5), Money(5) == 5)\n```\n\n- Если тип другого объекта не подходит, верни `NotImplemented` (специальное значение, **не** исключение). Python попробует сравнение с другой стороны, а если и там не выйдет — для `==` вернёт `False`.\n- Без этой проверки `Money(5) == 5` упал бы с `AttributeError: 'int' object has no attribute 'amount'`.\n- Вывод: `True False`.\n\n## __hash__: объекты в множествах и словарях\n\n```python\nclass Point:\n    def __init__(self, x, y):\n        self.x, self.y = x, y\n\n    def __eq__(self, other):\n        return (self.x, self.y) == (other.x, other.y)\n\ntry:\n    {Point(1, 2)}\nexcept TypeError as e:\n    print(e)\n```\n\n- **Хеш** — число, по которому множество и словарь быстро находят элемент.\n- Правило: **равные объекты обязаны иметь одинаковый хеш**. Поэтому, если определить `__eq__`, Python отключает хеш по умолчанию.\n- Вывод: `unhashable type: 'Point'`.\n\n```python\nclass Point:\n    def __init__(self, x, y):\n        self.x, self.y = x, y\n\n    def __eq__(self, other):\n        return (self.x, self.y) == (other.x, other.y)\n\n    def __hash__(self):\n        return hash((self.x, self.y))\n\nprint(len({Point(1, 2), Point(1, 2), Point(3, 4)}))\nprint({Point(0, 0): \"начало\"}[Point(0, 0)])\n```\n\n- `hash((self.x, self.y))` — хешируем кортеж тех же полей, которые сравниваем.\n- Вывод: `2`, `начало`.\n- Осторожно: если поля объекта поменять после добавления в множество, он «потеряется». Хешируемые объекты лучше делать неизменяемыми.\n\n## Сортировка без методов сравнения\n\nЕсли класс менять нельзя или сортировка нужна «по-разному» — используй `key`:\n\n```python\nclass User:\n    def __init__(self, name, age):\n        self.name, self.age = name, age\n\nus = [User(\"Вика\", 25), User(\"Аня\", 30), User(\"Боря\", 25)]\nprint([u.name for u in sorted(us, key=lambda u: (-u.age, u.name))])\n```\n\n- `(-u.age, u.name)` — по возрасту по убыванию (минус), при равенстве — по имени.\n- Вывод: `['Аня', 'Боря', 'Вика']`.\n\n## Итог\n\n- `__lt__` достаточно для `sorted/min/max`; `@total_ordering` + `__eq__` + `__lt__` — все операторы.\n- Сравнивай кортежи полей.\n- Чужой тип → `return NotImplemented`.\n- `__eq__` без `__hash__` → объект нельзя класть в set/dict. Хешируй те же поля.",
@@ -1482,7 +1578,8 @@
                   "code": "class Temperature:\n    def __init__(self, celsius):\n        self.celsius = celsius\n\n    @property\n    def fahrenheit(self):\n        return self.celsius * 9 / 5 + 32\n\nt = Temperature(100)\nprint(t.fahrenheit)\nt.celsius = 0\nprint(t.fahrenheit)\n",
                   "expected_output": "212.0\n32.0",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`@property` — метод, который читается как атрибут и каждый раз пересчитывается.\", \"lines\": [[\"@property\\n    def fahrenheit(self):\", \"Без скобок при вызове.\"], [\"t.celsius = 0\", \"После изменения — новое значение.\"]], \"mistake\": \"Писать `t.fahrenheit()` — это уже не метод, а свойство.\"}"
                 },
                 {
                   "slug": "oop-m3-l2-e3",
@@ -1492,7 +1589,8 @@
                   "tests": "def test_from_string():\n    u = User.from_string(\"Аня,anna@mail.ru\")\n    assert isinstance(u, User) and u.name == \"Аня\" and u.email == \"anna@mail.ru\", \"from_string разбирает строку\"\n\ndef test_valid():\n    assert User.is_valid_email(\"a@b.c\") is True and User.is_valid_email(\"abc\") is False, \"is_valid_email проверяет @\"\n",
                   "solution": "class User:\n    def __init__(self, name, email):\n        self.name = name\n        self.email = email\n\n    @classmethod\n    def from_string(cls, text):\n        name, email = text.split(\",\")\n        return cls(name, email)\n\n    @staticmethod\n    def is_valid_email(email):\n        return \"@\" in email\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`@classmethod` получает класс (`cls`) и служит альтернативным конструктором. `@staticmethod` — обычная функция внутри класса.\", \"lines\": [[\"name, email = text.split(\\\",\\\")\", \"Разбор строки.\"], [\"return cls(name, email)\", \"Новый объект через `cls`.\"], [\"return \\\"@\\\" in email\", \"Ни `self`, ни `cls` не нужны.\"]], \"mistake\": \"`return User(...)` вместо `cls(...)` — наследники получат не свой класс.\"}"
                 },
                 {
                   "slug": "oop-m3-l2-e4",
@@ -1502,7 +1600,8 @@
                   "tests": "def test_ok():\n    p = Product(\"чай\", 100)\n    p.price = 150\n    assert p.price == 150, \"Цену можно менять\"\n\ndef test_negative():\n    p = Product(\"чай\", 100)\n    try:\n        p.price = -5\n    except ValueError:\n        pass\n    else:\n        assert False, \"Отрицательная цена должна давать ValueError\"\n    assert p.price == 100, \"Цена не должна измениться\"\n\ndef test_init():\n    try:\n        Product(\"чай\", -1)\n    except ValueError:\n        return\n    assert False, \"Проверка должна работать и в конструкторе\"\n",
                   "solution": "class Product:\n    def __init__(self, name, price):\n        self.name = name\n        self.price = price\n\n    @property\n    def price(self):\n        return self._price\n\n    @price.setter\n    def price(self, value):\n        if value < 0:\n            raise ValueError(\"Цена не может быть отрицательной\")\n        self._price = value\n",
                   "hint": "`@property def price(self)` + `@price.setter def price(self, value)`. Присваивание в `__init__` тоже пройдёт через setter.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Свойство с setter перехватывает присваивание — и в конструкторе тоже, потому что там стоит `self.price = price`.\", \"lines\": [[\"return self._price\", \"Настоящее значение — в «скрытом» атрибуте.\"], [\"if value < 0:\\n            raise ValueError(\\\"Цена не может быть отрицательной\\\")\", \"Проверка при записи.\"]], \"mistake\": \"В setter писать `self.price = value` — бесконечная рекурсия.\"}"
                 },
                 {
                   "slug": "oop-m3-l2-e6",
@@ -1511,7 +1610,8 @@
                   "code": "class Circle:\n    def __init__(self, r):\n        self.r = r\n\n    @property\n    def diameter(self):\n        return self.r * 2\n\nc = Circle(5)\nprint(c.diameter)\nc.r = 10\nprint(c.diameter)\ntry:\n    c.diameter = 1\nexcept AttributeError:\n    print(\"нельзя\")\n",
                   "expected_output": "10\n20\nнельзя",
                   "hint": "Свойство без setter нельзя присвоить.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Свойство без setter — только для чтения, но значение пересчитывается при изменении исходных данных.\", \"lines\": [[\"c.r = 10\", \"Диаметр станет 20.\"], [\"c.diameter = 1\", \"Присвоить нельзя — `AttributeError`.\"]], \"mistake\": \"Ожидать, что `diameter` запомнил 10.\"}"
                 },
                 {
                   "slug": "oop-m3-l2-e7",
@@ -1520,7 +1620,8 @@
                   "code": "class Pizza:\n    count = 0\n\n    def __init__(self, toppings):\n        self.toppings = toppings\n        Pizza.count += 1\n\n    @classmethod\n    def margherita(cls):\n        return cls([\"сыр\", \"томаты\"])\n\n    @staticmethod\n    def is_valid(topping):\n        return topping != \"ананас\"\n\np = Pizza.margherita()\nprint(p.toppings, Pizza.count)\nprint(Pizza.is_valid(\"ананас\"), p.is_valid(\"сыр\"))\n",
                   "expected_output": "['сыр', 'томаты'] 1\nFalse True",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`classmethod` создаёт объект через `cls` — счётчик в `__init__` сработал. `staticmethod` вызывается и через класс, и через объект.\", \"lines\": [[\"return cls([\\\"сыр\\\", \\\"томаты\\\"])\", \"Альтернативный конструктор.\"], [\"print(Pizza.is_valid(\\\"ананас\\\"), p.is_valid(\\\"сыр\\\"))\", \"`False True`.\"]], \"mistake\": \"Ожидать `count` = 0 — объект создан через `__init__`.\"}"
                 },
                 {
                   "slug": "oop-m3-l2-e8",
@@ -1530,7 +1631,8 @@
                   "tests": "def test_password():\n    p = Password(\"secret123\")\n    assert p.value == \"*********\" and p.check(\"secret123\") and not p.check(\"x\"), \"getter и check\"\n    p.value = \"newpassword\"\n    assert p.check(\"newpassword\"), \"setter\"\n    for bad in [lambda: Password(\"123\"), lambda: setattr(p, \"value\", \"short\")]:\n        try:\n            bad()\n        except ValueError as e:\n            assert str(e) == \"слишком короткий\", str(e)\n        else:\n            assert False, \"Нужен ValueError\"\n    assert p.check(\"newpassword\"), \"Неудачное присваивание не меняет пароль\"\n",
                   "solution": "class Password:\n    def __init__(self, value):\n        self.value = value\n\n    @property\n    def value(self):\n        return \"*\" * len(self._value)\n\n    @value.setter\n    def value(self, new):\n        if len(new) < 8:\n            raise ValueError(\"слишком короткий\")\n        self._value = new\n\n    def check(self, guess):\n        return guess == self._value\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Getter скрывает пароль, setter проверяет длину, а настоящее значение лежит в `_value`.\", \"lines\": [[\"return \\\"*\\\" * len(self._value)\", \"Наружу — только звёздочки.\"], [\"if len(new) < 8:\\n            raise ValueError(\\\"слишком короткий\\\")\", \"Проверка и в конструкторе.\"], [\"return guess == self._value\", \"Сравнение с настоящим.\"]], \"mistake\": \"В `check` сравнивать с `self.value` — это звёздочки.\"}"
                 },
                 {
                   "slug": "oop-m3-l2-e9",
@@ -1540,7 +1642,8 @@
                   "tests": "def test_color():\n    c = Color.from_hex(\"#ff8000\")\n    assert (c.r, c.g, c.b) == (255, 128, 0) and isinstance(c, Color), \"from_hex\"\n    g = Color.gray(300)\n    assert (g.r, g.g, g.b) == (255, 255, 255), \"gray + clamp\"\n    assert Color.clamp(-5) == 0 and Color.clamp(100) == 100, \"clamp\"\n",
                   "solution": "class Color:\n    def __init__(self, r, g, b):\n        self.r = Color.clamp(r)\n        self.g = Color.clamp(g)\n        self.b = Color.clamp(b)\n\n    @classmethod\n    def from_hex(cls, code):\n        code = code.lstrip(\"#\")\n        return cls(int(code[0:2], 16), int(code[2:4], 16), int(code[4:6], 16))\n\n    @classmethod\n    def gray(cls, v):\n        return cls(v, v, v)\n\n    @staticmethod\n    def clamp(x):\n        return max(0, min(255, x))\n",
                   "hint": "int('ff', 16) == 255",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Два альтернативных конструктора через `cls` и `staticmethod` для зажима значений.\", \"lines\": [[\"code = code.lstrip(\\\"#\\\")\", \"Убираем решётку.\"], [\"return cls(int(code[0:2], 16), int(code[2:4], 16), int(code[4:6], 16))\", \"Пары шестнадцатеричных цифр.\"], [\"return max(0, min(255, x))\", \"Диапазон 0–255.\"]], \"mistake\": \"`int(code[0:2])` без основания 16 — `ff` не разберётся.\"}"
                 },
                 {
                   "slug": "oop-m3-l2-e10",
@@ -1550,7 +1653,8 @@
                   "tests": "def test_rect():\n    r = Rectangle(2, 3)\n    assert r.area == 6 and not r.is_square, \"area и is_square\"\n    r.width = 3\n    assert r.area == 9 and r.is_square, \"После изменения ширины\"\n    try:\n        r.width = -1\n    except ValueError:\n        assert r.width == 3, \"Ширина не меняется\"\n        return\n    assert False, \"Нужен ValueError\"\n",
                   "solution": "class Rectangle:\n    def __init__(self, width, height):\n        self.width = width\n        self.height = height\n\n    @property\n    def width(self):\n        return self._width\n\n    @width.setter\n    def width(self, value):\n        if value < 0:\n            raise ValueError(\"отрицательная ширина\")\n        self._width = value\n\n    @property\n    def area(self):\n        return self.width * self.height\n\n    @property\n    def is_square(self):\n        return self.width == self.height\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Вычисляемые свойства не хранятся, а считаются из актуальных данных.\", \"lines\": [[\"if value < 0:\\n            raise ValueError(\\\"отрицательная ширина\\\")\", \"Setter ширины.\"], [\"return self.width * self.height\", \"`area`.\"], [\"return self.width == self.height\", \"`is_square`.\"]], \"mistake\": \"Сохранить `area` в `__init__` — после изменения ширины станет устаревшим.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nТри декоратора делают классы удобнее:\n\n- `@property` — метод, который выглядит как атрибут: можно проверять присваивания и вычислять значения на лету;\n- `@classmethod` — метод класса, чаще всего — альтернативный конструктор (`User.from_string(\"...\")`);\n- `@staticmethod` — обычная функция, которую логично держать внутри класса.\n\n## property: вычисляемый атрибут\n\n```python\nclass Circle:\n    def __init__(self, r):\n        self.r = r\n\n    @property\n    def diameter(self):\n        return self.r * 2\n\nc = Circle(5)\nprint(c.diameter)\nc.r = 10\nprint(c.diameter)\ntry:\n    c.diameter = 1\nexcept AttributeError:\n    print(\"нельзя\")\n```\n\n- `@property` над методом — к нему обращаются **без скобок**: `c.diameter`.\n- Значение каждый раз вычисляется заново, поэтому после `c.r = 10` оно актуально (в отличие от атрибута, посчитанного в `__init__`).\n- Без setter свойство только для чтения → `AttributeError` при присваивании.\n- Вывод: `10`, `20`, `нельзя`.\n\n## setter: проверка при присваивании\n\n```python\nclass Product:\n    def __init__(self, price):\n        self.price = price\n\n    @property\n    def price(self):\n        return self._price\n\n    @price.setter\n    def price(self, value):\n        if value < 0:\n            raise ValueError(\"цена < 0\")\n        self._price = value\n\np = Product(100)\np.price = 150\nprint(p.price)\ntry:\n    p.price = -5\nexcept ValueError as e:\n    print(e, p.price)\n```\n\n- `@price.setter` — метод, который вызывается при `p.price = ...`.\n- Настоящее значение хранится в `self._price`. Подчёркивание в начале — соглашение «внутреннее, не трогай снаружи». Если бы setter писал в `self.price`, он вызвал бы сам себя бесконечно.\n- `self.price = price` в `__init__` тоже проходит через setter — проверка работает и при создании.\n- Вывод: `150`, `цена < 0 150`.\n\n## Соглашения об именах\n\n- `name` — публичный атрибут.\n- `_name` — внутренний: снаружи использовать можно, но не принято.\n- `__name` — Python переименовывает его в `_Класс__name`, чтобы потомки случайно не перезаписали. Нужно редко.\n\n## classmethod: альтернативный конструктор\n\n```python\nclass Pizza:\n    count = 0\n\n    def __init__(self, toppings):\n        self.toppings = toppings\n        Pizza.count += 1\n\n    @classmethod\n    def margherita(cls):\n        return cls([\"сыр\", \"томаты\"])\n\n    @staticmethod\n    def is_valid(topping):\n        return topping != \"ананас\"\n\np = Pizza.margherita()\nprint(p.toppings, Pizza.count)\nprint(Pizza.is_valid(\"ананас\"), p.is_valid(\"сыр\"))\n```\n\n- `@classmethod` получает первым параметром не объект, а **класс** — его называют `cls`.\n- `cls([...])` создаёт объект. Почему `cls`, а не `Pizza`? Если потомок вызовет `Потомок.margherita()`, создастся объект потомка.\n- `@staticmethod` не получает ни `self`, ни `cls` — это обычная функция в «пространстве имён» класса. Вызывается и через класс, и через объект.\n- Вывод: `['сыр', 'томаты'] 1`, `False True`.\n\n## Классический пример: из строки\n\n```python\nclass User:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\n    @classmethod\n    def from_string(cls, text):\n        name, age = text.split(\",\")\n        return cls(name.strip(), int(age))\n\nu = User.from_string(\"Аня, 30\")\nprint(u.name, u.age)\n```\n\n- Разбор строки спрятан в классе — снаружи одна понятная строчка.\n- Так устроены `dict.fromkeys`, `datetime.fromisoformat`, `int.from_bytes`.\n- Вывод: `Аня 30`.\n\n## Итог\n\n- `@property` — вычисление без скобок; `@x.setter` — проверка присваивания, значение в `self._x`.\n- `@classmethod` (`cls`) — альтернативные конструкторы и работа с атрибутами класса.\n- `@staticmethod` — функция без `self`/`cls`, логически относящаяся к классу.",
@@ -1602,7 +1706,8 @@
                   "code": "from dataclasses import dataclass\n\n@dataclass\nclass Point:\n    x: int\n    y: int = 0\n\np = Point(3)\nprint(p)\nprint(p == Point(3, 0))\n",
                   "expected_output": "Point(x=3, y=0)\nTrue",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`@dataclass` по аннотациям полей сам пишет `__init__`, `__repr__` и `__eq__`.\", \"lines\": [[\"y: int = 0\", \"Значение по умолчанию.\"], [\"print(p == Point(3, 0))\", \"Сравнение по полям.\"]], \"mistake\": \"Ожидать `False` — `__eq__` сгенерирован.\"}"
                 },
                 {
                   "slug": "oop-m3-l2-e5",
@@ -1612,7 +1717,8 @@
                   "tests": "from dataclasses import is_dataclass\n\ndef test_dataclass():\n    assert is_dataclass(TestResult), \"TestResult должен быть @dataclass\"\n    r = TestResult(\"login\", True)\n    assert r.duration == 0.0, \"duration по умолчанию 0.0\"\n    assert r == TestResult(\"login\", True, 0.0), \"dataclass сам умеет сравнивать\"\n\ndef test_status():\n    assert TestResult(\"a\", True).status() == \"✅ a\" and TestResult(\"b\", False).status() == \"❌ b\", \"status()\"\n",
                   "solution": "from dataclasses import dataclass\n\n@dataclass\nclass TestResult:\n    name: str\n    passed: bool\n    duration: float = 0.0\n\n    def status(self):\n        return f\"{'✅' if self.passed else '❌'} {self.name}\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Поля — аннотациями, методы — как обычно.\", \"lines\": [[\"duration: float = 0.0\", \"Поле с умолчанием — после обязательных.\"], [\"return f\\\"{'✅' if self.passed else '❌'} {self.name}\\\"\", \"Иконка по результату.\"]], \"mistake\": \"Поставить поле с умолчанием раньше обязательного — `TypeError`.\"}"
                 },
                 {
                   "slug": "oop-dataclass-e1",
@@ -1621,7 +1727,8 @@
                   "code": "from dataclasses import dataclass, field\n\n@dataclass\nclass Order:\n    id: int\n    items: list = field(default_factory=list)\n    status: str = \"new\"\n\na = Order(1)\nb = Order(2, status=\"paid\")\na.items.append(\"чай\")\nprint(a)\nprint(b)\n",
                   "expected_output": "Order(id=1, items=['чай'], status='new')\nOrder(id=2, items=[], status='paid')",
                   "hint": "default_factory создаёт новый список для каждого объекта.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Изменяемое значение по умолчанию задают через `field(default_factory=list)` — у каждого объекта свой список.\", \"lines\": [[\"items: list = field(default_factory=list)\", \"Новый список на каждый объект.\"], [\"a.items.append(\\\"чай\\\")\", \"У `b` пусто.\"]], \"mistake\": \"`items: list = []` — dataclass не даст так сделать (`ValueError`).\"}"
                 },
                 {
                   "slug": "oop-dataclass-e2",
@@ -1630,7 +1737,8 @@
                   "code": "from dataclasses import dataclass\n\n@dataclass(frozen=True, order=True)\nclass Version:\n    major: int\n    minor: int\n\nvs = [Version(1, 10), Version(1, 2), Version(0, 9)]\nprint(sorted(vs)[0], max(vs))\ntry:\n    vs[0].major = 2\nexcept Exception as e:\n    print(type(e).__name__)\nprint(len({Version(1, 0), Version(1, 0)}))\n",
                   "expected_output": "Version(major=0, minor=9) Version(major=1, minor=10)\nFrozenInstanceError\n1",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`order=True` добавляет сравнение по полям в порядке объявления, `frozen=True` запрещает изменения и делает объект хешируемым.\", \"lines\": [[\"print(sorted(vs)[0], max(vs))\", \"(0, 9) — минимум, (1, 10) — максимум.\"], [\"vs[0].major = 2\", \"`FrozenInstanceError`.\"], [\"print(len({Version(1, 0), Version(1, 0)}))\", \"Равные — одна запись.\"]], \"mistake\": \"Ожидать `Version(1, 2)` максимумом — 10 > 2.\"}"
                 },
                 {
                   "slug": "oop-dataclass-e3",
@@ -1639,7 +1747,8 @@
                   "code": "from dataclasses import dataclass, asdict, replace\n\n@dataclass\nclass User:\n    name: str\n    age: int\n\nu = User(\"Аня\", 30)\nu2 = replace(u, age=31)\nprint(asdict(u), u2)\nprint(u == User(\"Аня\", 30), u == u2)\n",
                   "expected_output": "{'name': 'Аня', 'age': 30} User(name='Аня', age=31)\nTrue False",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`asdict` — объект в словарь, `replace` — копия с изменёнными полями.\", \"lines\": [[\"u2 = replace(u, age=31)\", \"Исходный не меняется.\"], [\"print(u == User(\\\"Аня\\\", 30), u == u2)\", \"Сравнение по полям.\"]], \"mistake\": \"Ожидать, что `u` стал 31.\"}"
                 },
                 {
                   "slug": "oop-dataclass-e5",
@@ -1649,7 +1758,8 @@
                   "tests": "def test_range():\n    assert Range(2, 5).length == 3 and Range(1, 1).length == 0, \"length\"\n    try:\n        Range(5, 2)\n    except ValueError as e:\n        assert str(e) == \"start > stop\", str(e)\n        return\n    assert False, \"Нужен ValueError\"\n",
                   "solution": "from dataclasses import dataclass\n\n\n@dataclass\nclass Range:\n    start: int\n    stop: int\n\n    def __post_init__(self):\n        if self.start > self.stop:\n            raise ValueError(\"start > stop\")\n\n    @property\n    def length(self):\n        return self.stop - self.start\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`__post_init__` вызывается после сгенерированного `__init__` — место для проверок.\", \"lines\": [[\"if self.start > self.stop:\\n            raise ValueError(\\\"start > stop\\\")\", \"Проверка после создания.\"], [\"return self.stop - self.start\", \"Свойство `length`.\"]], \"mistake\": \"Писать свой `__init__` — dataclass его перезапишет или придётся дублировать поля.\"}"
                 },
                 {
                   "slug": "oop-dataclass-e6",
@@ -1659,7 +1769,8 @@
                   "tests": "def test_coords():\n    cs = [Coord(55.7, 37.6), Coord(55.7, 37.6), Coord(59.9, 30.3)]\n    assert unique_coords(cs) == 2 and unique_coords([]) == 0, \"Подсчёт\"\n    try:\n        cs[0].lat = 0\n    except AttributeError:\n        return\n    assert False, \"Coord должен быть frozen\"\n",
                   "solution": "from dataclasses import dataclass\n\n\n@dataclass(frozen=True)\nclass Coord:\n    lat: float\n    lon: float\n\n\ndef unique_coords(coords):\n    return len(set(coords))\n",
                   "hint": "FrozenInstanceError — наследник AttributeError.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Замороженный dataclass хешируемый — его можно класть в множество.\", \"lines\": [[\"@dataclass(frozen=True)\", \"Неизменяемый и хешируемый.\"], [\"return len(set(coords))\", \"Одинаковые координаты сольются.\"]], \"mistake\": \"Без `frozen` — `unhashable type`.\"}"
                 },
                 {
                   "slug": "oop-dataclass-e7",
@@ -1669,7 +1780,8 @@
                   "tests": "def test_plan():\n    ts = [Task(2, \"ревью\"), Task(1, \"баг\"), Task(2, \"деплой\")]\n    assert plan(ts) == [\"баг\", \"деплой\", \"ревью\"] and plan([]) == [], f\"Получено {plan(ts)}\"\n    assert \"key=\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Без key=\"\n",
                   "solution": "from dataclasses import dataclass\n\n\n@dataclass(order=True)\nclass Task:\n    priority: int\n    title: str\n\n\ndef plan(tasks):\n    return [t.title for t in sorted(tasks)]\n",
                   "hint": "order=True сравнивает объекты как кортежи полей по порядку.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`order=True` сравнивает поля по порядку объявления: сначала `priority`, потом `title`.\", \"lines\": [[\"priority: int\\n    title: str\", \"Порядок полей важен.\"], [\"return [t.title for t in sorted(tasks)]\", \"Без `key=`.\"]], \"mistake\": \"Объявить `title` первым — сортировка пойдёт по алфавиту.\"}"
                 },
                 {
                   "slug": "oop-dataclass-e8",
@@ -1679,7 +1791,8 @@
                   "tests": "def test_roundtrip():\n    data = [{\"name\": \"Аня\", \"age\": 30, \"extra\": 1}, {\"name\": \"Боря\", \"age\": 25}]\n    us = users_from_json(data)\n    assert us == [User(\"Аня\", 30), User(\"Боря\", 25)], \"users_from_json\"\n    assert users_to_json(us) == [{\"name\": \"Аня\", \"age\": 30}, {\"name\": \"Боря\", \"age\": 25}], \"users_to_json\"\n",
                   "solution": "from dataclasses import dataclass, asdict\n\n\n@dataclass\nclass User:\n    name: str\n    age: int\n\n\ndef users_from_json(data):\n    return [User(d[\"name\"], d[\"age\"]) for d in data]\n\n\ndef users_to_json(users):\n    return [asdict(u) for u in users]\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Из словаря берём только нужные поля, обратно — `asdict`.\", \"lines\": [[\"return [User(d[\\\"name\\\"], d[\\\"age\\\"]) for d in data]\", \"Лишние ключи игнорируются.\"], [\"return [asdict(u) for u in users]\", \"Обратно в словари.\"]], \"mistake\": \"`User(**d)` — упадёт на лишних ключах.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nМногие классы просто хранят данные: пользователь, заказ, результат теста. Для них приходится писать однообразный `__init__`, `__repr__`, `__eq__`. Декоратор `@dataclass` генерирует всё это автоматически по списку полей.\n\n## Первый dataclass\n\n```python\nfrom dataclasses import dataclass\n\n@dataclass\nclass Point:\n    x: int\n    y: int = 0\n\np = Point(1, 2)\nprint(p, Point(5))\nprint(p == Point(1, 2))\np.x = 10\nprint(p.x)\n```\n\n- `x: int` — **аннотация типа**: поле `x`, ожидается `int`. Python тип **не проверяет** — это подсказка для людей и редакторов.\n- `y: int = 0` — поле со значением по умолчанию. Поля с умолчанием должны идти **после** полей без него.\n- `@dataclass` создал `__init__(self, x, y=0)`, `__repr__` и `__eq__` (сравнение всех полей по порядку).\n- Вывод: `Point(x=1, y=2) Point(x=5, y=0)`, `True`, `10`.\n\n## Списки по умолчанию: field(default_factory=...)\n\n```python\nfrom dataclasses import dataclass, field\n\n@dataclass\nclass Order:\n    id: int\n    items: list = field(default_factory=list)\n    status: str = \"new\"\n\na = Order(1)\nb = Order(2, status=\"paid\")\na.items.append(\"чай\")\nprint(a)\nprint(b)\n```\n\n- Писать `items: list = []` нельзя — dataclass выдаст `ValueError`, защищая от общего списка.\n- `field(default_factory=list)` — вызывать `list()` для каждого нового объекта.\n- Вывод: `Order(id=1, items=['чай'], status='new')`, `Order(id=2, items=[], status='paid')`.\n\n## Проверка в __post_init__\n\n```python\nfrom dataclasses import dataclass\n\n@dataclass\nclass Range:\n    start: int\n    stop: int\n\n    def __post_init__(self):\n        if self.start > self.stop:\n            raise ValueError(\"start > stop\")\n\n    @property\n    def length(self):\n        return self.stop - self.start\n\nprint(Range(2, 5).length)\ntry:\n    Range(5, 2)\nexcept ValueError as e:\n    print(e)\n```\n\n- `__init__` генерируется автоматически, но после него dataclass вызывает `__post_init__` — место для проверок и вычислений.\n- В dataclass можно добавлять любые методы и свойства, как в обычный класс.\n- Вывод: `3`, `start > stop`.\n\n## frozen и order\n\n```python\nfrom dataclasses import dataclass\n\n@dataclass(frozen=True, order=True)\nclass Version:\n    major: int\n    minor: int\n\nvs = [Version(1, 10), Version(1, 2), Version(0, 9)]\nprint(sorted(vs)[0], max(vs))\ntry:\n    vs[0].major = 2\nexcept Exception as e:\n    print(type(e).__name__)\nprint(len({Version(1, 0), Version(1, 0)}))\n```\n\n- `order=True` — генерирует `<`, `<=`, `>`, `>=`: сравнение как кортежей полей по порядку объявления.\n- `frozen=True` — объект неизменяемый: присваивание → `FrozenInstanceError` (потомок `AttributeError`). Зато появляется `__hash__` — можно класть в множество.\n- Вывод: `Version(major=0, minor=9) Version(major=1, minor=10)`, `FrozenInstanceError`, `1`.\n\n## asdict и replace\n\n```python\nfrom dataclasses import dataclass, asdict, replace\n\n@dataclass\nclass User:\n    name: str\n    age: int\n\nu = User(\"Аня\", 30)\nu2 = replace(u, age=31)\nprint(asdict(u), u2)\nprint(u == User(\"Аня\", 30), u == u2)\n```\n\n- `asdict(obj)` — словарь полей (удобно для `json.dumps` и тел запросов).\n- `replace(obj, поле=...)` — **копия** с изменёнными полями; исходный объект не меняется.\n- Вывод: `{'name': 'Аня', 'age': 30} User(name='Аня', age=31)`, `True False`.\n\n## Из JSON в объекты\n\n```python\nfrom dataclasses import dataclass\n\n@dataclass\nclass User:\n    name: str\n    age: int\n\ndata = [{\"name\": \"Аня\", \"age\": 30}, {\"name\": \"Боря\", \"age\": 25}]\nusers = [User(**d) for d in data]\nprint(users[1])\n```\n\n- `User(**d)` — распаковать словарь в именованные аргументы. Лишний ключ в словаре вызовет `TypeError`, тогда передавай поля явно: `User(d[\"name\"], d[\"age\"])`.\n- Вывод: `User(name='Боря', age=25)`.\n\n## Итог\n\n- `@dataclass` + аннотации полей → `__init__`, `__repr__`, `__eq__` автоматически.\n- Списки/словари — через `field(default_factory=list)`.\n- `__post_init__` — проверки; `frozen=True` — неизменяемый и хешируемый; `order=True` — сравнения.\n- `asdict`, `replace`, `User(**d)`.",
@@ -1731,7 +1844,8 @@
                   "code": "class FakeDriver:\n    def __init__(self):\n        self.actions = []\n\n    def type(self, selector, text):\n        self.actions.append(f\"type {selector}={text}\")\n\n    def click(self, selector):\n        self.actions.append(f\"click {selector}\")\n\nclass LoginPage:\n    LOGIN = \"#login\"\n    PASSWORD = \"#password\"\n    SUBMIT = \"button[type=submit]\"\n\n    def __init__(self, driver):\n        self.driver = driver\n\n    def login(self, user, password):\n        self.driver.type(self.LOGIN, user)\n        self.driver.type(self.PASSWORD, password)\n        self.driver.click(self.SUBMIT)\n\nd = FakeDriver()\nLoginPage(d).login(\"anna\", \"123\")\nfor a in d.actions:\n    print(a)\n",
                   "expected_output": "type #login=anna\ntype #password=123\nclick button[type=submit]",
                   "hint": "Page Object прячет селекторы внутри класса страницы — тест вызывает только login().",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Page Object: селекторы и действия страницы собраны в классе, тест вызывает понятный метод `login`. Драйвер можно подменить фейком.\", \"lines\": [[\"LOGIN = \\\"#login\\\"\", \"Селекторы — в одном месте.\"], [\"self.driver.type(self.LOGIN, user)\", \"Действия через драйвер.\"]], \"mistake\": \"Писать селекторы прямо в тестах — при изменении вёрстки придётся править все тесты.\"}"
                 },
                 {
                   "slug": "oop-pom-e2",
@@ -1740,7 +1854,8 @@
                   "code": "class ApiClient:\n    def __init__(self, base_url, token=None):\n        self.base_url = base_url.rstrip(\"/\")\n        self.token = token\n\n    def url(self, path):\n        return f\"{self.base_url}/{path.lstrip('/')}\"\n\n    def headers(self):\n        h = {\"Content-Type\": \"application/json\"}\n        if self.token:\n            h[\"Authorization\"] = f\"Bearer {self.token}\"\n        return h\n\nc = ApiClient(\"https://api.test/\", token=\"t1\")\nprint(c.url(\"/users/1\"))\nprint(c.headers())\nprint(ApiClient(\"http://x\").headers())\n",
                   "expected_output": "https://api.test/users/1\n{'Content-Type': 'application/json', 'Authorization': 'Bearer t1'}\n{'Content-Type': 'application/json'}",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"API-клиент прячет склейку адресов и заголовки авторизации.\", \"lines\": [[\"self.base_url = base_url.rstrip(\\\"/\\\")\", \"Без слэша в конце.\"], [\"return f\\\"{self.base_url}/{path.lstrip('/')}\\\"\", \"Ровно один слэш.\"], [\"if self.token:\", \"Токена нет — без Authorization.\"]], \"mistake\": \"Склеивать как есть — получится `//users`.\"}"
                 },
                 {
                   "slug": "oop-pom-e3",
@@ -1749,7 +1864,8 @@
                   "code": "class BasePage:\n    url = \"/\"\n\n    def open(self):\n        return f\"открыта {self.url}\"\n\nclass CartPage(BasePage):\n    url = \"/cart\"\n\nclass ProfilePage(BasePage):\n    url = \"/profile\"\n\n    def open(self):\n        return super().open() + \" (нужен вход)\"\n\nfor page in [BasePage(), CartPage(), ProfilePage()]:\n    print(page.open())\n",
                   "expected_output": "открыта /\nоткрыта /cart\nоткрыта /profile (нужен вход)",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Наследники базовой страницы меняют только `url`, а при необходимости дополняют поведение через `super()`.\", \"lines\": [[\"url = \\\"/cart\\\"\", \"Своё значение атрибута класса.\"], [\"return super().open() + \\\" (нужен вход)\\\"\", \"Дополнение.\"]], \"mistake\": \"Ожидать `/` у CartPage.\"}"
                 },
                 {
                   "slug": "oop-pom-e4",
@@ -1759,7 +1875,8 @@
                   "tests": "def test_page():\n    class D:\n        def __init__(self):\n            self.log = []\n        def type(self, s, t):\n            self.log.append((\"type\", s, t))\n        def click(self, s):\n            self.log.append((\"click\", s))\n        def find_all(self, s):\n            return [s + \"1\", s + \"2\"]\n    d = D()\n    page = SearchPage(d)\n    assert page.search(\"python\") is page, \"search возвращает self\"\n    assert d.log == [(\"type\", \"#q\", \"python\"), (\"click\", \"#go\")], f\"Действия: {d.log}\"\n    assert page.results() == [\".result1\", \".result2\"] and SearchPage.INPUT == \"#q\", \"results и селекторы\"\n",
                   "solution": "class SearchPage:\n    INPUT = \"#q\"\n    BUTTON = \"#go\"\n\n    def __init__(self, driver):\n        self.driver = driver\n\n    def search(self, text):\n        self.driver.type(self.INPUT, text)\n        self.driver.click(self.BUTTON)\n        return self\n\n    def results(self):\n        return self.driver.find_all(\".result\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Методы Page Object возвращают `self`, чтобы шаги можно было цеплять.\", \"lines\": [[\"self.driver.type(self.INPUT, text)\\n        self.driver.click(self.BUTTON)\\n        return self\", \"Ввод, клик, объект для цепочки.\"], [\"return self.driver.find_all(\\\".result\\\")\", \"Результаты.\"]], \"mistake\": \"Использовать `INPUT` без `self.` внутри метода — `NameError`.\"}"
                 },
                 {
                   "slug": "oop-pom-e5",
@@ -1769,7 +1886,8 @@
                   "tests": "def test_client():\n    class S:\n        def __init__(self):\n            self.calls = []\n        def request(self, method, url, json=None):\n            self.calls.append((method, url, json))\n            return {\"ok\": True}\n    s = S()\n    c = ApiClient(\"https://api.test/\", s)\n    assert c.get_user(7) == {\"ok\": True}, \"Ответ сессии\"\n    c.post(\"/users\", {\"name\": \"Аня\"})\n    assert s.calls == [(\"GET\", \"https://api.test/users/7\", None), (\"POST\", \"https://api.test/users\", {\"name\": \"Аня\"})], f\"Вызовы: {s.calls}\"\n",
                   "solution": "class ApiClient:\n    def __init__(self, base_url, session):\n        self.base_url = base_url.rstrip(\"/\")\n        self.session = session\n\n    def get(self, path):\n        return self.session.request(\"GET\", self.base_url + path)\n\n    def post(self, path, data):\n        return self.session.request(\"POST\", self.base_url + path, json=data)\n\n    def get_user(self, user_id):\n        return self.get(f\"/users/{user_id}\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Клиент получает сессию снаружи — в тестах её легко заменить фейком.\", \"lines\": [[\"return self.session.request(\\\"GET\\\", self.base_url + path)\", \"Полный адрес.\"], [\"return self.session.request(\\\"POST\\\", self.base_url + path, json=data)\", \"Тело — по имени.\"], [\"return self.get(f\\\"/users/{user_id}\\\")\", \"Удобный метод поверх `get`.\"]], \"mistake\": \"Создавать сессию внутри клиента — подменить не выйдет.\"}"
                 },
                 {
                   "slug": "oop-pom-e6",
@@ -1779,7 +1897,8 @@
                   "tests": "def test_factory():\n    f = UserFactory()\n    assert f.create() == {\"id\": 1, \"name\": \"user_1\", \"email\": \"user_1@test.ru\", \"active\": True}, \"Первый\"\n    assert f.create(active=False)[\"active\"] is False, \"overrides\"\n    many = f.create_many(2)\n    assert [u[\"id\"] for u in many] == [3, 4], \"Номера продолжаются\"\n    assert UserFactory().create()[\"id\"] == 1, \"У новой фабрики свой счётчик\"\n",
                   "solution": "class UserFactory:\n    def __init__(self):\n        self.counter = 0\n\n    def create(self, **overrides):\n        self.counter += 1\n        n = self.counter\n        user = {\"id\": n, \"name\": f\"user_{n}\", \"email\": f\"user_{n}@test.ru\", \"active\": True}\n        user.update(overrides)\n        return user\n\n    def create_many(self, n):\n        return [self.create() for _ in range(n)]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Фабрика тестовых данных: счётчик у каждого объекта фабрики свой, поля можно переопределить.\", \"lines\": [[\"self.counter += 1\", \"Следующий номер.\"], [\"user.update(overrides)\", \"Переопределения важнее.\"], [\"return [self.create() for _ in range(n)]\", \"Пачка пользователей.\"]], \"mistake\": \"Счётчик атрибутом класса — фабрики будут делить номера.\"}"
                 },
                 {
                   "slug": "oop-pom-e7",
@@ -1789,7 +1908,8 @@
                   "tests": "def test_response():\n    r = Response(201, {\"id\": 1})\n    assert r.ok and not Response(404, {}).ok and r.json() == {\"id\": 1}, \"ok и json\"\n    assert r.assert_status(201).assert_has(\"id\") is r, \"Цепочка\"\n    for call, msg in [(lambda: r.assert_status(200), \"ожидали 200, получили 201\"), (lambda: r.assert_has(\"name\"), \"нет поля name\")]:\n        try:\n            call()\n        except AssertionError as e:\n            assert str(e) == msg, str(e)\n        else:\n            assert False, \"Нужен AssertionError\"\n",
                   "solution": "class Response:\n    def __init__(self, status, body):\n        self.status = status\n        self.body = body\n\n    @property\n    def ok(self):\n        return 200 <= self.status < 300\n\n    def json(self):\n        return self.body\n\n    def assert_status(self, expected):\n        if self.status != expected:\n            raise AssertionError(f\"ожидали {expected}, получили {self.status}\")\n        return self\n\n    def assert_has(self, key):\n        if key not in self.body:\n            raise AssertionError(f\"нет поля {key}\")\n        return self\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Методы проверок возвращают `self` — `response.assert_status(200).assert_has(\\\"id\\\")` читается как фраза.\", \"lines\": [[\"return 200 <= self.status < 300\", \"`ok` — свойство.\"], [\"raise AssertionError(f\\\"ожидали {expected}, получили {self.status}\\\")\", \"Понятное сообщение.\"], [\"return self\", \"Для цепочек.\"]], \"mistake\": \"Возвращать `True` из проверок — цепочка сломается.\"}"
                 },
                 {
                   "slug": "oop-pom-e8",
@@ -1799,7 +1919,8 @@
                   "tests": "def test_fake_api():\n    api = FakeUserApi()\n    a = api.create(\"Аня\")\n    b = api.create(\"Боря\")\n    assert a == {\"id\": 1, \"name\": \"Аня\"} and b[\"id\"] == 2 and api.get(1) == a and api.get(9) is None, \"create/get\"\n    assert api.delete(1) is True and api.delete(1) is False and api.count() == 1, \"delete/count\"\n    assert api.create(\"Вика\")[\"id\"] == 3, \"id не переиспользуются\"\n    try:\n        api.create(\"\")\n    except ValueError as e:\n        assert str(e) == \"пустое имя\", str(e)\n        return\n    assert False, \"Нужен ValueError\"\n",
                   "solution": "class FakeUserApi:\n    def __init__(self):\n        self.users = {}\n        self.next_id = 1\n\n    def create(self, name):\n        if not name:\n            raise ValueError(\"пустое имя\")\n        user = {\"id\": self.next_id, \"name\": name}\n        self.users[self.next_id] = user\n        self.next_id += 1\n        return user\n\n    def get(self, user_id):\n        return self.users.get(user_id)\n\n    def delete(self, user_id):\n        return self.users.pop(user_id, None) is not None\n\n    def count(self):\n        return len(self.users)\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Фейковый API на словаре: быстро, предсказуемо, без сети.\", \"lines\": [[\"if not name:\\n            raise ValueError(\\\"пустое имя\\\")\", \"Проверка.\"], [\"self.users[self.next_id] = user\\n        self.next_id += 1\", \"Хранение и следующий id.\"], [\"return self.users.pop(user_id, None) is not None\", \"Удалили — `True`.\"]], \"mistake\": \"Использовать `len(self.users) + 1` как id — после удаления id повторятся.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nВ автотестах классы используют постоянно. Три самых частых шаблона:\n\n- **Page Object** — класс на каждую страницу UI: селекторы и действия спрятаны внутри.\n- **API-клиент** — класс, который знает базовый адрес, заголовки и эндпоинты.\n- **Фабрика и подделки** — классы, которые создают тестовые данные и заменяют настоящие сервисы.\n\nЗдесь вместо настоящего браузера и сети — простые «фейковые» классы, но устройство такое же, как в Selenium, Playwright и requests.\n\n## Page Object\n\n```python\nclass FakeDriver:\n    def __init__(self):\n        self.actions = []\n\n    def type(self, selector, text):\n        self.actions.append(f\"type {selector}={text}\")\n\n    def click(self, selector):\n        self.actions.append(f\"click {selector}\")\n\nclass LoginPage:\n    LOGIN = \"#login\"\n    PASSWORD = \"#password\"\n    SUBMIT = \"button[type=submit]\"\n\n    def __init__(self, driver):\n        self.driver = driver\n\n    def login(self, user, password):\n        self.driver.type(self.LOGIN, user)\n        self.driver.type(self.PASSWORD, password)\n        self.driver.click(self.SUBMIT)\n        return self\n\nd = FakeDriver()\nLoginPage(d).login(\"anna\", \"123\")\nprint(d.actions)\n```\n\n- `FakeDriver` записывает действия вместо настоящего браузера.\n- Селекторы — **атрибуты класса** `LoginPage`: если вёрстка изменится, правим одно место.\n- Драйвер передаётся в конструктор (композиция и внедрение зависимости).\n- Тест пишет `LoginPage(driver).login(\"anna\", \"123\")` — читается как сценарий, без селекторов.\n- Вывод: `['type #login=anna', 'type #password=123', 'click button[type=submit]']`.\n\n## Базовая страница\n\n```python\nclass BasePage:\n    url = \"/\"\n\n    def open(self):\n        return f\"открыта {self.url}\"\n\nclass CartPage(BasePage):\n    url = \"/cart\"\n\nclass ProfilePage(BasePage):\n    url = \"/profile\"\n\n    def open(self):\n        return super().open() + \" (нужен вход)\"\n\nfor page in [BasePage(), CartPage(), ProfilePage()]:\n    print(page.open())\n```\n\n- Общие действия (открыть, дождаться, сделать скриншот) — в `BasePage`, страницы наследуют и переопределяют атрибут `url`.\n- Вывод: `открыта /`, `открыта /cart`, `открыта /profile (нужен вход)`.\n\n## API-клиент\n\n```python\nclass ApiClient:\n    def __init__(self, base_url, token=None):\n        self.base_url = base_url.rstrip(\"/\")\n        self.token = token\n\n    def url(self, path):\n        return f\"{self.base_url}/{path.lstrip('/')}\"\n\n    def headers(self):\n        h = {\"Content-Type\": \"application/json\"}\n        if self.token:\n            h[\"Authorization\"] = f\"Bearer {self.token}\"\n        return h\n\nc = ApiClient(\"https://api.test/\", token=\"t1\")\nprint(c.url(\"/users/1\"))\nprint(c.headers())\n```\n\n- `rstrip(\"/\")` и `lstrip(\"/\")` убирают лишние слеши, чтобы адрес не получился `https://api.test//users/1`.\n- Заголовок авторизации добавляется, только если есть токен.\n- В реальном клиенте методы `get_user(id)`, `create_user(data)` вызывают `requests` с этим адресом и заголовками.\n- Вывод: `https://api.test/users/1`, `{'Content-Type': 'application/json', 'Authorization': 'Bearer t1'}`.\n\n## Обёртка ответа с проверками\n\n```python\nclass Response:\n    def __init__(self, status, body):\n        self.status = status\n        self.body = body\n\n    def assert_status(self, expected):\n        assert self.status == expected, f\"ожидали {expected}, получили {self.status}\"\n        return self\n\n    def assert_has(self, key):\n        assert key in self.body, f\"нет поля {key}\"\n        return self\n\nr = Response(200, {\"id\": 1})\nr.assert_status(200).assert_has(\"id\")\ntry:\n    r.assert_status(404)\nexcept AssertionError as e:\n    print(e)\n```\n\n- Методы-проверки возвращают `self`, поэтому их можно цеплять.\n- Понятные сообщения ошибок экономят время при разборе упавших тестов.\n- Вывод: `ожидали 404, получили 200`.\n\n## Фабрика тестовых данных\n\n```python\nclass UserFactory:\n    def __init__(self):\n        self.counter = 0\n\n    def create(self, **overrides):\n        self.counter += 1\n        n = self.counter\n        user = {\"id\": n, \"name\": f\"user_{n}\", \"active\": True}\n        user.update(overrides)\n        return user\n\nf = UserFactory()\nprint(f.create())\nprint(f.create(active=False))\n```\n\n- Каждый пользователь уникален благодаря счётчику, а `**overrides` позволяет поменять только нужные для теста поля.\n- Вывод: `{'id': 1, 'name': 'user_1', 'active': True}`, `{'id': 2, 'name': 'user_2', 'active': False}`.\n\n## Итог\n\n- Page Object: селекторы — атрибуты класса, действия — методы, драйвер — в конструкторе.\n- `BasePage` — общее поведение, страницы-потомки переопределяют детали.\n- API-клиент хранит адрес и заголовки; ответ оборачивают методами-проверками.\n- Фабрики и фейки — классы с состоянием для тестовых данных.",

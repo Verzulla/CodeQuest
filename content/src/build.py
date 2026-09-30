@@ -63,6 +63,9 @@ def attach_explain(name: str, topic: dict) -> None:
                 ok = ln.strip() in text if ex["type"] == "command" else ln.strip() in src
                 if ln.strip() and not ok:
                     raise SystemExit(f"explain_{name}.py: {slug}: строки «{ln.strip()}» нет в решении")
+        empty = [c for c, t in item.get("lines", []) if not t.strip()]
+        if empty:
+            raise SystemExit(f"explain_{name}.py: {slug}: нет пояснения к строке «{empty[0].splitlines()[0]}»")
         ex["explain"] = json.dumps(item, ensure_ascii=False)
     print(f"  ручных разборов: {len(manual)} из {len(exercises)}")
 
