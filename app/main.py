@@ -242,8 +242,8 @@ def rules():
         "freezes": {"max": game.MAX_FREEZES, "every_days": 7},
         "run_timeout_sec": runner.TIMEOUT_SEC,
         "achievements": [
-            {"icon": icon, "title": title, "description": desc}
-            for _code, icon, title, desc, _rule in game.ACHIEVEMENTS
+            {"code": code, "icon": icon, "title": title, "description": desc}
+            for code, icon, title, desc, _rule in game.ACHIEVEMENTS
         ],
     }
 
