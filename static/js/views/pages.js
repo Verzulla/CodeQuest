@@ -96,7 +96,7 @@ export async function renderTraining(view) {
     const warmup = chosen.reduce((a, t) => a + warmupOf(t), 0);
     const will = Math.min(count, available);
     view.innerHTML = `<div class="topbar path-top">${pills()}</div>
-      <div class="settings">
+      <div class="settings train">
         <div class="rv-head"><a class="icon-btn" data-back href="#/review" title="Назад">${ic("back")}</a><h1 class="section-title">Тренировка</h1></div>
         <div class="card"><h3 style="margin-top:0">Темы</h3>
           <div class="row"><b>Пройденные</b><div class="spacer"></div>${allBtn(passed, "all-passed")}</div>
@@ -118,8 +118,8 @@ export async function renderTraining(view) {
           ${custom ? `<label style="display:block;margin-top:12px">Количество (1–${TRAIN_MAX})
             <input class="input" id="custom" type="number" min="1" max="${TRAIN_MAX}" value="${count}" inputmode="numeric"></label>` : ""}
         </div>
-        <div class="card empty">
-          <p class="muted" style="margin:0 0 12px">${available
+        <div class="card train-start">
+          <p class="muted">${available
             ? `${will < count
                 ? `Выбрано ${count}, а заданий в этих темах пока ${available} — тренировка будет из ${will}. Добавь темы или пройди больше уроков, и выбор вырастет.<br>`
                 : `Будет ${n(will)} вперемешку. `}${warmup ? `Из них могут попасться задания разминки — они не засчитываются. ` : ""}Ошибки не тратят сердечки, правильный ответ — +2 XP. Книжка вверху — шпаргалка урока.`
