@@ -283,6 +283,7 @@ def _public_exercise(e, progress: dict) -> dict:
         "id": e["id"], "type": e["type"], "prompt": e["prompt"], "code": e["code"],
         "starter_code": e["starter_code"], "hint": e["hint"], "xp": e["xp"],
         "solved": solved,
+        "in_review": bool(p and p["in_review"]),        # была ошибка — задание в работе над ошибками
         "answer": p["last_answer"] if solved else "",   # последнее верное решение
         "draft": p["draft"] if p else "",               # недописанный ответ
     }
@@ -409,7 +410,7 @@ def complete(lesson_id: int, body: CompleteIn, user: User):
         try:
             events = game.complete_lesson(conn, user["id"], lesson, body.mistakes)
         except game.LessonNotFinished:
-            raise HTTPException(400, "В уроке остались нерешённые задания")
+            raise HTTPException(400, "В уроке остались задания, которые ты ещё не пробовал")
         return {"events": events, "state": game.get_state(conn, user["id"])}
 
 

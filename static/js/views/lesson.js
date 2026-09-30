@@ -32,10 +32,11 @@ export function runSession(view, opts) {
   const persist = opts.mode === "lesson" && !replay;          // черновики сохраняются на сервер
   const items = opts.exercises.map((ex) => {
     const solved = persist && ex.solved;
-    return { ex, solved, answer: solved ? ex.answer : (persist ? ex.draft : ""), failed: false, redo: false };
+    // failed — на задании уже была ошибка (в том числе в прошлый заход): оно в работе над ошибками
+    return { ex, solved, answer: solved ? ex.answer : (persist ? ex.draft : ""), failed: persist && !!ex.in_review, redo: false };
   });
   const n = items.length;
-  const s = { mistakes: 0, xp: 0, events: [], solvedNow: 0, firstTry: 0, theorySeen: false, started: Date.now() };
+  const s = { mistakes: items.filter((it) => it.failed).length, xp: 0, events: [], solvedNow: 0, firstTry: 0, theorySeen: false, started: Date.now() };
   // Теория урока: полный урок (theoryFull) — основной экран, краткая (theory) — шпаргалка.
   const hasCheat = opts.mode === "lesson" && !!(opts.theory || "").trim();
   const hasFull = opts.mode === "lesson" && !!(opts.theoryFull || "").trim();
@@ -46,6 +47,8 @@ export function runSession(view, opts) {
   const FULL = -2;                 // полный урок, открытый из задания через книжку (с возвратом к заданию)
   let returnTo = null;             // задание, из которого открыли полный урок
   const allSolved = () => items.every((it) => it.solved);
+  // Каждое задание решено или уже с ошибкой: урок можно завершить, нерешённые — в работе над ошибками.
+  const allTried = () => items.every((it) => it.solved || it.failed);
   const training = opts.mode === "training";   // случайные решённые задания: шпаргалка — своя у каждого задания
   const exitHash = () => (opts.mode === "review" ? "#/review" : training ? "#/training" : (opts.backHash || "#/"));
   // Сессия может идти по тому же адресу, куда выходим (тренировка — #/training): тогда hashchange не
@@ -64,6 +67,26 @@ export function runSession(view, opts) {
   let cur = hasTheory && !anySolved ? -1 : Math.max(0, firstTodo);
   let reached = firstTodo === -1 ? n - 1 : firstTodo;          // дальше этого места вперёд не прыгаем
   if (anySolved && firstTodo > 0) toast("play", `Продолжаем с задания ${firstTodo + 1} из ${n}`, "Прогресс урока сохранён");
+
+  // Следующее задание, которое ещё не пробовали (без ошибки и не решено), по кругу. -1 — таких нет.
+  const nextFresh = (from) => {
+    for (let k = 1; k <= n; k++) {
+      const j = (((from + k) % n) + n) % n;
+      if (!items[j].solved && !items[j].failed) return j;
+    }
+    return -1;
+  };
+  // Дальше после задания i. В уроке: к непробованному; если все попробованы — финал
+  // или выбор «завершить / вернуться к нерешённым». В повторении и тренировке — по кругу до решения.
+  const advanceFrom = (i) => {
+    if (opts.mode !== "lesson") {
+      const j = nextTodo(i);
+      return j === -1 ? toEnd() : goTo(j);
+    }
+    const j = nextFresh(i);
+    if (j !== -1) return goTo(j);
+    return allSolved() ? toEnd() : offerFinish(i);
+  };
 
   // Следующее нерешённое после from (по кругу). -1 — все решены.
   const nextTodo = (from) => {
@@ -106,7 +129,7 @@ export function runSession(view, opts) {
     }
     if (i === n) {
       const cls = ["seg", "quiz", quizAnswers.every((a) => a !== null) ? "done" : "", cur >= n ? "cur" : ""];
-      return `<button class="${cls.join(" ")}" data-seg="${n}" title="Проверь себя${allSolved() ? "" : " — откроется после всех заданий"}" ${allSolved() ? "" : "disabled"}></button>`;
+      return `<button class="${cls.join(" ")}" data-seg="${n}" title="Проверь себя${allTried() ? "" : " — откроется после всех заданий"}" ${allTried() ? "" : "disabled"}></button>`;
     }
     const it = items[i];
     const cls = ["seg", it.solved ? "done" : it.failed ? "fail" : "", i === cur ? "cur" : ""];
@@ -130,7 +153,7 @@ export function runSession(view, opts) {
       flushDraft();
       const leave = () => leaveTo(exitHash());
       if (opts.mode !== "lesson") return leave();
-      const m = modal(`${owl("wave", "bob")}<h2>Выйти из урока?</h2>
+      const m = modal(`${owl("wave")}<h2>Выйти из урока?</h2>
         <p class="muted">Прогресс сохранён: решённые задания и недописанные ответы останутся на месте, в следующий раз продолжишь отсюда.</p>
         <div class="btns"><button class="btn" data-a="stay">Продолжить учиться</button>
         <button class="btn ghost" data-a="leave">Выйти</button></div>`);
@@ -139,7 +162,8 @@ export function runSession(view, opts) {
     };
     view.querySelectorAll("[data-seg]").forEach((b) => b.onclick = () => {
       const i = Number(b.dataset.seg);
-      i === n && quiz.length ? toEnd() : goTo(i);   // к вопросам — только через засчитывание урока
+      if (i === n && quiz.length) return allSolved() ? toEnd() : offerFinish(cur);   // к вопросам — только через засчитывание урока
+      goTo(i);
     });
     const tb = $("#theory-btn", view);
     if (tb) tb.onclick = () => {
@@ -290,9 +314,9 @@ export function runSession(view, opts) {
       $("#run", view).onclick = async () => {
         const btn = $("#run", view);
         btn.disabled = true;
-        btn.innerHTML = `${ic("clock")}Выполняю…`;
+        btn.classList.add("busy");      // текст не меняем — соседние кнопки не сдвигаются
         try { showConsole(await api("/run", { method: "POST", body: { code: editor.value } }), false); }
-        finally { btn.disabled = false; btn.innerHTML = `${ic("play")}Запустить`; }
+        finally { btn.disabled = false; btn.classList.remove("busy"); }
       };
       $("#reset", view)?.addEventListener("click", () => { editor.value = ex.starter_code; editor.focus(); });
     } else {
@@ -322,11 +346,7 @@ export function runSession(view, opts) {
       footer.innerHTML = `<div class="inner">${backBtn()}<div class="spacer"></div>
         <button class="btn main" id="next">${last && opts.mode === "lesson" ? endLabel() : "Дальше →"}</button></div>`;
       bindBack();
-      $("#next", view).onclick = () => {
-        if (i < n - 1) return goTo(i + 1);
-        const j = nextTodo(i);
-        j === -1 ? toEnd() : goTo(j);
-      };
+      $("#next", view).onclick = () => (i < n - 1 ? goTo(i + 1) : advanceFrom(i));
     };
     const idleFooter = () => {
       footer.className = "footer";
@@ -340,11 +360,8 @@ export function runSession(view, opts) {
     };
     viewSolved ? solvedFooter() : idleFooter();
 
-    // Продолжить после верного ответа: к следующему нерешённому или к финалу.
-    const proceed = () => {
-      const j = nextTodo(i);
-      j === -1 ? toEnd() : goTo(j);
-    };
+    // Продолжить после верного ответа: к следующему заданию или к финалу.
+    const proceed = () => advanceFrom(i);
 
     async function check() {
       const btn = $("#check", view);
@@ -396,17 +413,19 @@ export function runSession(view, opts) {
           : isCmd ? `Например: ${r.expected}` : `Правильный ответ:\n${r.expected}`;
         footer.className = "footer bad";
         const later = nextTodo(i);
+        const lessonFlow = opts.mode === "lesson" && !item.redo;   // в уроке можно идти дальше и вернуться позже
         footer.innerHTML = `<div class="inner">${owl("think", "tilt")}<div class="verdict">
           <div>${isCode ? "Пока не то" : "Неправильно"}<div class="detail">${esc(detail)}</div></div></div>
           <div class="spacer"></div>
           ${item.redo ? `<button class="btn ghost" id="cancel-redo">Отмена</button><button class="btn red main" id="retry">Исправить</button>`
-            : isCode ? `${later !== -1 && later !== i ? `<button class="btn ghost" id="later">Позже</button>` : ""}<button class="btn red main" id="retry">Исправить</button>`
+            : isCode ? `${lessonFlow || (later !== -1 && later !== i) ? `<button class="btn ghost" id="later">Позже</button>` : ""}<button class="btn red main" id="retry">Исправить</button>`
             : `<button class="btn red main" id="cont">Понятно</button>`}</div>`;
         $("#retry", view)?.addEventListener("click", () => { idleFooter(); (isCode ? editor : answerEl).focus(); });
-        $("#later", view)?.addEventListener("click", () => goTo(later));
+        $("#later", view)?.addEventListener("click", () => (lessonFlow ? advanceFrom(i) : goTo(later)));
         $("#cancel-redo", view)?.addEventListener("click", () => { item.redo = false; showExercise(i); });
         // «что выведет»: правильный ответ уже показан — вернёмся к заданию позже, по кругу
         $("#cont", view)?.addEventListener("click", () => {
+          if (lessonFlow) return advanceFrom(i);
           const j = nextTodo(i);
           if (j === i || j === -1) { answerEl.value = ""; item.answer = ""; saveDraft(item, ""); idleFooter(); answerEl.focus(); }
           else goTo(j);
@@ -431,6 +450,22 @@ export function runSession(view, opts) {
     const passed = withTests ? res.tests.filter((t) => t.passed).length : 0;
     const testHead = !tests ? "" : `<div class="c-head tests-head ${passed === res.tests.length ? "ok" : "fail"}">${ic("term")}Тесты: ${passed} из ${res.tests.length}</div>`;
     box.innerHTML = `<div class="console"><div class="c-head">Вывод</div><pre>${out}${err}</pre>${testHead}${tests}</div>`;
+  }
+
+  // Все задания попробованы, но не все решены: завершить урок или вернуться к нерешённым.
+  function offerFinish(from) {
+    const left = items.filter((it) => !it.solved).length;
+    const m = modal(`${owl("think")}<h2>Все задания пройдены</h2>
+      <p class="muted">${left === 1 ? "Одно задание пока не решено" : `Пока не решено ${left} ${plural(left, "задание", "задания", "заданий")}`}.
+      ${left === 1 ? "Оно уже ждёт" : "Они уже ждут"} в «Работе над ошибками»: там ошибки не стоят сердечек, а исправление возвращает потерянные.</p>
+      <div class="btns"><button class="btn" data-a="back">Вернуться к нерешённым</button>
+      <button class="btn ghost" data-a="end">Завершить урок</button></div>`);
+    m.root.querySelector('[data-a="back"]').onclick = () => {
+      m.close();
+      const j = nextTodo(from);
+      goTo(j === -1 ? from : j);
+    };
+    m.root.querySelector('[data-a="end"]').onclick = () => { m.close(); toEnd(); };
   }
 
   function noHearts() {
@@ -509,10 +544,19 @@ export function runSession(view, opts) {
   async function finish() {
     if (!(await completeLesson())) return;
     flushDraft();
-    const acc = s.solvedNow ? Math.round((100 * s.firstTry) / s.solvedNow) : 100;
+    // Точность урока — доля заданий, решённых без единой ошибки (с учётом прошлых заходов);
+    // в повторении и тренировке — по ответам этой сессии.
+    const acc = opts.mode === "lesson" ? Math.round((100 * items.filter((it) => it.solved && !it.failed).length) / n)
+      : s.solvedNow ? Math.round((100 * s.firstTry) / s.solvedNow) : 100;
     const rewards = s.events.filter((e) => ["trophy", "achievement", "level_up", "perfect"].includes(e.type));
+    const quizWrong = quiz.filter((q, k) => quizAnswers[k] !== null && quizAnswers[k] !== q.answer).length;
+    const perfect = s.mistakes === 0 && allSolved() && quizWrong === 0;
     const title = opts.mode === "review" ? "Повторение завершено!" : training ? "Тренировка завершена!"
-      : s.mistakes === 0 ? "Урок пройден без ошибок!" : "Урок пройден!";
+      : perfect ? "Урок пройден без ошибок!" : "Урок пройден!";
+    const toFix = opts.mode === "lesson" ? items.filter((it) => it.failed).length : 0;
+    const fixLine = toFix ? `<a class="reward card to-fix" href="#/review" style="animation-delay:.2s"><div class="ri">${ic("i-dumb")}</div><div>
+      <b>${toFix} ${plural(toFix, "задание ждёт", "задания ждут", "заданий ждут")} работы над ошибками</b>
+      <span class="muted">${allSolved() ? "Повтори их позже, чтобы закрепить" : "Там их можно дорешать"}${store.state.hearts_enabled ? " — исправленные вернут потерянные сердечки" : ""}</span></div>${ic("arrowR", "go")}</a>` : "";
     const secs = Math.round((Date.now() - s.started) / 1000);
     document.body.classList.add("celebrate");
     view.innerHTML = `<div class="finish">
@@ -525,11 +569,12 @@ export function runSession(view, opts) {
         <div class="tile" style="--c:#9be84a"><small>Точность</small><b>${ic("target")}${acc}%</b></div>
         <div class="tile" style="--c:#6cc8ff"><small>Время</small><b>${ic("clock")}${fmtTime(secs)}</b></div>
       </div>
-      <div class="rewards">${quizLine()}${rewards.map((e, i) => reward(e, i + 1)).join("")}</div>
+      <div class="rewards">${fixLine}${quizLine()}${rewards.map((e, i) => reward(e, i + 1)).join("")}</div>
       <button class="btn wide" id="done">Продолжить</button></div>`;
     sound("done");
     confetti();
     $("#done", view).onclick = () => { document.body.classList.remove("celebrate"); leaveTo(exitHash()); };
+    view.querySelector(".to-fix")?.addEventListener("click", () => document.body.classList.remove("celebrate"));
     $("#done", view).focus();
   }
 

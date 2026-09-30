@@ -82,9 +82,9 @@ function codeBlock(lang, code, runnable) {
   const pre = `<pre${lang && !PY_LANGS.has(lang) ? ` data-lang="${esc(lang)}"` : ""}><code>${body}</code></pre>`;
   if (!(runnable && lang === "python")) return pre;
   return `<div class="runnable" data-code="${esc(code)}">
-    <div class="rb-bar"><span>🐍 Пример</span><span class="spacer"></span>
-      <button class="btn ghost small" data-act="edit">✏️ Изменить</button>
-      <button class="btn blue small" data-act="run">▶ Запустить</button></div>
+    <div class="rb-bar"><span class="kind">Python</span><span class="spacer"></span>
+      <button class="act" data-act="edit">${ic("pen")}<span>Изменить</span></button>
+      <button class="act run" data-act="run">${ic("play")}<span>Запустить</span></button></div>
     <div class="rb-code">${pre}</div><div class="rb-out"></div></div>`;
 }
 

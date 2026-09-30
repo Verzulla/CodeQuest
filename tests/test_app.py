@@ -154,6 +154,32 @@ def test_cannot_complete_unsolved_lesson(client):
     assert client.post(f"/api/lessons/{lesson_id}/complete", json={"mistakes": 0}).status_code == 400
 
 
+def test_complete_lesson_with_tasks_left_for_review(client):
+    """Все задания попробованы: одно решено, остальные с ошибкой — урок засчитывается
+    (не «идеально»), нерешённые ждут в работе над ошибками и потом дорешиваются там."""
+    from app.db import transaction
+    client.put("/api/settings", json={"hearts_enabled": False})
+    lesson_id = first_lessons(client)[0]["id"]
+    exs = client.get(f"/api/lessons/{lesson_id}").json()["exercises"]
+    with transaction() as conn:
+        rows = {r["id"]: r for r in conn.execute("SELECT * FROM exercises WHERE lesson_id = ?", (lesson_id,))}
+    first = rows[exs[0]["id"]]
+    client.post(f"/api/exercises/{first['id']}/check",
+                json={"answer": first["solution"] if first["type"] == "code" else first["expected_output"]})
+    for ex in exs[1:-1]:
+        client.post(f"/api/exercises/{ex['id']}/check", json={"answer": "nope"})
+    # последнее задание ещё не пробовали — рано
+    assert client.post(f"/api/lessons/{lesson_id}/complete", json={"mistakes": 0}).status_code == 400
+    client.post(f"/api/exercises/{exs[-1]['id']}/check", json={"answer": "nope"})
+    lesson = client.get(f"/api/lessons/{lesson_id}").json()
+    assert [e["in_review"] for e in lesson["exercises"]] == [False] + [True] * (len(exs) - 1)
+    done = client.post(f"/api/lessons/{lesson_id}/complete", json={"mistakes": 0})
+    assert done.status_code == 200
+    assert not any(e["type"] == "perfect" for e in done.json()["events"])
+    assert client.get(f"/api/lessons/{lesson_id}").json()["completed"] is True
+    assert client.get("/api/state").json()["review_count"] == len(exs) - 1
+
+
 def test_hearts_lost_and_blocked(client):
     ex_id = client.get(f"/api/lessons/{first_lessons(client)[0]['id']}").json()["exercises"][0]["id"]
     for i in range(5):

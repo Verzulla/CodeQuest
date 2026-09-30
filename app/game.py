@@ -272,16 +272,19 @@ class LessonNotFinished(Exception):
 
 def complete_lesson(conn, uid: int, lesson: sqlite3.Row, mistakes: int) -> list:
     events: list = []
-    unsolved = conn.execute(
-        "SELECT COUNT(*) FROM exercises e LEFT JOIN exercise_progress ep "
-        "ON ep.exercise_slug = e.slug AND ep.user_id = ? "
-        "WHERE e.lesson_id = ? AND COALESCE(ep.solved, 0) = 0",
+    # Урок можно завершить, когда каждое задание решено или уже попало в работу над ошибками
+    # (была попытка с ошибкой) — нерешённые дорешиваются там.
+    rows = conn.execute(
+        "SELECT COALESCE(ep.solved, 0) AS solved, COALESCE(ep.in_review, 0) AS in_review "
+        "FROM exercises e LEFT JOIN exercise_progress ep "
+        "ON ep.exercise_slug = e.slug AND ep.user_id = ? WHERE e.lesson_id = ?",
         (uid, lesson["id"]),
-    ).fetchone()[0]
-    if unsolved:
+    ).fetchall()
+    if any(not r["solved"] and not r["in_review"] for r in rows):
         raise LessonNotFinished()
+    unsolved = sum(1 for r in rows if not r["solved"])
 
-    perfect = mistakes == 0
+    perfect = mistakes == 0 and unsolved == 0
     prev = conn.execute(
         "SELECT * FROM lesson_completions WHERE user_id = ? AND lesson_slug = ?",
         (uid, lesson["slug"]),
