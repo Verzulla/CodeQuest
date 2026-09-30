@@ -87,7 +87,17 @@ export function drawScenery(box, seed, pts, locked) {
   ensureDefs();
   const svg = box.querySelector(".scenery");
   if (!svg) return;
-  const W = box.clientWidth, H = box.clientHeight;
+  // Пейзаж занимает всю область контента: от бокового меню до правой колонки (на телефоне — весь экран),
+  // а не только колонку дорожки. Края на десктопе растворяются маской в CSS.
+  const br = box.getBoundingClientRect();
+  const desk = window.innerWidth > 700;
+  const side = document.querySelector(".sidebar"), rail = document.getElementById("rail");
+  const L = desk && side ? side.getBoundingClientRect().right : 0;
+  const R = desk && rail && rail.offsetParent ? rail.getBoundingClientRect().left : document.documentElement.clientWidth;
+  const ox = L - br.left;
+  const W = Math.max(1, R - L), H = box.clientHeight;
+  svg.style.left = `${ox}px`;
+  pts = pts.map(([x, y]) => [x - ox, y]);
   svg.setAttribute("width", W);
   svg.setAttribute("height", H);
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);

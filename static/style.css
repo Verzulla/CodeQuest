@@ -734,8 +734,19 @@ main:has(.footer.good, .footer.bad) .ex-owl { visibility: hidden; }
   .tc-foot { grid-column: 1 / -1; margin-top: 6px; }
 }
 /* Пейзаж за дорожкой (scenery.js) */
-.scenery { position: absolute; left: 0; top: 0; pointer-events: none; opacity: .34; overflow: visible; }
+.scenery { position: absolute; left: 0; top: 0; pointer-events: none; opacity: .34;
+  /* низ модуля растворяется — без горизонтальной линии обреза */
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 70px), transparent 100%);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 70px), transparent 100%); }
+@media (min-width: 701px) {
+  /* десктоп: плюс мягкие края у бокового меню и у правой колонки */
+  .scenery {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 90px, #000 calc(100% - 220px), transparent 100%), linear-gradient(180deg, #000 calc(100% - 70px), transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(90deg, transparent 0, #000 90px, #000 calc(100% - 220px), transparent 100%), linear-gradient(180deg, #000 calc(100% - 70px), transparent 100%);
+    mask-composite: intersect; }
+}
 [data-theme="light"] .scenery { opacity: .5; }
 .nodes .node-label b { text-shadow: 0 1px 6px rgba(0,0,0,.7); }
 [data-theme="light"] .nodes .node-label b { text-shadow: 0 1px 4px rgba(255,255,255,.9); }
-main:has(.trail) { overflow-x: clip; }   /* пейзаж доходит до краёв экрана, но без горизонтальной прокрутки */
+@media (max-width: 700px) { main:has(.trail) { overflow-x: clip; } }   /* пейзаж до краёв экрана, без горизонтальной прокрутки */
