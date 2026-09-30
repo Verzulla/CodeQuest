@@ -47,21 +47,37 @@ export function bindKeybar(root, el) {
   const bar = root?.querySelector(".keybar2");
   if (!bar || !el) return;
   let set = NAMES[0];
-  // pointerdown + preventDefault: фокус остаётся в поле, клавиатура телефона не прячется
-  bar.addEventListener("pointerdown", (ev) => {
-    const tab = ev.target.closest("[data-set]");
-    const key = ev.target.closest("[data-k]");
-    if (!tab && !key) return;
-    ev.preventDefault();
+  const keys = bar.querySelector(".kb-keys");
+  // Ввод — только по короткому нажатию: коснулся и отпустил на месте. Если палец сдвинулся
+  // или лента прокрутилась (листаешь символы), ничего не вводится.
+  let start = null;
+  const act = (target) => {
+    const tab = target.closest("[data-set]");
+    const key = target.closest("[data-k]");
     if (tab) {
       set = tab.dataset.set;
       bar.querySelectorAll("[data-set]").forEach((b) => b.classList.toggle("on", b === tab));
-      bar.querySelector(".kb-keys").innerHTML = keysHtml(set);
-      bar.querySelector(".kb-keys").scrollLeft = 0;
+      keys.innerHTML = keysHtml(set);
+      keys.scrollLeft = 0;
       return;
     }
-    if (el.readOnly) return;
+    if (!key || el.readOnly) return;
     if (document.activeElement !== el) el.focus();
     press(el, SETS[set][Number(key.dataset.k)]);
+  };
+  bar.addEventListener("pointerdown", (ev) => {
+    if (!ev.target.closest("[data-set],[data-k]")) return;
+    start = { x: ev.clientX, y: ev.clientY, scroll: keys.scrollLeft, target: ev.target };
+    if (ev.pointerType === "mouse") ev.preventDefault();   // мышь: не уводим фокус из поля
   });
+  bar.addEventListener("pointercancel", () => { start = null; });   // браузер начал прокрутку
+  bar.addEventListener("pointerup", (ev) => {
+    const s = start;
+    start = null;
+    if (!s) return;
+    const moved = Math.abs(ev.clientX - s.x) > 8 || Math.abs(ev.clientY - s.y) > 8 || Math.abs(keys.scrollLeft - s.scroll) > 2;
+    if (!moved) act(s.target);
+  });
+  // касание: отменяем «клик» после отпускания, чтобы фокус остался в поле и клавиатура не пряталась
+  bar.addEventListener("touchend", (ev) => { if (ev.target.closest("[data-set],[data-k]")) ev.preventDefault(); }, { passive: false });
 }
