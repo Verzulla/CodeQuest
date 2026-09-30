@@ -62,20 +62,88 @@ export function freezeBox(s) {
     <div class="frz-row">${ic("snow", "frz-ico")}Заморозки<button class="q" type="button" data-frz-help aria-label="Как работают заморозки">?</button>
       <span class="slots">${slots}</span></div>
     ${next}
-    <div class="frz-pop" hidden><b>Заморозка спасает серию</b>, если пропустил день.
-      <ul><li>Тратится сама, когда ты возвращаешься: один пропущенный день — одна заморозка.</li>
-        <li>Новую дают за каждые <b>7 дней</b> серии, хранить можно до <b>${max}</b>.</li>
-        <li>Пропустил больше дней, чем есть заморозок, — серия начнётся заново.</li></ul></div>
   </div>`;
 }
-// «?» у заморозок — показать/скрыть подсказку (делегирование: карточки перерисовываются).
+// «?» у заморозок: на десктопе — всплывающая подсказка поверх страницы (наведение или нажатие),
+// на телефоне — шторка снизу. Ничего не сдвигает в карточке.
+const FRZ_RULES = (max) => [
+  ["snow", "<b>Спасает серию</b>, если пропустил день. Тратится сама, когда возвращаешься: один день — одна заморозка."],
+  ["flame", `Новую дают за каждые <b>7 дней</b> серии. Хранить можно до <b>${max}</b>.`],
+  ["warn", "Пропустил больше дней, чем есть заморозок, — <b>серия начнётся заново</b>."],
+];
+const hoverDevice = () => matchMedia("(hover: hover) and (pointer: fine)").matches && window.innerWidth > 700;
+let tip = null, tipBtn = null, tipTimer = null;
+function closeTip() {
+  clearTimeout(tipTimer);
+  tip?.remove(); tip = null;
+  tipBtn?.classList.remove("on"); tipBtn = null;
+}
+function openTip(btn) {
+  if (tipBtn === btn) return;
+  closeTip();
+  const max = store.state?.max_freezes || 2;
+  tip = document.createElement("div");
+  tip.className = "frz-tip";
+  tip.setAttribute("role", "tooltip");
+  tip.innerHTML = `<div class="tip-h">${ic("snow")}Как работают заморозки</div>
+    <ul>${FRZ_RULES(max).map(([, t]) => `<li>${t}</li>`).join("")}</ul>`;
+  document.body.append(tip);
+  const r = btn.getBoundingClientRect(), w = tip.offsetWidth;
+  const left = Math.min(Math.max(12, r.left + r.width / 2 - w / 2), window.innerWidth - w - 12);
+  tip.style.left = `${left + window.scrollX}px`;
+  tip.style.top = `${r.bottom + 10 + window.scrollY}px`;
+  tip.style.setProperty("--arrow", `${r.left + r.width / 2 - left}px`);
+  tip.addEventListener("mouseenter", () => clearTimeout(tipTimer));
+  tip.addEventListener("mouseleave", () => { tipTimer = setTimeout(closeTip, 150); });
+  tipBtn = btn;
+  btn.classList.add("on");
+}
+function openSheet() {
+  const max = store.state?.max_freezes || 2;
+  const wrap = document.createElement("div");
+  wrap.className = "sheet-wrap";
+  wrap.innerHTML = `<div class="sheet-dim"></div><div class="sheet" role="dialog" aria-label="Как работают заморозки">
+      <div class="grab"></div>${owl("think", "tilt")}<h2>Как работают заморозки</h2>
+      ${FRZ_RULES(max).map(([icon, t]) => `<div class="rule"><span class="ri2">${ic(icon)}</span><div>${t}</div></div>`).join("")}
+      <button class="btn wide" data-close>Понятно</button></div>`;
+  document.body.append(wrap);
+  requestAnimationFrame(() => wrap.classList.add("open"));
+  const sheet = wrap.querySelector(".sheet");
+  const close = () => { wrap.classList.remove("open"); setTimeout(() => wrap.remove(), 250); };
+  wrap.querySelector(".sheet-dim").onclick = close;
+  wrap.querySelector("[data-close]").onclick = close;
+  // свайп вниз — закрыть
+  let y0 = null;
+  sheet.addEventListener("touchstart", (e) => { y0 = e.touches[0].clientY; sheet.style.transition = "none"; }, { passive: true });
+  sheet.addEventListener("touchmove", (e) => {
+    if (y0 == null) return;
+    const dy = Math.max(0, e.touches[0].clientY - y0);
+    sheet.style.transform = `translateY(${dy}px)`;
+  }, { passive: true });
+  sheet.addEventListener("touchend", (e) => {
+    const dy = e.changedTouches[0].clientY - (y0 ?? 0);
+    sheet.style.transition = ""; sheet.style.transform = "";
+    y0 = null;
+    if (dy > 80) close();
+  });
+}
 document.addEventListener("click", (e) => {
   const b = e.target.closest("[data-frz-help]");
-  if (!b) return;
-  const pop = b.closest(".frz-box").querySelector(".frz-pop");
-  pop.hidden = !pop.hidden;
-  b.classList.toggle("on", !pop.hidden);
+  if (b) {
+    if (hoverDevice()) { tipBtn === b ? closeTip() : openTip(b); } else openSheet();
+    return;
+  }
+  if (tip && !e.target.closest(".frz-tip")) closeTip();
 });
+document.addEventListener("mouseover", (e) => {
+  const b = e.target.closest?.("[data-frz-help]");
+  if (b && hoverDevice()) { clearTimeout(tipTimer); openTip(b); }
+});
+document.addEventListener("mouseout", (e) => {
+  if (e.target.closest?.("[data-frz-help]") && tip) tipTimer = setTimeout(closeTip, 150);
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeTip(); });
+window.addEventListener("hashchange", closeTip);
 
 // Окно при возвращении: заморозка спасла серию или серия сгорела. Приходит с сервера один раз.
 function showStreakNotice(n) {
