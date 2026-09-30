@@ -336,7 +336,7 @@ export function runSession(view, opts) {
     const dots = `<span class="dots"><i></i><i></i><i></i></span>`;
     const work = isCode
       ? `<div class="code-card"><div class="cc-head">${dots}<span class="cc-name">${fileName}</span><span class="spacer"></span>
-          <button class="act run" id="run">${ic("play")}Запустить</button></div><div id="ed"></div>${viewSolved ? "" : keybarHtml()}</div>`
+          <button class="act run" id="run">${ic("play")}Запустить</button></div><div id="ed"></div><div class="ed-grip" data-grip="ed" title="Потяни, чтобы изменить высоту поля"><i></i></div>${viewSolved ? "" : keybarHtml()}</div>`
       : isCmd
       ? `<div class="code-card term">${ex.code ? `<div class="cc-head">${dots}<span class="cc-name">${fileName}</span></div><pre class="code-view term">${esc(ex.code)}</pre>` : ""}
           <div class="term-input"><span class="term-prompt">$</span>
@@ -344,7 +344,7 @@ export function runSession(view, opts) {
               spellcheck="false" autocomplete="off" autocapitalize="off"></div>${viewSolved ? "" : keybarHtml()}</div>`
       : `<div class="code-card"><div class="cc-head">${dots}<span class="cc-name">${fileName}</span></div><pre class="code-view">${highlight(ex.code)}</pre></div>
         <div class="kind out-label">Твой ответ — что появится на экране</div>
-        <div class="answer-card"><textarea class="answer code" id="answer" placeholder="Каждую строку вывода — с новой строки" spellcheck="false"></textarea>${viewSolved ? "" : keybarHtml()}</div>`;
+        <div class="answer-card"><textarea class="answer code" id="answer" placeholder="Каждую строку вывода — с новой строки" spellcheck="false"></textarea><div class="ed-grip" data-grip="ans" title="Потяни, чтобы изменить высоту поля"><i></i></div>${viewSolved ? "" : keybarHtml()}</div>`;
     view.innerHTML = `${top()}
       <div class="lesson-body ex-layout${isCode ? " split" : ""}">
         <div class="ex-left">
@@ -387,6 +387,7 @@ export function runSession(view, opts) {
       editor = createEditor($("#ed", view), initial, { onSubmit: () => $("#check", view)?.click(), onChange: onEdit });
       editor.textarea.readOnly = viewSolved;
       bindKeybar(view.querySelector(".ex-right"), editor.textarea);
+      bindGrip(view.querySelector('[data-grip="ed"]'), view.querySelector(".editor .area"), "cq-ed-h");
       if (!viewSolved) editor.focus();
       $("#run", view).onclick = async () => {
         const btn = $("#run", view);
@@ -401,6 +402,7 @@ export function runSession(view, opts) {
       answerEl.value = initial;
       answerEl.readOnly = viewSolved;
       bindKeybar(view.querySelector(".ex-right"), answerEl);
+      if (!isCmd) bindGrip(view.querySelector('[data-grip="ans"]'), answerEl, "cq-ans-h");
       if (!viewSolved) answerEl.focus();
       answerEl.oninput = () => onEdit(answerEl.value);
       answerEl.onkeydown = (e) => {
@@ -681,6 +683,28 @@ export function runSession(view, opts) {
   };
 
   goTo(cur);
+}
+
+// Ручка под полем: тянешь — меняется высота поля; размер запоминается для следующих заданий.
+function bindGrip(grip, box, key) {
+  if (!grip || !box) return;
+  const apply = (h) => { box.style.height = `${h}px`; box.style.maxHeight = "none"; box.style.minHeight = "100px"; };
+  try { const h = Number(localStorage.getItem(key)); if (h >= 100) apply(h); } catch { /* ок */ }
+  grip.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    const y0 = e.clientY, h0 = box.getBoundingClientRect().height;
+    grip.setPointerCapture(e.pointerId);
+    grip.classList.add("drag");
+    const move = (ev) => apply(Math.round(Math.min(window.innerHeight * 0.9, Math.max(100, h0 + ev.clientY - y0))));
+    const up = () => {
+      grip.classList.remove("drag");
+      grip.removeEventListener("pointermove", move);
+      try { localStorage.setItem(key, String(Math.round(box.getBoundingClientRect().height))); } catch { /* ок */ }
+    };
+    grip.addEventListener("pointermove", move);
+    grip.addEventListener("pointerup", up, { once: true });
+    grip.addEventListener("pointercancel", up, { once: true });
+  });
 }
 
 const PRAISES = ["Отлично!", "Супер!", "Великолепно!", "Так держать!", "В точку!", "Красота!"];
