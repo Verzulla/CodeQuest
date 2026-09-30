@@ -256,6 +256,28 @@ def test_freeze_used_on_activity_without_opening(client, clock):
     assert any(e["type"] == "freeze_used" for e in r["events"]) and r["state"]["streak"] == 2
 
 
+def test_stats_goals_and_facts(client):
+    lessons = first_lessons(client)
+    solve_lesson(client, lessons[0]["id"], wrong_first=True)
+    st = client.get("/api/stats").json()
+    g, f = st["goals"], st["facts"]
+    # первое задание уже решено — ближайшая цель по заданиям — «Решатель» (25)
+    assert g["solved"]["code"] == "solver_25" and g["solved"]["prev"] == 1
+    assert g["lessons"]["code"] == "lesson_10"
+    assert f["favorite_topic"]["title"] == client.get("/api/path").json()[0]["title"]
+    assert f["best_day"]["xp"] == st["state"]["today_xp"] and f["today_solved"] == st["solved"]
+    assert f["clean_run"] == st["solved"] and f["clean_run_best"] == st["solved"]   # после ошибки всё верно
+    lesson_id = lessons[1]["id"]
+    from app.db import transaction
+    with transaction() as conn:
+        rows = conn.execute("SELECT * FROM exercises WHERE lesson_id = ?", (lesson_id,)).fetchall()
+    for r in rows:
+        client.post(f"/api/exercises/{r['id']}/check", json={"answer": r["solution"] if r["type"] == "code" else r["expected_output"]})
+    client.post(f"/api/lessons/{lesson_id}/complete", json={"mistakes": 0, "seconds": 300})
+    f = client.get("/api/stats").json()["facts"]
+    assert f["lesson_seconds"] == 300 and f["lessons_timed"] == 1
+
+
 def test_module_trophy(client):
     topic = client.get("/api/path").json()[0]
     events = []

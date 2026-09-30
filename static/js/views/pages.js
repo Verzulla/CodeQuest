@@ -210,9 +210,72 @@ export async function renderAwards(view) {
       <div class="aw-ahead">${ahead.map((t) => `<a href="#/topic/${t.id}" title="${esc(t.title)}">${glyph(t, 38)}<span>${esc(t.title)}</span></a>`).join("")}</div>` : ""}`;
 }
 
-// ---------- Статистика ----------
+// ---------- Статистика: серия, сова с фактами, цифры «до следующей награды», активность с вкладками ----------
 const ACTIVITY_PERIODS = [[30, "Месяц"], [91, "3 месяца"], [182, "Полгода"], [365, "Год"]];
 const ACTIVITY_KEY = "cq-activity-period";
+const ACT_TAB_KEY = "cq-activity-tab";          // weeks / calendar / topics
+const nf = (n) => Number(n).toLocaleString("ru-RU");
+
+// Реплика совы по текущему состоянию.
+function owlRemark(st, d) {
+  const g = d.goals || {};
+  const near = ["solved", "code_solved", "lessons"].map((k) => g[k] && { k, left: g[k].goal - d[k], title: g[k].title })
+    .filter((x) => x && x.left <= 3).sort((x, y) => x.left - y.left)[0];
+  if (st.streak && st.streak_at_risk) return ["think", "Серия под угрозой — реши хотя бы одно задание сегодня, и она продолжится!"];
+  if (!st.streak) return ["wave", "Начни серию: одно задание сегодня — и огонёк загорится."];
+  if (st.today_xp >= st.daily_goal) return ["happy", `Цель дня выполнена! ${plural(st.streak, "День", "Дня", "Дней")} подряд: ${st.streak}. Так держать!`];
+  if (near) return ["happy", `До достижения «${near.title}» осталось всего ${near.left}. Добьём?`];
+  if (st.freeze_next && st.freeze_next <= 2) return ["happy", `${st.streak} ${plural(st.streak, "день", "дня", "дней")} подряд — огонь! Ещё ${st.freeze_next} ${plural(st.freeze_next, "день", "дня", "дней")}, и будет новая заморозка.`];
+  return ["happy", `${st.streak} ${plural(st.streak, "день", "дня", "дней")} подряд и ${nf(d.solved)} ${plural(d.solved, "решённое задание", "решённых задания", "решённых заданий")}. Продолжаем!`];
+}
+
+function factsBlock(st, d) {
+  const f = d.facts || {};
+  const [pose, text] = owlRemark(st, d);
+  const fact = (color, k, b, small) => `<div class="card fact" style="--c:${color}"><div class="k">${k}</div><b>${b}</b><small>${small}</small></div>`;
+  const best = f.best_day
+    ? fact("#ffd54a", "Лучший день", `${nf(f.best_day.xp)} XP`, new Date(f.best_day.day).toLocaleDateString("ru", { weekday: "short", day: "numeric", month: "long" }))
+    : fact("#ffd54a", "Лучший день", "впереди", "набери опыт — и он появится");
+  const fav = f.favorite_topic
+    ? fact("#6cc4ff", "Любимая тема", esc(f.favorite_topic.title), `${f.favorite_topic.n} ${plural(f.favorite_topic.n, "задание", "задания", "заданий")} решено`)
+    : fact("#6cc4ff", "Любимая тема", "ещё нет", "реши первые задания");
+  const run = fact("#9be84a", "Без ошибок подряд", `${f.clean_run || 0} ${plural(f.clean_run || 0, "задание", "задания", "заданий")}`,
+    f.clean_run_best ? `рекорд — ${f.clean_run_best}` : "считаем с сегодняшнего дня");
+  const time = f.lessons_timed
+    ? fact("#c68bff", "Время в уроках", fmtDuration(f.lesson_seconds), `~${Math.max(1, Math.round(f.lesson_seconds / f.lessons_timed / 60))} мин на урок`)
+    : fact("#c68bff", "Решено сегодня", `${f.today_solved || 0} ${plural(f.today_solved || 0, "задание", "задания", "заданий")}`, `${st.today_xp} / ${st.daily_goal} XP цели дня`);
+  return `<div class="facts2">
+    <div class="card fact owlc"><div class="bubble">${esc(text)}</div>${owl(pose, pose === "happy" ? "bob" : "tilt")}</div>
+    ${best}${fav}${run}${time}</div>`;
+}
+const fmtDuration = (sec) => { const h = Math.floor(sec / 3600), m = Math.round((sec % 3600) / 60); return h ? `${h} ч ${m} мин` : `${m} мин`; };
+
+// Цифра с полоской до ближайшей цели.
+function goalTiles(st, d) {
+  const g = d.goals || {};
+  const roundUp = (v, step) => Math.max(step, Math.ceil((v + 1) / step) * step);
+  const tile = (color, icon, title, value, cur, prev, goal, label) => {
+    const pct = goal > prev ? Math.min(100, Math.round((100 * (cur - prev)) / (goal - prev))) : 100;
+    return `<div class="card tc2" style="--c:${color}"><div class="top">${ic(icon)}<small>${title}</small></div><b>${value}</b>
+      <div class="goal"><div class="bar"><i style="width:${pct}%"></i></div><span class="medal">${ic(icon)}</span></div>
+      <div class="goal goal-t">${label}</div></div>`;
+  };
+  const byAch = (metric, color, icon, title, step, unit) => {
+    const cur = d[metric], a = g[metric];
+    if (a) return tile(color, icon, title, nf(cur), cur, a.prev, a.goal, `до «${esc(a.title)}» — ${nf(a.goal - cur)}`);
+    const goal = roundUp(cur, step);
+    return tile(color, icon, title, nf(cur), cur, goal - step, goal, `до ${nf(goal)} ${unit} — ${nf(goal - cur)}`);
+  };
+  const acc = d.accuracy;
+  return `<div class="c-grid">
+    ${byAch("xp", "#ffd54a", "bolt", "Всего XP", 1000, "XP")}
+    ${tile("#c68bff", "star", "Уровень", d.level, st.level_xp, 0, st.level_size, `до уровня ${d.level + 1} — ${nf(st.level_size - st.level_xp)} XP`)}
+    ${tile("#9be84a", "target2", "Точность", acc == null ? "—" : `${acc}%`, acc || 0, 0, 100, "доля верных проверок")}
+    ${byAch("solved", "#6cc4ff", "okc", "Заданий решено", 100, "заданий")}
+    ${byAch("code_solved", "#ff8a8a", "code", "Программ написано", 50, "программ")}
+    ${byAch("lessons", "#ffb03a", "book", "Уроков пройдено", 10, "уроков")}
+  </div>`;
+}
 
 export async function renderStats(view) {
   const d = await api("/stats");
@@ -220,11 +283,33 @@ export async function renderStats(view) {
   let period = 91;
   try { period = Number(localStorage.getItem(ACTIVITY_KEY)) || 91; } catch { /* ок */ }
   if (!ACTIVITY_PERIODS.some(([days]) => days === period)) period = 91;
-  const last14 = d.activity.slice(-14);
-  const max14 = Math.max(1, ...last14.map((a) => a.xp));
+  let tab = "weeks";
+  try { const t = localStorage.getItem(ACT_TAB_KEY); if (["weeks", "calendar", "topics"].includes(t)) tab = t; } catch { /* ок */ }
+  let topicsCache = null;
 
-  // Календарь за выбранный период: столбец — неделя (пн — первая строка), яркость — относительно максимума периода.
-  const heatmap = () => {
+  // «Недели»: 12 недель (пн–вс) с линией недельной цели; текущая неделя золотая.
+  const weeksView = () => {
+    const act = d.activity;
+    const todayIdx = act.length - 1;
+    const dow = (new Date(act[todayIdx].day).getDay() + 6) % 7;
+    const weeks = [];
+    for (let w = 11; w >= 0; w--) {
+      const end = todayIdx - dow + 6 - 7 * w, start = end - 6;
+      const days = act.slice(Math.max(0, start), Math.min(act.length, end + 1));
+      weeks.push({ xp: days.reduce((n, a) => n + a.xp, 0), from: days[0]?.day, cur: w === 0, ago: w });
+    }
+    const goal = st.daily_goal * 7;
+    const max = Math.max(goal, ...weeks.map((w) => w.xp), 1);
+    const best = Math.max(...weeks.map((w) => w.xp));
+    const now = weeks[11].xp;
+    return `<div class="weeks"><div class="goal-line" style="bottom:calc(20px + (100% - 38px) * ${(goal / max).toFixed(3)})"><em>цель ${goal}</em></div>
+      ${weeks.map((w) => `<div class="${w.cur ? "cur" : ""}" title="Неделя с ${w.from ? new Date(w.from).toLocaleDateString("ru", { day: "numeric", month: "long" }) : "—"}: ${w.xp} XP">
+        <em class="wv">${w.xp || ""}</em><span style="height:${Math.round((100 * w.xp) / max)}%"></span>${w.cur ? "эта" : `${w.ago}н`}</div>`).join("")}</div>
+      <div class="chips"><span>Лучшая неделя <b>${nf(best)} XP</b></span>
+        <span>${now >= goal ? `Цель недели выполнена: <b>${nf(now)} XP</b>` : `Эта неделя <b>${nf(now)} XP</b> — до цели ${nf(goal - now)}`}</span></div>`;
+  };
+  // «Календарь»: сетка за период с переключателем.
+  const calendarView = () => {
     const days = d.activity.slice(-period);
     const max = Math.max(1, ...days.map((a) => a.xp));
     const level = (xp) => (xp === 0 ? 0 : xp < max / 3 ? 1 : xp < (2 * max) / 3 ? 2 : 3);
@@ -232,19 +317,46 @@ export async function renderStats(view) {
     const active = days.filter((a) => a.xp > 0).length;
     const goals = days.filter((a) => a.goal_met).length;
     const frozen = days.filter((a) => a.frozen).length;
-    const cell = period <= 30 ? 32 : period <= 91 ? 24 : 14;   // короткий период — клетки крупнее
-    return `<div class="heatmap" style="--cell:${cell}px">${"<i style='visibility:hidden'></i>".repeat(pad)}${days.map((a) =>
-      a.frozen ? `<i class="fz" title="${a.day}: спасено заморозкой"></i>`
-        : `<i data-l="${level(a.xp)}" class="${a.goal_met ? "goal" : ""}" title="${a.day}: ${a.xp} XP${a.goal_met ? " · цель выполнена" : ""}"></i>`).join("")}</div>
+    const bestDay = days.reduce((b, a) => (a.xp > b ? a.xp : b), 0);
+    const cell = period <= 30 ? 30 : period <= 91 ? 22 : 13;
+    return `<div class="seg-switch cal-period">${ACTIVITY_PERIODS.map(([n, label]) => `<button data-period="${n}" class="${n === period ? "on" : ""}">${label}</button>`).join("")}</div>
+      <div class="heatmap" style="--cell:${cell}px">${"<i style='visibility:hidden'></i>".repeat(pad)}${days.map((a) =>
+        a.frozen ? `<i class="fz" title="${a.day}: спасено заморозкой"></i>`
+          : `<i data-l="${level(a.xp)}" class="${a.goal_met ? "goal" : ""}" title="${a.day}: ${a.xp} XP${a.goal_met ? " · цель выполнена" : ""}"></i>`).join("")}</div>
       <div class="hm-legend"><span><i class="l3"></i>занимался</span><span><i class="goal"></i>цель выполнена</span><span><i class="fz"></i>спасено заморозкой</span><span><i></i>пропуск</span></div>
-      <small class="muted">Активных дней: <b>${active}</b> из ${days.length} · цель выполнена: <b>${goals}</b>${frozen ? ` · спасено заморозкой: <b>${frozen}</b>` : ""}.</small>`;
+      <div class="chips"><span>Активных дней <b>${active}</b> из ${days.length}</span><span>Цель выполнена <b>${goals}</b></span>
+        ${bestDay ? `<span>Лучший день <b>${nf(bestDay)} XP</b></span>` : ""}${frozen ? `<span>Спасено заморозкой <b>${frozen}</b></span>` : ""}</div>`;
+  };
+  // «Темы»: кольца прогресса по начатым темам.
+  const topicsView = () => {
+    if (!topicsCache) return `<p class="muted">Загрузка…</p>`;
+    const started = topicsCache.filter((t) => t.completed || t.modules.some((m) => m.lessons.some((l) => l.solved)));
+    if (!started.length) return `<p class="muted">Начни любую тему — и здесь появится твой прогресс.</p>`;
+    const ring = (p, c) => { const r = 34.5, L = 2 * Math.PI * r;
+      return `<svg class="r" viewBox="0 0 76 76"><circle cx="38" cy="38" r="${r}" fill="none" stroke="var(--bg-hover)" stroke-width="7"/><circle cx="38" cy="38" r="${r}" fill="none" stroke="${c}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(L * p).toFixed(1)} ${L.toFixed(1)}"/></svg>`; };
+    return `<div class="topics-r">${started.map((t) => {
+      const p = t.total ? t.completed / t.total : 0;
+      return `<a class="tr" href="#/topic/${t.id}"><div class="rg">${ring(Math.max(p, 0.02), t.color)}${glyph(t, 40)}</div><b>${esc(t.title)}</b>
+        <small>${Math.round(p * 100)}%${t.trophy ? " · кубок" : ""}</small></a>`;
+    }).join("")}</div>`;
+  };
+  const drawActivity = () => {
+    const body = view.querySelector("#act-body");
+    body.innerHTML = tab === "weeks" ? weeksView() : tab === "calendar" ? calendarView() : topicsView();
+    view.querySelectorAll("[data-tab]").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
+    body.querySelectorAll("[data-period]").forEach((b) => b.onclick = () => {
+      period = Number(b.dataset.period);
+      try { localStorage.setItem(ACTIVITY_KEY, String(period)); } catch { /* ок */ }
+      drawActivity();
+    });
+    const hm = body.querySelector(".heatmap");
+    if (hm) hm.scrollLeft = hm.scrollWidth;          // длинный календарь — сразу к свежим неделям
+    if (tab === "topics" && !topicsCache) api("/path").then((t) => { topicsCache = t; if (tab === "topics") drawActivity(); });
   };
 
-  const avg14 = Math.round(last14.reduce((n, a) => n + a.xp, 0) / 14);
-  const num = (n) => Number(n).toLocaleString("ru-RU");
   view.innerHTML = `<div class="topbar path-top">${pills()}</div>
     <h1 class="section-title">Статистика</h1>
-    <div class="st-top">
+    <div class="st-top2">
       <div class="card st-streak ${st.streak ? "" : "cold"}">
         <div class="st-fire"><div class="st-halo glowP"></div><img class="st-flame-img flicker" src="/static/img/flames/flame-1.webp" alt="" draggable="false"></div>
         <div class="st-days">${st.streak}</div>
@@ -253,32 +365,21 @@ export async function renderStats(view) {
         <div class="muted st-rec">Рекорд ${st.longest_streak} ${plural(st.longest_streak, "день", "дня", "дней")}</div>
         ${freezeBox(st)}
       </div>
-      <div class="st-grid">
-        ${rec("Всего XP", num(d.xp), "#ffd54a")}${rec("Уровень", d.level, "#c68bff")}
-        ${rec("Точность", d.accuracy == null ? "—" : d.accuracy + "%", "#9be84a")}${rec("Заданий решено", num(d.solved))}
-        ${rec("Программ написано", num(d.code_solved))}${rec("Уроков пройдено", num(d.lessons))}
-      </div>
+      ${factsBlock(st, d)}
     </div>
-    <div class="card st-card">
-      <div class="row st-head"><b>Активность</b><div class="spacer"></div>
-        <div class="seg-switch">${ACTIVITY_PERIODS.map(([days, label]) =>
-          `<button data-period="${days}" class="${days === period ? "on" : ""}">${label}</button>`).join("")}</div></div>
-      <div id="heat">${heatmap()}</div>
-    </div>
-    <div class="card st-card"><div class="row st-head"><b>XP за 14 дней</b><div class="spacer"></div><span class="muted" style="font-size:12.5px">в среднем ${avg14} в день</span></div>
-      <div class="xpbars">${last14.map((a, i) => `<div class="${i === 13 ? "today" : ""}" title="${a.day}: ${a.xp} XP">
-        ${a.xp || ""}<span style="height:${Math.round((100 * a.xp) / max14)}%"></span>${new Date(a.day).getDate()}</div>`).join("")}</div>
+    <h3 class="set-sec">До следующей награды</h3>
+    ${goalTiles(st, d)}
+    <div class="card act-panel">
+      <div class="act-head"><b>Активность</b>
+        <div class="seg-switch act-tabs"><button data-tab="weeks">Недели</button><button data-tab="calendar">Календарь</button><button data-tab="topics">Темы</button></div></div>
+      <div id="act-body"></div>
     </div>`;
-  view.querySelectorAll("[data-period]").forEach((b) => b.onclick = () => {
-    period = Number(b.dataset.period);
-    try { localStorage.setItem(ACTIVITY_KEY, String(period)); } catch { /* ок */ }
-    view.querySelectorAll("[data-period]").forEach((x) => x.classList.toggle("on", x === b));
-    view.querySelector("#heat").innerHTML = heatmap();
-    const hm = view.querySelector(".heatmap");
-    hm.scrollLeft = hm.scrollWidth;          // длинный календарь — сразу к свежим неделям
+  view.querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => {
+    tab = b.dataset.tab;
+    try { localStorage.setItem(ACT_TAB_KEY, tab); } catch { /* ок */ }
+    drawActivity();
   });
-  const hm = view.querySelector(".heatmap");
-  hm.scrollLeft = hm.scrollWidth;
+  drawActivity();
 }
 
 const rec = (label, value, color = "") =>

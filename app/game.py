@@ -62,6 +62,14 @@ def _bump(conn, uid: int, name: str, by: int = 1) -> None:
     )
 
 
+def _set_counter(conn, uid: int, name: str, value: int) -> None:
+    conn.execute(
+        "INSERT INTO counters (user_id, name, value) VALUES (?, ?, ?) "
+        "ON CONFLICT(user_id, name) DO UPDATE SET value = excluded.value",
+        (uid, name, value),
+    )
+
+
 def _day_add(conn, uid: int, column: str, amount: int) -> None:
     conn.execute(
         f"INSERT INTO daily_activity (user_id, day, {column}) VALUES (?, ?, ?) "
@@ -252,6 +260,11 @@ def record_answer(conn, uid: int, ex: sqlite3.Row, correct: bool, answer: str, m
 
     if correct:
         _bump(conn, uid, "correct")
+        # верные ответы подряд (для статистики «без ошибок подряд»)
+        run = _counter(conn, uid, "clean_run") + 1
+        _set_counter(conn, uid, "clean_run", run)
+        if run > _counter(conn, uid, "clean_run_best"):
+            _set_counter(conn, uid, "clean_run_best", run)
         conn.execute(
             "UPDATE exercise_progress SET last_answer = ?, draft = '' "
             "WHERE user_id = ? AND exercise_slug = ?",
@@ -295,6 +308,7 @@ def record_answer(conn, uid: int, ex: sqlite3.Row, correct: bool, answer: str, m
             key,
         )
         _day_add(conn, uid, "mistakes", 1)
+        _set_counter(conn, uid, "clean_run", 0)
         if mode == "lesson" and hearts_on:
             conn.execute("UPDATE user_state SET hearts = MAX(0, hearts - 1) WHERE user_id = ?",
                          (uid,))
@@ -313,7 +327,7 @@ class LessonNotFinished(Exception):
     pass
 
 
-def complete_lesson(conn, uid: int, lesson: sqlite3.Row, mistakes: int) -> list:
+def complete_lesson(conn, uid: int, lesson: sqlite3.Row, mistakes: int, seconds: int = 0) -> list:
     events: list = []
     # Урок можно завершить, когда каждое задание решено или уже попало в работу над ошибками
     # (была попытка с ошибкой) — нерешённые дорешиваются там.
@@ -326,6 +340,9 @@ def complete_lesson(conn, uid: int, lesson: sqlite3.Row, mistakes: int) -> list:
     if any(not r["solved"] and not r["in_review"] for r in rows):
         raise LessonNotFinished()
     unsolved = sum(1 for r in rows if not r["solved"])
+    if seconds > 0:                                  # время в уроке (для статистики); часы простоя не считаем
+        _bump(conn, uid, "lesson_seconds", min(seconds, 3 * 3600))
+        _bump(conn, uid, "lessons_timed")
 
     perfect = mistakes == 0 and unsolved == 0
     prev = conn.execute(
@@ -436,6 +453,51 @@ def stats(conn, uid: int) -> dict:
         "modules": count("SELECT COUNT(*) FROM trophies WHERE user_id = ? AND kind = 'module'"),
         "topics": count("SELECT COUNT(*) FROM trophies WHERE user_id = ? AND kind = 'topic'"),
         "goal_days": count("SELECT COUNT(*) FROM daily_activity WHERE user_id = ? AND goal_met = 1"),
+    }
+
+
+# Метрики, у которых есть достижения, — для полоски «до следующей награды» в статистике.
+GOAL_METRICS = ("solved", "code_solved", "lessons", "xp", "level")
+
+
+def next_goals(conn, uid: int, s: dict) -> dict:
+    """Ближайшее ещё не полученное достижение по каждой метрике: {metric: {code, title, goal, prev}}."""
+    have = {r["code"] for r in conn.execute("SELECT code FROM achievements WHERE user_id = ?", (uid,))}
+    out = {}
+    for metric in GOAL_METRICS:
+        prev = 0
+        for code, _icon, title, _desc, (m, need) in sorted(
+                (a for a in ACHIEVEMENTS if a[4][0] == metric), key=lambda a: a[4][1]):
+            if code in have or s[metric] >= need:
+                prev = need
+                continue
+            out[metric] = {"code": code, "title": title, "goal": need, "prev": prev}
+            break
+    return out
+
+
+def fun_facts(conn, uid: int) -> dict:
+    """Факты для статистики: лучший день, любимая тема, верные ответы подряд, время в уроках, решено сегодня."""
+    best = conn.execute(
+        "SELECT day, xp FROM daily_activity WHERE user_id = ? AND xp > 0 ORDER BY xp DESC, day DESC LIMIT 1", (uid,)
+    ).fetchone()
+    fav = conn.execute(
+        "SELECT t.title, t.slug, t.color, COUNT(*) AS n FROM exercise_progress ep "
+        "JOIN exercises e ON e.slug = ep.exercise_slug JOIN lessons l ON l.id = e.lesson_id "
+        "JOIN modules m ON m.id = l.module_id JOIN topics t ON t.id = m.topic_id "
+        "WHERE ep.user_id = ? AND ep.solved = 1 GROUP BY t.id ORDER BY n DESC LIMIT 1", (uid,)
+    ).fetchone()
+    today_row = conn.execute(
+        "SELECT solved, xp FROM daily_activity WHERE user_id = ? AND day = ?", (uid, today().isoformat())
+    ).fetchone()
+    return {
+        "best_day": dict(best) if best else None,
+        "favorite_topic": dict(fav) if fav else None,
+        "clean_run": _counter(conn, uid, "clean_run"),
+        "clean_run_best": _counter(conn, uid, "clean_run_best"),
+        "lesson_seconds": _counter(conn, uid, "lesson_seconds"),
+        "lessons_timed": _counter(conn, uid, "lessons_timed"),
+        "today_solved": today_row["solved"] if today_row else 0,
     }
 
 

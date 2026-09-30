@@ -606,7 +606,7 @@ export function runSession(view, opts) {
   async function completeLesson() {
     if (opts.mode !== "lesson" || completion) return true;
     try {
-      completion = await api(`/lessons/${opts.lessonId}/complete`, { method: "POST", body: { mistakes: s.mistakes } });
+      completion = await api(`/lessons/${opts.lessonId}/complete`, { method: "POST", body: { mistakes: s.mistakes, seconds: Math.round((Date.now() - s.started) / 1000) } });
     } catch (e) { alertError(e); return false; }
     setState(completion.state);
     announce(completion.events.filter((e) => e.type !== "achievement")); // достижения покажем на финале

@@ -402,6 +402,7 @@ def solution(ex_id: int, _user: User):
 
 class CompleteIn(BaseModel):
     mistakes: int = Field(0, ge=0)
+    seconds: int = Field(0, ge=0, le=86_400)   # сколько длился урок (для статистики)
 
 
 @app.post("/api/lessons/{lesson_id}/complete")
@@ -409,7 +410,7 @@ def complete(lesson_id: int, body: CompleteIn, user: User):
     with transaction() as conn:
         lesson = _get(conn, "lessons", lesson_id)
         try:
-            events = game.complete_lesson(conn, user["id"], lesson, body.mistakes)
+            events = game.complete_lesson(conn, user["id"], lesson, body.mistakes, body.seconds)
         except game.LessonNotFinished:
             raise HTTPException(400, "В уроке остались задания, которые ты ещё не пробовал")
         return {"events": events, "state": game.get_state(conn, user["id"])}
@@ -539,6 +540,8 @@ def stats(user: User):
                              "frozen": bool(row.get("frozen")) and not row.get("xp")})
         s["accuracy"] = round(100 * s["correct"] / s["attempts"]) if s["attempts"] else None
         s["activity"] = activity
+        s["goals"] = game.next_goals(conn, uid, s)
+        s["facts"] = game.fun_facts(conn, uid)
         s["state"] = game.get_state(conn, uid)
         return s
 
