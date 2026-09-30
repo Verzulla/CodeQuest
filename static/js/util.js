@@ -29,7 +29,7 @@ export const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 // SVG-иконка из спрайта в index.html: ic("flame"), ic("heart", "big").
-export const ic = (name, cls = "") => `<svg class="i ${cls}" aria-hidden="true"><use href="#${name}"/></svg>`;
+export const ic = (name, cls = "") => `<svg class="i ${cls}" aria-hidden="true"><use href="#ic-${name}"/></svg>`;
 const isIconName = (s) => /^[a-z][\w-]*$/.test(s);
 
 // Сова-иллюстрация: owl("happy", "hop") — позы wave, happy, trophy, think, sad, sleep.

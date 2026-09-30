@@ -1,5 +1,5 @@
 // Прохождение урока / повторения: теория → задания по одному → финальный экран.
-import { api, esc, md, highlight, sound, modal, confetti, burst, toast, $ } from "../util.js";
+import { api, esc, md, highlight, sound, modal, confetti, burst, toast, fmtTime, ic, owl, plural, $ } from "../util.js";
 import { createEditor } from "../editor.js";
 import { bindRunnable } from "../runnable.js";
 import { store, setState, announce } from "../store.js";
@@ -9,7 +9,7 @@ export async function renderLesson(view, id) {
   try {
     lesson = await api(`/lessons/${id}`);
   } catch (e) {
-    view.innerHTML = `<div class="empty"><div class="big">🔒</div><h2>${esc(e.message)}</h2><a class="btn" href="#/">Все темы</a></div>`;
+    view.innerHTML = `<div class="empty">${owl("sleep", "breathe")}<h2>${esc(e.message)}</h2><a class="btn" href="#/">Все темы</a></div>`;
     return;
   }
   runSession(view, {
@@ -35,7 +35,7 @@ export function runSession(view, opts) {
     return { ex, solved, answer: solved ? ex.answer : (persist ? ex.draft : ""), failed: false, redo: false };
   });
   const n = items.length;
-  const s = { mistakes: 0, xp: 0, events: [], solvedNow: 0, firstTry: 0, theorySeen: false };
+  const s = { mistakes: 0, xp: 0, events: [], solvedNow: 0, firstTry: 0, theorySeen: false, started: Date.now() };
   // Теория урока: полный урок (theoryFull) — основной экран, краткая (theory) — шпаргалка.
   const hasCheat = opts.mode === "lesson" && !!(opts.theory || "").trim();
   const hasFull = opts.mode === "lesson" && !!(opts.theoryFull || "").trim();
@@ -43,7 +43,7 @@ export function runSession(view, opts) {
   // «Проверь себя» — после всех заданий; страницы вопросов идут следом за заданиями: cur = n + k.
   const quiz = opts.mode === "lesson" ? (opts.quiz || []) : [];
   const quizAnswers = quiz.map(() => null);
-  const FULL = -2;                 // полный урок, открытый из задания через 📖 (с возвратом к заданию)
+  const FULL = -2;                 // полный урок, открытый из задания через книжку (с возвратом к заданию)
   let returnTo = null;             // задание, из которого открыли полный урок
   const allSolved = () => items.every((it) => it.solved);
   const training = opts.mode === "training";   // случайные решённые задания: шпаргалка — своя у каждого задания
@@ -63,7 +63,7 @@ export function runSession(view, opts) {
   const anySolved = items.some((it) => it.solved);
   let cur = hasTheory && !anySolved ? -1 : Math.max(0, firstTodo);
   let reached = firstTodo === -1 ? n - 1 : firstTodo;          // дальше этого места вперёд не прыгаем
-  if (anySolved && firstTodo > 0) toast("▶️", `Продолжаем с задания ${firstTodo + 1} из ${n}`, "Прогресс урока сохранён");
+  if (anySolved && firstTodo > 0) toast("play", `Продолжаем с задания ${firstTodo + 1} из ${n}`, "Прогресс урока сохранён");
 
   // Следующее нерешённое после from (по кругу). -1 — все решены.
   const nextTodo = (from) => {
@@ -116,13 +116,13 @@ export function runSession(view, opts) {
   };
   const top = () => `
     <div class="lesson-top">
-      <button class="close" title="Выйти" id="quit">✕</button>
+      <button class="close" title="Выйти" id="quit">${ic("xmark")}</button>
       <div class="segs">${hasTheory ? segHtml(-1) : ""}${items.map((_, i) => segHtml(i)).join("")}${quiz.length ? segHtml(n) : ""}</div>
-      ${hasTheory || cheatOf() ? `<button class="btn ghost small" id="theory-btn" title="Шпаргалка урока">📖</button>` : ""}
+      ${hasTheory || cheatOf() ? `<button class="tb" id="theory-btn" title="Шпаргалка урока">${ic("book")}</button>` : ""}
       ${store.state.hearts_enabled && opts.mode === "lesson"
-        ? `<span class="pill heart">❤️ ${store.state.hearts}</span>`
-        : opts.mode === "review" ? `<span class="pill heart" title="В повторении сердечки не тратятся; исправленное задание возвращает сердечки, потерянные на нём">❤️ +</span>`
-        : training ? `<span class="pill" title="В тренировке ошибки не тратят сердечки">🏋️</span>` : ""}
+        ? `<span class="hp">${ic("heart")}${store.state.hearts}</span>`
+        : opts.mode === "review" ? `<span class="hp" title="В повторении сердечки не тратятся; исправленное задание возвращает сердечки, потерянные на нём">${ic("heart")}+</span>`
+        : training ? `<span class="hp train" title="В тренировке ошибки не тратят сердечки">${ic("i-dumb")}</span>` : ""}
     </div>`;
 
   const bindTop = () => {
@@ -130,7 +130,7 @@ export function runSession(view, opts) {
       flushDraft();
       const leave = () => leaveTo(exitHash());
       if (opts.mode !== "lesson") return leave();
-      const m = modal(`<div class="big">👋</div><h2>Выйти из урока?</h2>
+      const m = modal(`${owl("wave", "bob")}<h2>Выйти из урока?</h2>
         <p class="muted">Прогресс сохранён: решённые задания и недописанные ответы останутся на месте, в следующий раз продолжишь отсюда.</p>
         <div class="btns"><button class="btn" data-a="stay">Продолжить учиться</button>
         <button class="btn ghost" data-a="leave">Выйти</button></div>`);
@@ -145,7 +145,7 @@ export function runSession(view, opts) {
     if (tb) tb.onclick = () => {
       if (training) {
         const ex = items[cur].ex;
-        const m = modal(`<h2 style="margin-top:0">📝 Шпаргалка</h2>
+        const m = modal(`<h2 class="cheat-title">${ic("book")}Шпаргалка</h2>
           <p class="muted" style="margin-top:-6px">${esc(ex.topic_title || "")} · ${esc(ex.lesson_title || "")}</p>
           <div class="theory md" style="text-align:left;max-height:60vh;overflow:auto">${md(cheatOf(), { runnable: true })}</div>
           <div class="btns"><button class="btn" data-a="ok">Понятно</button></div>`);
@@ -155,9 +155,9 @@ export function runSession(view, opts) {
         return;
       }
       if (!hasCheat) { returnTo = cur >= 0 && cur < n ? cur : null; goTo(FULL); return; }
-      const m = modal(`<h2 style="margin-top:0">📝 Шпаргалка</h2>
+      const m = modal(`<h2 class="cheat-title">${ic("book")}Шпаргалка</h2>
         <div class="theory md" style="text-align:left;max-height:60vh;overflow:auto">${md(opts.theory, { runnable: true })}</div>
-        <div class="btns">${hasFull ? `<button class="btn blue" data-a="full">📚 Открыть полный урок</button>` : ""}
+        <div class="btns">${hasFull ? `<button class="btn ghost" data-a="full">Открыть полный урок</button>` : ""}
         <button class="btn" data-a="ok">Понятно</button></div>`);
       m.root.style.maxWidth = "720px";
       bindRunnable(m.root);
@@ -191,14 +191,14 @@ export function runSession(view, opts) {
   const bindBack = () => { const b = $("#back", view); if (b) b.onclick = () => goTo(backTarget()); };
 
   // ---------- Урок (теория) ----------
-  // Основной экран — полный урок; шпаргалка свёрнута внизу (и доступна по 📖 во время заданий).
+  // Основной экран — полный урок; шпаргалка свёрнута внизу (и доступна по книжке во время заданий).
   const cheatBlock = () => hasFull && hasCheat
-    ? `<details class="cheat"><summary>📝 Шпаргалка — коротко всё главное из урока</summary>
+    ? `<details class="cheat"><summary>${ic("book")}Шпаргалка — коротко всё главное из урока</summary>
         <div class="theory md">${md(opts.theory, { runnable: true })}</div></details>` : "";
   function showTheory() {
     s.theorySeen = true;
     view.innerHTML = `${top()}
-      <div class="lesson-body"><div class="ex-kind">📖 Урок</div><h1>${esc(opts.title)}</h1>
+      <div class="lesson-body"><div class="kind">Урок</div><h1>${esc(opts.title)}</h1>
       <div class="theory md full">${md(hasFull ? opts.theoryFull : opts.theory, { runnable: true })}</div>
       ${cheatBlock()}</div>
       <div class="footer"><div class="inner"><div class="spacer"></div>
@@ -214,7 +214,7 @@ export function runSession(view, opts) {
     s.theorySeen = true;
     const back = returnTo;
     view.innerHTML = `${top()}
-      <div class="lesson-body"><div class="ex-kind">📖 Урок</div><h1>${esc(opts.title)}</h1>
+      <div class="lesson-body"><div class="kind">Урок</div><h1>${esc(opts.title)}</h1>
       <div class="theory md full">${md(opts.theoryFull, { runnable: true })}</div>
       ${cheatBlock()}</div>
       <div class="footer"><div class="inner"><div class="spacer"></div>
@@ -232,33 +232,46 @@ export function runSession(view, opts) {
     const isCmd = ex.type === "command";
     const kindLabel = isCode ? "Напиши код" : isCmd ? "Терминал" : "Что выведет программа?";
     const viewSolved = item.solved && !item.redo;   // решённое задание: показываем решение, проверка выключена
+    const fileName = isCode ? "solution.py" : isCmd ? "терминал" : "program.py";
+    const dots = `<span class="dots"><i></i><i></i><i></i></span>`;
+    const work = isCode
+      ? `<div class="code-card"><div class="cc-head">${dots}<span class="cc-name">${fileName}</span><span class="spacer"></span>
+          <button class="act run" id="run">${ic("play")}Запустить</button></div><div id="ed"></div></div>`
+      : isCmd
+      ? `<div class="code-card term">${ex.code ? `<div class="cc-head">${dots}<span class="cc-name">${fileName}</span></div><pre class="code-view term">${esc(ex.code)}</pre>` : ""}
+          <div class="term-input"><span class="term-prompt">$</span>
+            <input class="answer code" id="answer" placeholder="команда или ответ"
+              spellcheck="false" autocomplete="off" autocapitalize="off"></div></div>`
+      : `<div class="code-card"><div class="cc-head">${dots}<span class="cc-name">${fileName}</span></div><pre class="code-view">${highlight(ex.code)}</pre></div>
+        <div class="kind out-label">Твой ответ — что появится на экране</div>
+        <textarea class="answer code" id="answer" placeholder="Каждую строку вывода — с новой строки" spellcheck="false"></textarea>`;
     view.innerHTML = `${top()}
-      <div class="lesson-body">
-        <div class="ex-kind ${item.solved || ex.solved ? "" : "new"}">Задание ${i + 1} из ${n} · ${kindLabel}</div>
-        ${training ? `<div class="muted" style="font-size:13px;margin:-4px 0 8px">${esc(ex.topic_title || "")} · ${esc(ex.lesson_title || "")}${ex.warmup ? ` · <b title="Урок ещё не пройден — задание не засчитывается">🆕 разминка</b>` : ""}</div>` : ""}
-        ${viewSolved ? `<div class="solved-banner"><span>✅ Задание решено — это твоё решение</span>
-          <button class="btn ghost small" id="redo">↺ Решить заново</button></div>` : ""}
-        ${item.redo ? `<div class="solved-banner redo"><span>↺ Решаешь заново — ошибки здесь не отнимают сердечки, статус «решено» сохранится</span></div>` : ""}
-        <div class="prompt md">${md(ex.prompt)}</div>
-        ${isCode ? `<div id="ed"></div>`
-          : isCmd ? `${ex.code ? `<pre class="code-view term">${esc(ex.code)}</pre>` : ""}
-            <div class="term-input"><span class="term-prompt">$</span>
-              <input class="answer code" id="answer" placeholder="команда или ответ"
-                spellcheck="false" autocomplete="off" autocapitalize="off"></div>`
-          : `<pre class="code-view">${highlight(ex.code)}</pre>
-          <textarea class="answer code" id="answer" placeholder="Введи вывод программы — каждую строку с новой строки" spellcheck="false"></textarea>`}
-        <div class="tools">
-          ${isCode ? `<button class="btn blue small" id="run">▶ Запустить</button>` : ""}
-          ${ex.hint && !viewSolved ? `<button class="btn ghost small" id="hint">💡 Подсказка</button>` : ""}
-          <button class="btn ghost small" id="sol" ${item.failed || item.solved ? "" : "hidden"}>👀 ${item.solved ? "Эталонное решение" : "Показать решение"}</button>
-          ${isCode && !viewSolved ? `<button class="btn ghost small" id="reset" title="Вернуть заготовку">↺ Сбросить</button>` : ""}
-          <span class="muted" style="align-self:center;font-size:13px">${isCode && !viewSolved ? "⌘/Ctrl + Enter — проверить" : ""}</span>
+      <div class="lesson-body ex-layout${isCode ? " split" : ""}">
+        <div class="ex-left">
+          <div class="kind ${item.solved || ex.solved ? "" : "new"}">Задание ${i + 1} из ${n} · ${kindLabel}</div>
+          ${training ? `<div class="muted ex-src">${esc(ex.topic_title || "")} · ${esc(ex.lesson_title || "")}${ex.warmup ? ` · <b title="Урок ещё не пройден — задание не засчитывается">разминка</b>` : ""}</div>` : ""}
+          ${viewSolved ? `<div class="solved-banner"><span>${ic("okc")}Задание решено — это твоё решение</span>
+            <button class="btn ghost small" id="redo">${ic("refresh")}Решить заново</button></div>` : ""}
+          ${item.redo ? `<div class="solved-banner redo"><span>${ic("refresh")}Решаешь заново — ошибки здесь не отнимают сердечки, статус «решено» сохранится</span></div>` : ""}
+          <div class="prompt md">${md(ex.prompt)}</div>
+          <div class="tools">
+            ${ex.hint && !viewSolved ? `<button class="act hint" id="hint">${ic("bulb")}Подсказка</button>` : ""}
+            ${hasTheory || cheatOf() ? `<button class="act cheat" id="cheat-chip">${ic("book")}Шпаргалка</button>` : ""}
+            <button class="act" id="sol" ${item.failed || item.solved ? "" : "hidden"}>${ic("eye")}${item.solved ? "Эталонное решение" : "Показать решение"}</button>
+            ${isCode && !viewSolved ? `<button class="act" id="reset" title="Вернуть заготовку">${ic("refresh")}Сбросить</button>` : ""}
+          </div>
+          <div id="hintbox"></div>
+          ${isCode ? `<div class="ex-owl">${owl("think", "tilt")}</div>` : ""}
         </div>
-        <div id="hintbox"></div>
-        <div id="console"></div>
+        <div class="ex-right">
+          ${work}
+          <div id="console"></div>
+          ${isCode && !viewSolved ? `<div class="kbd-tip muted"><kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>Enter</kbd> — проверить</div>` : ""}
+        </div>
       </div>
       <div class="footer" id="footer"></div>`;
     bindTop();
+    $("#cheat-chip", view)?.addEventListener("click", () => $("#theory-btn", view)?.click());
 
     let editor, answerEl;
     const getAnswer = () => (isCode ? editor.value : answerEl.value);
@@ -277,9 +290,9 @@ export function runSession(view, opts) {
       $("#run", view).onclick = async () => {
         const btn = $("#run", view);
         btn.disabled = true;
-        btn.textContent = "⏳ Выполняю…";
+        btn.innerHTML = `${ic("clock")}Выполняю…`;
         try { showConsole(await api("/run", { method: "POST", body: { code: editor.value } }), false); }
-        finally { btn.disabled = false; btn.textContent = "▶ Запустить"; }
+        finally { btn.disabled = false; btn.innerHTML = `${ic("play")}Запустить`; }
       };
       $("#reset", view)?.addEventListener("click", () => { editor.value = ex.starter_code; editor.focus(); });
     } else {
@@ -293,12 +306,12 @@ export function runSession(view, opts) {
       };
     }
     $("#hint", view)?.addEventListener("click", () => {
-      $("#hintbox", view).innerHTML = `<div class="hintbox">💡 ${md(ex.hint)}</div>`;
+      $("#hintbox", view).innerHTML = `<div class="hintbox"><div class="kind">${ic("bulb")}Подсказка</div>${md(ex.hint)}</div>`;
     });
     $("#sol", view).onclick = async () => {
       const { solution } = await api(`/exercises/${ex.id}/solution`);
-      $("#hintbox", view).innerHTML = `<div class="hintbox"><b>Эталонное решение:</b><pre class="code-view${isCmd ? " term" : ""}">${isCmd ? esc(solution) : highlight(solution)}</pre>
-        ${item.solved ? "" : `<small class="muted">Разберись, как оно работает, и напиши своё — копипаст не прокачивает мозг 😉</small>`}</div>`;
+      $("#hintbox", view).innerHTML = `<div class="hintbox sol"><div class="kind">${ic("eye")}Эталонное решение</div><pre class="code-view${isCmd ? " term" : ""}">${isCmd ? esc(solution) : highlight(solution)}</pre>
+        ${item.solved ? "" : `<small class="muted">Разберись, как оно работает, и напиши своё — копипаст не прокачивает мозг</small>`}</div>`;
     };
     $("#redo", view)?.addEventListener("click", () => { item.redo = true; showExercise(i); });
 
@@ -307,7 +320,7 @@ export function runSession(view, opts) {
       const last = nextTodo(i) === -1 && (i === n - 1 || items.slice(i + 1).every((it) => it.solved));
       footer.className = "footer";
       footer.innerHTML = `<div class="inner">${backBtn()}<div class="spacer"></div>
-        <button class="btn" id="next">${last && opts.mode === "lesson" ? endLabel() : "Дальше →"}</button></div>`;
+        <button class="btn main" id="next">${last && opts.mode === "lesson" ? endLabel() : "Дальше →"}</button></div>`;
       bindBack();
       $("#next", view).onclick = () => {
         if (i < n - 1) return goTo(i + 1);
@@ -319,7 +332,7 @@ export function runSession(view, opts) {
       footer.className = "footer";
       footer.innerHTML = `<div class="inner">${backBtn()}<div class="spacer"></div>
         ${item.redo ? `<button class="btn ghost" id="cancel-redo">Отмена</button>` : ""}
-        <button class="btn" id="check">Проверить</button></div>`;
+        <button class="btn main" id="check">Проверить</button></div>`;
       bindBack();
       $("#cancel-redo", view)?.addEventListener("click", () => { item.redo = false; showExercise(i); });
       $("#check", view).onclick = check;
@@ -336,7 +349,7 @@ export function runSession(view, opts) {
     async function check() {
       const btn = $("#check", view);
       btn.disabled = true;
-      btn.textContent = isCode ? "⏳ Тестирую…" : "…";
+      btn.textContent = isCode ? "Тестирую…" : "Проверяю…";
       const mode = opts.mode === "review" ? "review" : training && ex.warmup ? "warmup" : training || item.redo ? "practice" : "lesson";
       const answer = getAnswer();
       let r;
@@ -368,9 +381,10 @@ export function runSession(view, opts) {
         clearTimeout(draftTimer); draftPending = null;   // сервер сам очистил черновик
         if (isCode) editor.textarea.readOnly = true; else answerEl.readOnly = true;
         footer.className = "footer good";
-        footer.innerHTML = `<div class="inner"><div class="verdict"><span class="ico">✅</span>
-          <div>${praise()}<div class="detail">+${gained} XP</div></div></div>
-          <div class="spacer"></div><button class="btn" id="cont">${nextTodo(i) === -1 ? (opts.mode === "lesson" ? endLabel() : "Готово") : "Продолжить"}</button></div>`;
+        const firstTry = !item.failed && !(item.redo);
+        footer.innerHTML = `<div class="inner">${owl("happy", "hop", "")}<div class="verdict">
+          <div>${praise()}<div class="detail">${gained ? `+${gained} XP` : "Решено"}${firstTry && gained ? " · с первой попытки" : ""}</div></div></div>
+          <div class="spacer"></div><button class="btn main" id="cont">${nextTodo(i) === -1 ? (opts.mode === "lesson" ? endLabel() : "Готово") : "Продолжить"}</button></div>`;
         $("#cont", view).onclick = proceed;
       } else {
         sound("bad");
@@ -382,12 +396,12 @@ export function runSession(view, opts) {
           : isCmd ? `Например: ${r.expected}` : `Правильный ответ:\n${r.expected}`;
         footer.className = "footer bad";
         const later = nextTodo(i);
-        footer.innerHTML = `<div class="inner"><div class="verdict"><span class="ico">❌</span>
+        footer.innerHTML = `<div class="inner">${owl("think", "tilt")}<div class="verdict">
           <div>${isCode ? "Пока не то" : "Неправильно"}<div class="detail">${esc(detail)}</div></div></div>
           <div class="spacer"></div>
-          ${item.redo ? `<button class="btn ghost" id="cancel-redo">Отмена</button><button class="btn red" id="retry">Исправить</button>`
-            : isCode ? `${later !== -1 && later !== i ? `<button class="btn ghost" id="later">Позже</button>` : ""}<button class="btn red" id="retry">Исправить</button>`
-            : `<button class="btn red" id="cont">Понятно</button>`}</div>`;
+          ${item.redo ? `<button class="btn ghost" id="cancel-redo">Отмена</button><button class="btn red main" id="retry">Исправить</button>`
+            : isCode ? `${later !== -1 && later !== i ? `<button class="btn ghost" id="later">Позже</button>` : ""}<button class="btn red main" id="retry">Исправить</button>`
+            : `<button class="btn red main" id="cont">Понятно</button>`}</div>`;
         $("#retry", view)?.addEventListener("click", () => { idleFooter(); (isCode ? editor : answerEl).focus(); });
         $("#later", view)?.addEventListener("click", () => goTo(later));
         $("#cancel-redo", view)?.addEventListener("click", () => { item.redo = false; showExercise(i); });
@@ -410,24 +424,30 @@ export function runSession(view, opts) {
     const box = $("#console", view);
     if (!box) return;
     const tests = withTests && res.tests.length
-      ? `<ul class="tests">${res.tests.map((t) => `<li class="${t.passed ? "ok" : "fail"}">${t.passed ? "✔" : "✘"} ${esc(t.name.replace(/^test_/, "").replaceAll("_", " "))}${t.message ? ` — ${esc(t.message)}` : ""}</li>`).join("")}</ul>`
+      ? `<ul class="tests">${res.tests.map((t) => `<li class="${t.passed ? "ok" : "fail"}">${ic(t.passed ? "okc" : "badc")}${esc(t.name.replace(/^test_/, "").replaceAll("_", " "))}${t.message ? ` — ${esc(t.message)}` : ""}</li>`).join("")}</ul>`
       : "";
     const out = res.stdout ? esc(res.stdout) : `<span class="muted">(программа ничего не вывела)</span>`;
     const err = res.error ? `\n<span class="err">${esc(res.error)}${res.error_line ? ` (строка ${res.error_line})` : ""}</span>` : "";
-    box.innerHTML = `<div class="console"><div class="c-head">Вывод</div><pre>${out}${err}</pre>
-      ${tests ? `<div class="c-head">Тесты</div>${tests}` : ""}</div>`;
+    const passed = withTests ? res.tests.filter((t) => t.passed).length : 0;
+    const testHead = !tests ? "" : `<div class="c-head tests-head ${passed === res.tests.length ? "ok" : "fail"}">${ic("term")}Тесты: ${passed} из ${res.tests.length}</div>`;
+    box.innerHTML = `<div class="console"><div class="c-head">Вывод</div><pre>${out}${err}</pre>${testHead}${tests}</div>`;
   }
 
   function noHearts() {
-    const m = modal(`<div class="big">💔</div><h2>Сердечки закончились</h2>
-      <p class="muted">Со временем они не восстанавливаются. Исправь свои ошибки в «Работе над ошибками» — каждое исправленное задание вернёт сердечки, потерянные на нём.</p>
-      <div class="btns"><a class="btn blue" href="#/review" data-a="r">Работа над ошибками (+❤️)</a>
+    const rc = store.state.review_count;
+    const m = modal(`${owl("sad", "breathe")}<div class="hearts-out">${ic("heartE").repeat(store.state.max_hearts)}</div>
+      <h2>Сердечки закончились</h2>
+      <p class="muted">Со временем они не восстанавливаются. Исправь ошибки — каждое исправленное задание вернёт сердечки, потерянные на нём.</p>
+      ${rc ? `<div class="card revenge">${ic("heart")}<div><b>${rc} ${plural(rc, "задание ждёт", "задания ждут", "заданий ждут")} реванша</b>
+        <div class="muted">можно вернуть до ${store.state.max_hearts} сердечек</div></div></div>` : ""}
+      <div class="btns"><a class="btn" href="#/review" data-a="r">Работа над ошибками</a>
       <a class="btn ghost" href="${opts.backHash || "#/"}" data-a="h">К урокам темы</a></div>`);
+    m.root.classList.add("modal-sad");
     m.root.querySelectorAll("a").forEach((a) => a.addEventListener("click", m.close));
   }
 
   // ---------- «Проверь себя» ----------
-  const endLabel = () => (quiz.length ? "Дальше: проверь себя 🧠" : "Завершить урок 🏁");
+  const endLabel = () => (quiz.length ? "Дальше: проверь себя" : "Завершить урок");
 
   // Все задания решены. Урок засчитываем сразу — уход с вопросов «Проверь себя» ничего не отнимет.
   async function toEnd() {
@@ -442,7 +462,7 @@ export function runSession(view, opts) {
     const last = k === quiz.length - 1;
     view.innerHTML = `${top()}
       <div class="lesson-body">
-        <div class="ex-kind">🧠 Проверь себя · вопрос ${k + 1} из ${quiz.length} · без штрафов</div>
+        <div class="kind">Проверь себя · вопрос ${k + 1} из ${quiz.length} · без штрафов</div>
         <div class="prompt md">${md(q.q)}</div>
         <div class="quiz-options">${q.options.map((o, j) => {
           const cls = !answered ? "" : j === q.answer ? "right" : j === chosen ? "wrong" : "dim";
@@ -450,11 +470,11 @@ export function runSession(view, opts) {
             <span class="qo-key">${"АБВГДЕ"[j]}</span><span class="md">${md(o)}</span></button>`;
         }).join("")}</div>
         ${answered ? `<div class="quiz-explain ${chosen === q.answer ? "right" : "wrong"}">
-          <b>${chosen === q.answer ? "✅ Верно!" : "❌ Не совсем."}</b> ${md(q.explain || "")}</div>` : ""}
+          <b>${chosen === q.answer ? "Верно!" : "Не совсем."}</b> ${md(q.explain || "")}</div>` : ""}
       </div>
       <div class="footer"><div class="inner">${backBtn()}<div class="spacer"></div>
         ${answered ? "" : `<button class="btn ghost" id="skip">Пропустить</button>`}
-        <button class="btn" id="qnext" ${answered ? "" : "disabled"}>${last ? "Завершить урок 🏁" : "Дальше →"}</button></div></div>`;
+        <button class="btn main" id="qnext" ${answered ? "" : "disabled"}>${last ? "Завершить урок" : "Дальше →"}</button></div></div>`;
     bindTop();
     bindBack();
     view.querySelectorAll("[data-opt]").forEach((b) => b.onclick = () => {
@@ -491,22 +511,25 @@ export function runSession(view, opts) {
     flushDraft();
     const acc = s.solvedNow ? Math.round((100 * s.firstTry) / s.solvedNow) : 100;
     const rewards = s.events.filter((e) => ["trophy", "achievement", "level_up", "perfect"].includes(e.type));
-    const hero = rewards.some((e) => e.type === "trophy" && e.kind === "topic") ? "🏆"
-      : rewards.some((e) => e.type === "trophy") ? "🏅" : s.mistakes === 0 ? "💎" : "🎉";
     const title = opts.mode === "review" ? "Повторение завершено!" : training ? "Тренировка завершена!"
-      : s.mistakes === 0 ? "Идеально! Без ошибок!" : "Урок пройден!";
+      : s.mistakes === 0 ? "Урок пройден без ошибок!" : "Урок пройден!";
+    const secs = Math.round((Date.now() - s.started) / 1000);
+    document.body.classList.add("celebrate");
     view.innerHTML = `<div class="finish">
-      <div class="hero">${hero}</div><h1>${title}</h1>
+      ${owl("trophy", "hop")}
+      <div class="big-xp">+${s.xp} XP</div>
+      <h1>${title}</h1>
+      ${opts.mode === "lesson" ? `<p class="muted">${esc(opts.title)}</p>` : ""}
       <div class="tiles">
-        <div class="tile" style="--c:var(--gold)"><small>Опыт</small><div>⚡ ${s.xp}</div></div>
-        <div class="tile" style="--c:var(--green)"><small>Точность</small><div>🎯 ${acc}%</div></div>
-        <div class="tile" style="--c:var(--blue)"><small>Заданий</small><div>✅ ${n}</div></div>
+        <div class="tile" style="--c:#ffd54a"><small>Опыт</small><b>${ic("bolt")}${s.xp}</b></div>
+        <div class="tile" style="--c:#9be84a"><small>Точность</small><b>${ic("target")}${acc}%</b></div>
+        <div class="tile" style="--c:#6cc8ff"><small>Время</small><b>${ic("clock")}${fmtTime(secs)}</b></div>
       </div>
       <div class="rewards">${quizLine()}${rewards.map((e, i) => reward(e, i + 1)).join("")}</div>
       <button class="btn wide" id="done">Продолжить</button></div>`;
     sound("done");
     confetti();
-    $("#done", view).onclick = () => leaveTo(exitHash());
+    $("#done", view).onclick = () => { document.body.classList.remove("celebrate"); leaveTo(exitHash()); };
     $("#done", view).focus();
   }
 
@@ -514,18 +537,18 @@ export function runSession(view, opts) {
     const done = quizAnswers.filter((a) => a !== null).length;
     if (!quiz.length || !done) return "";
     const right = quiz.filter((q, k) => quizAnswers[k] === q.answer).length;
-    return `<div class="reward" style="animation-delay:.3s"><div class="ri">🧠</div><div><b>Проверь себя: ${right} из ${quiz.length}</b>
+    return `<div class="reward card" style="animation-delay:.3s"><div class="ri">${ic("target2")}</div><div><b>Проверь себя: ${right} из ${quiz.length}</b>
       <span class="muted">${right === quiz.length ? "Материал усвоен отлично" : "Загляни в подробную теорию, чтобы закрепить"}</span></div></div>`;
   };
 
   const reward = (e, i) => {
     const delay = `style="animation-delay:${0.3 + i * 0.15}s"`;
-    if (e.type === "trophy") return `<div class="reward trophy" ${delay}><div class="ri">${esc(e.icon)}</div><div>
-      <b>${e.kind === "topic" ? "Тема пройдена! 🏆" : "Модуль завершён! 🏅"}</b>${esc(e.title)} · +${e.kind === "topic" ? 50 : 20} XP</div></div>`;
-    if (e.type === "achievement") return `<div class="reward" ${delay}><div class="ri">${esc(e.icon)}</div><div>
+    if (e.type === "trophy") return `<div class="reward card trophy" ${delay}><div class="ri">${ic(e.kind === "topic" ? "cup" : "medalI")}</div><div>
+      <b>${e.kind === "topic" ? "Тема пройдена!" : "Модуль завершён!"}</b><span class="muted">${esc(e.title)} · +${e.kind === "topic" ? 50 : 20} XP</span></div></div>`;
+    if (e.type === "achievement") return `<div class="reward card" ${delay}><div class="ri">${esc(e.icon)}</div><div>
       <b>${esc(e.title)}</b><span class="muted">${esc(e.description)}</span></div></div>`;
-    if (e.type === "level_up") return `<div class="reward" ${delay}><div class="ri">🆙</div><div><b>Уровень ${e.level}!</b><span class="muted">Так держать</span></div></div>`;
-    return `<div class="reward" ${delay}><div class="ri">💎</div><div><b>Без ошибок</b><span class="muted">+5 XP бонус</span></div></div>`;
+    if (e.type === "level_up") return `<div class="reward card" ${delay}><div class="ri">${ic("star")}</div><div><b>Уровень ${e.level}!</b><span class="muted">Так держать</span></div></div>`;
+    return `<div class="reward card" ${delay}><div class="ri">${ic("sparkle")}</div><div><b>Без ошибок</b><span class="muted">+5 XP бонус</span></div></div>`;
   };
 
   goTo(cur);
@@ -535,7 +558,7 @@ const PRAISES = ["Отлично!", "Супер!", "Великолепно!", "�
 const praise = () => PRAISES[Math.floor(Math.random() * PRAISES.length)];
 
 function alertError(e) {
-  const m = modal(`<div class="big">⚠️</div><h2>Что-то пошло не так</h2><p class="muted">${esc(e.message)}</p>
+  const m = modal(`${owl("sad", "breathe")}<h2>Что-то пошло не так</h2><p class="muted">${esc(e.message)}</p>
     <div class="btns"><button class="btn">Ок</button></div>`);
   m.root.querySelector(".btn").onclick = m.close;
 }

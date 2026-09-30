@@ -90,7 +90,7 @@ function renderRail() {
     <div class="statbar">${pills(s)}</div>
     <div class="card rcard"><div class="rc-head"><b>Цель дня</b><span class="muted">${s.today_xp} / ${s.daily_goal} XP</span></div>
       ${goalPct >= 100 ? `<div class="goal-done">${ic("target")}Выполнено!</div>` : `<div class="bar gold"><i style="width:${goalPct}%"></i></div>`}</div>
-    <div class="card rcard"><div class="rail-streak"><svg class="i ${s.streak ? "glowP" : "cold"}"><use href="#flame"/></svg>
+    <div class="card rcard"><div class="rail-streak"><svg class="i ${s.streak ? "glowP" : "cold"}"><use href="#ic-flame"/></svg>
       <div><b>${s.streak} ${plural(s.streak, "день", "дня", "дней")}</b><div class="muted">${esc(streakSub)}</div></div></div>
       <div class="week">${week}</div>${freezes}</div>
     <div class="card rcard"><div class="rc-head"><b>Уровень ${s.level}</b><span class="muted">${s.level_xp} / ${s.level_size} XP</span></div>

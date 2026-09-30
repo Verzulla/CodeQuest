@@ -30,7 +30,7 @@ async function route() {
   if (!store.user) return;
   const hash = location.hash.replace(/^#\/?/, "");
   const view = document.getElementById("view");
-  document.body.classList.remove("focus", "wide");
+  document.body.classList.remove("focus", "wide", "celebrate");
   document.getElementById("overlay").innerHTML = "";
   document.querySelectorAll(".confetti").forEach((c) => c.remove());
   view.onclick = null;
@@ -55,7 +55,7 @@ async function route() {
 function showAuth() {
   store.user = null;
   store.state = null;
-  document.body.classList.remove("focus", "wide");
+  document.body.classList.remove("focus", "wide", "celebrate");
   document.body.classList.add("auth");
   document.getElementById("overlay").innerHTML = "";
   document.getElementById("rail").innerHTML = "";
