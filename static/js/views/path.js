@@ -43,7 +43,7 @@ export async function renderCatalog(view) {
 
 function continueBanner(c) {
   const pct = c.lesson.exercises ? Math.round((100 * c.lesson.solved) / c.lesson.exercises) : 0;
-  return `<a class="continue" href="#/lesson/${c.lesson.id}">
+  return `<a class="continue" href="#/lesson/${c.lesson.id}" style="--tc:${esc(c.topic.color)}">
     ${glyph(c.topic, 60)}
     <div class="c-body">
       <div class="kind">${c.started ? "Продолжить" : "Начни отсюда"}</div>
