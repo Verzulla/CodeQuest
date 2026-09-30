@@ -1,4 +1,4 @@
-// «Учиться»: каталог тем (сгруппированный) → страница темы с дорожкой уроков (зигзаг или список).
+// «Обучение»: каталог тем (сгруппированный) → страница темы с дорожкой уроков (зигзаг или список).
 import { api, esc, md, sound, plural, toast, ic, owl } from "../util.js";
 import { bindRunnable } from "../runnable.js";
 import { store, pills, statusStrip } from "../store.js";
