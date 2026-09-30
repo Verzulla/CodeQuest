@@ -1,5 +1,5 @@
 // Точка входа: хэш-роутер и загрузка состояния.
-import { api, esc, modal, toast } from "./util.js";
+import { api, esc, modal, toast, owl } from "./util.js";
 import { store, refreshState } from "./store.js";
 import { renderAuth } from "./views/auth.js";
 import { renderCatalog, renderTopic, renderTopicTheory } from "./views/path.js";
@@ -9,7 +9,7 @@ import { renderAdmin } from "./views/admin.js";
 import { renderAbout } from "./views/about.js";
 
 // Тема из localStorage сразу — чтобы не мигало светлым до ответа сервера.
-try { document.documentElement.dataset.theme = localStorage.getItem("cq-theme") || "light"; } catch { /* ok */ }
+try { document.documentElement.dataset.theme = localStorage.getItem("cq-theme") || "dark"; } catch { /* ok */ }
 
 const ROUTES = [
   [/^$/, "path", (v) => renderCatalog(v)],
@@ -43,7 +43,7 @@ async function route() {
     try {
       await render(view, m);
     } catch (e) {
-      view.innerHTML = `<div class="empty"><div class="big">⚠️</div><h2>Не удалось загрузить</h2><p class="muted">${esc(e.message)}</p>
+      view.innerHTML = `<div class="empty">${owl("sad", "breathe")}<h2>Не удалось загрузить</h2><p class="muted">${esc(e.message)}</p>
         <button class="btn" onclick="location.reload()">Обновить</button></div>`;
     }
     return;
@@ -62,7 +62,7 @@ function showAuth() {
   const view = document.getElementById("view");
   view.onclick = null;
   renderAuth(view, (user) => {
-    if (user.claimed_progress) toast("🎁", "Прогресс перенесён", "Всё, что было решено раньше, теперь в твоём аккаунте");
+    if (user.claimed_progress) toast("chest", "Прогресс перенесён", "Всё, что было решено раньше, теперь в твоём аккаунте");
     enter(user);
   });
 }
@@ -78,12 +78,12 @@ async function enter(user) {
 
 // Приветствие нового пользователя: один раз сразу после регистрации (флаг хранится на сервере).
 function showWelcome() {
-  const m = modal(`<div class="big">🦉</div><h2>Добро пожаловать в CodeQuest!</h2>
+  const m = modal(`${owl("wave", "hop")}<h2>Добро пожаловать в CodeQuest!</h2>
     <p class="muted">Хочешь за пару минут узнать, как всё устроено: уроки и задания, опыт и уровни,
     серия дней, сердечки и награды?</p>
     <div class="btns"><button class="btn" id="welcome-yes">Посмотреть, как всё устроено</button>
       <button class="btn ghost" id="welcome-later">Позже</button></div>
-    <p class="muted" style="margin:14px 0 0;font-size:13px">Раздел «О приложении» всегда есть в меню — 💡.</p>`);
+    <p class="muted" style="margin:14px 0 0;font-size:13px">Раздел «О приложении» всегда есть в меню, а на телефоне — в профиле.</p>`);
   const done = (goAbout) => {
     m.close();
     store.state.onboarded = true;
@@ -97,7 +97,7 @@ function showWelcome() {
 
 function serverDown(e) {
   document.body.classList.add("auth");   // без меню: без сервера оно всё равно бесполезно
-  document.getElementById("view").innerHTML = `<div class="empty"><div class="big">🔌</div><h2>${esc(e.message)}</h2>
+  document.getElementById("view").innerHTML = `<div class="empty">${owl("sleep", "breathe")}<h2>${esc(e.message)}</h2>
     <p class="muted">Прогресс хранится на сервере, поэтому без связи учиться не получится. Проверь интернет и попробуй снова.</p>
     <button class="btn" onclick="location.reload()">Повторить</button></div>`;
 }

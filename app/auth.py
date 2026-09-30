@@ -93,7 +93,7 @@ def create_user(conn, username: str, password: str) -> tuple[sqlite3.Row, bool]:
         (username, username.casefold(), hash_password(password), int(first), game.now().isoformat()),
     )
     uid = cur.lastrowid
-    conn.execute("INSERT INTO user_state (user_id, onboarded) VALUES (?, 0)", (uid,))   # покажем приветствие
+    conn.execute("INSERT INTO user_state (user_id, onboarded, theme) VALUES (?, 0, 'dark')", (uid,))   # покажем приветствие
     claimed = has_legacy_progress(conn) and claim_legacy_progress(conn, uid)
     return conn.execute("SELECT * FROM users WHERE id = ?", (uid,)).fetchone(), claimed
 

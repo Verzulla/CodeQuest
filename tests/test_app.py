@@ -437,8 +437,8 @@ def test_progress_is_per_user(client):
     other.post("/api/progress/reset", json={"confirm": "RESET"})
     assert client.get("/api/state").json()["xp"] > 0
     # настройки тоже свои
-    other.put("/api/settings", json={"theme": "dark"})
-    assert client.get("/api/state").json()["theme"] == "light"
+    other.put("/api/settings", json={"theme": "light"})
+    assert client.get("/api/state").json()["theme"] == "dark"
 
 
 def test_only_admin_edits_content(client):

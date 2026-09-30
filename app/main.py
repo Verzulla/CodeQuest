@@ -537,6 +537,7 @@ class SettingsIn(BaseModel):
     hearts_enabled: bool | None = None
     sequential_lessons: bool | None = None
     theme: Literal["light", "dark"] | None = None
+    path_view: Literal["zigzag", "list"] | None = None
 
 
 @app.put("/api/settings")
@@ -746,7 +747,7 @@ def admin_move(kind: str, item_id: int, body: MoveIn, _admin: Admin):
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
-SHELL_EXT = {".html", ".css", ".js", ".png", ".webmanifest"}
+SHELL_EXT = {".html", ".css", ".js", ".png", ".webp", ".woff2", ".webmanifest"}
 
 
 def _shell_files() -> list[Path]:

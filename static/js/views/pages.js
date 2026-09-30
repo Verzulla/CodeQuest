@@ -1,5 +1,5 @@
 // Повторение, награды, статистика, настройки.
-import { api, esc, modal, soundOn, sound, plural, toast } from "../util.js";
+import { api, esc, modal, soundOn, sound, plural, toast, ic, owl } from "../util.js";
 import { store, setState, pills } from "../store.js";
 import { runSession } from "./lesson.js";
 
@@ -301,7 +301,11 @@ export function renderSettings(view) {
   const draw = () => {
     const s = store.state, u = store.user;
     view.innerHTML = `<div class="settings">
-      <h1 class="section-title">⚙️ Настройки</h1>
+      <h1 class="section-title">Настройки</h1>
+      <div class="card mob-links">
+        <a href="#/about">${ic("i-info")}<span>О приложении</span>${ic("arrowR", "go")}</a>
+        ${u.is_admin ? `<a href="#/admin">${ic("wrench")}<span>Контент</span>${ic("arrowR", "go")}</a>` : ""}
+      </div>
       <div class="card"><h3>Дневная цель</h3>
         <div class="choice">${GOALS.map(([xp, name]) =>
           `<button data-goal="${xp}" class="${s.daily_goal === xp ? "on" : ""}">${name}<br><small class="muted">${xp} XP / день</small></button>`).join("")}</div></div>

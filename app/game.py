@@ -90,6 +90,9 @@ def get_state(conn, uid: int) -> dict:
     day = conn.execute(
         "SELECT xp FROM daily_activity WHERE user_id = ? AND day = ?", (uid, today().isoformat())
     ).fetchone()
+    monday = today() - timedelta(days=today().weekday())
+    active = {r["day"] for r in conn.execute(
+        "SELECT day FROM daily_activity WHERE user_id = ? AND day >= ? AND xp > 0", (uid, monday.isoformat()))}
     return {
         "xp": st["xp"],
         **level_info(st["xp"]),
@@ -104,7 +107,9 @@ def get_state(conn, uid: int) -> dict:
         "freezes": st["freezes"],
         "daily_goal": st["daily_goal"],
         "today_xp": day["xp"] if day else 0,
+        "week": [(monday + timedelta(days=i)).isoformat() in active for i in range(7)],  # занятия пн…вс этой недели
         "theme": st["theme"],
+        "path_view": st["path_view"],
         "review_count": conn.execute(
             "SELECT COUNT(*) FROM exercise_progress ep JOIN exercises e ON e.slug = ep.exercise_slug "
             "WHERE ep.user_id = ? AND ep.in_review = 1", (uid,)

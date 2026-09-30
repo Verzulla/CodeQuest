@@ -28,6 +28,14 @@ export async function api(path, { method = "GET", body } = {}) {
 export const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
+// SVG-иконка из спрайта в index.html: ic("flame"), ic("heart", "big").
+export const ic = (name, cls = "") => `<svg class="i ${cls}" aria-hidden="true"><use href="#${name}"/></svg>`;
+const isIconName = (s) => /^[a-z][\w-]*$/.test(s);
+
+// Сова-иллюстрация: owl("happy", "hop") — позы wave, happy, trophy, think, sad, sleep.
+export const owl = (pose, anim = "", style = "") =>
+  `<img class="owl ${anim}" src="/static/img/owls/owl-${pose}.webp" alt="" draggable="false"${style ? ` style="${style}"` : ""}>`;
+
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
@@ -202,7 +210,7 @@ export function toast(icon, title, sub = "") {
   const box = document.getElementById("toasts");
   const t = document.createElement("div");
   t.className = "toast";
-  t.innerHTML = `<div class="ti">${esc(icon)}</div><div><b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ""}</div>`;
+  t.innerHTML = `<div class="ti">${isIconName(icon) ? ic(icon) : esc(icon)}</div><div><b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ""}</div>`;
   box.append(t);
   setTimeout(() => t.remove(), 4000);
 }

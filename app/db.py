@@ -101,7 +101,8 @@ CREATE TABLE IF NOT EXISTS user_state (
     last_active_date   TEXT,
     freezes            INTEGER NOT NULL DEFAULT 1,
     daily_goal         INTEGER NOT NULL DEFAULT 30,
-    theme              TEXT NOT NULL DEFAULT 'light',
+    theme              TEXT NOT NULL DEFAULT 'dark',
+    path_view          TEXT NOT NULL DEFAULT 'zigzag',  -- дорожка уроков: 'zigzag' или 'list'
     last_lesson_slug   TEXT                           -- для плашки «Продолжить»
 );
 
@@ -200,6 +201,7 @@ MIGRATIONS = [
     ("user_state", "sequential_lessons", "INTEGER NOT NULL DEFAULT 1"),  # уроки по порядку (замки)
     ("user_state", "onboarded", "INTEGER NOT NULL DEFAULT 1"),  # приветствие: старым аккаунтам не показываем
     ("exercise_progress", "hearts_lost", "INTEGER NOT NULL DEFAULT 0"),  # сердечки, потерянные на задании
+    ("user_state", "path_view", "TEXT NOT NULL DEFAULT 'zigzag'"),  # вид дорожки уроков (редизайн)
 ]
 
 
@@ -254,6 +256,9 @@ def init_db() -> None:
                     # Сердечки больше не восстанавливаются со временем, а сколько их потеряно на старых
                     # ошибках, неизвестно — чтобы никто не застрял без сердечек, один раз заполняем их.
                     conn.execute("UPDATE user_state SET hearts = 5")
+                if column == "path_view":
+                    # Редизайн рассчитан на тёмную тему — при переходе на него включаем её всем один раз.
+                    conn.execute("UPDATE user_state SET theme = 'dark'")
         _migrate_exercise_types(conn)
 
 
