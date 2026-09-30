@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS exercises (
     expected_output TEXT NOT NULL DEFAULT '',
     solution        TEXT NOT NULL DEFAULT '',
     hint            TEXT NOT NULL DEFAULT '',
+    explain         TEXT NOT NULL DEFAULT '',   -- ручной разбор решения (JSON), пусто — автоматический
     xp              INTEGER NOT NULL DEFAULT 10,
     position        INTEGER NOT NULL DEFAULT 0
 );
@@ -206,6 +207,7 @@ MIGRATIONS = [
     ("user_state", "path_view", "TEXT NOT NULL DEFAULT 'zigzag'"),  # вид дорожки уроков (редизайн)
     ("daily_activity", "frozen", "INTEGER NOT NULL DEFAULT 0"),      # день, спасённый заморозкой
     ("users", "avatar", "TEXT NOT NULL DEFAULT ''"),                  # аватарка
+    ("exercises", "explain", "TEXT NOT NULL DEFAULT ''"),             # ручной разбор решения (JSON)
 ]
 
 

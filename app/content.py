@@ -27,6 +27,7 @@ class ExerciseIn(BaseModel):
     expected_output: str = ""
     solution: str = ""
     hint: str = ""
+    explain: str = ""                  # ручной разбор решения: JSON {idea, lines, trace, mistake}
     xp: int = Field(10, ge=1, le=100)
 
 

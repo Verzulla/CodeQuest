@@ -415,12 +415,17 @@ export function runSession(view, opts) {
     $("#sol", view).onclick = async () => {
       const { solution, explain } = await api(`/exercises/${ex.id}/solution`);
       // Разбор по строкам: код строки, под ним — что она делает; `…` в тексте — как код.
-      const inl = (t) => esc(t).replace(/`([^`]+)`/g, "<code>$1</code>");
+      const inl = (t) => esc(t).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>");
       const lines = (explain?.lines || []).map((l) => `<div class="ex-line"><div class="c">${isCmd ? esc(l.code) : highlight(l.code)}</div>
         <div class="t">${inl(l.text)}${(l.notes || []).map((n) => `<div class="n">${inl(n)}</div>`).join("")}</div></div>`).join("");
       const title = ex.type === "output" ? "Разбор программы по строкам" : isCmd && !explain?.lines?.length ? "" : "Разбор по строкам";
       $("#hintbox", view).innerHTML = `<div class="hintbox sol"><div class="kind">${ic("eye")}${ex.type === "output" ? "Правильный ответ" : "Эталонное решение"}</div><pre class="code-view${isCmd ? " term" : ""}">${isCmd || ex.type === "output" ? esc(solution) : highlight(solution)}</pre>
+        ${explain?.idea ? `<div class="ex-idea"><div class="k">${ic("bulb")}Главная идея</div>${inl(explain.idea)}</div>` : ""}
         ${lines ? `<div class="expl"><div class="h">${title}</div>${lines}${explain.summary ? `<div class="ex-sum">${inl(explain.summary)}</div>` : ""}</div>` : ""}
+        ${explain?.trace?.length ? `<div class="expl ex-trace"><div class="h">Выполнение по шагам</div>
+          <div class="ex-row head"><span>Строка</span><span>Значения</span><span>На экране</span></div>
+          ${explain.trace.map(([c, v, o]) => `<div class="ex-row"><span class="c">${highlight(c)}</span><span>${inl(v || "")}</span><span class="o">${esc(o || "")}</span></div>`).join("")}</div>` : ""}
+        ${explain?.mistake ? `<div class="ex-miss"><div class="k">${ic("warn")}Частая ошибка</div>${inl(explain.mistake)}</div>` : ""}
         ${item.solved ? "" : `<small class="muted">Разберись, как оно работает, и напиши своё — копипаст не прокачивает мозг</small>`}</div>`;
     };
     $("#redo", view)?.addEventListener("click", () => { item.redo = true; showExercise(i); });

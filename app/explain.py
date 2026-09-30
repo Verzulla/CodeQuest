@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import ast
+import json
 import re
 import shlex
 
@@ -205,8 +206,8 @@ def _stmt_text(node: ast.stmt) -> str:
     if isinstance(node, ast.AugAssign):
         op = {ast.Add: "Увеличиваем", ast.Sub: "Уменьшаем", ast.Mult: "Умножаем", ast.Div: "Делим"}.get(type(node.op))
         if op:
-            pre = "на" if isinstance(node.op, (ast.Add, ast.Sub, ast.Mult, ast.Div)) else ""
-            return f"{op} `{_src(node.target)}` {pre} `{_src(node.value)}` (короткая запись `{_src(node.target)} = {_src(node.target)} … {_src(node.value)}`)"
+            sign = {ast.Add: "+", ast.Sub: "-", ast.Mult: "*", ast.Div: "/"}[type(node.op)]
+            return f"{op} `{_src(node.target)}` на `{_src(node.value)}` (короткая запись `{_src(node.target)} = {_src(node.target)} {sign} {_src(node.value)}`)"
         return f"Обновляем `{_src(node.target)}` составным присваиванием"
     if isinstance(node, (ast.For, ast.AsyncFor)):
         return _for_text(node)
@@ -446,7 +447,21 @@ def explain_command(cmd: str) -> list[dict]:
 
 
 def explain(ex) -> dict:
-    """Разбор для задания: {lines, summary}. Для «что выведет» — разбор программы и итог-вывод."""
+    """Разбор для задания. Если у задания есть ручной разбор (JSON в ex["explain"]) — он:
+    {manual, idea, lines, trace, mistake}; строки, которые автор не расписал, — из автоматического.
+    Иначе автоматический: {lines, summary}."""
+    auto = _auto(ex)
+    raw = ex["explain"] if "explain" in ex.keys() else ""
+    if not raw:
+        return auto
+    m = json.loads(raw)
+    # не расписал строки — берём автоматические; но если есть таблица шагов, она их заменяет
+    lines = [{"code": c, "text": t, "notes": []} for c, t in m.get("lines", [])] or ([] if m.get("trace") else auto["lines"])
+    return {"manual": True, "idea": m.get("idea", ""), "lines": lines, "trace": m.get("trace", []),
+            "mistake": m.get("mistake", ""), "summary": m.get("summary", "")}
+
+
+def _auto(ex) -> dict:
     t = ex["type"]
     if t == "command":
         answer = (ex["solution"] or ex["expected_output"] or "").strip().splitlines()[0] if (ex["solution"] or ex["expected_output"]) else ""

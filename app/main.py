@@ -684,7 +684,7 @@ KINDS = {
     "modules": ("modules", "topic_id", ["title", "description", "icon"]),
     "lessons": ("lessons", "module_id", ["title", "theory", "theory_full", "quiz"]),
     "exercises": ("exercises", "lesson_id", ["type", "prompt", "code", "starter_code", "tests",
-                                             "expected_output", "solution", "hint", "xp"]),
+                                             "expected_output", "solution", "hint", "explain", "xp"]),
 }
 
 

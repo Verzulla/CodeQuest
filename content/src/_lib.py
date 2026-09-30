@@ -87,6 +87,17 @@ def pyt(slug, prompt, starter, tests, solution, hint="", xp=20):
                d(solution).rstrip("\n") + PYTEST_MAIN, hint=hint, xp=xp)
 
 
+def x(idea="", lines=(), trace=(), mistake="", summary=""):
+    """Ручной разбор решения (для content/src/explain_<тема>.py).
+
+    idea — главная мысль задачи; lines — [(строка кода, что она делает и почему), ...];
+    trace — выполнение по шагам для «что выведет»: [(строка, значения переменных, что напечатано), ...];
+    mistake — частая ошибка. В тексте `…` — код, **…** — выделение."""
+    item = {"idea": t(idea), "lines": [[d(c).rstrip("\n"), t(s)] for c, s in lines],
+            "trace": [[c, v, o] for c, v, o in trace], "mistake": t(mistake), "summary": t(summary)}
+    return {k: v for k, v in item.items() if v}
+
+
 def lesson(slug, title, *items, full="", quiz=None):
     """lesson(slug, title, [краткая теория,] *задания, full=подробный урок, quiz=«Проверь себя»).
 

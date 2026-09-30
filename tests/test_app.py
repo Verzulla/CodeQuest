@@ -303,6 +303,22 @@ def test_solution_explanation():
     assert [l["code"] for l in cmd["lines"]] == ["git", "commit", "-m fix"]
     q = explain.explain({"type": "command", "solution": "b c", "expected_output": "b c", "code": "$ tail -n 2 letters.txt\n"})
     assert q["lines"][0]["code"] == "tail -n 2 letters.txt" and "b c" in q["summary"]
+    aug = explain.explain({"type": "code", "code": "", "expected_output": "", "solution": "x = 1\nx += 5"})
+    assert "`x = x + 5`" in aug["lines"][1]["text"]
+
+
+def test_manual_explanation():
+    """Ручной разбор из контента заменяет автоматический; таблица шагов заменяет разбор по строкам."""
+    import json
+    from app import explain
+    base = {"type": "output", "code": "x = 5\nprint(x)", "expected_output": "5", "solution": ""}
+    manual = explain.explain({**base, "explain": json.dumps({"idea": "Идея", "mistake": "Ошибка",
+                                                             "lines": [["print(x)", "Печатает"]]})})
+    assert manual["manual"] and manual["idea"] == "Идея" and manual["mistake"] == "Ошибка"
+    assert manual["lines"] == [{"code": "print(x)", "text": "Печатает", "notes": []}]
+    traced = explain.explain({**base, "explain": json.dumps({"trace": [["x = 5", "x = 5", ""]]})})
+    assert traced["lines"] == [] and traced["trace"] == [["x = 5", "x = 5", ""]]
+    assert "manual" not in explain.explain({**base, "explain": ""})
 
 
 def test_module_trophy(client):
