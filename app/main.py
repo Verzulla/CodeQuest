@@ -265,7 +265,7 @@ def topic_theory(topic_id: int, _user: User):
             lessons = [{"id": l["id"], "title": l["title"], "theory": l["theory"], "theory_full": l["theory_full"]}
                        for l in conn.execute("SELECT * FROM lessons WHERE module_id = ? ORDER BY position, id", (m["id"],))]
             modules.append({"title": m["title"], "icon": m["icon"], "lessons": lessons})
-    return {"id": t["id"], "title": t["title"], "icon": t["icon"], "color": t["color"], "modules": modules}
+    return {"id": t["id"], "slug": t["slug"], "title": t["title"], "icon": t["icon"], "color": t["color"], "modules": modules}
 
 
 @app.get("/api/path")

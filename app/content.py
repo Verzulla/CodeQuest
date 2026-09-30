@@ -200,7 +200,7 @@ def learning_path(conn, uid: int) -> list:
                 "trophy": ("module", m["slug"]) in trophies,
             })
         result.append({
-            "id": t["id"], "title": t["title"], "description": t["description"],
+            "id": t["id"], "slug": t["slug"], "title": t["title"], "description": t["description"],
             "icon": t["icon"], "color": t["color"], "group": t["group_name"], "modules": modules,
             "total": total, "completed": completed,
             "trophy": ("topic", t["slug"]) in trophies,
@@ -251,7 +251,7 @@ def continue_target(conn, uid: int) -> dict | None:
 def _target(t, m, l, started: bool) -> dict:
     return {
         "started": started,
-        "topic": {"id": t["id"], "title": t["title"], "icon": t["icon"], "color": t["color"]},
+        "topic": {"id": t["id"], "slug": t["slug"], "title": t["title"], "icon": t["icon"], "color": t["color"]},
         "module": m["title"],
         "lesson": {"id": l["id"], "title": l["title"], "solved": l["solved"], "exercises": l["exercises"]},
     }
