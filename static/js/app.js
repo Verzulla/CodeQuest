@@ -40,6 +40,7 @@ async function route() {
     const m = hash.match(re);
     if (!m) continue;
     document.querySelectorAll(".nav-link").forEach((a) => a.classList.toggle("active", a.dataset.route === nav));
+    document.body.dataset.route = nav || "";   // для стилей конкретного раздела (например, фон без свечения)
     try {
       await render(view, m);
     } catch (e) {
