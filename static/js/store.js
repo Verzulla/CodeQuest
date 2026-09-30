@@ -81,10 +81,11 @@ document.addEventListener("click", (e) => {
 function showStreakNotice(n) {
   setTimeout(() => {
     if (document.querySelector(".modal")) return;          // не перекрываем приветствие новичка
+    // оставшиеся — слева, потраченные — справа: заморозки «сгорают» справа налево, как в копилке
     const snow = (used) => `<span class="${used ? "used" : ""}">${ic("snow")}</span>`;
     const m = n.type === "freeze_used"
       ? modal(`${owl("happy", "bob")}
-        <div class="snowbig">${Array.from({ length: n.count }, () => snow(true)).join("")}${Array.from({ length: n.freezes }, () => snow(false)).join("")}</div>
+        <div class="snowbig">${Array.from({ length: n.freezes }, () => snow(false)).join("")}${Array.from({ length: n.count }, () => snow(true)).join("")}</div>
         <h2>Серия спасена!</h2>
         <p class="muted">${n.count === 1 ? "Вчера ты не занимался" : `Ты пропустил ${days(n.count)}`} — ${n.count === 1 ? "заморозка сохранила" : "заморозки сохранили"} твою серию <b class="hl-streak">${days(n.streak)}</b>.</p>
         <p class="muted">${n.freezes ? `Осталось заморозок: ${n.freezes}.` : "Заморозок больше нет."}${n.next_in ? ` Новую дадут через ${days(n.next_in)} серии.` : ""}</p>
