@@ -409,7 +409,7 @@ export function runSession(view, opts) {
         $("#sol", view).hidden = false;
         view.querySelector(".lesson-body").classList.add("shake");
         const detail = isCode
-          ? (r.details.error ? "Программа упала — смотри консоль" : `Не прошло тестов: ${r.details.tests.filter((t) => !t.passed).length} из ${r.details.tests.length}`)
+          ? (r.details.error ? "Программа упала — смотри консоль" : `Пройдено тестов: ${r.details.tests.filter((t) => t.passed).length} из ${r.details.tests.length}`)
           : isCmd ? `Например: ${r.expected}` : `Правильный ответ:\n${r.expected}`;
         footer.className = "footer bad";
         const later = nextTodo(i);
