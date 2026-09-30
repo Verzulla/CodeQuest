@@ -14,8 +14,8 @@ export function bindRunnable(root) {
     let editor = null;
 
     const run = async () => {
-      runBtn.disabled = true;
-      runBtn.classList.add("busy");     // текст не меняем — кнопка не прыгает по ширине
+      if (runBtn.dataset.running) return;   // вид кнопки не меняется — повторные нажатия игнорируем
+      runBtn.dataset.running = "1";
       try {
         const r = await api("/run", { method: "POST", body: { code: editor ? editor.value : original } });
         const text = r.stdout ? esc(r.stdout) : `<span class="muted">(программа ничего не вывела)</span>`;
@@ -24,8 +24,7 @@ export function bindRunnable(root) {
       } catch (e) {
         out.innerHTML = `<div class="console"><pre class="err">${esc(e.message)}</pre></div>`;
       } finally {
-        runBtn.disabled = false;
-        runBtn.classList.remove("busy");
+        delete runBtn.dataset.running;
       }
     };
 

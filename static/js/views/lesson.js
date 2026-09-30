@@ -313,10 +313,10 @@ export function runSession(view, opts) {
       if (!viewSolved) editor.focus();
       $("#run", view).onclick = async () => {
         const btn = $("#run", view);
-        btn.disabled = true;
-        btn.classList.add("busy");      // текст не меняем — соседние кнопки не сдвигаются
+        if (btn.dataset.running) return;   // вид кнопки во время запуска не меняется — повторные нажатия просто игнорируем
+        btn.dataset.running = "1";
         try { showConsole(await api("/run", { method: "POST", body: { code: editor.value } }), false); }
-        finally { btn.disabled = false; btn.classList.remove("busy"); }
+        finally { delete btn.dataset.running; }
       };
       $("#reset", view)?.addEventListener("click", () => { editor.value = ex.starter_code; editor.focus(); });
     } else {
@@ -455,7 +455,7 @@ export function runSession(view, opts) {
   // Все задания попробованы, но не все решены: завершить урок или вернуться к нерешённым.
   function offerFinish(from) {
     const left = items.filter((it) => !it.solved).length;
-    const m = modal(`${owl("think")}<h2>Все задания пройдены</h2>
+    const m = modal(`${owl("think")}<h2>Остались нерешённые задания</h2>
       <p class="muted">${left === 1 ? "Одно задание пока не решено" : `Пока не решено ${left} ${plural(left, "задание", "задания", "заданий")}`}.
       ${left === 1 ? "Оно уже ждёт" : "Они уже ждут"} в «Работе над ошибками»: там ошибки не стоят сердечек, а исправление возвращает потерянные.</p>
       <div class="btns"><button class="btn" data-a="back">Вернуться к нерешённым</button>
