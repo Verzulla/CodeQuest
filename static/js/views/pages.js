@@ -238,25 +238,32 @@ export async function renderStats(view) {
       Золотая рамка — день, когда выполнена дневная цель.</small>`;
   };
 
-  view.innerHTML = `
-    <h1 class="section-title">📊 Статистика</h1>
-    <div class="stat-grid">
-      ${stat("🔥", st.streak, "серия дней")}
-      ${stat("🏅", st.longest_streak, "рекорд серии")}
-      ${stat("⚡", d.xp, "всего XP")}
-      ${stat("🦉", d.level, "уровень")}
-      ${stat("✅", d.solved, "заданий решено")}
-      ${stat("💻", d.code_solved, "программ написано")}
-      ${stat("📘", d.lessons, "уроков пройдено")}
-      ${stat("🎯", d.accuracy == null ? "—" : d.accuracy + "%", "точность")}
+  const WEEK = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+  const avg14 = Math.round(last14.reduce((n, a) => n + a.xp, 0) / 14);
+  const num = (n) => Number(n).toLocaleString("ru-RU");
+  view.innerHTML = `<div class="topbar path-top">${pills()}</div>
+    <h1 class="section-title">Статистика</h1>
+    <div class="st-top">
+      <div class="card st-streak ${st.streak ? "" : "cold"}">
+        <svg class="i st-flame ${st.streak ? "glowP" : ""}"><use href="#ic-flame"/></svg>
+        <div class="st-days">${st.streak}</div>
+        <div class="st-days-l">${plural(st.streak, "день", "дня", "дней")} подряд</div>
+        <div class="week">${(st.week || []).map((on, i) => `<i class="${on ? "on" : ""}">${WEEK[i]}</i>`).join("")}</div>
+        <div class="muted st-rec">Рекорд ${st.longest_streak} · ${ic("snow")} ${st.freezes} ${plural(st.freezes, "заморозка", "заморозки", "заморозок")}</div>
+      </div>
+      <div class="st-grid">
+        ${rec("Всего XP", num(d.xp), "#ffd54a")}${rec("Уровень", d.level, "#c68bff")}
+        ${rec("Точность", d.accuracy == null ? "—" : d.accuracy + "%", "#9be84a")}${rec("Заданий решено", num(d.solved))}
+        ${rec("Программ написано", num(d.code_solved))}${rec("Уроков пройдено", num(d.lessons))}
+      </div>
     </div>
-    <div class="card" style="margin-bottom:16px">
-      <div class="row" style="flex-wrap:wrap;gap:10px;margin-bottom:12px"><h3 style="margin:0">Активность</h3><div class="spacer"></div>
+    <div class="card st-card">
+      <div class="row st-head"><b>Активность</b><div class="spacer"></div>
         <div class="seg-switch">${ACTIVITY_PERIODS.map(([days, label]) =>
           `<button data-period="${days}" class="${days === period ? "on" : ""}">${label}</button>`).join("")}</div></div>
       <div id="heat">${heatmap()}</div>
     </div>
-    <div class="card"><h3>XP за последние 14 дней</h3>
+    <div class="card st-card"><div class="row st-head"><b>XP за 14 дней</b><div class="spacer"></div><span class="muted" style="font-size:12.5px">в среднем ${avg14} в день</span></div>
       <div class="xpbars">${last14.map((a, i) => `<div class="${i === 13 ? "today" : ""}" title="${a.day}: ${a.xp} XP">
         ${a.xp || ""}<span style="height:${Math.round((100 * a.xp) / max14)}%"></span>${new Date(a.day).getDate()}</div>`).join("")}</div>
     </div>`;
@@ -272,8 +279,8 @@ export async function renderStats(view) {
   hm.scrollLeft = hm.scrollWidth;
 }
 
-const stat = (icon, value, label) =>
-  `<div class="card stat"><div class="si">${icon}</div><div><b>${esc(value)}</b><small>${label}</small></div></div>`;
+const rec = (label, value, color = "") =>
+  `<div class="card st-rec-card"><small>${label}</small><b${color ? ` style="color:${color}"` : ""}>${esc(value)}</b></div>`;
 
 // ---------- Установка на телефон (PWA) ----------
 const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
