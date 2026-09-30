@@ -41,6 +41,7 @@ async function route() {
     if (!m) continue;
     document.querySelectorAll(".nav-link").forEach((a) => a.classList.toggle("active", a.dataset.route === nav));
     document.body.dataset.route = nav || "";   // для стилей конкретного раздела (например, фон без свечения)
+    document.body.dataset.page = hash.split("/")[0] || "home";   // home / topic / awards / …
     try {
       await render(view, m);
     } catch (e) {
