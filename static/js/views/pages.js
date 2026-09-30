@@ -246,7 +246,7 @@ export async function renderStats(view) {
     <h1 class="section-title">Статистика</h1>
     <div class="st-top">
       <div class="card st-streak ${st.streak ? "" : "cold"}">
-        <svg class="i st-flame ${st.streak ? "glowP" : ""}"><use href="#ic-flame"/></svg>
+        <div class="st-fire"><div class="st-halo glowP"></div><svg class="st-flame-big flicker" viewBox="0 0 120 140" aria-hidden="true"><use href="#ic-flame-big"/></svg></div>
         <div class="st-days">${st.streak}</div>
         <div class="st-days-l">${plural(st.streak, "день", "дня", "дней")} подряд</div>
         ${weekRow(st)}
