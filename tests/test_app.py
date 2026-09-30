@@ -289,6 +289,22 @@ def test_avatar(client):
     assert client.put("/api/account/avatar", json={"image": ""}).json()["avatar"] == ""
 
 
+def test_solution_explanation():
+    from app import explain
+    code = explain.explain({"type": "code", "code": "", "expected_output": "",
+                            "solution": "def evens(nums):\n    return [n for n in nums if n % 2 == 0]"})
+    texts = [l["text"] for l in code["lines"]]
+    assert texts[0].startswith("Объявляем функцию `evens`") and "возвращает" in texts[1]
+    assert any("остаток от деления" in n for n in code["lines"][1]["notes"])
+    out = explain.explain({"type": "output", "solution": "", "expected_output": "3\nab",
+                           "code": "print(1 + 2)\nprint('a' + 'b')"})
+    assert out["lines"][0]["text"].endswith("→ на экране: `3`") and out["lines"][1]["text"].endswith("`ab`")
+    cmd = explain.explain({"type": "command", "code": "", "expected_output": "", "solution": "git commit -m \"fix\""})
+    assert [l["code"] for l in cmd["lines"]] == ["git", "commit", "-m fix"]
+    q = explain.explain({"type": "command", "solution": "b c", "expected_output": "b c", "code": "$ tail -n 2 letters.txt\n"})
+    assert q["lines"][0]["code"] == "tail -n 2 letters.txt" and "b c" in q["summary"]
+
+
 def test_module_trophy(client):
     topic = client.get("/api/path").json()[0]
     events = []

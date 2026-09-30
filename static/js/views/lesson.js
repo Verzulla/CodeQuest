@@ -411,8 +411,14 @@ export function runSession(view, opts) {
       $("#hintbox", view).innerHTML = `<div class="hintbox"><div class="kind">${ic("bulb")}Подсказка</div>${md(ex.hint)}</div>`;
     });
     $("#sol", view).onclick = async () => {
-      const { solution } = await api(`/exercises/${ex.id}/solution`);
-      $("#hintbox", view).innerHTML = `<div class="hintbox sol"><div class="kind">${ic("eye")}Эталонное решение</div><pre class="code-view${isCmd ? " term" : ""}">${isCmd ? esc(solution) : highlight(solution)}</pre>
+      const { solution, explain } = await api(`/exercises/${ex.id}/solution`);
+      // Разбор по строкам: код строки, под ним — что она делает; `…` в тексте — как код.
+      const inl = (t) => esc(t).replace(/`([^`]+)`/g, "<code>$1</code>");
+      const lines = (explain?.lines || []).map((l) => `<div class="ex-line"><div class="c">${isCmd ? esc(l.code) : highlight(l.code)}</div>
+        <div class="t">${inl(l.text)}${(l.notes || []).map((n) => `<div class="n">${inl(n)}</div>`).join("")}</div></div>`).join("");
+      const title = ex.type === "output" ? "Разбор программы по строкам" : isCmd && !explain?.lines?.length ? "" : "Разбор по строкам";
+      $("#hintbox", view).innerHTML = `<div class="hintbox sol"><div class="kind">${ic("eye")}${ex.type === "output" ? "Правильный ответ" : "Эталонное решение"}</div><pre class="code-view${isCmd ? " term" : ""}">${isCmd || ex.type === "output" ? esc(solution) : highlight(solution)}</pre>
+        ${lines ? `<div class="expl"><div class="h">${title}</div>${lines}${explain.summary ? `<div class="ex-sum">${inl(explain.summary)}</div>` : ""}</div>` : ""}
         ${item.solved ? "" : `<small class="muted">Разберись, как оно работает, и напиши своё — копипаст не прокачивает мозг</small>`}</div>`;
     };
     $("#redo", view)?.addEventListener("click", () => { item.redo = true; showExercise(i); });

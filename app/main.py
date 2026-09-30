@@ -17,7 +17,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import auth, content, game, runner
+from . import auth, content, explain, game, runner
 from .db import PROGRESS_TABLES, ROOT, init_db, transaction
 
 STATIC = ROOT / "static"
@@ -416,7 +416,7 @@ def save_draft(ex_id: int, body: DraftIn, user: User):
 def solution(ex_id: int, _user: User):
     with transaction() as conn:
         ex = _get(conn, "exercises", ex_id)
-        return {"solution": ex["solution"] or ex["expected_output"]}
+        return {"solution": ex["solution"] or ex["expected_output"], "explain": explain.explain(ex)}
 
 
 class CompleteIn(BaseModel):
