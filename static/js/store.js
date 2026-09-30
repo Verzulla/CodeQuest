@@ -168,28 +168,33 @@ function showStreakNotice(n) {
 }
 const heartRow = (s) => ic("heart").repeat(s.hearts) + ic("heartE").repeat(s.max_hearts - s.hearts);
 
-// Компактная сводка для телефона и планшета: там боковой колонки нет (см. .status-strip в CSS).
+// Что сова скажет на главной — по тому, как идёт день. Серия засчитывается за любой опыт,
+// цель дня — отдельная планка по XP.
+export function homeRemark(s = store.state) {
+  const name = store.user?.username ? `, ${store.user.username}` : "";
+  const left = Math.max(0, s.daily_goal - s.today_xp);
+  const d = (n) => `${n} ${plural(n, "день", "дня", "дней")}`;
+  if (s.today_xp >= s.daily_goal) return ["happy", `Цель дня выполнена! ${s.streak ? `${d(s.streak)} подряд — ` : ""}так держать.`];
+  if (s.today_xp > 0) return ["happy", `Серия на сегодня сохранена! До цели дня ещё <b>${left} XP</b> — пара заданий.`];
+  if (s.streak && s.streak_at_risk) return ["think", `Привет${name}! Серия под угрозой — <b>одно задание сегодня</b>, и она продолжится.`];
+  if (s.streak) return ["wave", `Привет${name}! Реши задание, чтобы продлить серию: ${d(s.streak)} подряд.`];
+  return ["wave", `Привет${name}! Реши одно задание — и огонёк серии загорится.`];
+}
+
+// Главная на телефоне и планшете (там нет правой колонки): сова с репликой и полоса серии.
 export function statusStrip(s = store.state) {
   if (!s) return "";
+  const [pose, text] = homeRemark(s);
   const goalPct = Math.min(100, Math.round((100 * s.today_xp) / s.daily_goal));
-  const lvlPct = Math.round((100 * s.level_xp) / s.level_size);
-  const streakText = !s.streak ? "Реши задание, чтобы начать"
-    : s.streak_at_risk ? "Под угрозой — позанимайся!" : `${s.streak} ${plural(s.streak, "день", "дня", "дней")} подряд`;
-  const hearts = s.hearts_enabled
-    ? `<div class="ss-item"><b>Сердечки</b><div class="ss-hearts">${heartRow(s)}</div>
-        <small class="muted">${s.hearts < s.max_hearts ? "Вернёшь в работе над ошибками" : "Все на месте"}</small></div>`
-    : `<div class="ss-item"><b>Сердечки</b><div class="ss-hearts">∞</div><small class="muted">Выключены</small></div>`;
   return `
-    <div class="ss-item"><b>Цель дня</b>
-      ${goalPct >= 100 ? `<div class="goal-done">Выполнено!</div>`
-        : `<div class="bar gold"><i style="width:${goalPct}%"></i></div>`}
-      <small class="muted">${s.today_xp} / ${s.daily_goal} XP</small></div>
-    <div class="ss-item"><b>Уровень ${s.level}</b>
-      <div class="bar purple"><i style="width:${lvlPct}%"></i></div>
-      <small class="muted">${s.level_xp} / ${s.level_size} XP</small></div>
-    <div class="ss-item"><b>Серия</b><div>${esc(streakText)}</div>
-      <small class="muted">Рекорд ${s.longest_streak} · заморозок: ${s.freezes}</small></div>
-    ${hearts}`;
+    <div class="hs-talk">${owl(pose, pose === "happy" ? "bob" : "tilt")}<div class="hs-bub">${text}</div></div>
+    <div class="hs-sep"></div>
+    <div class="hs-streak ${s.streak ? "" : "cold"}"><img src="/static/img/flames/flame-1.webp" alt="" draggable="false">
+      <div><b>${s.streak} ${plural(s.streak, "день", "дня", "дней")}</b><small>серия · рекорд ${s.longest_streak}</small></div></div>
+    ${weekRow(s)}
+    <div class="hs-goal">${ic("target")}<div class="bar gold"><i style="width:${goalPct}%"></i></div><span>${s.today_xp} / ${s.daily_goal} XP</span></div>
+    <div class="hs-foot"><span>Уровень <b class="lv">${s.level}</b> · ${s.level_xp}/${s.level_size} XP</span>
+      <span class="hs-hearts">${s.hearts_enabled ? heartRow(s) : `${ic("heart")}∞`}</span></div>`;
 }
 
 function renderRail() {
