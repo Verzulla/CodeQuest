@@ -290,25 +290,23 @@ const isIOS = () => !/android/i.test(navigator.userAgent)
 function installCard() {
   let body;
   if (isStandalone()) {
-    body = `<p style="margin:0">✅ CodeQuest открыт как приложение.</p>`;
+    body = `<small class="muted">CodeQuest уже открыт как приложение</small>`;
   } else if (window.cqInstallPrompt) {
-    body = `<p class="muted" style="margin:0">Иконка на главном экране, запуск без адресной строки — как обычное приложение.</p>
-      <div><button class="btn small" id="install">Установить приложение</button></div>`;
+    body = `<small class="muted">Иконка на главном экране, запуск без адресной строки</small>`;
   } else if (isIOS()) {
-    body = `<p class="muted" style="margin:0">Открой сайт в <b>Safari</b>, нажми <b>«Поделиться»</b> (квадрат со стрелкой вверх) и выбери
-      <b>«На экран „Домой“»</b>. CodeQuest появится среди приложений. Войти в аккаунт нужно будет один раз заново.</p>`;
+    body = `<small class="muted">В Safari: «Поделиться» → «На экран „Домой“». Войти нужно будет один раз заново</small>`;
   } else {
-    body = `<p class="muted" style="margin:0">На телефоне открой сайт в <b>Chrome</b> и выбери в меню <b>⋮ → «Установить приложение»</b>
-      (или «Добавить на главный экран»).</p>`;
+    body = `<small class="muted">На телефоне в Chrome: меню ⋮ → «Установить приложение»</small>`;
   }
-  return `<div class="card form"><h3>📱 Приложение на телефоне</h3>${body}</div>`;
+  return `<div class="card set-row">${ic("phone", "si")}<div class="grow"><b>Приложение на телефоне</b>${body}</div>
+    ${window.cqInstallPrompt && !isStandalone() ? `<button class="btn small" id="install">Установить</button>` : ""}</div>`;
 }
 
 // ---------- Настройки: администраторы (видно только администратору) ----------
-function bindAdmins(view) {
-  const form = view.querySelector("#admins-form");
-  const list = view.querySelector("#admins-list");
-  const err = view.querySelector("#admins-error");
+function bindAdmins(root) {
+  const form = root.querySelector("#admins-form");
+  const list = root.querySelector("#admins-list");
+  const err = root.querySelector("#admins-error");
   const fail = (msg) => { err.textContent = msg; err.hidden = false; };
   const load = async () => {
     try {
@@ -324,7 +322,7 @@ function bindAdmins(view) {
     err.hidden = true;
     try {
       const r = await api("/admin/users/role", { method: "POST", body: { username, is_admin: isAdmin } });
-      toast("🛡️", r.username, isAdmin ? "Теперь администратор" : "Права администратора сняты");
+      toast("shield", r.username, isAdmin ? "Теперь администратор" : "Права администратора сняты");
       form.username.value = "";
       load();
     } catch (e) { fail(e.message); }
@@ -338,62 +336,49 @@ function bindAdmins(view) {
   load();
 }
 
-// ---------- Настройки ----------
-const GOALS = [[10, "Легко"], [20, "Нормально"], [30, "Серьёзно"], [50, "Интенсив"], [100, "Хардкор"]];
+// ---------- Настройки (вариант B: визуальные карточки) ----------
+const GOALS = [[10, "легко"], [20, "норм"], [30, "серьёзно"], [50, "интенсив"], [100, "хардкор"]];
+const toggle = (id, on) => `<button class="toggle ${on ? "on" : ""}" id="${id}" role="switch" aria-checked="${on}"></button>`;
+const setRow = (icon, title, sub, right, cls = "") =>
+  `<div class="card set-row ${cls}">${icon}<div class="grow"><b>${title}</b>${sub ? `<small class="muted">${sub}</small>` : ""}</div>${right}</div>`;
+const ZIG = `<svg viewBox="0 0 160 80" class="pv-svg"><path d="M80 8 C 120 20, 120 34, 94 42 S 40 60, 74 74" stroke="currentColor" stroke-opacity=".25" stroke-width="3" fill="none" stroke-dasharray="1 7" stroke-linecap="round"/><circle cx="80" cy="10" r="9" class="pv-on"/><circle cx="102" cy="38" r="9" class="pv-on"/><circle cx="70" cy="66" r="9" class="pv-off"/></svg>`;
+const LST = `<svg viewBox="0 0 160 80" class="pv-svg"><rect x="10" y="6" width="140" height="18" rx="6" class="pv-on" opacity=".6"/><rect x="10" y="30" width="140" height="18" rx="6" class="pv-off"/><rect x="10" y="54" width="140" height="18" rx="6" class="pv-off" opacity=".6"/></svg>`;
 
 export function renderSettings(view) {
   const draw = () => {
     const s = store.state, u = store.user;
-    view.innerHTML = `<div class="settings">
+    const chev = ic("arrowR", "chev");
+    view.innerHTML = `<div class="topbar path-top">${pills()}</div>
       <h1 class="section-title">Настройки</h1>
-      <div class="card mob-links">
-        <a href="#/about">${ic("i-info")}<span>О приложении</span>${ic("arrowR", "go")}</a>
-        ${u.is_admin ? `<a href="#/admin">${ic("wrench")}<span>Контент</span>${ic("arrowR", "go")}</a>` : ""}
-      </div>
-      <div class="card"><h3>Дневная цель</h3>
-        <div class="choice">${GOALS.map(([xp, name]) =>
-          `<button data-goal="${xp}" class="${s.daily_goal === xp ? "on" : ""}">${name}<br><small class="muted">${xp} XP / день</small></button>`).join("")}</div></div>
-      <div class="card"><h3>Вид дорожки уроков</h3>
-        <div class="choice path-choice">
-          <button data-view="zigzag" class="${s.path_view !== "list" ? "on" : ""}"><span class="pv zig"><i></i><i></i><i></i></span>Зигзаг</button>
-          <button data-view="list" class="${s.path_view === "list" ? "on" : ""}"><span class="pv lst"><i></i><i></i><i></i></span>Список</button></div></div>
-      <div class="card form">
-        <div class="switch"><div><b>🌙 Тёмная тема</b></div><button class="toggle ${s.theme === "dark" ? "on" : ""}" id="theme"></button></div>
-        <div class="switch"><div><b>❤️ Сердечки</b><br><small class="muted">Ошибка в уроке стоит сердечко; без сердечек — только повторение. Выключи, если мешает.</small></div>
-          <button class="toggle ${s.hearts_enabled ? "on" : ""}" id="hearts"></button></div>
-        <div class="switch"><div><b>Открыть все уроки</b><br><small class="muted">Любой урок темы можно начать сразу. Если выключено, следующий урок открывается после прохождения предыдущего.</small></div>
-          <button class="toggle ${s.sequential_lessons ? "" : "on"}" id="sequential"></button></div>
-        <div class="switch"><div><b>🔊 Звуки</b></div><button class="toggle ${soundOn() ? "on" : ""}" id="sound"></button></div>
-      </div>
-      ${installCard()}
-      <div class="card form"><h3>👤 Аккаунт</h3>
-        <div class="account-row">
-          <div class="avatar">${esc(u.username[0].toUpperCase())}</div>
-          <div style="flex:1;min-width:0"><b>${esc(u.username)}</b>${u.is_admin ? ` <span class="chip">администратор</span>` : ""}
-            <br><small class="muted">Прогресс хранится на сервере в твоём аккаунте — войди с любого устройства.</small></div>
-          <button class="btn ghost small" id="logout">Выйти</button>
+      <div class="settings set-grid">
+      <div class="set-col">
+        <div class="card set-profile"><div class="avatar">${esc(u.username[0].toUpperCase())}</div>
+          <div class="grow"><b>${esc(u.username)}</b><small class="muted">${u.is_admin ? "администратор · " : ""}уровень ${s.level}</small></div>
+          <button class="btn ghost small" id="logout">${ic("logout")}Выйти</button></div>
+        <div class="card mob-links">
+          <a href="#/about">${ic("i-info")}<span>О приложении</span>${chev}</a>
+          ${u.is_admin ? `<a href="#/admin">${ic("wrench")}<span>Контент</span>${chev}</a>` : ""}
         </div>
+        <h3 class="set-sec">Дневная цель</h3>
+        <div class="goal-tiles">${GOALS.map(([xp, name]) =>
+          `<button data-goal="${xp}" class="card ${s.daily_goal === xp ? "on" : ""}"><b>${xp}</b><small>${name}</small></button>`).join("")}</div>
+        <small class="muted set-note">XP в день — столько нужно набрать, чтобы засчитать день и продлить серию</small>
+        <h3 class="set-sec">Вид дорожки</h3>
+        <div class="pv-tiles">
+          <button data-view="zigzag" class="card ${s.path_view !== "list" ? "on" : ""}">${ZIG}<b>Зигзаг</b></button>
+          <button data-view="list" class="card ${s.path_view === "list" ? "on" : ""}">${LST}<b>Список</b></button></div>
       </div>
-      ${u.is_admin ? `<form class="card form" id="admins-form" novalidate><h3>🛡️ Администраторы</h3>
-        <p class="muted" style="margin:0">Администратор может менять контент в разделе «Контент» и назначать других администраторов.</p>
-        <div class="row" style="gap:10px;flex-wrap:wrap">
-          <input class="input" name="username" placeholder="Ник пользователя" maxlength="64" autocomplete="off" style="flex:1;min-width:160px">
-          <button class="btn blue small" type="submit">Сделать администратором</button></div>
-        <p class="auth-error" id="admins-error" hidden></p>
-        <div id="admins-list" class="muted">Загрузка…</div>
-      </form>` : ""}
-      <form class="card form" id="pw-form" novalidate><h3>🔑 Смена пароля</h3>
-        <label>Текущий пароль<input class="input" type="password" name="current" autocomplete="current-password" maxlength="128"></label>
-        <label>Новый пароль<small>Не меньше 6 символов. На других устройствах придётся войти заново.</small>
-          <input class="input" type="password" name="next" autocomplete="new-password" maxlength="128"></label>
-        <label>Повтори новый пароль<input class="input" type="password" name="next2" autocomplete="new-password" maxlength="128"></label>
-        <p class="auth-error" id="pw-error" hidden></p>
-        <div><button class="btn blue small" type="submit">Сменить пароль</button></div>
-      </form>
-      <div class="card form"><h3>⚠️ Опасная зона</h3>
-        <p class="muted" style="margin:0">Сброс прогресса обнулит XP, серию, награды и решённые задания. Удаление аккаунта сотрёт аккаунт вместе со всем прогрессом.</p>
-        <div class="row" style="gap:10px;flex-wrap:wrap"><button class="btn red small" id="reset">Сбросить прогресс</button>
-          <button class="btn red small" id="delete">Удалить аккаунт</button></div>
+      <div class="set-col">
+        <h3 class="set-sec">Режимы</h3>
+        ${setRow(ic("heart", "si"), "Сердечки", "Ошибка в уроке стоит сердечко, вернуть — в работе над ошибками", toggle("hearts", s.hearts_enabled))}
+        ${setRow(ic("unlock", "si ok"), "Открыть все уроки", "Любой урок доступен сразу, без прохождения предыдущих", toggle("sequential", !s.sequential_lessons))}
+        ${setRow(ic(s.theme === "dark" ? "moon" : "sun", "si blue"), "Тёмная тема", "", toggle("theme", s.theme === "dark"))}
+        ${setRow(ic("sound", "si ok"), "Звуки", "", toggle("sound", soundOn()))}
+        ${installCard()}
+        <h3 class="set-sec">Аккаунт</h3>
+        <button class="card set-row link-row" id="pw-open">${ic("key", "si")}<div class="grow"><b>Сменить пароль</b></div>${chev}</button>
+        ${u.is_admin ? `<button class="card set-row link-row" id="admins-open">${ic("shield", "si ok")}<div class="grow"><b>Администраторы</b><small class="muted">назначить или снять по нику</small></div>${chev}</button>` : ""}
+        <button class="card set-row link-row danger" id="danger-open">${ic("warn", "si")}<div class="grow"><b>Сбросить прогресс или удалить аккаунт</b></div>${chev}</button>
       </div></div>`;
     view.querySelectorAll("[data-goal]").forEach((b) => b.onclick = () => save({ daily_goal: Number(b.dataset.goal) }));
     view.querySelector("#theme").onclick = () => save({ theme: s.theme === "dark" ? "light" : "dark" });
@@ -405,8 +390,9 @@ export function renderSettings(view) {
       sound("good");
       draw();
     };
-    view.querySelector("#reset").onclick = confirmReset;
-    view.querySelector("#delete").onclick = confirmDelete;
+    view.querySelector("#danger-open").onclick = openDanger;
+    view.querySelector("#pw-open").onclick = openPassword;
+    view.querySelector("#admins-open")?.addEventListener("click", openAdmins);
     const install = view.querySelector("#install");
     if (install) install.onclick = async () => {
       const prompt = window.cqInstallPrompt;
@@ -420,25 +406,59 @@ export function renderSettings(view) {
       await api("/auth/logout", { method: "POST" }).catch(() => {});
       window.dispatchEvent(new Event("cq:unauthorized"));
     };
-    if (u.is_admin) bindAdmins(view);
-    const pw = view.querySelector("#pw-form");
+  };
+  const openPassword = () => {
+    const m = modal(`<h2 class="cheat-title">${ic("key")}Смена пароля</h2>
+      <form class="form" id="pw-form" novalidate style="text-align:left">
+        <label>Текущий пароль<input class="input" type="password" name="current" autocomplete="current-password" maxlength="128"></label>
+        <label>Новый пароль<small>Не меньше 6 символов. На других устройствах придётся войти заново.</small>
+          <input class="input" type="password" name="next" autocomplete="new-password" maxlength="128"></label>
+        <label>Повтори новый пароль<input class="input" type="password" name="next2" autocomplete="new-password" maxlength="128"></label>
+        <p class="auth-error" id="pw-error" hidden></p>
+        <div class="btns"><button class="btn" type="submit">Сменить пароль</button><button class="btn ghost" type="button" id="pw-cancel">Отмена</button></div>
+      </form>`);
+    const pw = m.root.querySelector("#pw-form");
+    m.root.querySelector("#pw-cancel").onclick = m.close;
+    pw.current.focus();
     pw.onsubmit = async (e) => {
       e.preventDefault();
-      const err = view.querySelector("#pw-error");
+      const err = m.root.querySelector("#pw-error");
       const fail = (msg) => { err.textContent = msg; err.hidden = false; };
       if (!pw.current.value || !pw.next.value) return fail("Заполни текущий и новый пароль");
       if (pw.next.value !== pw.next2.value) return fail("Новые пароли не совпадают");
       try {
         await api("/account/password", { method: "PUT", body: { current_password: pw.current.value, new_password: pw.next.value } });
-        pw.reset();
-        err.hidden = true;
-        toast("🔑", "Пароль изменён", "Другие устройства вышли из аккаунта");
+        m.close();
+        toast("key", "Пароль изменён", "Другие устройства вышли из аккаунта");
       } catch (e2) { fail(e2.message); }
     };
   };
+  const openAdmins = () => {
+    const m = modal(`<h2 class="cheat-title">${ic("shield")}Администраторы</h2>
+      <form class="form" id="admins-form" novalidate style="text-align:left">
+        <p class="muted" style="margin:0">Администратор может менять контент в разделе «Контент» и назначать других администраторов.</p>
+        <div class="row" style="gap:10px">
+          <input class="input" name="username" placeholder="Ник пользователя" maxlength="64" autocomplete="off" style="flex:1;min-width:140px">
+          <button class="btn small" type="submit">Назначить</button></div>
+        <p class="auth-error" id="admins-error" hidden></p>
+        <div id="admins-list" class="muted">Загрузка…</div>
+        <div class="btns"><button class="btn ghost" type="button" id="adm-close">Готово</button></div>
+      </form>`);
+    m.root.querySelector("#adm-close").onclick = m.close;
+    bindAdmins(m.root);
+  };
+  const openDanger = () => {
+    const m = modal(`${owl("sad", "breathe")}<h2>Опасная зона</h2>
+      <p class="muted">Сброс прогресса обнулит XP, серию, награды и решённые задания. Удаление аккаунта сотрёт аккаунт вместе со всем прогрессом.</p>
+      <div class="btns"><button class="btn red" id="d-reset">Сбросить прогресс</button><button class="btn red" id="d-delete">Удалить аккаунт</button>
+        <button class="btn ghost" id="d-cancel">Отмена</button></div>`);
+    m.root.querySelector("#d-cancel").onclick = m.close;
+    m.root.querySelector("#d-reset").onclick = confirmReset;
+    m.root.querySelector("#d-delete").onclick = confirmDelete;
+  };
   const save = async (patch) => { setState(await api("/settings", { method: "PUT", body: patch })); draw(); };
   const confirmReset = () => {
-    const m = modal(`<div class="big">⚠️</div><h2>Сбросить весь прогресс?</h2>
+    const m = modal(`${owl("sad", "breathe")}<h2>Сбросить весь прогресс?</h2>
       <p class="muted">XP, серия, награды и решённые задания будут удалены. Темы и задания останутся. Это нельзя отменить.</p>
       <input class="input" id="confirm" placeholder="Напиши RESET для подтверждения">
       <div class="btns"><button class="btn red" id="yes" disabled>Сбросить</button><button class="btn ghost" id="no">Отмена</button></div>`);
@@ -448,7 +468,7 @@ export function renderSettings(view) {
     yes.onclick = async () => { setState(await api("/progress/reset", { method: "POST", body: { confirm: "RESET" } })); m.close(); draw(); };
   };
   const confirmDelete = () => {
-    const m = modal(`<div class="big">🗑️</div><h2>Удалить аккаунт «${esc(store.user.username)}»?</h2>
+    const m = modal(`${owl("sad", "breathe")}<h2>Удалить аккаунт «${esc(store.user.username)}»?</h2>
       <p class="muted">Аккаунт и весь прогресс будут стёрты безвозвратно. Ник освободится.</p>
       <input class="input" id="pwd" type="password" placeholder="Введи пароль для подтверждения" autocomplete="current-password">
       <p class="auth-error" id="del-error" hidden></p>
