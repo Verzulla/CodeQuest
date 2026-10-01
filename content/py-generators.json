@@ -26,7 +26,8 @@
                   "code": "it = iter(\"abc\")\nprint(next(it))\nprint(next(it))\nprint(next(it, \"конец\"))\nprint(next(it, \"конец\"))\n",
                   "expected_output": "a\nb\nc\nконец",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`iter` даёт итератор, `next` берёт следующий элемент. Второй аргумент `next` — что вернуть, когда элементы кончились.\", \"lines\": [[\"print(next(it, \\\"конец\\\"))\", \"Третий элемент — `c`.\"], [\"print(next(it, \\\"конец\\\"))\", \"Элементов нет — значение по умолчанию.\"]], \"mistake\": \"Ожидать `StopIteration` — его гасит второй аргумент.\"}"
                 },
                 {
                   "slug": "gen-m1-l1-e2",
@@ -35,7 +36,8 @@
                   "code": "it = iter([1, 2, 3])\nprint(list(it))\nprint(list(it))\n",
                   "expected_output": "[1, 2, 3]\n[]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Итератор одноразовый: после полного прохода он пуст.\", \"lines\": [[\"print(list(it))\", \"Забрал всё.\"], [\"print(list(it))\", \"Ничего не осталось.\"]], \"mistake\": \"Ожидать два одинаковых списка.\"}"
                 },
                 {
                   "slug": "gen-m1-l1-e3",
@@ -44,7 +46,8 @@
                   "code": "it = iter([1, 2, 3, 4])\nnext(it)\nfor x in it:\n    print(x)\n",
                   "expected_output": "2\n3\n4",
                   "hint": "Первый элемент уже забрали вызовом next.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`for` продолжает итератор с текущего места.\", \"lines\": [[\"next(it)\", \"Единица забрана и выброшена.\"], [\"for x in it:\", \"С двойки.\"]], \"mistake\": \"Ожидать 1 в выводе.\"}"
                 },
                 {
                   "slug": "gen-m1-l1-e4",
@@ -54,7 +57,8 @@
                   "tests": "def test_list():\n    assert first_two([5, 6, 7]) == [5, 6], \"first_two([5, 6, 7]) → [5, 6]\"\n\ndef test_iterator():\n    assert first_two(iter(\"xyz\")) == [\"x\", \"y\"], \"Должно работать и с итератором, у которого нет срезов\"\n",
                   "solution": "def first_two(items):\n    it = iter(items)\n    return [next(it), next(it)]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"У итератора нет индексов, но `iter` + `next` работают для любого перебираемого.\", \"lines\": [[\"it = iter(items)\", \"Итератор из чего угодно.\"], [\"return [next(it), next(it)]\", \"Два первых.\"]], \"mistake\": \"`items[:2]` — не сработает для итератора.\"}"
                 },
                 {
                   "slug": "gen-m1-l1-e5",
@@ -64,7 +68,8 @@
                   "tests": "def test_list():\n    assert list(Countdown(3)) == [3, 2, 1], f\"Получено {list(Countdown(3))}\"\n\ndef test_zero():\n    assert list(Countdown(0)) == [], \"Countdown(0) — пусто\"\n",
                   "solution": "class Countdown:\n    def __init__(self, n):\n        self.n = n\n\n    def __iter__(self):\n        return self\n\n    def __next__(self):\n        if self.n <= 0:\n            raise StopIteration\n        self.n -= 1\n        return self.n + 1\n",
                   "hint": "В `__next__`: если n ≤ 0 — `raise StopIteration`, иначе уменьши n и верни прежнее значение.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`__next__` отдаёт следующее значение или бросает `StopIteration` — сигнал «конец» для `for`.\", \"lines\": [[\"if self.n <= 0:\\n            raise StopIteration\", \"Числа кончились.\"], [\"self.n -= 1\", \"Сдвигаем счётчик.\"], [\"return self.n + 1\", \"Значение до уменьшения.\"]], \"mistake\": \"`return None` в конце — `for` будет крутиться бесконечно.\"}"
                 },
                 {
                   "slug": "gen-m1-l1-e6",
@@ -73,7 +78,8 @@
                   "code": "nums = [1, 2]\nit = iter(nums)\nprint(iter(it) is it, iter(nums) is iter(nums))\nprint(hasattr(nums, \"__next__\"), hasattr(it, \"__next__\"))\n",
                   "expected_output": "True False\nFalse True",
                   "hint": "Список — итерируемый (можно получить итератор), но сам не итератор.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Итератор возвращает из `iter` сам себя. Список — итерируемый: `iter` каждый раз даёт новый итератор. `__next__` есть только у итератора.\", \"lines\": [[\"print(iter(it) is it, iter(nums) is iter(nums))\", \"Тот же / два новых.\"], [\"print(hasattr(nums, \\\"__next__\\\"), hasattr(it, \\\"__next__\\\"))\", \"У списка нет `__next__`.\"]], \"mistake\": \"Путать итерируемое (можно перебрать) и итератор (помнит позицию).\"}"
                 },
                 {
                   "slug": "gen-m1-l1-e7",
@@ -83,7 +89,8 @@
                   "tests": "def test_values():\n    assert my_sum([1, 2, 3]) == 6 and my_sum(range(5)) == 10 and my_sum([]) == 0, \"Неверная сумма\"\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"for \" not in src and \"sum(\" not in src.replace(\"my_sum(\", \"\"), \"Без for и sum\"\n",
                   "solution": "def my_sum(iterable):\n    it = iter(iterable)\n    total = 0\n    while True:\n        try:\n            total += next(it)\n        except StopIteration:\n            return total\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Так устроен `for` внутри: брать `next`, пока не прилетит `StopIteration`.\", \"lines\": [[\"it = iter(iterable)\", \"Итератор.\"], [\"total += next(it)\", \"Следующий элемент.\"], [\"except StopIteration:\\n            return total\", \"Кончились — ответ.\"]], \"mistake\": \"Не ловить `StopIteration` — функция упадёт в конце.\"}"
                 },
                 {
                   "slug": "gen-m1-l1-e8",
@@ -93,7 +100,8 @@
                   "tests": "def test_values():\n    assert skip_header([\"id,name\", \"1,a\", \"2,b\"]) == [\"1,a\", \"2,b\"] and skip_header([]) == [] and skip_header(iter([\"h\"])) == [], \"Неверный результат\"\n",
                   "solution": "def skip_header(lines):\n    it = iter(lines)\n    next(it, None)\n    return list(it)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`next(it, None)` пропускает первый элемент и не падает на пустом входе.\", \"lines\": [[\"next(it, None)\", \"Заголовок выброшен.\"], [\"return list(it)\", \"Остаток.\"]], \"mistake\": \"`lines[1:]` — не сработает для итератора.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЦикл `for` умеет перебирать списки, строки, словари, файлы, `range`. Всё это работает через один механизм — **итераторы**. Поняв его, ты поймёшь, как устроены генераторы, почему файл можно читать построчно и почему некоторые объекты можно перебрать только один раз.\n\n## Термины\n\n- **Итерируемый объект** (iterable) — то, что можно перебрать в `for`: список, строка, словарь, файл, `range`.\n- **Итератор** (iterator) — объект, который выдаёт элементы **по одному** и помнит, где остановился.\n- `iter(x)` — получить итератор из итерируемого объекта.\n- `next(it)` — взять следующий элемент. Когда элементы кончились — исключение `StopIteration`.\n\n## iter и next\n\n```python\nit = iter(\"abc\")\nprint(next(it))\nprint(next(it))\nprint(next(it, \"конец\"))\nprint(next(it, \"конец\"))\n```\n\n- Каждый `next` сдвигает итератор на один элемент.\n- `next(it, значение)` — вместо `StopIteration` вернуть значение по умолчанию.\n- Вывод: `a`, `b`, `c`, `конец`.\n\n## Итератор одноразовый\n\n```python\nit = iter([1, 2, 3])\nprint(list(it))\nprint(list(it))\n```\n\n- `list(it)` забрал все элементы. Итератор «исчерпан» — второй раз он пуст.\n- Сам список при этом можно перебирать сколько угодно: каждый `for` создаёт новый итератор.\n- Вывод: `[1, 2, 3]`, `[]`.\n\n## Итерируемое и итератор — разные вещи\n\n```python\nnums = [1, 2]\nit = iter(nums)\nprint(iter(it) is it, iter(nums) is iter(nums))\nprint(hasattr(nums, \"__next__\"), hasattr(it, \"__next__\"))\n```\n\n- У итератора есть метод `__next__`, у списка — нет.\n- `iter(итератор)` возвращает его самого, а `iter(список)` каждый раз создаёт **новый** итератор.\n- Вывод: `True False`, `False True`.\n\n## Как на самом деле работает for\n\n```python\nit = iter([\"x\", \"y\"])\nwhile True:\n    try:\n        item = next(it)\n    except StopIteration:\n        break\n    print(\"элемент\", item)\n```\n\n- `for item in items:` — это `iter(items)` один раз, затем `next` в цикле до `StopIteration`.\n- Вывод: `элемент x`, `элемент y`.\n\n## Продолжить с середины\n\n```python\nit = iter([\"id,name\", \"1,Аня\", \"2,Боря\"])\nheader = next(it)\nfor row in it:\n    print(row)\nprint(\"заголовок:\", header)\n```\n\n- Забрали первый элемент вручную, `for` продолжил с того места, где остановился итератор. Так пропускают заголовок CSV.\n- Вывод: `1,Аня`, `2,Боря`, `заголовок: id,name`.\n\n## Итог\n\n- `iter(x)` — итератор; `next(it)` — следующий элемент; конец — `StopIteration`.\n- `next(it, default)` — без исключения.\n- Итератор одноразовый; итерируемый объект (список) — многоразовый.\n- `for` = `iter` + `next` + обработка `StopIteration`.",
@@ -145,7 +153,8 @@
                   "code": "class Upto:\n    def __init__(self, n):\n        self.n = n\n        self.current = 0\n\n    def __iter__(self):\n        return self\n\n    def __next__(self):\n        if self.current >= self.n:\n            raise StopIteration\n        self.current += 1\n        return self.current\n\nu = Upto(3)\nprint(list(u))\nprint(list(u))\n",
                   "expected_output": "[1, 2, 3]\n[]",
                   "hint": "Итератор, вернувший всё, остаётся пустым.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Объект, который сам себе итератор, одноразовый: `current` не сбрасывается.\", \"lines\": [[\"self.current += 1\\n        return self.current\", \"1, 2, 3.\"], [\"print(list(u))\", \"Счётчик уже на 3 — пусто.\"]], \"mistake\": \"Ожидать второй `[1, 2, 3]`.\"}"
                 },
                 {
                   "slug": "gen-protocol-e2",
@@ -154,7 +163,8 @@
                   "code": "class Playlist:\n    def __init__(self, songs):\n        self.songs = songs\n\n    def __iter__(self):\n        return iter(self.songs)\n\np = Playlist([\"a\", \"b\"])\nprint(list(p), list(p))\nfor s in p:\n    print(s.upper(), end=\" \")\nprint()\n",
                   "expected_output": "['a', 'b'] ['a', 'b']\nA B ",
                   "hint": "__iter__ каждый раз возвращает новый итератор — перебирать можно много раз.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Итерируемый класс возвращает новый итератор из `__iter__` — его можно перебирать сколько угодно.\", \"lines\": [[\"return iter(self.songs)\", \"Новый итератор каждый раз.\"], [\"print(list(p), list(p))\", \"Два полных списка.\"]], \"mistake\": \"Думать, что `Playlist` одноразовый.\"}"
                 },
                 {
                   "slug": "gen-protocol-e3",
@@ -163,7 +173,8 @@
                   "code": "items = [\"x\", \"y\"]\nit = iter(items)\nwhile True:\n    try:\n        item = next(it)\n    except StopIteration:\n        print(\"конец\")\n        break\n    print(\"элемент\", item)\n",
                   "expected_output": "элемент x\nэлемент y\nконец",
                   "hint": "Так устроен цикл for.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Цикл `for` — это `while True` + `next` + перехват `StopIteration`.\", \"lines\": [[\"item = next(it)\", \"Следующий.\"], [\"except StopIteration:\\n        print(\\\"конец\\\")\\n        break\", \"Элементы кончились.\"], [\"print(\\\"элемент\\\", item)\", \"Обработка.\"]], \"mistake\": \"Ожидать «конец» после каждого элемента.\"}"
                 },
                 {
                   "slug": "gen-protocol-e4",
@@ -173,7 +184,8 @@
                   "tests": "def test_values():\n    assert list(Countup(3, 6)) == [3, 4, 5, 6] and list(Countup(5, 4)) == [], \"Неверная последовательность\"\n    c = Countup(1, 2)\n    assert iter(c) is c and next(c) == 1, \"Протокол итератора\"\n",
                   "solution": "class Countup:\n    def __init__(self, start, stop):\n        self.current = start\n        self.stop = stop\n\n    def __iter__(self):\n        return self\n\n    def __next__(self):\n        if self.current > self.stop:\n            raise StopIteration\n        value = self.current\n        self.current += 1\n        return value\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Запомнить текущее, сдвинуть, вернуть запомненное.\", \"lines\": [[\"if self.current > self.stop:\\n            raise StopIteration\", \"`stop` включительно.\"], [\"value = self.current\\n        self.current += 1\\n        return value\", \"Возвращаем до сдвига.\"]], \"mistake\": \"`>=` — потеряется `stop`.\"}"
                 },
                 {
                   "slug": "gen-protocol-e5",
@@ -183,7 +195,8 @@
                   "tests": "def test_values():\n    assert list(Cycle([\"a\", \"b\"], 2)) == [\"a\", \"b\", \"a\", \"b\"] and list(Cycle([1], 3)) == [1, 1, 1] and list(Cycle([], 5)) == [] and list(Cycle([1, 2], 0)) == [], \"Неверный результат\"\n",
                   "solution": "class Cycle:\n    def __init__(self, items, times):\n        self.items = items\n        self.total = len(items) * times\n        self.index = 0\n\n    def __iter__(self):\n        return self\n\n    def __next__(self):\n        if self.index >= self.total:\n            raise StopIteration\n        value = self.items[self.index % len(self.items)]\n        self.index += 1\n        return value\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Общее число шагов известно заранее; индекс по кругу — остаток от деления.\", \"lines\": [[\"self.total = len(items) * times\", \"Сколько выдать.\"], [\"value = self.items[self.index % len(self.items)]\", \"По кругу.\"], [\"self.index += 1\", \"Следующий.\"]], \"mistake\": \"Без `%` — `IndexError` на втором круге.\"}"
                 },
                 {
                   "slug": "gen-protocol-e6",
@@ -193,7 +206,8 @@
                   "tests": "def test_values():\n    r = Range2(0, 10, 3)\n    assert list(r) == [0, 3, 6, 9] and list(r) == [0, 3, 6, 9], \"Повторный перебор\"\n    assert list(Range2(2, 5)) == [2, 3, 4] and list(Range2(5, 2)) == [], \"Шаг 1\"\n",
                   "solution": "class Range2:\n    def __init__(self, start, stop, step=1):\n        self.start = start\n        self.stop = stop\n        self.step = step\n\n    def __iter__(self):\n        current = self.start\n        while current < self.stop:\n            yield current\n            current += self.step\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`__iter__` с `yield` — генератор: каждый вызов создаёт новый итератор, объект можно перебирать многократно.\", \"lines\": [[\"current = self.start\", \"Локальная — своя на каждый перебор.\"], [\"while current < self.stop:\", \"`stop` не включён, как у `range`.\"], [\"yield current\", \"Выдаём.\"]], \"mistake\": \"Хранить `current` в `self` — второй перебор начнётся с конца.\"}"
                 },
                 {
                   "slug": "gen-protocol-e7",
@@ -203,7 +217,8 @@
                   "tests": "def test_values():\n    assert list(Pages([1, 2, 3, 4, 5], 2)) == [[1, 2], [3, 4], [5]] and list(Pages([], 3)) == [], \"Неверный результат\"\n",
                   "solution": "class Pages:\n    def __init__(self, items, size):\n        self.items = items\n        self.size = size\n        self.pos = 0\n\n    def __iter__(self):\n        return self\n\n    def __next__(self):\n        if self.pos >= len(self.items):\n            raise StopIteration\n        page = self.items[self.pos:self.pos + self.size]\n        self.pos += self.size\n        return page\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Позиция сдвигается на `size`; срез сам обрежет последнюю страницу.\", \"lines\": [[\"if self.pos >= len(self.items):\\n            raise StopIteration\", \"Всё выдали.\"], [\"page = self.items[self.pos:self.pos + self.size]\", \"Страница.\"], [\"self.pos += self.size\", \"Следующая.\"]], \"mistake\": \"Проверять `pos + size > len` — потеряется короткая последняя страница.\"}"
                 },
                 {
                   "slug": "gen-protocol-e8",
@@ -213,7 +228,8 @@
                   "tests": "def test_values():\n    p = Peekable(iter([1, 2]))\n    assert p.peek() == 1 and p.peek() == 1 and next(p) == 1, \"peek не забирает\"\n    assert next(p) == 2 and p.peek(\"пусто\") == \"пусто\", \"Конец\"\n    assert list(Peekable(\"ab\")) == [\"a\", \"b\"], \"Перебор\"\n",
                   "solution": "_EMPTY = object()\n\n\nclass Peekable:\n    def __init__(self, iterable):\n        self.it = iter(iterable)\n        self.buffer = _EMPTY\n\n    def __iter__(self):\n        return self\n\n    def __next__(self):\n        if self.buffer is not _EMPTY:\n            value, self.buffer = self.buffer, _EMPTY\n            return value\n        return next(self.it)\n\n    def peek(self, default=None):\n        if self.buffer is _EMPTY:\n            self.buffer = next(self.it, _EMPTY)\n        return default if self.buffer is _EMPTY else self.buffer\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Буфер хранит подсмотренный элемент. `_EMPTY` — метка «пусто», отличимая от `None`.\", \"lines\": [[\"if self.buffer is not _EMPTY:\\n            value, self.buffer = self.buffer, _EMPTY\\n            return value\", \"Сначала отдаём подсмотренное.\"], [\"return next(self.it)\", \"Иначе — из источника.\"], [\"self.buffer = next(self.it, _EMPTY)\", \"Подсмотреть и запомнить.\"], [\"return default if self.buffer is _EMPTY else self.buffer\", \"Кончились — default.\"]], \"mistake\": \"Использовать `None` как метку — поток с `None` сломается.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЛюбой свой класс можно сделать перебираемым в `for`. Для этого нужно реализовать **протокол итератора**: методы `__iter__` и `__next__`. Это полезно для коллекций, пагинации API, последовательностей. А ещё так становится понятно, какую работу за нас делают генераторы.\n\n## Класс-итератор\n\n```python\nclass Upto:\n    def __init__(self, n):\n        self.n = n\n        self.current = 0\n\n    def __iter__(self):\n        return self\n\n    def __next__(self):\n        if self.current >= self.n:\n            raise StopIteration\n        self.current += 1\n        return self.current\n\nu = Upto(3)\nprint(list(u))\nprint(list(u))\n```\n\nЧто делает каждый метод:\n\n- `__iter__` — вызывается функцией `iter()` (и циклом `for`). Итератор возвращает сам себя.\n- `__next__` — вызывается функцией `next()`. Возвращает следующий элемент или выбрасывает `StopIteration`, когда элементы кончились.\n- Состояние (`self.current`) хранится в объекте — поэтому итератор одноразовый.\n- Вывод: `[1, 2, 3]`, `[]`.\n\n## Итерируемый класс: многоразовый\n\n```python\nclass Playlist:\n    def __init__(self, songs):\n        self.songs = songs\n\n    def __iter__(self):\n        return iter(self.songs)\n\np = Playlist([\"a\", \"b\"])\nprint(list(p), list(p))\n```\n\n- Если `__iter__` каждый раз возвращает **новый** итератор, объект можно перебирать много раз.\n- Здесь отдаём итератор внутреннего списка.\n- Вывод: `['a', 'b'] ['a', 'b']`.\n\n## __iter__ через yield\n\n```python\nclass Range2:\n    def __init__(self, start, stop, step=1):\n        self.start, self.stop, self.step = start, stop, step\n\n    def __iter__(self):\n        current = self.start\n        while current < self.stop:\n            yield current\n            current += self.step\n\nr = Range2(0, 10, 3)\nprint(list(r), list(r))\n```\n\n- Если в `__iter__` написать `yield`, он станет генератором (следующий урок) — Python сам создаст итератор с правильным `__next__`. Это самый короткий способ.\n- Вывод: `[0, 3, 6, 9] [0, 3, 6, 9]`.\n\n## Пагинация\n\n```python\nclass Pages:\n    def __init__(self, items, size):\n        self.items, self.size, self.pos = items, size, 0\n\n    def __iter__(self):\n        return self\n\n    def __next__(self):\n        if self.pos >= len(self.items):\n            raise StopIteration\n        page = self.items[self.pos:self.pos + self.size]\n        self.pos += self.size\n        return page\n\nprint(list(Pages([1, 2, 3, 4, 5], 2)))\n```\n\n- Каждый `next` отдаёт следующую «страницу» — как API, которое возвращает данные порциями.\n- Вывод: `[[1, 2], [3, 4], [5]]`.\n\n## Итог\n\n- Итератор: `__iter__` возвращает `self`, `__next__` — элемент или `StopIteration`.\n- Итерируемый объект: `__iter__` возвращает новый итератор — перебирается много раз.\n- Короче всего — `__iter__` с `yield`.",
@@ -265,7 +281,8 @@
                   "code": "def gen():\n    yield 1\n    yield 2\n    yield 3\n\nprint(list(gen()))\ng = gen()\nprint(next(g), next(g))\n",
                   "expected_output": "[1, 2, 3]\n1 2",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Функция с `yield` возвращает генератор; каждый `next` доходит до следующего `yield`.\", \"lines\": [[\"print(list(gen()))\", \"Все три.\"], [\"print(next(g), next(g))\", \"Новый генератор — с начала.\"]], \"mistake\": \"Ожидать `2 3` — `g` новый.\"}"
                 },
                 {
                   "slug": "gen-m1-l2-e2",
@@ -274,7 +291,8 @@
                   "code": "def gen():\n    print(\"старт\")\n    yield \"A\"\n    print(\"середина\")\n    yield \"B\"\n    print(\"конец\")\n\ng = gen()\nprint(\"создан\")\nprint(next(g))\nprint(next(g))\n",
                   "expected_output": "создан\nстарт\nA\nсередина\nB",
                   "hint": "Код генератора начинает выполняться только при первом next().",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Код генератора выполняется кусками: от одного `yield` до следующего, только по запросу.\", \"lines\": [[\"g = gen()\", \"Тело не выполняется.\"], [\"print(next(g))\", \"До первого `yield`: «старт», A.\"], [\"print(next(g))\", \"До второго: «середина», B.\"], [\"print(\\\"конец\\\")\", \"Не выполнится — третьего `next` не было.\"]], \"mistake\": \"Ожидать «старт» раньше «создан».\"}"
                 },
                 {
                   "slug": "gen-m1-l2-e3",
@@ -283,7 +301,8 @@
                   "code": "def evens(limit):\n    for i in range(limit):\n        if i % 2 == 0:\n            yield i\n\nprint(sum(evens(10)))\nprint(list(evens(5)))\n",
                   "expected_output": "20\n[0, 2, 4]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`yield` внутри цикла с условием выдаёт только подходящие значения.\", \"lines\": [[\"if i % 2 == 0:\\n            yield i\", \"Чётные.\"], [\"print(sum(evens(10)))\", \"0 + 2 + 4 + 6 + 8.\"]], \"mistake\": \"Включить 10 — `range(10)` до 9.\"}"
                 },
                 {
                   "slug": "gen-m1-l2-e4",
@@ -293,7 +312,8 @@
                   "tests": "import inspect\n\ndef test_is_generator():\n    assert inspect.isgeneratorfunction(squares), \"squares должна быть генератором — используй yield\"\n\ndef test_values():\n    assert list(squares(4)) == [1, 4, 9, 16], f\"Получено {list(squares(4))}\"\n",
                   "solution": "def squares(n):\n    for i in range(1, n + 1):\n        yield i * i\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Вместо списка — `yield` по одному.\", \"lines\": [[\"for i in range(1, n + 1):\", \"От 1 до n.\"], [\"yield i * i\", \"Квадрат.\"]], \"mistake\": \"`range(n)` — начнётся с 0.\"}"
                 },
                 {
                   "slug": "gen-m1-l2-e5",
@@ -303,7 +323,8 @@
                   "tests": "import inspect\nfrom itertools import islice\n\ndef test_is_generator():\n    assert inspect.isgeneratorfunction(fibonacci), \"fibonacci должна быть генератором\"\n\ndef test_first_ten():\n    assert list(islice(fibonacci(), 10)) == [0, 1, 1, 2, 3, 5, 8, 13, 21, 34], \"Первые 10 чисел Фибоначчи неверны\"\n",
                   "solution": "def fibonacci():\n    a, b = 0, 1\n    while True:\n        yield a\n        a, b = b, a + b\n",
                   "hint": "`while True:` + `yield a` + `a, b = b, a + b`. Бесконечность не страшна — генератор ленивый.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Бесконечный генератор — `while True` с `yield`; значения считаются только по запросу.\", \"lines\": [[\"a, b = 0, 1\", \"Начало.\"], [\"yield a\", \"Текущее.\"], [\"a, b = b, a + b\", \"Одновременное присваивание.\"]], \"mistake\": \"`a = b; b = a + b` — `a` уже изменился.\"}"
                 },
                 {
                   "slug": "gen-m1-l2-e6",
@@ -313,7 +334,8 @@
                   "tests": "def test_chunks():\n    assert list(chunks([1, 2, 3, 4, 5], 2)) == [[1, 2], [3, 4], [5]], f\"Получено {list(chunks([1, 2, 3, 4, 5], 2))}\"\n\ndef test_exact():\n    assert list(chunks(\"abcdef\", 3)) == [\"abc\", \"def\"], \"Должно работать и со строкой\"\n",
                   "solution": "def chunks(items, size):\n    for i in range(0, len(items), size):\n        yield items[i:i + size]\n",
                   "hint": "`range(0, len(items), size)` даёт начала кусков.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Шаг `range` равен размеру куска; срез обрезает последний.\", \"lines\": [[\"for i in range(0, len(items), size):\", \"0, size, 2·size…\"], [\"yield items[i:i + size]\", \"Кусок.\"]], \"mistake\": \"`range(len(items) // size)` — потеряется хвост.\"}"
                 },
                 {
                   "slug": "gen-m1-l2-e7",
@@ -323,7 +345,8 @@
                   "tests": "def test_values():\n    assert list(countdown(3)) == [3, 2, 1, \"старт!\"] and list(countdown(0)) == [\"старт!\"], \"Неверный результат\"\n",
                   "solution": "def countdown(n):\n    while n > 0:\n        yield n\n        n -= 1\n    yield \"старт!\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"После цикла можно выдать ещё значение — генератор продолжается.\", \"lines\": [[\"while n > 0:\\n        yield n\\n        n -= 1\", \"Отсчёт.\"], [\"yield \\\"старт!\\\"\", \"Финал.\"]], \"mistake\": \"`return \\\"старт!\\\"` — значение не попадёт в перебор.\"}"
                 },
                 {
                   "slug": "gen-m1-l2-e8",
@@ -333,7 +356,8 @@
                   "tests": "import types\n\ndef test_values():\n    g = running_total([1, 2, 3])\n    assert isinstance(g, types.GeneratorType) and list(g) == [1, 3, 6] and list(running_total([])) == [], \"Неверный результат\"\n",
                   "solution": "def running_total(numbers):\n    total = 0\n    for n in numbers:\n        total += n\n        yield total\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Состояние — локальная переменная генератора; она живёт между `yield`.\", \"lines\": [[\"total += n\", \"Накопили.\"], [\"yield total\", \"Выдали сумму.\"]], \"mistake\": \"Выдавать `n` вместо `total`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПисать класс с `__iter__` и `__next__` ради простой последовательности долго. **Генератор** — функция с `yield` — делает то же в несколько строк. Python сам превращает её в итератор, который выдаёт значения по одному.\n\n## Первый генератор\n\n```python\ndef gen():\n    yield 1\n    yield 2\n    yield 3\n\nprint(list(gen()))\ng = gen()\nprint(next(g), next(g))\n```\n\n- Функция, в которой есть `yield`, — **функция-генератор**. Её вызов не выполняет код, а возвращает объект-генератор (итератор).\n- `yield значение` — выдать значение и **приостановиться**. Следующий `next` продолжит с этого места.\n- Вывод: `[1, 2, 3]`, `1 2`.\n\n## Выполнение по шагам\n\n```python\ndef gen():\n    print(\"старт\")\n    yield \"A\"\n    print(\"середина\")\n    yield \"B\"\n    print(\"конец\")\n\ng = gen()\nprint(next(g))\nprint(next(g))\nprint(next(g, \"всё\"))\n```\n\n- Первый `next` выполняет код до первого `yield`. Второй — от него до следующего. Третий доходит до конца функции — генератор завершается (`StopIteration`).\n- Локальные переменные сохраняются между шагами — генератор помнит своё состояние.\n- Вывод: `старт`, `A`, `середина`, `B`, `конец`, `всё`.\n\n## yield в цикле\n\n```python\ndef evens(limit):\n    for i in range(limit):\n        if i % 2 == 0:\n            yield i\n\nprint(sum(evens(10)))\nprint(list(evens(7)))\n```\n\n- Генератор можно передать в `sum`, `list`, `for` — везде, где нужно итерируемое.\n- Вывод: `20`, `[0, 2, 4, 6]`.\n\n## Бесконечный генератор\n\n```python\ndef fibonacci():\n    a, b = 0, 1\n    while True:\n        yield a\n        a, b = b, a + b\n\ng = fibonacci()\nprint([next(g) for _ in range(8)])\n```\n\n- `while True` не зависает: генератор считает следующее значение, только когда его попросили.\n- Бесконечный генератор нельзя передать в `list()` — это зависнет. Бери нужное количество через `next` или `itertools.islice`.\n- Вывод: `[0, 1, 1, 2, 3, 5, 8, 13]`.\n\n## Накопление по ходу\n\n```python\ndef running_total(numbers):\n    total = 0\n    for n in numbers:\n        total += n\n        yield total\n\nprint(list(running_total([1, 2, 3])))\n```\n\n- Состояние (`total`) живёт между выдачами.\n- Вывод: `[1, 3, 6]`.\n\n## Итог\n\n- Функция с `yield` — генератор; вызов возвращает итератор.\n- `yield` выдаёт значение и приостанавливает функцию до следующего `next`.\n- Локальные переменные сохраняются.\n- Бесконечные генераторы — нормально, если брать ограниченное число значений.",
@@ -385,7 +409,8 @@
                   "code": "def gen():\n    print(\"начал\")\n    yield 1\n\ng = gen()\nprint(\"создан\")\nprint(next(g))\n",
                   "expected_output": "создан\nначал\n1",
                   "hint": "Вызов функции-генератора только создаёт объект, код не выполняется.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Создание генератора не запускает его тело.\", \"lines\": [[\"g = gen()\", \"Ничего не печатается.\"], [\"print(next(g))\", \"Теперь «начал», потом 1.\"]], \"mistake\": \"Ожидать «начал» первым.\"}"
                 },
                 {
                   "slug": "gen-lazy-e2",
@@ -394,7 +419,8 @@
                   "code": "def nums():\n    yield 1\n    yield 2\n\ng = nums()\nprint(sum(g), sum(g))\nprint(sum(nums()), sum(nums()))\n",
                   "expected_output": "3 0\n3 3",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Генератор одноразовый; новый вызов функции — новый генератор.\", \"lines\": [[\"print(sum(g), sum(g))\", \"Второй `sum` — по пустому.\"], [\"print(sum(nums()), sum(nums()))\", \"Два разных генератора.\"]], \"mistake\": \"Ожидать `3 3` в первой строке.\"}"
                 },
                 {
                   "slug": "gen-lazy-e3",
@@ -403,7 +429,8 @@
                   "code": "def limited():\n    yield \"a\"\n    return \"итог\"\n    yield \"никогда\"\n\ng = limited()\nprint(next(g))\ntry:\n    next(g)\nexcept StopIteration as e:\n    print(\"стоп, значение:\", e.value)\nprint(list(limited()))\n",
                   "expected_output": "a\nстоп, значение: итог\n['a']",
                   "hint": "return завершает генератор; значение прячется в StopIteration.value.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`return` завершает генератор; значение попадает в `StopIteration.value`, но не в перебор.\", \"lines\": [[\"return \\\"итог\\\"\", \"Конец.\"], [\"print(\\\"стоп, значение:\\\", e.value)\", \"Значение `return`.\"], [\"print(list(limited()))\", \"Только `a`.\"]], \"mistake\": \"Ожидать «итог» в списке.\"}"
                 },
                 {
                   "slug": "gen-lazy-e4",
@@ -413,7 +440,8 @@
                   "tests": "def test_values():\n    g = ids(\"user\")\n    assert take(g, 3) == [\"user-1\", \"user-2\", \"user-3\"] and take(g, 1) == [\"user-4\"] and take(ids(\"x\"), 0) == [], \"Неверный результат\"\n",
                   "solution": "def ids(prefix):\n    n = 1\n    while True:\n        yield f\"{prefix}-{n}\"\n        n += 1\n\n\ndef take(gen, n):\n    return [next(gen) for _ in range(n)]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Бесконечный генератор безопасен, пока берём конечное число элементов.\", \"lines\": [[\"yield f\\\"{prefix}-{n}\\\"\", \"Следующий id.\"], [\"return [next(gen) for _ in range(n)]\", \"Ровно `n`.\"]], \"mistake\": \"`list(ids(\\\"u\\\"))` — бесконечный цикл.\"}"
                 },
                 {
                   "slug": "gen-lazy-e5",
@@ -423,7 +451,8 @@
                   "tests": "def test_values():\n    checked = []\n    def is_big(x):\n        checked.append(x)\n        return x > 10\n    assert first_match([1, 20, 30, 5], is_big) == 20 and checked == [1, 20], f\"Проверено лишнее: {checked}\"\n    assert first_match([], is_big) is None and first_match([1], is_big) is None, \"Нет совпадений\"\n",
                   "solution": "def first_match(items, predicate):\n    return next((x for x in items if predicate(x)), None)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`next` берёт первый элемент генератора — перебор останавливается на совпадении.\", \"lines\": [[\"return next((x for x in items if predicate(x)), None)\", \"Нет совпадений — `None`.\"]], \"mistake\": \"`[x for ...][0]` — проверит все элементы и упадёт на пустом.\"}"
                 },
                 {
                   "slug": "gen-lazy-e6",
@@ -433,7 +462,8 @@
                   "tests": "def test_values():\n    log = []\n    g = trace([1, 2, 3], log)\n    assert log == [], \"До next ничего не выполняется\"\n    assert next(g) == 1 and log == [\"выдаю 1\"], log\n    assert list(g) == [2, 3] and log == [\"выдаю 1\", \"выдаю 2\", \"выдаю 3\"], log\n",
                   "solution": "def trace(items, log):\n    for x in items:\n        log.append(f\"выдаю {x}\")\n        yield x\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Запись в журнал — перед `yield`: она случается только при запросе элемента.\", \"lines\": [[\"log.append(f\\\"выдаю {x}\\\")\", \"Перед выдачей.\"], [\"yield x\", \"Пауза до следующего `next`.\"]], \"mistake\": \"Сначала записать всё в журнал, потом выдавать — теряется ленивость.\"}"
                 },
                 {
                   "slug": "gen-lazy-e7",
@@ -443,7 +473,8 @@
                   "tests": "def test_values():\n    assert consume(with_summary([\"a\", \"b\"])) == ([\"a\", \"b\"], 2) and consume(with_summary([])) == ([], 0), \"Неверный результат\"\n",
                   "solution": "def with_summary(items):\n    count = 0\n    for x in items:\n        count += 1\n        yield x\n    return count\n\n\ndef consume(gen):\n    items = []\n    while True:\n        try:\n            items.append(next(gen))\n        except StopIteration as e:\n            return items, e.value\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Значение `return` генератора достаётся из `StopIteration.value`.\", \"lines\": [[\"return count\", \"Уходит в `StopIteration`.\"], [\"items.append(next(gen))\", \"Собираем элементы.\"], [\"except StopIteration as e:\\n            return items, e.value\", \"Конец и итог.\"]], \"mistake\": \"`list(gen)` — значение `return` потеряется.\"}"
                 },
                 {
                   "slug": "gen-lazy-e8",
@@ -453,7 +484,8 @@
                   "tests": "def test_values():\n    assert list(collatz(6)) == [6, 3, 10, 5, 16, 8, 4, 2, 1] and list(collatz(1)) == [1], \"collatz\"\n    assert longest_start(10) == 9 and longest_start(1) == 1, \"longest_start\"\n",
                   "solution": "def collatz(n):\n    while n != 1:\n        yield n\n        n = n // 2 if n % 2 == 0 else 3 * n + 1\n    yield 1\n\n\ndef longest_start(limit):\n    return max(range(1, limit + 1), key=lambda k: (sum(1 for _ in collatz(k)), -k))\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Длину последовательности считаем `sum(1 for ...)` — без списка. Ключ `(длина, -k)` при равенстве выбирает меньшее число.\", \"lines\": [[\"while n != 1:\\n        yield n\", \"До единицы.\"], [\"n = n // 2 if n % 2 == 0 else 3 * n + 1\", \"Шаг Коллатца.\"], [\"yield 1\", \"Единица тоже в последовательности.\"], [\"return max(range(1, limit + 1), key=lambda k: (sum(1 for _ in collatz(k)), -k))\", \"Самая длинная, при равенстве — меньший старт.\"]], \"mistake\": \"`len(collatz(k))` — у генератора нет длины.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nГенераторы **ленивые**: они ничего не вычисляют заранее и выдают значения только по запросу. Это экономит память и время, позволяет работать с бесконечными последовательностями и останавливаться на первом нужном результате. Но у ленивости есть обратная сторона — генератор одноразовый.\n\n## Ничего не происходит до запроса\n\n```python\ndef gen():\n    print(\"начал\")\n    yield 1\n\ng = gen()\nprint(\"создан\")\nprint(next(g))\n```\n\n- Вызов `gen()` только создаёт объект. Тело функции начнёт выполняться при первом `next`.\n- Вывод: `создан`, `начал`, `1`.\n\n## Генератор одноразовый\n\n```python\ndef nums():\n    yield 1\n    yield 2\n\ng = nums()\nprint(sum(g), sum(g))\nprint(sum(nums()), sum(nums()))\n```\n\n- Первый `sum` исчерпал генератор, второй получил пустоту → `0`.\n- Нужен ещё один проход — вызови функцию снова (новый генератор) или сохрани значения в список.\n- Вывод: `3 0`, `3 3`.\n\n## Остановка на первом совпадении\n\n```python\ndef is_big(x):\n    print(\"проверяю\", x)\n    return x > 10\n\nprint(next((x for x in [1, 20, 30] if is_big(x)), None))\n```\n\n- `next(генератор, None)` берёт первый подходящий элемент — остальные даже не проверяются.\n- `(x for x in ... if ...)` — генераторное выражение (подробно — в следующем модуле).\n- Вывод: `проверяю 1`, `проверяю 20`, `20`.\n\n## return в генераторе\n\n```python\ndef limited():\n    yield \"a\"\n    return \"итог\"\n\ng = limited()\nprint(next(g))\ntry:\n    next(g)\nexcept StopIteration as e:\n    print(\"стоп, значение:\", e.value)\nprint(list(limited()))\n```\n\n- `return` завершает генератор. Возвращённое значение не попадает в перебор, а хранится в `StopIteration.value`.\n- `list`, `for`, `sum` значение `return` игнорируют.\n- Вывод: `a`, `стоп, значение: итог`, `['a']`.\n\n## Бесконечный источник + ограничение\n\n```python\nfrom itertools import islice\n\ndef ids(prefix):\n    n = 1\n    while True:\n        yield f\"{prefix}-{n}\"\n        n += 1\n\ng = ids(\"user\")\nprint(list(islice(g, 3)))\nprint(next(g))\n```\n\n- `islice(итератор, n)` — взять первые `n` элементов (как срез, но для итераторов).\n- Генератор продолжает с того места, где остановился.\n- Вывод: `['user-1', 'user-2', 'user-3']`, `user-4`.\n\n## Итог\n\n- Генератор ничего не вычисляет до `next`.\n- Одноразовый: для второго прохода — новый вызов или список.\n- `next(gen, default)` — первый элемент, остальные не вычисляются.\n- `return` завершает генератор; значение — в `StopIteration.value`.",
