@@ -27,7 +27,8 @@
                   "expected_output": "python -m venv .venv\npython3 -m venv .venv",
                   "solution": "python -m venv .venv",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Виртуальное окружение — отдельная копия Python со своими пакетами для одного проекта.\", \"lines\": [[\"python -m venv\", \"Стандартный модуль `venv`.\"], [\".venv\", \"Папка окружения.\"]], \"mistake\": \"Ставить пакеты в системный Python — проекты начнут мешать друг другу.\"}"
                 },
                 {
                   "slug": "prj-venv-e2",
@@ -37,7 +38,8 @@
                   "expected_output": "source .venv/bin/activate\n. .venv/bin/activate",
                   "solution": "source .venv/bin/activate",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Активация подменяет `python` и `pip` на версии из окружения в этом терминале.\", \"lines\": [[\"source .venv/bin/activate\", \"Скрипт активации для bash/zsh.\"]], \"mistake\": \"Запустить `.venv/bin/activate` без `source` — он выполнится в отдельном процессе и ничего не изменит.\"}"
                 },
                 {
                   "slug": "prj-venv-e3",
@@ -47,7 +49,8 @@
                   "expected_output": ".venv\\Scripts\\Activate.ps1\n.venv\\Scripts\\activate\n.\\.venv\\Scripts\\Activate.ps1\n.\\.venv\\Scripts\\activate",
                   "solution": ".venv\\Scripts\\Activate.ps1",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"В Windows скрипты лежат в `Scripts`, а не в `bin`.\", \"lines\": [[\".venv\\\\Scripts\\\\Activate.ps1\", \"Активация для PowerShell.\"]], \"mistake\": \"`source .venv/bin/activate` — в Windows такого пути нет.\"}"
                 },
                 {
                   "slug": "prj-venv-e4",
@@ -57,7 +60,8 @@
                   "expected_output": "deactivate",
                   "solution": "deactivate",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`deactivate` возвращает системный Python.\", \"lines\": [[\"deactivate\", \"Команду добавила активация.\"]], \"mistake\": \"Закрывать терминал ради этого.\"}"
                 },
                 {
                   "slug": "prj-venv-e5",
@@ -67,7 +71,8 @@
                   "expected_output": "which python\ncommand -v python\npython -c 'import sys; print(sys.executable)'\npython -c \"import sys; print(sys.executable)\"\nwhich python3",
                   "solution": "which python",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`which python` показывает, какой файл запустится.\", \"lines\": [[\"which python\", \"Путь внутри `.venv` — окружение активно.\"]], \"mistake\": \"`python --version` — версия не говорит, из какого окружения Python.\"}"
                 },
                 {
                   "slug": "prj-venv-e6",
@@ -77,7 +82,8 @@
                   "expected_output": "да",
                   "solution": "да",
                   "hint": "Префикс (.venv) в приглашении и путь внутри проекта.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Признаки активного окружения: `(.venv)` в приглашении и путь к Python внутри `.venv`.\", \"lines\": [[\"(.venv) anna@laptop:~/api-tests$ which python\", \"Префикс `(.venv)`.\"], [\"/home/anna/api-tests/.venv/bin/python\", \"Python из окружения.\"]], \"mistake\": \"Смотреть только на версию Python.\"}"
                 },
                 {
                   "slug": "prj-venv-e7",
@@ -87,7 +93,8 @@
                   "expected_output": ".venv/bin/python -m pytest\n.venv/bin/pytest\n./.venv/bin/python -m pytest\n./.venv/bin/pytest",
                   "solution": ".venv/bin/python -m pytest",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Python окружения можно вызвать по пути — активация не нужна.\", \"lines\": [[\".venv/bin/python -m pytest\", \"pytest этого окружения.\"]], \"mistake\": \"Просто `pytest` — запустится тот, что найдётся в PATH.\"}"
                 },
                 {
                   "slug": "prj-venv-e8",
@@ -97,7 +104,8 @@
                   "tests": "import sys\n\ndef test_values():\n    assert in_venv() == (sys.prefix != sys.base_prefix), \"in_venv\"\n    assert describe(\"/p/.venv\", \"/usr\") == \"venv: /p/.venv\" and describe(\"/usr\", \"/usr\") == \"system: /usr\", \"describe\"\n",
                   "solution": "import sys\n\n\ndef in_venv():\n    return sys.prefix != sys.base_prefix\n\n\ndef describe(prefix, base_prefix):\n    if prefix != base_prefix:\n        return f\"venv: {prefix}\"\n    return f\"system: {base_prefix}\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"В окружении `sys.prefix` указывает на `.venv`, а `sys.base_prefix` — на исходный Python.\", \"lines\": [[\"return sys.prefix != sys.base_prefix\", \"Отличаются — мы в venv.\"], [\"return f\\\"venv: {prefix}\\\"\", \"Окружение.\"], [\"return f\\\"system: {base_prefix}\\\"\", \"Системный.\"]], \"mistake\": \"Проверять переменную `VIRTUAL_ENV` — её нет, если Python запущен по пути без активации.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nОдному проекту нужен `pytest 7`, другому — `pytest 8`; один использует `selenium`, другой — `playwright`. Если ставить всё в системный Python, версии начнут конфликтовать, а «у меня работает, у тебя нет» станет нормой. **Виртуальное окружение** — отдельная папка со своим Python и своими пакетами для каждого проекта.\n\n## Создать и активировать\n\n```bash\n$ python -m venv .venv\n$ source .venv/bin/activate\n(.venv) $ which python\n/home/anna/api-tests/.venv/bin/python\n(.venv) $ deactivate\n```\n\nЧто делает каждая команда:\n\n- `python -m venv .venv` — создать окружение в папке `.venv`. `-m venv` — запустить стандартный модуль `venv`.\n- `source .venv/bin/activate` — **активировать**: в этом терминале команды `python` и `pip` теперь берутся из `.venv`. В приглашении появляется `(.venv)`.\n- В Windows: `.venv\\Scripts\\activate` (cmd) или `.venv\\Scripts\\Activate.ps1` (PowerShell).\n- `which python` — проверить, что используется Python окружения.\n- `deactivate` — вернуться к системному Python.\n\n## Без активации\n\n```bash\n$ .venv/bin/python -m pytest\n$ .venv/bin/pip install requests\n```\n\n- Можно вызывать программы окружения по полному пути — удобно в скриптах и CI.\n\n## Правила\n\n- Папку `.venv` **не коммитят** в git (она в `.gitignore`) — окружение пересоздают из списка зависимостей.\n- Одно окружение — один проект. Папка обычно лежит прямо в проекте.\n- Редактор (VS Code, PyCharm) нужно указать на интерпретатор `.venv/bin/python`, иначе он не увидит установленные пакеты.\n\n## Как код узнаёт, что он в venv\n\n```python\nimport sys\n\nprint(sys.prefix != sys.base_prefix)\n```\n\n- `sys.prefix` — корень текущего окружения, `sys.base_prefix` — исходного Python. Если они различаются — мы внутри venv.\n\n## Итог\n\n- `python -m venv .venv` → `source .venv/bin/activate` → работа → `deactivate`.\n- `(.venv)` в приглашении и `which python` — проверка.\n- `.venv/bin/python` — запуск без активации.\n- `.venv` — в `.gitignore`.",
@@ -150,7 +158,8 @@
                   "expected_output": "pip install requests\npython -m pip install requests\npip3 install requests\npython3 -m pip install requests",
                   "solution": "pip install requests",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`pip install` ставит пакет в текущее окружение.\", \"lines\": [[\"pip install requests\", \"Последняя версия.\"]], \"mistake\": \"Ставить без активного окружения — попадёт в системный Python.\"}"
                 },
                 {
                   "slug": "prj-pip-e2",
@@ -160,7 +169,8 @@
                   "expected_output": "pip install pytest==8.3.2\npython -m pip install pytest==8.3.2\npip install 'pytest==8.3.2'\npip install \"pytest==8.3.2\"",
                   "solution": "pip install pytest==8.3.2",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`==` — точная версия.\", \"lines\": [[\"pip install pytest==8.3.2\", \"Ровно эта версия.\"]], \"mistake\": \"`pytest=8.3.2` с одним `=` — ошибка синтаксиса.\"}"
                 },
                 {
                   "slug": "prj-pip-e3",
@@ -170,7 +180,8 @@
                   "expected_output": "pip install -U requests\npip install --upgrade requests\npython -m pip install -U requests\npython -m pip install --upgrade requests",
                   "solution": "pip install -U requests",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-U` (upgrade) обновляет уже установленный пакет.\", \"lines\": [[\"pip install -U requests\", \"До последней версии.\"]], \"mistake\": \"`pip install requests` — пакет уже есть, ничего не изменится.\"}"
                 },
                 {
                   "slug": "prj-pip-e4",
@@ -180,7 +191,8 @@
                   "expected_output": "pip uninstall -y selenium\npip uninstall selenium -y\npython -m pip uninstall -y selenium\npip uninstall --yes selenium",
                   "solution": "pip uninstall -y selenium",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-y` отвечает «да» на подтверждение.\", \"lines\": [[\"pip uninstall -y selenium\", \"Без вопроса.\"]], \"mistake\": \"`pip remove` — такой команды нет.\"}"
                 },
                 {
                   "slug": "prj-pip-e5",
@@ -190,7 +202,8 @@
                   "expected_output": "pip list\npython -m pip list\npip freeze\npython -m pip freeze",
                   "solution": "pip list",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`pip list` — таблица пакетов и версий.\", \"lines\": [[\"pip list\", \"Всё, что установлено.\"]], \"mistake\": \"`pip show` — только про один пакет.\"}"
                 },
                 {
                   "slug": "prj-pip-e6",
@@ -200,7 +213,8 @@
                   "expected_output": "pip show pytest\npython -m pip show pytest",
                   "solution": "pip show pytest",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`pip show` — подробности одного пакета.\", \"lines\": [[\"pip show pytest\", \"Версия, зависимости, путь.\"]], \"mistake\": \"`pip list pytest` — не показывает подробности.\"}"
                 },
                 {
                   "slug": "prj-pip-e7",
@@ -210,7 +224,8 @@
                   "expected_output": "2.32.3",
                   "solution": "2.32.3",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Второй столбец — версия.\", \"lines\": [[\"requests   2.32.3\", \"Строка пакета.\"]], \"mistake\": \"Взять версию urllib3 из соседней строки.\"}"
                 },
                 {
                   "slug": "prj-pip-e8",
@@ -220,7 +235,8 @@
                   "tests": "def test_values():\n    assert parse_version(\"2.32.3\") == (2, 32, 3) and parse_version(\"8\") == (8,), \"parse_version\"\n    assert is_newer(\"2.10.0\", \"2.9.5\") and not is_newer(\"1.0\", \"1.0\") and is_newer(\"1.0.1\", \"1.0\") and not is_newer(\"0.9\", \"1.0\"), \"is_newer\"\n",
                   "solution": "def parse_version(v):\n    return tuple(int(part) for part in v.split(\".\"))\n\n\ndef is_newer(a, b):\n    return parse_version(a) > parse_version(b)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Версию сравнивают как кортеж чисел: `(2, 10) > (2, 9)`, а строки — посимвольно.\", \"lines\": [[\"return tuple(int(part) for part in v.split(\\\".\\\"))\", \"Строка → кортеж чисел.\"], [\"return parse_version(a) > parse_version(b)\", \"Кортежи сравниваются по элементам.\"]], \"mistake\": \"`a > b` для строк — `\\\"2.9\\\" > \\\"2.10\\\"`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПочти все инструменты тестировщика — сторонние пакеты: `pytest`, `requests`, `playwright`, `allure-pytest`, `pydantic`. `pip` — стандартный установщик пакетов из каталога **PyPI**.\n\n## Установка\n\n```bash\n$ pip install requests\n$ pip install pytest==8.3.2\n$ pip install -U requests\n$ python -m pip install requests\n```\n\n- `pip install пакет` — последняя версия со всеми зависимостями.\n- `пакет==версия` — ровно эта версия.\n- `-U` (`--upgrade`) — обновить до последней.\n- `python -m pip` — pip **того** Python, который запускаешь. Надёжнее голого `pip`, когда на компьютере несколько Python.\n\n## Посмотреть и удалить\n\n```bash\n$ pip list\nPackage    Version\n---------- -------\npytest     8.3.2\nrequests   2.32.3\n$ pip show pytest\n$ pip uninstall -y selenium\n```\n\n- `pip list` — все установленные пакеты; `pip freeze` — то же в формате `имя==версия`.\n- `pip show` — версия, зависимости, путь установки.\n- `pip uninstall -y` — удалить без вопроса. Зависимости пакета при этом **не** удаляются.\n\n## Версии\n\n- Формат **семантического версионирования**: `МАЖОРНАЯ.МИНОРНАЯ.ПАТЧ` — `2.32.3`.\n- Патч — исправления, минорная — новые возможности, мажорная — несовместимые изменения (после обновления мажорной версии тесты могут сломаться).\n- Сравнивать версии строками нельзя: `\"2.10\" < \"2.9\"` как строки, но версия 2.10 новее.\n\n```python\ndef parse_version(v):\n    return tuple(int(p) for p in v.split(\".\"))\n\nprint(\"2.10.0\" > \"2.9.5\", parse_version(\"2.10.0\") > parse_version(\"2.9.5\"))\n```\n\n- Кортежи чисел сравниваются поэлементно — правильно.\n- Вывод: `False True`.\n\n## Итог\n\n- `pip install пакет[==версия]`, `-U` — обновить.\n- `pip list`, `pip freeze`, `pip show`, `pip uninstall -y`.\n- `python -m pip` — pip нужного интерпретатора; ставь пакеты в активное venv.\n- Версия `мажорная.минорная.патч`; сравнивай как числа.",
@@ -273,7 +289,8 @@
                   "expected_output": "pip install -r requirements.txt\npython -m pip install -r requirements.txt",
                   "solution": "pip install -r requirements.txt",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-r файл` — установить всё из списка зависимостей.\", \"lines\": [[\"pip install -r requirements.txt\", \"Весь список.\"]], \"mistake\": \"`pip install requirements.txt` — попытка найти пакет с таким именем.\"}"
                 },
                 {
                   "slug": "prj-requirements-e2",
@@ -283,7 +300,8 @@
                   "expected_output": "pip freeze > requirements.txt\npython -m pip freeze > requirements.txt",
                   "solution": "pip freeze > requirements.txt",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`pip freeze` печатает пакеты в формате `имя==версия`; `>` сохраняет вывод в файл.\", \"lines\": [[\"pip freeze\", \"Точные версии.\"], [\"> requirements.txt\", \"В файл.\"]], \"mistake\": \"`pip list > requirements.txt` — таблица, а не формат requirements.\"}"
                 },
                 {
                   "slug": "prj-requirements-e3",
@@ -293,7 +311,8 @@
                   "expected_output": "pytest>=8.0\npytest >= 8.0\npytest>=8",
                   "solution": "pytest>=8.0",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`>=` — «эта версия или новее».\", \"lines\": [[\"pytest>=8.0\", \"Не ниже 8.0.\"]], \"mistake\": \"`pytest==8.0` — ровно 8.0.\"}"
                 },
                 {
                   "slug": "prj-requirements-e4",
@@ -303,7 +322,8 @@
                   "expected_output": "-r requirements.txt\n--requirement requirements.txt",
                   "solution": "-r requirements.txt",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Строка `-r файл` внутри requirements подключает другой файл.\", \"lines\": [[\"-r requirements.txt\", \"Всё основное + dev-пакеты ниже.\"]], \"mistake\": \"Копировать список — версии разъедутся.\"}"
                 },
                 {
                   "slug": "prj-requirements-e5",
@@ -313,7 +333,8 @@
                   "expected_output": "3",
                   "solution": "3",
                   "hint": "Комментарии и пустые строки не считаются.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Комментарии и пустые строки не считаются.\", \"lines\": [[\"pytest==8.3.2\", \"1.\"], [\"requests>=2.31\", \"2.\"], [\"allure-pytest~=2.13\", \"3.\"]], \"mistake\": \"Посчитать строку `# тесты`.\"}"
                 },
                 {
                   "slug": "prj-requirements-e6",
@@ -323,7 +344,8 @@
                   "expected_output": "allure-pytest~=2.13.0\nallure-pytest ~= 2.13.0\nallure-pytest>=2.13,<2.14\nallure-pytest>=2.13.0,<2.14",
                   "solution": "allure-pytest~=2.13.0",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`~=2.13.0` — «совместимая»: `>=2.13.0, <2.14`.\", \"lines\": [[\"allure-pytest~=2.13.0\", \"Любые 2.13.x.\"]], \"mistake\": \"`~=2.13` — разрешит и 2.14, 2.15 (меняется последняя указанная часть).\"}"
                 },
                 {
                   "slug": "prj-requirements-e7",
@@ -333,7 +355,8 @@
                   "expected_output": "pip install -r requirements.txt -r requirements-dev.txt\npython -m pip install -r requirements.txt -r requirements-dev.txt",
                   "solution": "pip install -r requirements.txt -r requirements-dev.txt",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Флаг `-r` можно повторить несколько раз.\", \"lines\": [[\"pip install -r requirements.txt -r requirements-dev.txt\", \"Оба файла сразу.\"]], \"mistake\": \"Два файла через один `-r` — второй примется за имя пакета.\"}"
                 },
                 {
                   "slug": "prj-requirements-e8",
@@ -343,7 +366,8 @@
                   "tests": "TEXT = '''# тесты\npytest==8.3.2\nRequests>=2.31  # http\n\n-r base.txt\nallure-pytest~=2.13\npydantic\n'''\n\ndef test_values():\n    assert parse_requirements(TEXT) == {\"pytest\": \"==8.3.2\", \"requests\": \">=2.31\", \"allure-pytest\": \"~=2.13\", \"pydantic\": \"\"}, parse_requirements(TEXT)\n",
                   "solution": "import re\n\n\ndef parse_requirements(text):\n    result = {}\n    for line in text.splitlines():\n        line = line.split(\"#\", 1)[0].strip()\n        if not line or line.startswith(\"-\"):\n            continue\n        m = re.match(r\"([A-Za-z0-9_.\\-]+)\\s*(.*)\", line)\n        result[m.group(1).lower()] = m.group(2).replace(\" \", \"\")\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Отрезаем комментарий, пропускаем пустые и строки с `-`, имя — до первого символа версии.\", \"lines\": [[\"line = line.split(\\\"#\\\", 1)[0].strip()\", \"Без комментария.\"], [\"if not line or line.startswith(\\\"-\\\"):\\n            continue\", \"Пустые и `-r`.\"], [\"m = re.match(r\\\"([A-Za-z0-9_.\\\\-]+)\\\\s*(.*)\\\", line)\", \"Имя и остаток.\"], [\"result[m.group(1).lower()] = m.group(2).replace(\\\" \\\", \\\"\\\")\", \"Нижний регистр, без пробелов.\"]], \"mistake\": \"Делить по `==` — не сработает для `>=` и `~=`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nКоллега склонировал репозиторий с тестами — какие пакеты ему поставить? CI запускает тесты на чистой машине — откуда он узнает зависимости? Список хранится в файле `requirements.txt`, и одна команда устанавливает всё нужное.\n\n## Формат\n\n```bash\n$ cat requirements.txt\n# тесты\npytest==8.3.2\nrequests>=2.31\nallure-pytest~=2.13.0\npydantic\n```\n\nОператоры версий:\n\n- `==8.3.2` — ровно эта версия (самое предсказуемое).\n- `>=2.31` — не ниже.\n- `~=2.13.0` — «совместимая»: `>=2.13.0` и `<2.14`.\n- `>=2,<3` — диапазон.\n- Без версии — любая (опасно: завтра выйдет новая и сломает тесты).\n- `#` — комментарий.\n\n## Установить и сохранить\n\n```bash\n$ pip install -r requirements.txt\n$ pip freeze > requirements.txt\n```\n\n- `-r файл` — установить всё из файла.\n- `pip freeze >` — записать **точные** версии всего установленного, включая зависимости зависимостей. Это «снимок» рабочего окружения.\n\n## Разделение на файлы\n\n```bash\n$ cat requirements-dev.txt\n-r requirements.txt\nruff==0.6.9\npre-commit\n$ pip install -r requirements-dev.txt\n```\n\n- `-r другой_файл` внутри — включить его содержимое.\n- Основные зависимости и инструменты разработки хранят отдельно.\n\n## Разбор файла в коде\n\n```python\ntext = \"\"\"pytest==8.3.2\nRequests>=2.31  # http\n-r base.txt\npydantic\"\"\"\ndeps = {}\nfor line in text.splitlines():\n    line = line.split(\"#\")[0].strip()\n    if line and not line.startswith(\"-\"):\n        name = line.split(\"=\")[0].split(\">\")[0].split(\"~\")[0].strip().lower()\n        deps[name] = line[len(name):].strip()\nprint(deps)\n```\n\n- Имена пакетов нечувствительны к регистру: `Requests` = `requests`.\n- Вывод: `{'pytest': '==8.3.2', 'requests': '>=2.31', 'pydantic': ''}`.\n\n## Итог\n\n- `requirements.txt`: `пакет==версия`, `>=`, `~=`, комментарии `#`.\n- `pip install -r` — установить; `pip freeze >` — сохранить точные версии.\n- `-r base.txt` — включить другой файл; dev-зависимости — отдельно.\n- Фиксируй версии, чтобы тесты не ломались от чужих обновлений.",
@@ -396,7 +420,8 @@
                   "expected_output": "pip install -e .\npython -m pip install -e .\npip install --editable .",
                   "solution": "pip install -e .",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-e` (editable) — пакет ссылается на твою папку, правки видны сразу.\", \"lines\": [[\"pip install -e .\", \"`.` — текущий проект.\"]], \"mistake\": \"Без `-e` — после каждой правки придётся переустанавливать.\"}"
                 },
                 {
                   "slug": "prj-pyproject-e2",
@@ -406,7 +431,8 @@
                   "expected_output": "pip install -e '.[dev]'\npip install -e \".[dev]\"\npip install '.[dev]'\npip install \".[dev]\"\npip install -e .[dev]\npython -m pip install -e '.[dev]'\npython -m pip install -e \".[dev]\"",
                   "solution": "pip install -e '.[dev]'",
                   "hint": "Квадратные скобки лучше взять в кавычки — zsh их раскрывает.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`.[dev]` — проект плюс группа дополнительных зависимостей; кавычки защищают `[]` от оболочки.\", \"lines\": [[\"pip install -e '.[dev]'\", \"Проект и dev-пакеты.\"]], \"mistake\": \"Без кавычек в zsh — `no matches found`.\"}"
                 },
                 {
                   "slug": "prj-pyproject-e3",
@@ -416,7 +442,8 @@
                   "expected_output": "3.11",
                   "solution": "3.11",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`requires-python` — требуемая версия интерпретатора.\", \"lines\": [[\"requires-python = \\\">=3.11\\\"\", \"Не ниже 3.11.\"]], \"mistake\": \"Взять версию проекта 0.1.0.\"}"
                 },
                 {
                   "slug": "prj-pyproject-e4",
@@ -426,7 +453,8 @@
                   "expected_output": "2",
                   "solution": "2",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Обязательные — в `dependencies`, дополнительные — в `optional-dependencies`.\", \"lines\": [[\"dependencies = [\\\"requests>=2.31\\\", \\\"pydantic>=2\\\"]\", \"Две.\"]], \"mistake\": \"Прибавить pytest и ruff — они необязательные.\"}"
                 },
                 {
                   "slug": "prj-pyproject-e5",
@@ -436,7 +464,8 @@
                   "expected_output": "[tool.pytest.ini_options]",
                   "solution": "[tool.pytest.ini_options]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Настройки инструментов живут в `[tool.<имя>]`; у pytest — `ini_options`.\", \"lines\": [[\"[tool.pytest.ini_options]\", \"Секция pytest.\"]], \"mistake\": \"`[pytest]` — так в `pytest.ini`, а не в pyproject.\"}"
                 },
                 {
                   "slug": "prj-pyproject-e6",
@@ -446,7 +475,8 @@
                   "expected_output": "[tool.ruff]",
                   "solution": "[tool.ruff]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Секция инструмента — `[tool.имя]`.\", \"lines\": [[\"[tool.ruff]\", \"Настройки ruff.\"]], \"mistake\": \"`[ruff]` без `tool.`.\"}"
                 },
                 {
                   "slug": "prj-pyproject-e7",
@@ -456,7 +486,8 @@
                   "tests": "TEXT = '''\n[project]\nname = \"api-tests\"\nversion = \"0.1.0\"\ndependencies = [\"requests>=2.31\", \"pydantic>=2\"]\n'''\n\ndef test_values():\n    assert project_info(TEXT) == (\"api-tests\", \"0.1.0\", [\"requests>=2.31\", \"pydantic>=2\"]), project_info(TEXT)\n    assert project_info('[project]\\nname = \"x\"\\nversion = \"1\"') == (\"x\", \"1\", []), \"Без зависимостей\"\n",
                   "solution": "import tomllib\n\n\ndef project_info(text):\n    data = tomllib.loads(text)[\"project\"]\n    return data[\"name\"], data[\"version\"], data.get(\"dependencies\", [])\n",
                   "hint": "tomllib.loads(строка) → словарь (модуль есть в Python 3.11+).",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`tomllib.loads` превращает TOML-строку в словарь.\", \"lines\": [[\"data = tomllib.loads(text)[\\\"project\\\"]\", \"Секция `[project]`.\"], [\"return data[\\\"name\\\"], data[\\\"version\\\"], data.get(\\\"dependencies\\\", [])\", \"Зависимостей может не быть.\"]], \"mistake\": \"`data[\\\"dependencies\\\"]` — `KeyError` у проекта без зависимостей.\"}"
                 },
                 {
                   "slug": "prj-pyproject-e8",
@@ -466,7 +497,8 @@
                   "tests": "TEXT = '''\n[tool.pytest.ini_options]\naddopts = \"-v --tb=short -n 2\"\ntestpaths = [\"tests\"]\n'''\n\ndef test_values():\n    assert pytest_addopts(TEXT) == [\"-v\", \"--tb=short\", \"-n\", \"2\"], pytest_addopts(TEXT)\n    assert pytest_addopts('[project]\\nname = \"x\"') == [], \"Нет секции\"\n",
                   "solution": "import tomllib\n\n\ndef pytest_addopts(text):\n    data = tomllib.loads(text)\n    opts = data.get(\"tool\", {}).get(\"pytest\", {}).get(\"ini_options\", {}).get(\"addopts\", \"\")\n    return opts.split()\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Цепочка `.get(..., {})` безопасно спускается по вложенным секциям.\", \"lines\": [[\"opts = data.get(\\\"tool\\\", {}).get(\\\"pytest\\\", {}).get(\\\"ini_options\\\", {}).get(\\\"addopts\\\", \\\"\\\")\", \"Нет секции — пустая строка.\"], [\"return opts.split()\", \"Строка → список аргументов.\"]], \"mistake\": \"`data[\\\"tool\\\"][\\\"pytest\\\"]` — упадёт, если секции нет.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n`pyproject.toml` — современный единый файл настроек Python-проекта: имя, версия, зависимости и настройки инструментов (pytest, ruff, mypy, coverage). Вместо десятка файлов (`setup.py`, `pytest.ini`, `.flake8`) — один.\n\n## Структура\n\n```bash\n$ cat pyproject.toml\n[project]\nname = \"api-tests\"\nversion = \"0.1.0\"\nrequires-python = \">=3.11\"\ndependencies = [\n    \"requests>=2.31\",\n    \"pydantic>=2\",\n]\n\n[project.optional-dependencies]\ndev = [\"pytest>=8\", \"ruff\"]\n\n[tool.pytest.ini_options]\naddopts = \"-v --tb=short\"\ntestpaths = [\"tests\"]\n\n[tool.ruff]\nline-length = 120\n```\n\nРазбор:\n\n- Формат **TOML**: `[секция]`, `ключ = значение`, строки в кавычках, списки в `[]`.\n- `[project]` — метаданные: имя, версия, минимальная версия Python, обязательные зависимости.\n- `[project.optional-dependencies]` — группы дополнительных зависимостей (`dev`, `ui`).\n- `[tool.имя]` — настройки инструментов: `[tool.pytest.ini_options]`, `[tool.ruff]`.\n\n## Установка проекта\n\n```bash\n$ pip install -e .\n$ pip install -e \".[dev]\"\n```\n\n- `-e` (editable) — режим разработки: пакет ссылается на твою папку, правки кода видны сразу.\n- `.[dev]` — вместе с группой `dev`. Кавычки нужны, потому что zsh раскрывает `[ ]`.\n\n## Чтение в коде: tomllib\n\n```python\nimport tomllib\n\ntext = \"\"\"\n[project]\nname = \"api-tests\"\nversion = \"0.1.0\"\ndependencies = [\"requests>=2.31\"]\n\n[tool.pytest.ini_options]\naddopts = \"-v -n 2\"\n\"\"\"\ndata = tomllib.loads(text)\nprint(data[\"project\"][\"name\"], data[\"project\"][\"dependencies\"])\nprint(data[\"tool\"][\"pytest\"][\"ini_options\"][\"addopts\"].split())\n```\n\n- `tomllib` — стандартный модуль (Python 3.11+) для чтения TOML. `loads` — из строки, `load(f)` — из файла, открытого в режиме `\"rb\"`.\n- Результат — обычный словарь; вложенные секции — вложенные словари.\n- Вывод: `api-tests ['requests>=2.31']`, `['-v', '-n', '2']`.\n\n## Итог\n\n- `pyproject.toml`: `[project]` (name, version, dependencies), `[project.optional-dependencies]`, `[tool.*]`.\n- `pip install -e \".[dev]\"` — проект в режиме разработки с доп. зависимостями.\n- `tomllib.loads` / `tomllib.load` — чтение TOML в Python.",
@@ -527,7 +559,8 @@
                   "expected_output": "uv init\nuv init .",
                   "solution": "uv init",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`uv init` создаёт `pyproject.toml` и заготовку проекта.\", \"lines\": [[\"uv init\", \"Новый проект в текущей папке.\"]], \"mistake\": \"`uv venv` — только окружение, без проекта.\"}"
                 },
                 {
                   "slug": "prj-uv-e2",
@@ -537,7 +570,8 @@
                   "expected_output": "uv add requests",
                   "solution": "uv add requests",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`uv add` записывает зависимость в `pyproject.toml`, обновляет lock-файл и ставит пакет.\", \"lines\": [[\"uv add requests\", \"Всё одной командой.\"]], \"mistake\": \"`uv pip install requests` — поставит, но в `pyproject.toml` не запишет.\"}"
                 },
                 {
                   "slug": "prj-uv-e3",
@@ -547,7 +581,8 @@
                   "expected_output": "uv add --dev pytest\nuv add pytest --dev\nuv add --group dev pytest",
                   "solution": "uv add --dev pytest",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--dev` — зависимость только для разработки (тесты, линтеры).\", \"lines\": [[\"uv add --dev pytest\", \"В группу dev.\"]], \"mistake\": \"Добавить pytest в основные зависимости.\"}"
                 },
                 {
                   "slug": "prj-uv-e4",
@@ -557,7 +592,8 @@
                   "expected_output": "uv remove selenium",
                   "solution": "uv remove selenium",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`uv remove` убирает пакет из `pyproject.toml` и окружения.\", \"lines\": [[\"uv remove selenium\", \"Удалить зависимость.\"]], \"mistake\": \"`uv uninstall` — такой команды нет.\"}"
                 },
                 {
                   "slug": "prj-uv-e5",
@@ -567,7 +603,8 @@
                   "expected_output": "uv sync\nuv sync --frozen\nuv sync --locked",
                   "solution": "uv sync",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`uv sync` приводит окружение в точное соответствие с `uv.lock`.\", \"lines\": [[\"uv sync\", \"Окружение = lock-файл.\"]], \"mistake\": \"`uv add` для каждого пакета вручную.\"}"
                 },
                 {
                   "slug": "prj-uv-e6",
@@ -577,7 +614,8 @@
                   "expected_output": "uv run pytest\nuv run python -m pytest",
                   "solution": "uv run pytest",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`uv run` запускает команду в окружении проекта (и сначала синхронизирует его).\", \"lines\": [[\"uv run pytest\", \"Без активации.\"]], \"mistake\": \"`uv pytest` — нет такой подкоманды.\"}"
                 },
                 {
                   "slug": "prj-uv-e7",
@@ -587,7 +625,8 @@
                   "expected_output": "uv add 'pydantic>=2'\nuv add \"pydantic>=2\"\nuv add pydantic>=2\nuv add 'pydantic>=2.0'\nuv add \"pydantic>=2.0\"",
                   "solution": "uv add 'pydantic>=2'",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Ограничение версии пишут прямо в имени; кавычки — чтобы `>` не стал перенаправлением.\", \"lines\": [[\"uv add 'pydantic>=2'\", \"Версия 2 и выше.\"]], \"mistake\": \"Без кавычек — оболочка может создать файл `=2`.\"}"
                 },
                 {
                   "slug": "prj-uv-e8",
@@ -597,7 +636,8 @@
                   "tests": "def test_values():\n    assert uv_commands([\"requests\", \"pydantic\"], [\"pytest\"]) == [\"uv init\", \"uv add requests pydantic\", \"uv add --dev pytest\", \"uv sync\"], uv_commands([\"requests\", \"pydantic\"], [\"pytest\"])\n    assert uv_commands([], []) == [\"uv init\", \"uv sync\"] and uv_commands([], [\"ruff\"]) == [\"uv init\", \"uv add --dev ruff\", \"uv sync\"], \"Пустые списки\"\n",
                   "solution": "def uv_commands(deps, dev_deps):\n    commands = [\"uv init\"]\n    if deps:\n        commands.append(\"uv add \" + \" \".join(deps))\n    if dev_deps:\n        commands.append(\"uv add --dev \" + \" \".join(dev_deps))\n    commands.append(\"uv sync\")\n    return commands\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Собираем команды по порядку; `uv add` добавляем, только если есть что добавлять.\", \"lines\": [[\"commands = [\\\"uv init\\\"]\", \"Всегда первым.\"], [\"if deps:\\n        commands.append(\\\"uv add \\\" + \\\" \\\".join(deps))\", \"Одна команда на все пакеты.\"], [\"if dev_deps:\\n        commands.append(\\\"uv add --dev \\\" + \\\" \\\".join(dev_deps))\", \"Dev-пакеты.\"], [\"commands.append(\\\"uv sync\\\")\", \"В конце.\"]], \"mistake\": \"Команда `uv add` с пустым списком — ошибка.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n`uv` — современный менеджер Python-проектов от создателей ruff. Он заменяет сразу `pip`, `venv`, `pip-tools` и `pyenv`, работает в десятки раз быстрее и сам следит, чтобы у всех в команде и в CI стояли одинаковые версии пакетов. Всё больше проектов с автотестами переходят на него.\n\n## Новый проект\n\n```bash\n$ uv init\nInitialized project `api-tests`\n$ uv add requests pydantic\n$ uv add --dev pytest ruff\n$ uv remove selenium\n```\n\nЧто делает каждая команда:\n\n- `uv init` — создать `pyproject.toml`, `.python-version`, `README.md` и пример `main.py`.\n- `uv add пакет` — добавить зависимость: записать её в `pyproject.toml`, обновить lock-файл `uv.lock` и установить в `.venv` (окружение uv создаёт сам).\n- `uv add --dev` — зависимость только для разработки (в группу `dev`): тестам и линтеру не место в продакшене.\n- `uv add 'pydantic>=2'` — с ограничением версии.\n- `uv remove` — удалить из `pyproject.toml` и окружения.\n\n## Готовый проект\n\n```bash\n$ git clone https://github.com/acme/api-tests.git\n$ cd api-tests\n$ uv sync\n$ uv run pytest\n```\n\n- `uv sync` — создать `.venv` и установить **ровно** то, что записано в `uv.lock`. У всех одинаково.\n- `uv run команда` — выполнить команду в окружении проекта, без `source .venv/bin/activate`. Перед запуском uv сам проверит, что окружение актуально.\n\n## Сравнение с pip\n\n- pip: `python -m venv .venv` → `activate` → `pip install -r requirements.txt` → `pytest`.\n- uv: `uv sync` → `uv run pytest`.\n- `pyproject.toml` описывает, **что** нужно (с диапазонами версий), а `uv.lock` — **какие именно** версии установлены.\n\n## Итог\n\n- `uv init` — проект; `uv add` / `uv add --dev` / `uv remove` — зависимости.\n- `uv sync` — установить по `uv.lock`; `uv run` — запустить в окружении.\n- `.venv` uv создаёт и обновляет сам.",
@@ -650,7 +690,8 @@
                   "expected_output": "uv lock",
                   "solution": "uv lock",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`uv lock` пересчитывает `uv.lock` по `pyproject.toml`, не трогая окружение.\", \"lines\": [[\"uv lock\", \"Только lock-файл.\"]], \"mistake\": \"`uv sync` — ещё и установит.\"}"
                 },
                 {
                   "slug": "prj-uvlock-e2",
@@ -660,7 +701,8 @@
                   "expected_output": "uv lock --upgrade-package requests\nuv lock -P requests",
                   "solution": "uv lock --upgrade-package requests",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--upgrade-package` обновляет в lock-файле один пакет, остальные остаются.\", \"lines\": [[\"uv lock --upgrade-package requests\", \"Только requests.\"]], \"mistake\": \"`uv lock --upgrade` — обновит всё.\"}"
                 },
                 {
                   "slug": "prj-uvlock-e3",
@@ -670,7 +712,8 @@
                   "expected_output": "uv python install 3.12",
                   "solution": "uv python install 3.12",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"uv сам скачивает и ставит интерпретаторы Python.\", \"lines\": [[\"uv python install 3.12\", \"Python 3.12.\"]], \"mistake\": \"`uv add python` — Python не пакет проекта.\"}"
                 },
                 {
                   "slug": "prj-uvlock-e4",
@@ -680,7 +723,8 @@
                   "expected_output": "uv python pin 3.12",
                   "solution": "uv python pin 3.12",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`pin` записывает версию в `.python-version` — проект будет использовать её.\", \"lines\": [[\"uv python pin 3.12\", \"Закрепить.\"]], \"mistake\": \"`install` — установит, но не закрепит.\"}"
                 },
                 {
                   "slug": "prj-uvlock-e5",
@@ -690,7 +734,8 @@
                   "expected_output": "uv venv\nuv venv .venv",
                   "solution": "uv venv",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`uv venv` — быстрый аналог `python -m venv`, по умолчанию папка `.venv`.\", \"lines\": [[\"uv venv\", \"Окружение `.venv`.\"]], \"mistake\": \"`uv init` — создаст проект.\"}"
                 },
                 {
                   "slug": "prj-uvlock-e6",
@@ -700,7 +745,8 @@
                   "expected_output": "uv pip install -r requirements.txt",
                   "solution": "uv pip install -r requirements.txt",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`uv pip` — совместимый с pip режим для старых проектов.\", \"lines\": [[\"uv pip install -r requirements.txt\", \"Как pip, только быстрее.\"]], \"mistake\": \"`uv add -r requirements.txt` — запишет всё в pyproject.\"}"
                 },
                 {
                   "slug": "prj-uvlock-e7",
@@ -710,7 +756,8 @@
                   "expected_output": "да",
                   "solution": "да",
                   "hint": "Lock-файл гарантирует одинаковые версии у всех и в CI.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Lock-файл фиксирует точные версии: у всех и в CI одинаковые пакеты — тесты воспроизводимы.\", \"lines\": [[\"да\", \"Коммитить.\"]], \"mistake\": \"Игнорировать lock — «у меня проходит, а в CI нет».\"}"
                 },
                 {
                   "slug": "prj-uvlock-e8",
@@ -720,7 +767,8 @@
                   "expected_output": "uv sync --locked\nuv sync --frozen",
                   "solution": "uv sync --locked",
                   "hint": "--locked проверяет актуальность lock-файла.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`--locked` падает, если lock-файл устарел относительно `pyproject.toml`.\", \"lines\": [[\"uv sync --locked\", \"Проверка в CI.\"]], \"mistake\": \"`uv sync` — тихо обновит lock прямо в CI.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n«У меня тесты проходят, а в CI падают» — частая причина: там установилась другая версия библиотеки. **Lock-файл** фиксирует точные версии всех пакетов (включая зависимости зависимостей) и их хеши. Кроме того, uv умеет сам ставить нужную версию Python.\n\n## uv.lock\n\n```bash\n$ uv lock\n$ uv lock --upgrade-package requests\n$ uv sync --locked\n```\n\n- `uv lock` — пересчитать `uv.lock` по `pyproject.toml`, ничего не устанавливая.\n- `--upgrade-package пакет` — обновить в lock-файле только этот пакет до последней допустимой версии. `uv lock --upgrade` — обновить всё.\n- `uv sync --locked` — установить и **упасть**, если lock-файл не соответствует `pyproject.toml` (кто-то добавил зависимость и забыл обновить lock). Идеально для CI. `--frozen` — установить из lock, не проверяя.\n- `uv.lock` **коммитят** в git.\n\n## Версии Python\n\n```bash\n$ uv python install 3.12\n$ uv python pin 3.12\n$ uv python list\n```\n\n- `uv python install` — скачать нужную версию Python (не нужен pyenv или установщик с сайта).\n- `uv python pin` — записать версию в `.python-version`; `uv sync` и `uv run` будут использовать её.\n\n## pip-совместимый режим\n\n```bash\n$ uv venv\n$ uv pip install -r requirements.txt\n$ uv pip list\n```\n\n- Для старых проектов с `requirements.txt`: `uv venv` вместо `python -m venv`, `uv pip install` вместо `pip install` — те же команды, но гораздо быстрее.\n\n## Итог\n\n- `uv.lock` — точные версии; коммитить.\n- `uv lock` (`--upgrade-package`) — обновить lock.\n- `uv sync --locked` — в CI.\n- `uv python install/pin` — версия Python.\n- `uv venv`, `uv pip install` — быстрая замена pip для старых проектов.",
@@ -773,7 +821,8 @@
                   "expected_output": "uvx ruff check .\nuvx ruff check\nuv tool run ruff check .\nuv tool run ruff check",
                   "solution": "uvx ruff check .",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`uvx` запускает инструмент во временном окружении, не добавляя в проект.\", \"lines\": [[\"uvx ruff check .\", \"Разовый запуск.\"]], \"mistake\": \"`uv add ruff` ради одной проверки.\"}"
                 },
                 {
                   "slug": "prj-uvtools-e2",
@@ -783,7 +832,8 @@
                   "expected_output": "uv tool install ruff",
                   "solution": "uv tool install ruff",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`uv tool install` ставит утилиту глобально, в отдельное окружение.\", \"lines\": [[\"uv tool install ruff\", \"Команда `ruff` везде.\"]], \"mistake\": \"`pip install ruff` в системный Python.\"}"
                 },
                 {
                   "slug": "prj-uvtools-e3",
@@ -793,7 +843,8 @@
                   "expected_output": "uv tool list",
                   "solution": "uv tool list",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`uv tool list` — установленные инструменты.\", \"lines\": [[\"uv tool list\", \"Список.\"]], \"mistake\": \"`uv pip list` — пакеты окружения.\"}"
                 },
                 {
                   "slug": "prj-uvtools-e4",
@@ -803,7 +854,8 @@
                   "expected_output": "uv run pytest -n 4\nuv run pytest -n4\nuv run python -m pytest -n 4",
                   "solution": "uv run pytest -n 4",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-n 4` — флаг pytest-xdist: число параллельных процессов.\", \"lines\": [[\"uv run pytest\", \"pytest проекта.\"], [\"-n 4\", \"Четыре процесса.\"]], \"mistake\": \"`uv run -n 4 pytest` — флаг попадёт к uv.\"}"
                 },
                 {
                   "slug": "prj-uvtools-e5",
@@ -813,7 +865,8 @@
                   "expected_output": "uv run scripts/seed_data.py\nuv run python scripts/seed_data.py",
                   "solution": "uv run scripts/seed_data.py",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`uv run файл.py` запускает скрипт в окружении проекта.\", \"lines\": [[\"uv run scripts/seed_data.py\", \"С пакетами проекта.\"]], \"mistake\": \"`python scripts/seed_data.py` — без окружения пакетов может не быть.\"}"
                 },
                 {
                   "slug": "prj-uvtools-e6",
@@ -823,7 +876,8 @@
                   "expected_output": "uv tree",
                   "solution": "uv tree",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`uv tree` — какие пакеты от каких зависят.\", \"lines\": [[\"uv tree\", \"Дерево зависимостей.\"]], \"mistake\": \"`uv list` — нет такой команды.\"}"
                 },
                 {
                   "slug": "prj-uvtools-e7",
@@ -833,7 +887,8 @@
                   "expected_output": "curl -LsSf https://astral.sh/uv/install.sh | sh\ncurl -LsSf https://astral.sh/uv/install.sh | bash",
                   "solution": "curl -LsSf https://astral.sh/uv/install.sh | sh",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Скрипт скачивается `curl` и сразу выполняется оболочкой через `|`.\", \"lines\": [[\"curl -LsSf https://astral.sh/uv/install.sh\", \"Скачать установщик.\"], [\"| sh\", \"Выполнить.\"]], \"mistake\": \"`pip install uv` — тоже работает, но просили официальный скрипт.\"}"
                 },
                 {
                   "slug": "prj-uvtools-e8",
@@ -843,7 +898,8 @@
                   "expected_output": "uv run --with requests check.py\nuv run --with requests python check.py",
                   "solution": "uv run --with requests check.py",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`--with` добавляет пакет только на этот запуск.\", \"lines\": [[\"uv run --with requests check.py\", \"requests — временно.\"]], \"mistake\": \"`uv add requests` — останется в проекте.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nНекоторые утилиты нужны «сбоку» от проекта: линтер, форматтер, `pre-commit`, генератор отчётов. Их не хочется добавлять в зависимости каждого проекта. `uv` умеет запускать такие инструменты во временных изолированных окружениях или ставить их глобально.\n\n## uvx: запустить без установки\n\n```bash\n$ uvx ruff check .\n$ uvx --from httpie http GET https://api.example.com/health\n```\n\n- `uvx инструмент` (= `uv tool run`) — скачать инструмент во временное окружение (с кэшем) и запустить. Второй запуск мгновенный.\n- `--from пакет` — когда имя команды отличается от имени пакета.\n\n## uv tool: установить глобально\n\n```bash\n$ uv tool install ruff\n$ uv tool list\n$ uv tool upgrade ruff\n```\n\n- Каждый инструмент получает своё окружение, а команда становится доступна везде.\n\n## uv run: команды проекта\n\n```bash\n$ uv run pytest -n 4\n$ uv run scripts/seed_data.py\n$ uv run --with requests check.py\n$ uv tree\n```\n\n- Всё после `uv run` — обычная команда, выполненная в окружении проекта. Флаги передаются дальше как есть (`-n 4` — для pytest-xdist).\n- `uv run скрипт.py` — запустить скрипт.\n- `--with пакет` — добавить временную зависимость только для этого запуска.\n- `uv tree` — дерево зависимостей: видно, кто притащил тот или иной пакет.\n\n## Установка самого uv\n\n```bash\n$ curl -LsSf https://astral.sh/uv/install.sh | sh\n$ pip install uv\n$ brew install uv\n```\n\n- Официальный скрипт скачивается `curl` и сразу выполняется `sh`. Есть и другие способы: pip, Homebrew, winget.\n\n## Итог\n\n- `uvx инструмент` — запустить без установки.\n- `uv tool install` — глобально, в изолированном окружении.\n- `uv run` — команды и скрипты проекта; `--with` — временная зависимость.\n- `uv tree` — дерево зависимостей.",
@@ -896,7 +952,8 @@
                   "expected_output": "python seed.py --users 10\npython3 seed.py --users 10",
                   "solution": "python seed.py --users 10",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Аргументы пишут после имени скрипта.\", \"lines\": [[\"python seed.py\", \"Скрипт.\"], [\"--users 10\", \"Аргументы.\"]], \"mistake\": \"`python --users 10 seed.py` — аргументы достанутся Python.\"}"
                 },
                 {
                   "slug": "prj-run-e2",
@@ -906,7 +963,8 @@
                   "expected_output": "python -m pytest\npython3 -m pytest",
                   "solution": "python -m pytest",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`python -m pytest` запускает pytest именно этого интерпретатора.\", \"lines\": [[\"python -m pytest\", \"Модуль как программа.\"]], \"mistake\": \"`pytest` — может найтись из другого окружения.\"}"
                 },
                 {
                   "slug": "prj-run-e3",
@@ -916,7 +974,8 @@
                   "expected_output": "python -c 'import sys; print(sys.version)'\npython -c \"import sys; print(sys.version)\"\npython --version\npython -V\npython3 --version\npython3 -V",
                   "solution": "python -c 'import sys; print(sys.version)'",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-c` выполняет код из строки.\", \"lines\": [[\"python -c 'import sys; print(sys.version)'\", \"Однострочник.\"]], \"mistake\": \"Двойные кавычки внутри двойных — оболочка разорвёт строку.\"}"
                 },
                 {
                   "slug": "prj-run-e4",
@@ -926,7 +985,8 @@
                   "expected_output": "['seed.py', '--users', '10']\n[\"seed.py\", \"--users\", \"10\"]",
                   "solution": "['seed.py', '--users', '10']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`sys.argv[0]` — имя скрипта, дальше аргументы строками.\", \"lines\": [[\"python seed.py --users 10\", \"Три элемента.\"]], \"mistake\": \"Ожидать `10` числом — все аргументы строки.\"}"
                 },
                 {
                   "slug": "prj-run-e5",
@@ -936,7 +996,8 @@
                   "tests": "def test_values():\n    a = parse_args([])\n    assert (a.env, a.workers, a.headless) == (\"dev\", 1, False), vars(a)\n    b = parse_args([\"--env\", \"stage\", \"--workers\", \"4\", \"--headless\"])\n    assert (b.env, b.workers, b.headless) == (\"stage\", 4, True), vars(b)\n",
                   "solution": "import argparse\n\n\ndef parse_args(argv):\n    parser = argparse.ArgumentParser()\n    parser.add_argument(\"--env\", default=\"dev\")\n    parser.add_argument(\"--workers\", type=int, default=1)\n    parser.add_argument(\"--headless\", action=\"store_true\")\n    return parser.parse_args(argv)\n",
                   "hint": "action='store_true' — флаг без значения.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`argparse` разбирает аргументы, сам приводит типы и даёт значения по умолчанию.\", \"lines\": [[\"parser.add_argument(\\\"--env\\\", default=\\\"dev\\\")\", \"Строка.\"], [\"parser.add_argument(\\\"--workers\\\", type=int, default=1)\", \"Число.\"], [\"parser.add_argument(\\\"--headless\\\", action=\\\"store_true\\\")\", \"Флаг: есть — True.\"], [\"return parser.parse_args(argv)\", \"Список аргументов — для тестов.\"]], \"mistake\": \"`parse_args()` без `argv` — возьмёт аргументы самого pytest.\"}"
                 },
                 {
                   "slug": "prj-run-e6",
@@ -946,7 +1007,8 @@
                   "tests": "import io, contextlib\n\ndef test_values():\n    buf = io.StringIO()\n    with contextlib.redirect_stdout(buf):\n        codes = (main([\"a.json\", \"b.json\"]), main([]))\n    assert codes == (0, 2), codes\n    assert buf.getvalue() == \"проверяю: a.json, b.json\\nusage: check.py FILE...\\n\", repr(buf.getvalue())\n",
                   "solution": "def main(argv):\n    if not argv:\n        print(\"usage: check.py FILE...\")\n        return 2\n    print(\"проверяю: \" + \", \".join(argv))\n    return 0\n",
                   "hint": "В настоящем скрипте: if __name__ == '__main__': sys.exit(main(sys.argv[1:]))",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Код выхода: 0 — успех, 2 — неверное использование.\", \"lines\": [[\"if not argv:\\n        print(\\\"usage: check.py FILE...\\\")\\n        return 2\", \"Нет аргументов.\"], [\"print(\\\"проверяю: \\\" + \\\", \\\".join(argv))\", \"Список через запятую.\"], [\"return 0\", \"Успех.\"]], \"mistake\": \"Вернуть 1 при отсутствии аргументов — просили 2.\"}"
                 },
                 {
                   "slug": "prj-run-e7",
@@ -956,7 +1018,8 @@
                   "expected_output": "0",
                   "solution": "0",
                   "hint": "CI считает шаг проваленным при любом ненулевом коде.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"0 — успех, любое другое число — ошибка. На этом построен CI.\", \"lines\": [[\"0\", \"Успешно.\"]], \"mistake\": \"Думать, что 1 — «да, успешно».\"}"
                 },
                 {
                   "slug": "prj-run-e8",
@@ -966,7 +1029,8 @@
                   "expected_output": "echo $?",
                   "solution": "echo $?",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`$?` — код выхода последней команды.\", \"lines\": [[\"echo $?\", \"0 или код ошибки.\"]], \"mistake\": \"`echo $!` — PID фонового процесса.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nТестировщик постоянно запускает скрипты: генерация тестовых данных, очистка стенда, выгрузка отчёта. Скрипту нужно передать параметры (стенд, количество пользователей), а CI должен понять, успешно ли он отработал. Для этого есть аргументы командной строки и **код выхода**.\n\n## Способы запуска\n\n```bash\n$ python seed.py --users 10\n$ python -m pytest\n$ python -c \"import sys; print(sys.version)\"\n```\n\n- `python файл.py аргументы` — запустить скрипт.\n- `python -m модуль` — запустить модуль как программу. `python -m pytest` гарантирует pytest **того же** Python (и добавляет текущую папку в пути импорта).\n- `python -c \"код\"` — выполнить однострочник.\n\n## sys.argv\n\n```python\nimport sys\n\nargv = [\"seed.py\", \"--users\", \"10\"]   # так выглядит sys.argv при запуске python seed.py --users 10\nprint(argv[0], argv[1:])\n```\n\n- `sys.argv` — список: имя скрипта и аргументы строками.\n- Вывод: `seed.py ['--users', '10']`.\n\n## argparse\n\n```python\nimport argparse\n\nparser = argparse.ArgumentParser(description=\"Генератор тестовых данных\")\nparser.add_argument(\"--env\", default=\"dev\")\nparser.add_argument(\"--workers\", type=int, default=1)\nparser.add_argument(\"--headless\", action=\"store_true\")\nargs = parser.parse_args([\"--env\", \"stage\", \"--headless\"])\nprint(args.env, args.workers, args.headless)\n```\n\n- `add_argument(\"--имя\")` — именованный аргумент; `type=int` — преобразование; `default` — значение по умолчанию.\n- `action=\"store_true\"` — флаг без значения: есть — `True`, нет — `False`.\n- `parse_args()` без списка читает настоящий `sys.argv`; `--help` argparse сгенерирует сам.\n- Вывод: `stage 1 True`.\n\n## Код выхода\n\n```python\ndef main(argv):\n    if not argv:\n        print(\"usage: check.py FILE...\")\n        return 2\n    print(\"проверяю:\", \", \".join(argv))\n    return 0\n\nprint(main([]), main([\"a.json\"]))\n```\n\n- Каждая программа возвращает число: **0 — успех**, всё остальное — ошибка. CI и `&&` смотрят именно на него.\n- В реальном скрипте: `if __name__ == \"__main__\": sys.exit(main(sys.argv[1:]))`.\n- `echo $?` в bash — код выхода последней команды. pytest возвращает 0, если все тесты прошли, и 1, если есть падения.\n- Вывод: `usage: check.py FILE...`, `проверяю: a.json`, `2 0`.\n\n## Итог\n\n- `python скрипт.py`, `python -m модуль`, `python -c \"код\"`.\n- `sys.argv` — сырые аргументы; `argparse` — удобный разбор.\n- Код выхода: 0 — успех; `sys.exit(код)`; `echo $?`.",
@@ -1027,7 +1091,8 @@
                   "expected_output": "ruff check\nruff check .\nuv run ruff check\nuv run ruff check .\nuvx ruff check\nuvx ruff check .",
                   "solution": "ruff check",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`ruff check` ищет ошибки и подозрительный код.\", \"lines\": [[\"ruff check\", \"Весь проект.\"]], \"mistake\": \"`ruff format` — это форматирование, а не проверка.\"}"
                 },
                 {
                   "slug": "prj-lint-e2",
@@ -1037,7 +1102,8 @@
                   "expected_output": "ruff check --fix\nruff check --fix .\nruff check . --fix\nuv run ruff check --fix\nuv run ruff check --fix .",
                   "solution": "ruff check --fix",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--fix` исправляет то, что ruff считает безопасным.\", \"lines\": [[\"ruff check --fix\", \"Автоисправление.\"]], \"mistake\": \"Ждать, что `--fix` исправит всё — часть ошибок нужно править руками.\"}"
                 },
                 {
                   "slug": "prj-lint-e3",
@@ -1047,7 +1113,8 @@
                   "expected_output": "ruff check tests\nruff check tests/\nuv run ruff check tests",
                   "solution": "ruff check tests",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Путь после `check` ограничивает проверку.\", \"lines\": [[\"ruff check tests\", \"Только тесты.\"]], \"mistake\": \"`ruff tests` — без `check` нет команды.\"}"
                 },
                 {
                   "slug": "prj-lint-e4",
@@ -1057,7 +1124,8 @@
                   "expected_output": "F401",
                   "solution": "F401",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Формат: `файл:строка:столбец: КОД сообщение`.\", \"lines\": [[\"F401 [*] `os` imported but unused\", \"Неиспользуемый импорт.\"]], \"mistake\": \"E501 — это длинная строка.\"}"
                 },
                 {
                   "slug": "prj-lint-e5",
@@ -1067,7 +1135,8 @@
                   "expected_output": "9",
                   "solution": "9",
                   "hint": "Формат: файл:строка:столбец: код описание.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Первое число после имени файла — строка, второе — столбец.\", \"lines\": [[\"tests/test_api.py:9:89: E501\", \"Строка 9, столбец 89.\"]], \"mistake\": \"Ответить 89 — это столбец.\"}"
                 },
                 {
                   "slug": "prj-lint-e6",
@@ -1077,7 +1146,8 @@
                   "expected_output": "# noqa: E501\n#noqa: E501\n# noqa:E501",
                   "solution": "# noqa: E501",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`# noqa: КОД` отключает одну проверку на одной строке.\", \"lines\": [[\"# noqa: E501\", \"В конце строки.\"]], \"mistake\": \"`# noqa` без кода — отключит вообще все проверки строки.\"}"
                 },
                 {
                   "slug": "prj-lint-e7",
@@ -1087,7 +1157,8 @@
                   "expected_output": "ruff rule F401\nuv run ruff rule F401",
                   "solution": "ruff rule F401",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`ruff rule КОД` — описание и примеры правила.\", \"lines\": [[\"ruff rule F401\", \"Справка по правилу.\"]], \"mistake\": \"Гуглить каждый код.\"}"
                 },
                 {
                   "slug": "prj-lint-e8",
@@ -1097,7 +1168,8 @@
                   "tests": "SRC = '''\nimport os\nimport json\nimport requests as rq\nfrom pathlib import Path\nfrom typing import List\n\ndef load(p):\n    return json.loads(Path(p).read_text())\n\ndef get(url):\n    return rq.get(url)\n'''\n\ndef test_values():\n    assert unused_imports(SRC) == [\"List\", \"os\"], unused_imports(SRC)\n    assert unused_imports(\"import sys\\nprint(sys.argv)\") == [], \"Всё используется\"\n",
                   "solution": "import ast\n\n\ndef unused_imports(source):\n    tree = ast.parse(source)\n    imported = set()\n    for node in ast.walk(tree):\n        if isinstance(node, (ast.Import, ast.ImportFrom)):\n            for alias in node.names:\n                imported.add((alias.asname or alias.name).split(\".\")[0])\n    used = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}\n    return sorted(imported - used)\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"`ast` разбирает код в дерево: собираем импортированные имена и имена, которые используются.\", \"lines\": [[\"tree = ast.parse(source)\", \"Дерево кода.\"], [\"if isinstance(node, (ast.Import, ast.ImportFrom)):\", \"Узлы импорта.\"], [\"imported.add((alias.asname or alias.name).split(\\\".\\\")[0])\", \"`as`-имя или первая часть имени.\"], [\"used = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}\", \"Использованные имена.\"], [\"return sorted(imported - used)\", \"Разность множеств.\"]], \"mistake\": \"Искать имя в тексте поиском подстроки — найдётся в строках и комментариях.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n**Линтер** читает код, не запуская его, и находит проблемы: неиспользуемые импорты, необъявленные переменные, опасные конструкции, слишком длинные строки. Ошибка вроде опечатки в имени фикстуры найдётся ещё до запуска тестов. **ruff** — самый быстрый линтер для Python: заменяет flake8, isort, pyupgrade и десятки плагинов.\n\n## Проверка\n\n```bash\n$ ruff check\ntests/test_api.py:1:8: F401 [*] `os` imported but unused\ntests/test_api.py:9:89: E501 Line too long (104 > 88)\nFound 2 errors.\n[*] 1 fixable with the `--fix` option.\n```\n\nКак читать строку:\n\n- `tests/test_api.py:9:89` — файл, строка 9, столбец 89.\n- `E501` — **код правила**. Буквы — группа: `F` — pyflakes (логические ошибки), `E`/`W` — pycodestyle (стиль), `I` — сортировка импортов, `B` — bugbear (подозрительные конструкции), `S` — безопасность.\n- `[*]` — ruff умеет исправить это сам.\n- Код выхода: 0 — ошибок нет, 1 — есть (CI упадёт).\n\n## Исправление и справка\n\n```bash\n$ ruff check --fix\n$ ruff check tests\n$ ruff rule F401\n```\n\n- `--fix` — автоматически исправить безопасные ошибки (например, удалить неиспользуемый импорт).\n- Можно проверить отдельную папку или файл.\n- `ruff rule КОД` — объяснение правила с примерами.\n\n## Отключить для строки\n\n```python\nimport os  # noqa: F401\n\nLONG_URL = \"https://example.com/very/long/path\"  # noqa: E501\n```\n\n- `# noqa: КОД` в конце строки — не проверять это правило здесь. Используй редко и осознанно.\n\n## Как устроена проверка F401\n\nЛинтер разбирает код в **дерево синтаксиса** (AST) и анализирует его:\n\n```python\nimport ast\n\nsource = \"import os\\nimport json\\nprint(json.dumps({}))\"\ntree = ast.parse(source)\nimported = {a.name for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}\nused = {n.id for n in ast.walk(tree) if isinstance(n, ast.Name)}\nprint(sorted(imported - used))\n```\n\n- `ast.parse` — код в дерево, `ast.walk` — обход всех узлов.\n- Импортированные имена минус использованные — неиспользуемые.\n- Вывод: `['os']`.\n\n## Итог\n\n- `ruff check` — проверить, `--fix` — исправить, `ruff rule` — справка.\n- Формат: `файл:строка:столбец: КОД описание`.\n- Группы правил: `F`, `E`, `W`, `I`, `B`, `S`.\n- `# noqa: КОД` — исключение для строки.",
@@ -1150,7 +1222,8 @@
                   "expected_output": "ruff format\nruff format .\nuv run ruff format\nuv run ruff format .\nuvx ruff format\nuvx ruff format .",
                   "solution": "ruff format",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`ruff format` переписывает файлы в едином стиле.\", \"lines\": [[\"ruff format\", \"Форматирование проекта.\"]], \"mistake\": \"`ruff check` — не форматирует.\"}"
                 },
                 {
                   "slug": "prj-format-e2",
@@ -1160,7 +1233,8 @@
                   "expected_output": "ruff format --check\nruff format --check .\nuv run ruff format --check\nuv run ruff format --check .",
                   "solution": "ruff format --check",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--check` ничего не меняет и возвращает 1, если есть что форматировать.\", \"lines\": [[\"ruff format --check\", \"Проверка для CI.\"]], \"mistake\": \"`ruff format` в CI — исправит файлы и пройдёт, не сообщив о проблеме.\"}"
                 },
                 {
                   "slug": "prj-format-e3",
@@ -1170,7 +1244,8 @@
                   "expected_output": "ruff format --diff\nruff format --diff .\nuv run ruff format --diff",
                   "solution": "ruff format --diff",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--diff` показывает изменения, не применяя их.\", \"lines\": [[\"ruff format --diff\", \"Как будет.\"]], \"mistake\": \"`--check` — только список файлов.\"}"
                 },
                 {
                   "slug": "prj-format-e4",
@@ -1180,7 +1255,8 @@
                   "expected_output": "ruff format tests/test_cart.py\nuv run ruff format tests/test_cart.py",
                   "solution": "ruff format tests/test_cart.py",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Путь к файлу ограничивает форматирование.\", \"lines\": [[\"ruff format tests/test_cart.py\", \"Только один файл.\"]], \"mistake\": \"Форматировать весь проект ради одного файла.\"}"
                 },
                 {
                   "slug": "prj-format-e5",
@@ -1190,7 +1266,8 @@
                   "expected_output": "2",
                   "solution": "2",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Итоговая строка — сколько файлов будет переформатировано.\", \"lines\": [[\"2 files would be reformatted\", \"Два.\"]], \"mistake\": \"Ответить 14 — они уже в порядке.\"}"
                 },
                 {
                   "slug": "prj-format-e6",
@@ -1200,7 +1277,8 @@
                   "expected_output": "ruff check --fix && ruff format\nruff check --fix . && ruff format .\nruff check . --fix && ruff format .\nuv run ruff check --fix && uv run ruff format",
                   "solution": "ruff check --fix && ruff format",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Сначала исправить линтер, потом форматировать: `--fix` может изменить код.\", \"lines\": [[\"ruff check --fix\", \"Исправления.\"], [\"&& ruff format\", \"Потом форматирование.\"]], \"mistake\": \"Обратный порядок — после `--fix` формат может снова сбиться.\"}"
                 },
                 {
                   "slug": "prj-format-e7",
@@ -1210,7 +1288,8 @@
                   "expected_output": "1",
                   "solution": "1",
                   "hint": "Ненулевой код роняет шаг CI.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Ненулевой код выхода — сигнал CI, что проверка не прошла.\", \"lines\": [[\"1\", \"Есть что форматировать.\"]], \"mistake\": \"Ответить 0 — тогда CI ничего бы не заметил.\"}"
                 },
                 {
                   "slug": "prj-format-e8",
@@ -1220,7 +1299,8 @@
                   "tests": "def test_values():\n    assert normalize_quotes(\"x = 'abc'\") == 'x = \"abc\"', normalize_quotes(\"x = 'abc'\")\n    assert normalize_quotes(\"d = {'a': 'b'}\") == 'd = {\"a\": \"b\"}', normalize_quotes(\"d = {'a': 'b'}\")\n    assert normalize_quotes(\"s = 'say \\\"hi\\\"'\") == \"s = 'say \\\"hi\\\"'\", \"С двойными внутри — без изменений\"\n    assert normalize_quotes('y = \"ok\"') == 'y = \"ok\"', \"Уже двойные\"\n",
                   "solution": "import re\n\n\ndef normalize_quotes(line):\n    def repl(m):\n        inner = m.group(1)\n        return m.group(0) if '\"' in inner else f'\"{inner}\"'\n    return re.sub(r\"'([^']*)'\", repl, line)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`re.sub` с функцией: для каждой строки в одинарных кавычках решаем, менять ли.\", \"lines\": [[\"inner = m.group(1)\", \"Текст внутри кавычек.\"], [\"return m.group(0) if '\\\"' in inner else f'\\\"{inner}\\\"'\", \"Есть двойные — оставляем.\"], [\"return re.sub(r\\\"'([^']*)'\\\", repl, line)\", \"Все строки в одинарных кавычках.\"]], \"mistake\": \"`line.replace(\\\"'\\\", '\\\"')` — сломает строки с двойными кавычками внутри.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nСпоры «ставить ли пробел», «одинарные или двойные кавычки» отнимают время на ревью, а разный стиль мешает читать код. **Форматтер** приводит весь код к единому виду автоматически. `ruff format` делает то же, что популярный `black`, но быстрее.\n\n## Форматирование\n\n```bash\n$ ruff format\n3 files reformatted, 14 files left unchanged\n$ ruff format tests/test_cart.py\n```\n\n- Переписывает файлы: отступы, пробелы, кавычки (двойные, если внутри нет двойных), переносы длинных строк, запятые в конце многострочных списков.\n- Смысл кода не меняется.\n\n## Проверка без изменений\n\n```bash\n$ ruff format --check\nWould reformat: tests/test_api.py\n1 file would be reformatted, 16 files already formatted\n$ ruff format --diff\n```\n\n- `--check` — ничего не менять, но вернуть код 1, если есть неотформатированные файлы. Используют в CI.\n- `--diff` — показать, что изменилось бы.\n\n## Линтер и форматтер вместе\n\n```bash\n$ ruff check --fix && ruff format\n```\n\n- Сначала исправить ошибки линтера (например, сортировку импортов), потом отформатировать.\n- `&&` — вторая команда выполнится, только если первая завершилась успешно.\n\n## Пример правила: кавычки\n\n```python\nimport re\n\ndef normalize_quotes(line):\n    return re.sub(r\"'([^'\\\"]*)'\", r'\"\\1\"', line)\n\nprint(normalize_quotes(\"d = {'a': 'b'}\"))\n```\n\n- Упрощённая версия одного правила форматтера: одинарные кавычки → двойные, если внутри нет двойных.\n- Вывод: `d = {\"a\": \"b\"}`.\n\n## Итог\n\n- `ruff format` — отформатировать; `--check` — проверить в CI; `--diff` — показать изменения.\n- Порядок: `ruff check --fix && ruff format`.\n- Форматтер меняет вид, а не смысл кода.",
@@ -1273,7 +1353,8 @@
                   "expected_output": "line-length = 120\nline-length=120",
                   "solution": "line-length = 120",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`line-length` — максимальная длина строки.\", \"lines\": [[\"line-length = 120\", \"Вместо 88 по умолчанию.\"]], \"mistake\": \"`max-line-length` — так в flake8, у ruff иначе.\"}"
                 },
                 {
                   "slug": "prj-ruffcfg-e2",
@@ -1283,7 +1364,8 @@
                   "expected_output": "select = [\"E\", \"F\", \"I\"]\nselect = ['E', 'F', 'I']\nselect = [\"F\", \"E\", \"I\"]\nselect = [\"E\",\"F\",\"I\"]",
                   "solution": "select = [\"E\", \"F\", \"I\"]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`select` — какие группы правил включить.\", \"lines\": [[\"select = [\\\"E\\\", \\\"F\\\", \\\"I\\\"]\", \"pycodestyle, pyflakes, isort.\"]], \"mistake\": \"Строка вместо списка — `select = \\\"EFI\\\"`.\"}"
                 },
                 {
                   "slug": "prj-ruffcfg-e3",
@@ -1293,7 +1375,8 @@
                   "expected_output": "I",
                   "solution": "I",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Префикс `I` — правила isort.\", \"lines\": [[\"I\", \"Сортировка импортов.\"]], \"mistake\": \"`S` — это правила безопасности.\"}"
                 },
                 {
                   "slug": "prj-ruffcfg-e4",
@@ -1303,7 +1386,8 @@
                   "expected_output": "ignore = [\"E501\"]\nignore = ['E501']",
                   "solution": "ignore = [\"E501\"]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`ignore` — отключить правила.\", \"lines\": [[\"ignore = [\\\"E501\\\"]\", \"Длина строки не проверяется.\"]], \"mistake\": \"Удалить `E` из `select` — отключит всю группу.\"}"
                 },
                 {
                   "slug": "prj-ruffcfg-e5",
@@ -1313,7 +1397,8 @@
                   "expected_output": "S101",
                   "solution": "S101",
                   "hint": "S101 — «использован assert»: в тестах assert — норма.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`per-file-ignores` отключает правила для части файлов. S101 — «использован assert», в тестах это норма.\", \"lines\": [[\"\\\"tests/**\\\" = [\\\"S101\\\"]\", \"Для всех файлов в tests.\"]], \"mistake\": \"Ответить `tests/**` — это шаблон файлов, а не правило.\"}"
                 },
                 {
                   "slug": "prj-ruffcfg-e6",
@@ -1323,7 +1408,8 @@
                   "expected_output": "target-version = \"py312\"\ntarget-version = 'py312'",
                   "solution": "target-version = \"py312\"",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`target-version` — минимальная версия Python кода: ruff учтёт доступный синтаксис.\", \"lines\": [[\"target-version = \\\"py312\\\"\", \"Формат `pyXY`.\"]], \"mistake\": \"`target-version = \\\"3.12\\\"` — неверный формат.\"}"
                 },
                 {
                   "slug": "prj-ruffcfg-e7",
@@ -1333,7 +1419,8 @@
                   "tests": "TEXT = '''\n[tool.ruff]\nline-length = 120\n\n[tool.ruff.lint]\nselect = [\"E\", \"F\", \"I\", \"B\"]\nignore = [\"E501\"]\n'''\n\ndef test_values():\n    assert ruff_settings(TEXT) == {\"line_length\": 120, \"select\": [\"E\", \"F\", \"I\", \"B\"], \"ignore\": [\"E501\"]}, ruff_settings(TEXT)\n    assert ruff_settings('[project]\\nname = \"x\"') == {\"line_length\": 88, \"select\": [\"E\", \"F\"], \"ignore\": []}, \"По умолчанию\"\n",
                   "solution": "import tomllib\n\n\ndef ruff_settings(text):\n    ruff = tomllib.loads(text).get(\"tool\", {}).get(\"ruff\", {})\n    lint = ruff.get(\"lint\", {})\n    return {\n        \"line_length\": ruff.get(\"line-length\", 88),\n        \"select\": lint.get(\"select\", [\"E\", \"F\"]),\n        \"ignore\": lint.get(\"ignore\", []),\n    }\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Спускаемся по секциям через `.get(..., {})` и подставляем значения по умолчанию.\", \"lines\": [[\"ruff = tomllib.loads(text).get(\\\"tool\\\", {}).get(\\\"ruff\\\", {})\", \"`[tool.ruff]`.\"], [\"lint = ruff.get(\\\"lint\\\", {})\", \"`[tool.ruff.lint]`.\"], [\"\\\"line_length\\\": ruff.get(\\\"line-length\\\", 88),\", \"В TOML — через дефис.\"]], \"mistake\": \"Искать `line_length` с подчёркиванием — в TOML ключ `line-length`.\"}"
                 },
                 {
                   "slug": "prj-ruffcfg-e8",
@@ -1343,7 +1430,8 @@
                   "tests": "def test_values():\n    src = \"a = 1\\n\" + \"x\" * 90 + \"\\n\" + \"y\" * 95 + \"  # noqa: E501\\nb = 2\"\n    assert long_lines(src) == [\"строка 2: длина 90 > 88\"], long_lines(src)\n    assert long_lines(\"z\" * 100, limit=120) == [], \"Свой лимит\"\n",
                   "solution": "def long_lines(source, limit=88):\n    result = []\n    for n, line in enumerate(source.splitlines(), start=1):\n        if line.rstrip().endswith(\"# noqa: E501\"):\n            continue\n        if len(line) > limit:\n            result.append(f\"строка {n}: длина {len(line)} > {limit}\")\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Нумеруем строки с 1, пропускаем строки с `# noqa: E501` в конце.\", \"lines\": [[\"for n, line in enumerate(source.splitlines(), start=1):\", \"Номер строки.\"], [\"if line.rstrip().endswith(\\\"# noqa: E501\\\"):\\n            continue\", \"Исключение.\"], [\"result.append(f\\\"строка {n}: длина {len(line)} > {limit}\\\")\", \"Сообщение.\"]], \"mistake\": \"`>=` вместо `>` — строка ровно по лимиту тоже станет ошибкой.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПо умолчанию ruff включает только базовые правила. Команда договаривается о своих: длина строки, какие группы правил включить, что разрешить в тестах. Настройки хранятся в `pyproject.toml` — у всех одинаковые, и CI проверяет по ним же.\n\n## Пример настройки\n\n```bash\n[tool.ruff]\nline-length = 120\ntarget-version = \"py312\"\nexclude = [\"migrations\"]\n\n[tool.ruff.lint]\nselect = [\"E\", \"F\", \"I\", \"B\", \"S\"]\nignore = [\"E501\"]\n\n[tool.ruff.lint.per-file-ignores]\n\"tests/**\" = [\"S101\"]\n\n[tool.ruff.format]\nquote-style = \"double\"\n```\n\nРазбор:\n\n- `line-length` — максимальная длина строки (по умолчанию 88).\n- `target-version` — версия Python, под которую писать (ruff подскажет современный синтаксис).\n- `exclude` — какие папки не проверять.\n- `select` — включённые группы правил; `ignore` — отключённые конкретные правила.\n- `per-file-ignores` — исключения по шаблону путей. В тестах отключают `S101` («использован assert»): в тестах `assert` — основа.\n- `[tool.ruff.format]` — настройки форматтера.\n\n## Полезные группы для тестов\n\n- `F` — ошибки (неиспользуемое, неопределённое).\n- `E`, `W` — стиль PEP 8.\n- `I` — порядок импортов.\n- `B` — частые ошибки: изменяемые значения по умолчанию, `except:` без типа.\n- `PT` — правила для pytest: стиль фикстур, `pytest.raises` без `match`.\n- `S` — безопасность: пароли в коде, `verify=False`.\n\n## Чтение настроек в Python\n\n```python\nimport tomllib\n\ntext = \"\"\"\n[tool.ruff]\nline-length = 120\n[tool.ruff.lint]\nselect = [\"E\", \"F\", \"I\"]\n\"\"\"\nruff = tomllib.loads(text)[\"tool\"][\"ruff\"]\nprint(ruff[\"line-length\"], ruff[\"lint\"][\"select\"])\n```\n\n- Ключи с дефисом (`line-length`) читаются как обычные строки-ключи.\n- Вывод: `120 ['E', 'F', 'I']`.\n\n## Итог\n\n- `[tool.ruff]`: `line-length`, `target-version`, `exclude`.\n- `[tool.ruff.lint]`: `select`, `ignore`, `per-file-ignores`.\n- В тестах обычно `\"tests/**\" = [\"S101\"]`; для pytest есть группа `PT`.",
@@ -1396,7 +1484,8 @@
                   "expected_output": "pip install pre-commit\npython -m pip install pre-commit\nuv add --dev pre-commit\nuv tool install pre-commit",
                   "solution": "pip install pre-commit",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"pre-commit — утилита, которая запускает проверки перед каждым коммитом.\", \"lines\": [[\"pip install pre-commit\", \"Установка.\"]], \"mistake\": \"Думать, что хуки работают без установки утилиты.\"}"
                 },
                 {
                   "slug": "prj-precommit-e2",
@@ -1406,7 +1495,8 @@
                   "expected_output": "pre-commit install\nuv run pre-commit install",
                   "solution": "pre-commit install",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`pre-commit install` прописывает хук в `.git/hooks` — дальше проверки идут сами.\", \"lines\": [[\"pre-commit install\", \"Подключить к git.\"]], \"mistake\": \"Забыть этот шаг — конфиг есть, а проверки не запускаются.\"}"
                 },
                 {
                   "slug": "prj-precommit-e3",
@@ -1416,7 +1506,8 @@
                   "expected_output": "pre-commit run --all-files\npre-commit run -a\nuv run pre-commit run --all-files",
                   "solution": "pre-commit run --all-files",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"По умолчанию проверяются только изменённые файлы; `--all-files` — все.\", \"lines\": [[\"pre-commit run --all-files\", \"Весь проект.\"]], \"mistake\": \"`pre-commit run` — только файлы в индексе.\"}"
                 },
                 {
                   "slug": "prj-precommit-e4",
@@ -1426,7 +1517,8 @@
                   "expected_output": "pre-commit autoupdate\nuv run pre-commit autoupdate",
                   "solution": "pre-commit autoupdate",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`autoupdate` обновляет `rev` хуков в конфиге.\", \"lines\": [[\"pre-commit autoupdate\", \"Свежие версии.\"]], \"mistake\": \"Править версии руками.\"}"
                 },
                 {
                   "slug": "prj-precommit-e5",
@@ -1436,7 +1528,8 @@
                   "expected_output": "ruff ruff-format",
                   "solution": "ruff ruff-format",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Хуки перечислены в `hooks` по `id`.\", \"lines\": [[\"- id: ruff\", \"Первый.\"], [\"- id: ruff-format\", \"Второй.\"]], \"mistake\": \"Посчитать `args: [--fix]` хуком.\"}"
                 },
                 {
                   "slug": "prj-precommit-e6",
@@ -1446,7 +1539,8 @@
                   "expected_output": "git commit -m \"wip\" --no-verify\ngit commit -m 'wip' --no-verify\ngit commit --no-verify -m \"wip\"\ngit commit --no-verify -m 'wip'\ngit commit -n -m \"wip\"\ngit commit -n -m 'wip'",
                   "solution": "git commit -m \"wip\" --no-verify",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--no-verify` пропускает хуки — только в крайнем случае.\", \"lines\": [[\"git commit -m \\\"wip\\\"\", \"Коммит.\"], [\"--no-verify\", \"Без проверок.\"]], \"mistake\": \"Делать так постоянно — смысл хуков пропадает.\"}"
                 },
                 {
                   "slug": "prj-precommit-e7",
@@ -1456,7 +1550,8 @@
                   "expected_output": "pre-commit run ruff-format --all-files\npre-commit run ruff-format -a\npre-commit run --all-files ruff-format",
                   "solution": "pre-commit run ruff-format --all-files",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Имя хука после `run` — запустить только его.\", \"lines\": [[\"pre-commit run ruff-format\", \"Один хук.\"], [\"--all-files\", \"На всех файлах.\"]], \"mistake\": \"`pre-commit ruff-format` — без `run`.\"}"
                 },
                 {
                   "slug": "prj-precommit-e8",
@@ -1466,7 +1561,8 @@
                   "tests": "def test_values():\n    strip_ws = (\"trailing-whitespace\", lambda s: \"\\n\".join(l.rstrip() for l in s.split(\"\\n\")))\n    end_nl = (\"end-of-file-fixer\", lambda s: s if s.endswith(\"\\n\") else s + \"\\n\")\n    files = {\"a.py\": \"x = 1  \\n\", \"b.py\": \"y = 2\", \"README.md\": \"text  \"}\n    new, failed = run_hooks(files, [strip_ws, end_nl])\n    assert new == {\"a.py\": \"x = 1\\n\", \"b.py\": \"y = 2\\n\", \"README.md\": \"text  \"}, new\n    assert failed == [\"trailing-whitespace\", \"end-of-file-fixer\"], failed\n    assert run_hooks({\"c.py\": \"ok\\n\"}, [strip_ws, end_nl]) == ({\"c.py\": \"ok\\n\"}, []), \"Всё чисто\"\n",
                   "solution": "def run_hooks(files, hooks):\n    result = dict(files)\n    failed = []\n    for name, fix in hooks:\n        changed = False\n        for path, text in result.items():\n            if not path.endswith(\".py\"):\n                continue\n            new = fix(text)\n            if new != text:\n                result[path] = new\n                changed = True\n        if changed:\n            failed.append(name)\n    return result, failed\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Хук «падает», если что-то исправил: файлы изменились — коммит нужно повторить.\", \"lines\": [[\"result = dict(files)\", \"Копия — исходный словарь не меняем.\"], [\"if not path.endswith(\\\".py\\\"):\\n                continue\", \"Только `.py`.\"], [\"if new != text:\\n                result[path] = new\\n                changed = True\", \"Хук изменил файл.\"], [\"if changed:\\n            failed.append(name)\", \"Хук отмечен как упавший.\"]], \"mistake\": \"Применять хуки к исходному `files` — следующий хук не увидит исправлений предыдущего.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЗабыл запустить линтер, закоммитил — CI упал через 10 минут. **pre-commit** запускает проверки автоматически при каждом `git commit`: если ruff нашёл ошибки или переформатировал файл, коммит не создастся, пока ты не добавишь исправления.\n\n## Настройка\n\n```bash\n$ cat .pre-commit-config.yaml\nrepos:\n  - repo: https://github.com/astral-sh/ruff-pre-commit\n    rev: v0.6.9\n    hooks:\n      - id: ruff\n        args: [--fix]\n      - id: ruff-format\n  - repo: https://github.com/pre-commit/pre-commit-hooks\n    rev: v4.6.0\n    hooks:\n      - id: trailing-whitespace\n      - id: end-of-file-fixer\n      - id: check-yaml\n```\n\n- `repos` — откуда брать хуки; `rev` — версия.\n- `hooks` — какие проверки запускать: ruff с автоисправлением, форматтер, удаление пробелов в конце строк, перевод строки в конце файла, проверка синтаксиса YAML.\n- Формат YAML: отступы пробелами, `-` — элемент списка.\n\n## Команды\n\n```bash\n$ pip install pre-commit\n$ pre-commit install\n$ pre-commit run --all-files\n$ pre-commit run ruff-format --all-files\n$ pre-commit autoupdate\n```\n\n- `pre-commit install` — подключить к git (один раз после клонирования). Дальше хуки запускаются при каждом `git commit` только для изменённых файлов.\n- `run --all-files` — прогнать на всём проекте (полезно после подключения и в CI).\n- `run хук` — только один хук.\n- `autoupdate` — обновить `rev` до последних версий.\n\n## Как выглядит срабатывание\n\n```bash\n$ git commit -m \"test: add cart\"\nruff.....................................................Failed\n- files were modified by this hook\nruff-format..............................................Passed\n$ git add . && git commit -m \"test: add cart\"\n```\n\n- Хук исправил файлы → коммит отменён. Добавь исправления (`git add`) и повтори коммит.\n- `git commit --no-verify` — пропустить хуки. Только в экстренных случаях: CI всё равно проверит.\n\n## Итог\n\n- `.pre-commit-config.yaml` — список хуков; `pre-commit install` — подключить.\n- Хуки проверяют изменённые файлы при каждом коммите.\n- `pre-commit run --all-files` — всё сразу; `autoupdate` — обновить.\n- Хук изменил файлы → `git add` и коммит заново.",
