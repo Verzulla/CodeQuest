@@ -26,7 +26,8 @@
                   "code": "for ref in [\"python:3.12-slim\", \"nginx\", \"postgres:16\"]:\n    name, _, tag = ref.partition(\":\")\n    print(name, tag or \"latest\")\n",
                   "expected_output": "python 3.12-slim\nnginx latest\npostgres 16",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Ссылка на образ — `имя:тег`; без тега Docker берёт `latest`.\", \"lines\": [[\"name, _, tag = ref.partition(\\\":\\\")\", \"Делим по первому двоеточию.\"], [\"print(name, tag or \\\"latest\\\")\", \"Пустой тег → latest.\"]], \"mistake\": \"Думать, что `nginx` без тега — «последняя стабильная»: latest — просто имя тега.\"}"
                 },
                 {
                   "slug": "dci-m1-l1-e2",
@@ -35,7 +36,8 @@
                   "code": "env = {\"BASE_URL\": \"http://app:8000\", \"BROWSER\": \"\"}\nbase_url = env.get(\"BASE_URL\", \"http://localhost\")\nbrowser = env.get(\"BROWSER\") or \"chrome\"\nheadless = env.get(\"HEADLESS\", \"true\") == \"true\"\nprint(base_url, browser, headless)\n",
                   "expected_output": "http://app:8000 chrome True",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Настройки тестов в контейнере передают переменными окружения; в коде — значения по умолчанию.\", \"lines\": [[\"base_url = env.get(\\\"BASE_URL\\\", \\\"http://localhost\\\")\", \"Есть — берём.\"], [\"browser = env.get(\\\"BROWSER\\\") or \\\"chrome\\\"\", \"Пустая строка — тоже по умолчанию.\"], [\"headless = env.get(\\\"HEADLESS\\\", \\\"true\\\") == \\\"true\\\"\", \"Нет переменной — True.\"]], \"mistake\": \"`env.get(\\\"BROWSER\\\", \\\"chrome\\\")` — пустая строка останется пустой.\"}"
                 },
                 {
                   "slug": "dci-m1-l1-e3",
@@ -45,7 +47,8 @@
                   "tests": "def test_with_tag():\n    assert parse_image(\"python:3.12-slim\") == (\"python\", \"3.12-slim\"), f\"Получено {parse_image('python:3.12-slim')}\"\n\ndef test_no_tag():\n    assert parse_image(\"nginx\") == (\"nginx\", \"latest\"), \"Без тега → latest\"\n",
                   "solution": "def parse_image(ref):\n    name, _, tag = ref.partition(\":\")\n    return name, tag or \"latest\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`partition` возвращает три части; если двоеточия нет, тег — пустая строка.\", \"lines\": [[\"name, _, tag = ref.partition(\\\":\\\")\", \"Имя и тег.\"], [\"return name, tag or \\\"latest\\\"\", \"Тег по умолчанию.\"]], \"mistake\": \"`split(\\\":\\\")` без проверки — распаковка упадёт, если тега нет.\"}"
                 },
                 {
                   "slug": "dci-m1-l1-e4",
@@ -55,7 +58,8 @@
                   "tests": "def test_full():\n    got = docker_run_cmd(\"app:1.0\", ports={8080: 80}, env={\"DEBUG\": \"1\", \"MODE\": \"test\"})\n    assert got == \"docker run --rm -p 8080:80 -e DEBUG=1 -e MODE=test app:1.0\", f\"Получено {got!r}\"\n\ndef test_minimal():\n    assert docker_run_cmd(\"nginx\", rm=False) == \"docker run nginx\", f\"Получено {docker_run_cmd('nginx', rm=False)!r}\"\n",
                   "solution": "def docker_run_cmd(image, ports=None, env=None, rm=True):\n    parts = [\"docker\", \"run\"]\n    if rm:\n        parts.append(\"--rm\")\n    for host, container in (ports or {}).items():\n        parts.append(f\"-p {host}:{container}\")\n    for key, value in (env or {}).items():\n        parts.append(f\"-e {key}={value}\")\n    parts.append(image)\n    return \" \".join(parts)\n",
                   "hint": "Собери части в список и соедини через `\" \".join(parts)`. `ports or {}` спасает от None.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Собираем аргументы списком и склеиваем пробелами; образ — последним.\", \"lines\": [[\"parts.append(\\\"--rm\\\")\", \"Удалить после завершения.\"], [\"parts.append(f\\\"-p {host}:{container}\\\")\", \"Порт хоста:контейнера.\"], [\"parts.append(f\\\"-e {key}={value}\\\")\", \"Переменная окружения.\"], [\"parts.append(image)\", \"Опции — до образа.\"]], \"mistake\": \"Поставить образ раньше опций — всё после образа уйдёт как команда контейнеру.\"}"
                 },
                 {
                   "slug": "dci-m1-l1-e5",
@@ -65,7 +69,8 @@
                   "tests": "def test_known():\n    got = [explain_exit(c) for c in (0, 1, 125, 127, 137)]\n    assert got == [\"ok\", \"app error\", \"docker error\", \"command not found\", \"killed (OOM?)\"], f\"Получено {got}\"\n\ndef test_unknown():\n    assert explain_exit(42) == \"unknown\", \"Неизвестный код → unknown\"\n",
                   "solution": "def explain_exit(code):\n    return {0: \"ok\", 1: \"app error\", 125: \"docker error\", 127: \"command not found\",\n            137: \"killed (OOM?)\"}.get(code, \"unknown\")\n",
                   "hint": "Словарь + `.get(code, \"unknown\")`.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Коды выхода контейнера подсказывают причину: 137 — убит (часто нехватка памяти).\", \"lines\": [[\"return {0: \\\"ok\\\", 1: \\\"app error\\\", 125: \\\"docker error\\\", 127: \\\"command not found\\\",\", \"Таблица кодов.\"], [\"137: \\\"killed (OOM?)\\\"}.get(code, \\\"unknown\\\")\", \"Неизвестный — unknown.\"]], \"mistake\": \"Считать любой ненулевой код ошибкой приложения.\"}"
                 },
                 {
                   "slug": "dci-m1-l1-e6",
@@ -75,7 +80,8 @@
                   "expected_output": "docker pull postgres:16\ndocker image pull postgres:16",
                   "solution": "docker pull postgres:16",
                   "hint": "`docker pull имя:тег`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`docker pull` только скачивает образ.\", \"lines\": [[\"docker pull postgres:16\", \"Версия — тегом.\"]], \"mistake\": \"`docker run postgres:16` — ещё и запустит.\"}"
                 },
                 {
                   "slug": "dci-m1-l1-e7",
@@ -85,7 +91,8 @@
                   "expected_output": "docker run --rm hello-world\ndocker container run --rm hello-world",
                   "solution": "docker run --rm hello-world",
                   "hint": "Флаг `--rm`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--rm` удаляет контейнер после завершения — не копится мусор.\", \"lines\": [[\"docker run --rm hello-world\", \"Запустить и убрать.\"]], \"mistake\": \"Забыть `--rm` в CI — остановленные контейнеры накапливаются.\"}"
                 },
                 {
                   "slug": "dci-m1-l1-e8",
@@ -95,7 +102,8 @@
                   "expected_output": "docker ps -a\ndocker ps --all\ndocker container ls -a\ndocker container ls --all",
                   "solution": "docker ps -a",
                   "hint": "Флаг `-a`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-a` — и остановленные контейнеры тоже.\", \"lines\": [[\"docker ps -a\", \"Все контейнеры.\"]], \"mistake\": \"`docker ps` — упавший контейнер там не виден.\"}"
                 }
               ],
               "theory_full": "## Зачем тестировщику Docker\n\n«У меня работает, а в CI падает» — классика. Причина почти всегда в окружении: другая версия Python, не та библиотека, другая база. **Docker** упаковывает приложение вместе с окружением, и оно одинаково запускается на ноутбуке, в CI и на сервере. Тестировщику Docker нужен каждый день:\n\n- поднять тестируемое приложение и его базу одной командой;\n- запускать автотесты в одинаковом окружении — локально и в CI;\n- получить «чистую» базу для каждого прогона и выбросить её после.\n\n## Образ и контейнер\n\n- **Образ (image)** — неизменяемый шаблон: файловая система с Python, библиотеками и кодом плюс команда запуска. Пример: `python:3.12-slim`, `postgres:16`.\n- **Контейнер** — запущенный экземпляр образа: изолированный процесс со своей файловой системой, сетью и переменными окружения. Из одного образа можно запустить сколько угодно контейнеров.\n- Аналогия: образ — класс, контейнер — объект.\n\nКонтейнер — не виртуальная машина: он использует ядро хоста, поэтому стартует за доли секунды и весит мегабайты, а не гигабайты.\n\n## Имя и тег\n\n`postgres:16` — имя образа и **тег** (версия) после двоеточия. Без тега подставляется `latest` — это просто «тег по умолчанию», а не «самая новая версия». В CI всегда указывай конкретный тег: `latest` завтра может оказаться другим, и тесты сломаются «сами собой».\n\n## Основные команды\n\n```bash\ndocker pull postgres:16            # скачать образ\ndocker run --rm hello-world        # запустить; --rm удалит контейнер после завершения\ndocker ps                          # запущенные контейнеры\ndocker ps -a                       # все, включая остановленные\ndocker stop db                     # остановить\ndocker rm db                       # удалить остановленный\ndocker images                      # локальные образы\n```\n\n`docker run` сам скачивает образ, если его нет локально.\n\n## Код выхода\n\nКод выхода контейнера — код выхода главной команды внутри него. Для CI это главное: `0` — успех, иначе — провал.\n\n- `1` — ошибка приложения (или упавшие тесты pytest);\n- `125` — ошибка самого Docker (неверный флаг);\n- `127` — команда не найдена;\n- `137` — процесс убит сигналом KILL, чаще всего из-за нехватки памяти (OOM).\n\n## Переменные окружения\n\nНастройки тестов (адрес стенда, браузер) передают в контейнер переменными окружения, а код читает их через `os.environ`:\n\n```python\nenv = {\"BASE_URL\": \"http://app:8000\"}\nprint(env.get(\"BASE_URL\", \"http://localhost\"), env.get(\"BROWSER\") or \"chromium\")\n```\n\nВывод: `http://app:8000 chromium`.\n\n## Итог\n\n- Образ — шаблон, контейнер — запущенный экземпляр.\n- Тег фиксирует версию; `latest` в CI не используем.\n- `pull`, `run --rm`, `ps -a`, `stop`, `rm`, `images`.\n- Код выхода контейнера = код команды внутри; `137` — OOM.",
@@ -147,7 +155,8 @@
                   "code": "import shlex\n\ncmd = 'docker run --rm -e \"GREETING=Привет мир\" -p 8080:80 nginx'\nargs = shlex.split(cmd)\nprint(len(args))\nprint(args[4])\nprint(args[-1])\n",
                   "expected_output": "8\nGREETING=Привет мир\nnginx",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Кавычки не дают разрезать значение с пробелом — `shlex` разбирает команду так же, как оболочка.\", \"lines\": [[\"args = shlex.split(cmd)\", \"Аргументы.\"], [\"print(len(args))\", \"docker, run, --rm, -e, значение, -p, порты, nginx.\"], [\"print(args[4])\", \"Значение с пробелом — один аргумент.\"]], \"mistake\": \"Считать по пробелам — получится 9.\"}"
                 },
                 {
                   "slug": "dkr-run-e2",
@@ -157,7 +166,8 @@
                   "expected_output": "docker run -d --name web -p 8080:80 nginx\nre:docker\\ run (?=(?:.* )?\\-d(?: |$))(?=(?:.* )?\\-\\-name\\ web(?: |$))(?=(?:.* )?\\-p\\ 8080:80(?: |$))(?:\\S+ )*nginx",
                   "solution": "docker run -d --name web -p 8080:80 nginx",
                   "hint": "`-d` — в фоне, `--name` — имя, `-p хост:контейнер`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-d` — в фоне, `--name` — имя, `-p хост:контейнер` — проброс порта.\", \"lines\": [[\"docker run -d\", \"Фон.\"], [\"--name web\", \"Имя.\"], [\"-p 8080:80\", \"8080 хоста → 80 контейнера.\"], [\"nginx\", \"Образ — последним.\"]], \"mistake\": \"`-p 80:8080` — порядок наоборот.\"}"
                 },
                 {
                   "slug": "dkr-run-e3",
@@ -167,7 +177,8 @@
                   "expected_output": "docker run --rm -e BASE_URL=http://stage.test my-tests\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-e\\ BASE_URL=http://stage\\.test(?: |$))(?:\\S+ )*my\\-tests\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-\\-env\\ BASE_URL=http://stage\\.test(?: |$))(?:\\S+ )*my\\-tests",
                   "solution": "docker run --rm -e BASE_URL=http://stage.test my-tests",
                   "hint": "`-e ИМЯ=значение`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-e ИМЯ=значение` — переменная внутри контейнера.\", \"lines\": [[\"docker run --rm\", \"Удалить после.\"], [\"-e BASE_URL=http://stage.test\", \"Адрес стенда.\"], [\"my-tests\", \"Образ.\"]], \"mistake\": \"Переменная после имени образа — уйдёт аргументом команды.\"}"
                 },
                 {
                   "slug": "dkr-run-e4",
@@ -177,7 +188,8 @@
                   "expected_output": "docker run --rm -v $(pwd)/reports:/app/reports my-tests\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-v\\ \\$\\(pwd\\)/reports:/app/reports(?: |$))(?:\\S+ )*my\\-tests\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-v\\ \"\\$\\(pwd\\)/reports:/app/reports\"(?: |$))(?:\\S+ )*my\\-tests\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-v\\ \\$\\{PWD\\}/reports:/app/reports(?: |$))(?:\\S+ )*my\\-tests\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-v\\ \\./reports:/app/reports(?: |$))(?:\\S+ )*my\\-tests",
                   "solution": "docker run --rm -v $(pwd)/reports:/app/reports my-tests",
                   "hint": "`-v путь_на_хосте:путь_в_контейнере`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-v хост:контейнер` монтирует папку: отчёты из контейнера окажутся на хосте.\", \"lines\": [[\"-v $(pwd)/reports:/app/reports\", \"`$(pwd)` — абсолютный путь текущей папки.\"]], \"mistake\": \"Без тома отчёты исчезнут вместе с контейнером (`--rm`).\"}"
                 },
                 {
                   "slug": "dkr-run-e5",
@@ -187,7 +199,8 @@
                   "tests": "def test_two_parts():\n    assert parse_port(\"8080:80\") == {\"ip\": \"0.0.0.0\", \"host\": 8080, \"container\": 80}, parse_port(\"8080:80\")\n\ndef test_three_parts():\n    got = parse_port(\"127.0.0.1:5432:5432\")\n    assert got == {\"ip\": \"127.0.0.1\", \"host\": 5432, \"container\": 5432}, got\n",
                   "solution": "def parse_port(spec):\n    parts = spec.split(\":\")\n    ip = parts[0] if len(parts) == 3 else \"0.0.0.0\"\n    return {\"ip\": ip, \"host\": int(parts[-2]), \"container\": int(parts[-1])}\n",
                   "hint": "`spec.split(\":\")` — две или три части; хост и контейнер — всегда две последние.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Две или три части через `:` — с последнего конца всегда хост и контейнер.\", \"lines\": [[\"parts = spec.split(\\\":\\\")\", \"Части.\"], [\"ip = parts[0] if len(parts) == 3 else \\\"0.0.0.0\\\"\", \"IP — только в длинной форме.\"], [\"return {\\\"ip\\\": ip, \\\"host\\\": int(parts[-2]), \\\"container\\\": int(parts[-1])}\", \"Отрицательные индексы.\"]], \"mistake\": \"`parts[0]` как порт хоста — в длинной форме это IP.\"}"
                 },
                 {
                   "slug": "dkr-run-e6",
@@ -197,7 +210,8 @@
                   "tests": "def test_flags():\n    got = env_flags({\"HEADLESS\": \"true\", \"BASE_URL\": \"http://app\"})\n    assert got == [\"-e\", \"BASE_URL=http://app\", \"-e\", \"HEADLESS=true\"], got\n\ndef test_empty():\n    assert env_flags({}) == []\n\ndef test_spaces():\n    assert env_flags({\"MSG\": \"Привет мир\"}) == [\"-e\", \"MSG=Привет мир\"], \"Пробел в значении — не повод делить аргумент\"\n",
                   "solution": "def env_flags(env):\n    result = []\n    for name in sorted(env):\n        result += [\"-e\", f\"{name}={env[name]}\"]\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Для `subprocess` каждый флаг и значение — отдельный элемент списка.\", \"lines\": [[\"for name in sorted(env):\", \"По алфавиту.\"], [\"result += [\\\"-e\\\", f\\\"{name}={env[name]}\\\"]\", \"Два элемента на переменную.\"]], \"mistake\": \"`\\\"-e NAME=value\\\"` одной строкой — Docker увидит неизвестный флаг.\"}"
                 },
                 {
                   "slug": "dkr-run-e7",
@@ -206,7 +220,8 @@
                   "code": "running = {}\nfor name, spec in [(\"web\", \"8080:80\"), (\"api\", \"8000:8000\"), (\"web2\", \"8080:80\")]:\n    host = int(spec.split(\":\")[0])\n    if host in running:\n        print(f\"{name}: порт {host} занят контейнером {running[host]}\")\n    else:\n        running[host] = name\n        print(f\"{name}: ok\")\n",
                   "expected_output": "web: ok\napi: ok\nweb2: порт 8080 занят контейнером web",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Порт хоста может занять только один контейнер.\", \"lines\": [[\"host = int(spec.split(\\\":\\\")[0])\", \"Порт хоста.\"], [\"if host in running:\", \"Уже занят.\"], [\"running[host] = name\", \"Запоминаем владельца.\"]], \"mistake\": \"Думать, что конфликтует порт контейнера — внутри у каждого свой.\"}"
                 },
                 {
                   "slug": "dkr-run-e8",
@@ -216,7 +231,8 @@
                   "expected_output": "docker run --rm -it python:3.12-slim bash\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-it(?: |$))(?:\\S+ )*python:3\\.12\\-slim\\ bash\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-it(?: |$))(?:\\S+ )*python:3\\.12\\-slim\\ sh\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-i(?: |$))(?=(?:.* )?\\-t(?: |$))(?:\\S+ )*python:3\\.12\\-slim\\ bash",
                   "solution": "docker run --rm -it python:3.12-slim bash",
                   "hint": "`-it` — интерактивно с терминалом, команда — после образа.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-it` — интерактивный режим с терминалом; команда после образа заменяет стандартную.\", \"lines\": [[\"docker run --rm -it\", \"Терминал, удалить после выхода.\"], [\"python:3.12-slim bash\", \"Образ и команда.\"]], \"mistake\": \"Без `-it` — bash сразу завершится.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nКонтейнер изолирован: у него своя сеть и своя файловая система. Чтобы открыть приложение в браузере, передать тестам адрес стенда и забрать отчёты, нужно явно «пробросить» порты, переменные и папки.\n\n## Анатомия docker run\n\n```bash\ndocker run -d --name web -p 8080:80 -e MODE=test -v $(pwd)/data:/data nginx:1.27\n```\n\n- `-d` — в фоне (detached); без него контейнер занимает терминал и показывает вывод.\n- `--name web` — имя вместо случайного; по нему потом `docker logs web`, `docker stop web`.\n- `-p 8080:80` — порт **хоста**:порт **контейнера**. Открываешь `http://localhost:8080` — попадаешь на 80-й порт контейнера. `-p 127.0.0.1:5432:5432` — слушать только локально.\n- `-e ИМЯ=значение` — переменная окружения (можно много `-e`).\n- `-v путь_хоста:путь_контейнера` — **том** (bind mount): папка хоста видна внутри контейнера. Так тесты кладут отчёты наружу: `-v $(pwd)/reports:/app/reports`.\n- `--rm` — удалить контейнер после завершения (для одноразовых запусков вроде тестов).\n- `-it` — интерактивно, с терминалом: `docker run --rm -it python:3.12-slim bash`.\n- Всё, что **после имени образа**, — команда и её аргументы внутри контейнера.\n\nПорядок флагов не важен, но все флаги Docker — **до** имени образа.\n\n## Один порт хоста — один контейнер\n\nДва контейнера не могут опубликовать один и тот же порт хоста: второй `docker run -p 8080:80` упадёт с ошибкой «port is already allocated». Порты **внутри** контейнеров при этом могут совпадать — у каждого своя сеть.\n\n## Аргументы и кавычки\n\nОболочка режет команду по пробелам, кавычки держат значение целым:\n\n```python\nimport shlex\n\nprint(shlex.split('docker run -e \"MSG=Привет мир\" alpine'))\n```\n\nВывод: `['docker', 'run', '-e', 'MSG=Привет мир', 'alpine']`. Из Python команду запускают списком — `subprocess.run([\"docker\", \"run\", ...])`: тогда резать ничего не нужно, и пробелы в значениях не ломают аргументы.\n\n## Итог\n\n- `-d` фон, `--name` имя, `-p хост:контейнер`, `-e` переменная, `-v хост:контейнер` папка, `--rm` одноразовый, `-it` интерактивный.\n- Флаги Docker — до образа, команда контейнера — после.\n- Порт хоста может занять только один контейнер.",
@@ -269,7 +285,8 @@
                   "expected_output": "docker logs --tail 50 app\ndocker logs -n 50 app\ndocker logs --tail=50 app\ndocker logs app --tail 50\ndocker logs -n50 app",
                   "solution": "docker logs --tail 50 app",
                   "hint": "`docker logs --tail N имя`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--tail N` — последние N строк логов.\", \"lines\": [[\"docker logs --tail 50 app\", \"Хвост лога.\"]], \"mistake\": \"`docker logs app` — весь лог, может быть огромным.\"}"
                 },
                 {
                   "slug": "dkr-debug-e2",
@@ -279,7 +296,8 @@
                   "expected_output": "docker logs -f app\ndocker logs --follow app\ndocker logs app -f",
                   "solution": "docker logs -f app",
                   "hint": "Флаг `-f`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-f` (follow) — следить за логом.\", \"lines\": [[\"docker logs -f app\", \"Новые строки по мере записи.\"]], \"mistake\": \"Перезапускать `docker logs` вручную.\"}"
                 },
                 {
                   "slug": "dkr-debug-e3",
@@ -289,7 +307,8 @@
                   "expected_output": "docker exec -it db bash\ndocker exec -it db sh\ndocker container exec -it db bash",
                   "solution": "docker exec -it db bash",
                   "hint": "`docker exec -it имя команда`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`exec` запускает команду в уже работающем контейнере.\", \"lines\": [[\"docker exec -it db bash\", \"Оболочка внутри.\"]], \"mistake\": \"`docker run -it db bash` — создаст новый контейнер из образа «db».\"}"
                 },
                 {
                   "slug": "dkr-debug-e4",
@@ -299,7 +318,8 @@
                   "expected_output": "docker inspect -f '{{.State.ExitCode}}' app\ndocker inspect -f \"{{.State.ExitCode}}\" app\ndocker inspect --format '{{.State.ExitCode}}' app\ndocker inspect --format \"{{.State.ExitCode}}\" app\ndocker inspect --format='{{.State.ExitCode}}' app",
                   "solution": "docker inspect -f '{{.State.ExitCode}}' app",
                   "hint": "`docker inspect -f 'шаблон' имя`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`inspect -f` с Go-шаблоном выводит одно поле.\", \"lines\": [[\"docker inspect -f '{{.State.ExitCode}}' app\", \"Только код выхода.\"]], \"mistake\": \"Двойные фигурные скобки забыть — шаблон не сработает.\"}"
                 },
                 {
                   "slug": "dkr-debug-e5",
@@ -309,7 +329,8 @@
                   "tests": "OUT = '''CONTAINER ID   IMAGE         STATUS                     NAMES\n3f2a1b9c8d7e   postgres:16   Up 2 hours                 db\n9a8b7c6d5e4f   my-tests      Exited (1) 5 minutes ago   tests\n'''\n\ndef test_parse():\n    got = parse_ps(OUT)\n    assert got == [\n        {\"image\": \"postgres:16\", \"status\": \"Up 2 hours\", \"name\": \"db\"},\n        {\"image\": \"my-tests\", \"status\": \"Exited (1) 5 minutes ago\", \"name\": \"tests\"},\n    ], got\n",
                   "solution": "import re\n\n\ndef parse_ps(output):\n    rows = []\n    for line in output.strip().splitlines()[1:]:\n        _id, image, status, name = re.split(r\"\\s{2,}\", line.strip())\n        rows.append({\"image\": image, \"status\": status, \"name\": name})\n    return rows\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Колонки разделены двумя и более пробелами — по этому правилу и режем.\", \"lines\": [[\"for line in output.strip().splitlines()[1:]:\", \"Без заголовка.\"], [\"_id, image, status, name = re.split(r\\\"\\\\s{2,}\\\", line.strip())\", \"Внутри статуса одиночные пробелы сохранятся.\"]], \"mistake\": \"`line.split()` — статус «Up 2 hours» развалится на части.\"}"
                 },
                 {
                   "slug": "dkr-debug-e6",
@@ -319,7 +340,8 @@
                   "tests": "def test_crashed():\n    lines = [\"db|Up 2 hours\", \"tests|Exited (1) 1 minute ago\", \"migrate|Exited (0) 3 minutes ago\", \"app|Exited (137) 5 seconds ago\"]\n    assert crashed(lines) == [\"tests\", \"app\"], crashed(lines)\n\ndef test_none():\n    assert crashed([\"db|Up 1 hour\", \"job|Exited (0) now\"]) == []\n",
                   "solution": "import re\n\n\ndef crashed(lines):\n    names = []\n    for line in lines:\n        name, status = line.split(\"|\", 1)\n        m = re.match(r\"Exited \\((\\d+)\\)\", status)\n        if m and m.group(1) != \"0\":\n            names.append(name)\n    return names\n",
                   "hint": "Код — число в скобках после «Exited»: `re.match(r\"Exited \\((\\d+)\\)\", status)`.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Код выхода — в скобках после `Exited`; ноль — нормальное завершение.\", \"lines\": [[\"name, status = line.split(\\\"|\\\", 1)\", \"Имя и статус.\"], [\"m = re.match(r\\\"Exited \\\\((\\\\d+)\\\\)\\\", status)\", \"Код в скобках.\"], [\"if m and m.group(1) != \\\"0\\\":\", \"Ненулевой — упал.\"]], \"mistake\": \"Считать упавшими все Exited — `Exited (0)` это успех.\"}"
                 },
                 {
                   "slug": "dkr-debug-e7",
@@ -328,7 +350,8 @@
                   "code": "import json\n\nraw = '''[{\"Name\": \"/app\", \"State\": {\"Status\": \"exited\", \"ExitCode\": 137, \"OOMKilled\": true}}]'''\ninfo = json.loads(raw)[0]\nstate = info[\"State\"]\nprint(info[\"Name\"].lstrip(\"/\"), state[\"Status\"], state[\"ExitCode\"])\nif state[\"OOMKilled\"]:\n    print(\"не хватило памяти\")\n",
                   "expected_output": "app exited 137\nне хватило памяти",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`docker inspect` — JSON-массив; состояние контейнера в `State`.\", \"lines\": [[\"info = json.loads(raw)[0]\", \"Первый (единственный) контейнер.\"], [\"print(info[\\\"Name\\\"].lstrip(\\\"/\\\"), state[\\\"Status\\\"], state[\\\"ExitCode\\\"])\", \"Имя без слеша.\"], [\"if state[\\\"OOMKilled\\\"]:\", \"Убит из-за памяти.\"]], \"mistake\": \"Забыть `[0]` — `inspect` всегда возвращает список.\"}"
                 },
                 {
                   "slug": "dkr-debug-e8",
@@ -338,7 +361,8 @@
                   "tests": "def test_errors():\n    log = \"INFO start\\nERROR db timeout\\nINFO retry\\nTraceback (most recent call last):\"\n    assert find_errors(log) == [(2, \"ERROR db timeout\"), (4, \"Traceback (most recent call last):\")], find_errors(log)\n\ndef test_clean():\n    assert find_errors(\"INFO ok\\nINFO done\") == []\n",
                   "solution": "def find_errors(log):\n    return [(i, line) for i, line in enumerate(log.splitlines(), 1)\n            if \"ERROR\" in line or line.startswith(\"Traceback\")]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`enumerate(..., 1)` — номера строк с единицы.\", \"lines\": [[\"return [(i, line) for i, line in enumerate(log.splitlines(), 1)\", \"Номер и строка.\"], [\"if \\\"ERROR\\\" in line or line.startswith(\\\"Traceback\\\")]\", \"Два признака.\"]], \"mistake\": \"Нумерация с 0.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nТест упал с «Connection refused», а виноват контейнер базы, который не стартовал. Умение быстро заглянуть в контейнеры — половина работы с тестовыми стендами.\n\n## Кто жив\n\n```bash\ndocker ps -a\nCONTAINER ID   IMAGE         STATUS                     NAMES\n3f2a1b9c8d7e   postgres:16   Up 2 hours                 db\n9a8b7c6d5e4f   my-tests      Exited (1) 5 minutes ago   tests\n```\n\n- `Up …` — работает; `Exited (N)` — завершился с кодом N; `Restarting` — падает и перезапускается по кругу.\n- Формат вывода можно задать: `docker ps -a --format \"{{.Names}}|{{.Status}}\"` — удобно разбирать скриптом.\n\n## Логи — первое, что смотреть\n\n```bash\ndocker logs app                # всё, что процесс писал в stdout/stderr\ndocker logs --tail 50 app      # последние 50 строк\ndocker logs -f app             # следить в реальном времени (Ctrl+C — выйти)\ndocker logs --since 10m app    # за последние 10 минут\n```\n\nПриложения в контейнерах пишут логи в stdout — поэтому `docker logs` работает и для упавшего контейнера (пока его не удалили `--rm`).\n\n## Зайти внутрь\n\n```bash\ndocker exec -it db bash                    # оболочка в работающем контейнере\ndocker exec db psql -U postgres -c '\\dt'   # одна команда без оболочки\n```\n\nВ «тонких» образах `bash` может не быть — тогда `sh`. `exec` работает только для **запущенного** контейнера; для упавшего смотри логи или запусти образ заново с `bash`.\n\n## inspect\n\n`docker inspect` отдаёт всё о контейнере в JSON: состояние, код выхода, переменные, тома, сеть.\n\n```bash\ndocker inspect -f '{{.State.ExitCode}}' app      # только код выхода\ndocker inspect -f '{{.State.OOMKilled}}' app     # убит из-за памяти?\n```\n\n```python\nimport json\n\nstate = json.loads('[{\"State\": {\"Status\": \"exited\", \"ExitCode\": 1}}]')[0][\"State\"]\nprint(state[\"Status\"], state[\"ExitCode\"])\n```\n\nВывод: `exited 1`.\n\n## Ресурсы\n\n- `docker stats` — CPU и память контейнеров в реальном времени.\n- `docker top app` — процессы внутри.\n\n## Итог\n\n- `docker ps -a` — кто жив; `Exited (N)` — код выхода.\n- `docker logs --tail/-f` — первым делом.\n- `docker exec -it имя bash` — внутрь работающего.\n- `docker inspect -f '{{…}}'` — точные факты о состоянии.",
@@ -390,7 +414,8 @@
                   "code": "ref = \"ghcr.io/acme/shop-tests:1.4.2\"\npath, _, tag = ref.rpartition(\":\")\nregistry, *repo = path.split(\"/\")\nprint(registry)\nprint(\"/\".join(repo))\nprint(tag)\n",
                   "expected_output": "ghcr.io\nacme/shop-tests\n1.4.2",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Тег — после последнего двоеточия; реестр — первая часть пути.\", \"lines\": [[\"path, _, tag = ref.rpartition(\\\":\\\")\", \"С конца — в адресе реестра тоже может быть `:`.\"], [\"registry, *repo = path.split(\\\"/\\\")\", \"Первая часть и остальное.\"], [\"print(\\\"/\\\".join(repo))\", \"acme/shop-tests.\"]], \"mistake\": \"`partition` — для `localhost:5000/…` тег определится неправильно.\"}"
                 },
                 {
                   "slug": "dkr-registry-e2",
@@ -400,7 +425,8 @@
                   "tests": "def test_cases():\n    assert parse_ref(\"ghcr.io/acme/tests:1.4\") == {\"registry\": \"ghcr.io\", \"repo\": \"acme/tests\", \"tag\": \"1.4\"}, parse_ref(\"ghcr.io/acme/tests:1.4\")\n    assert parse_ref(\"postgres\") == {\"registry\": \"docker.io\", \"repo\": \"postgres\", \"tag\": \"latest\"}, parse_ref(\"postgres\")\n    assert parse_ref(\"localhost:5000/app:dev\") == {\"registry\": \"localhost:5000\", \"repo\": \"app\", \"tag\": \"dev\"}, parse_ref(\"localhost:5000/app:dev\")\n\ndef test_hub_namespace():\n    assert parse_ref(\"acme/tests:2\") == {\"registry\": \"docker.io\", \"repo\": \"acme/tests\", \"tag\": \"2\"}, parse_ref(\"acme/tests:2\")\n",
                   "solution": "def parse_ref(ref):\n    parts = ref.split(\"/\")\n    registry = \"docker.io\"\n    if len(parts) > 1 and (\".\" in parts[0] or \":\" in parts[0] or parts[0] == \"localhost\"):\n        registry = parts.pop(0)\n    last = parts[-1]\n    tag = \"latest\"\n    if \":\" in last:\n        last, tag = last.rsplit(\":\", 1)\n    parts[-1] = last\n    return {\"registry\": registry, \"repo\": \"/\".join(parts), \"tag\": tag}\n",
                   "hint": "Двоеточие в `localhost:5000` — порт реестра, а не тег: тег ищи только в последней части после `/`.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Первая часть — реестр, только если похожа на адрес; иначе Docker Hub.\", \"lines\": [[\"if len(parts) > 1 and (\\\".\\\" in parts[0] or \\\":\\\" in parts[0] or parts[0] == \\\"localhost\\\"):\", \"Признаки адреса.\"], [\"registry = parts.pop(0)\", \"Убираем реестр из пути.\"], [\"last, tag = last.rsplit(\\\":\\\", 1)\", \"Тег — у последней части.\"]], \"mistake\": \"Считать `acme` реестром в `acme/tests`.\"}"
                 },
                 {
                   "slug": "dkr-registry-e3",
@@ -410,7 +436,8 @@
                   "tests": "def test_pinned():\n    for ref in [\"postgres:16\", \"nginx@sha256:4c0fdaa8b634\", \"ghcr.io/acme/tests:1.4\", \"localhost:5000/app:dev\"]:\n        assert is_pinned(ref) is True, f\"{ref} — версия зафиксирована\"\n\ndef test_not_pinned():\n    for ref in [\"postgres\", \"nginx:latest\", \"localhost:5000/app\", \"acme/tests\"]:\n        assert is_pinned(ref) is False, f\"{ref} — версия не зафиксирована\"\n",
                   "solution": "def is_pinned(ref):\n    if \"@sha256:\" in ref:\n        return True\n    last = ref.split(\"/\")[-1]\n    return \":\" in last and last.rsplit(\":\", 1)[1] != \"latest\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Зафиксирован дайджестом или конкретным тегом; `latest` и отсутствие тега — нет.\", \"lines\": [[\"if \\\"@sha256:\\\" in ref:\\n        return True\", \"Дайджест — самый надёжный.\"], [\"last = ref.split(\\\"/\\\")[-1]\", \"Тег ищем в последней части.\"], [\"return \\\":\\\" in last and last.rsplit(\\\":\\\", 1)[1] != \\\"latest\\\"\", \"Тег и не latest.\"]], \"mistake\": \"Искать `:` во всей ссылке — сработает на порт реестра.\"}"
                 },
                 {
                   "slug": "dkr-registry-e4",
@@ -420,7 +447,8 @@
                   "expected_output": "docker tag my-tests:latest ghcr.io/acme/my-tests:1.0\ndocker image tag my-tests:latest ghcr.io/acme/my-tests:1.0\ndocker tag my-tests ghcr.io/acme/my-tests:1.0",
                   "solution": "docker tag my-tests:latest ghcr.io/acme/my-tests:1.0",
                   "hint": "`docker tag источник новое_имя`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`docker tag` даёт образу ещё одно имя — нужное для реестра.\", \"lines\": [[\"docker tag my-tests:latest ghcr.io/acme/my-tests:1.0\", \"Старое имя → новое.\"]], \"mistake\": \"Пересобирать образ ради нового имени.\"}"
                 },
                 {
                   "slug": "dkr-registry-e5",
@@ -430,7 +458,8 @@
                   "expected_output": "docker login ghcr.io",
                   "solution": "docker login ghcr.io",
                   "hint": "`docker login реестр`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`docker login адрес` — вход в реестр.\", \"lines\": [[\"docker login ghcr.io\", \"Логин и токен спросит сама.\"]], \"mistake\": \"Писать пароль в команде — останется в истории.\"}"
                 },
                 {
                   "slug": "dkr-registry-e6",
@@ -440,7 +469,8 @@
                   "expected_output": "docker push ghcr.io/acme/my-tests:1.0\ndocker image push ghcr.io/acme/my-tests:1.0",
                   "solution": "docker push ghcr.io/acme/my-tests:1.0",
                   "hint": "`docker push имя:тег`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`docker push` отправляет образ по его имени.\", \"lines\": [[\"docker push ghcr.io/acme/my-tests:1.0\", \"Имя определяет реестр.\"]], \"mistake\": \"Пушить без тега с реестром — уйдёт на Docker Hub.\"}"
                 },
                 {
                   "slug": "dkr-registry-e7",
@@ -450,7 +480,8 @@
                   "tests": "def test_numeric():\n    assert latest_version([\"1.2.0\", \"1.10.1\", \"latest\", \"1.9.9\", \"dev\"]) == \"1.10.1\", latest_version([\"1.2.0\", \"1.10.1\", \"latest\", \"1.9.9\", \"dev\"])\n    assert latest_version([\"2.0.0\", \"10.0.0\", \"9.99.99\"]) == \"10.0.0\"\n\ndef test_none():\n    assert latest_version([\"latest\", \"1.2\", \"v1.0.0\"]) is None\n",
                   "solution": "import re\n\n\ndef latest_version(tags):\n    versions = [t for t in tags if re.fullmatch(r\"\\d+\\.\\d+\\.\\d+\", t)]\n    if not versions:\n        return None\n    return max(versions, key=lambda t: tuple(int(x) for x in t.split(\".\")))\n",
                   "hint": "`max(..., key=lambda t: tuple(int(x) for x in t.split(\".\")))` — кортежи сравниваются по частям.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Отбираем `X.Y.Z` и сравниваем кортежами чисел.\", \"lines\": [[\"versions = [t for t in tags if re.fullmatch(r\\\"\\\\d+\\\\.\\\\d+\\\\.\\\\d+\\\", t)]\", \"Только полные версии.\"], [\"return max(versions, key=lambda t: tuple(int(x) for x in t.split(\\\".\\\")))\", \"Числовое сравнение.\"]], \"mistake\": \"`max(versions)` по строкам — «1.9.9» больше «1.10.0».\"}"
                 },
                 {
                   "slug": "dkr-registry-e8",
@@ -460,7 +491,8 @@
                   "expected_output": "docker images\ndocker image ls\ndocker image list",
                   "solution": "docker images",
                   "hint": "`docker images`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`docker images` — локальные образы.\", \"lines\": [[\"docker images\", \"Список с размерами.\"]], \"mistake\": \"`docker ps` — это контейнеры.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nОбраз с автотестами собрали в CI — теперь его нужно куда-то положить, чтобы запускать на разных машинах и стендах. Образы хранят в **реестрах** (registry): Docker Hub, GitHub Container Registry (ghcr.io), GitLab Registry, корпоративный Harbor или Nexus.\n\n## Полное имя образа\n\n```bash\nghcr.io/acme/shop-tests:1.4.2\n└──┬──┘ └────┬────────┘ └─┬─┘\nреестр   репозиторий      тег\n```\n\n- Нет реестра в начале → Docker Hub (`docker.io`): `postgres:16` = `docker.io/library/postgres:16`.\n- Реестр распознаётся по точке или порту в первой части: `ghcr.io/…`, `localhost:5000/…`. Двоеточие в `localhost:5000` — порт, а не тег.\n- **Дайджест** `@sha256:…` — точный отпечаток содержимого: `nginx@sha256:4c0f…`. Тег можно перезаписать, дайджест — нет.\n\n## Работа с реестром\n\n```bash\ndocker login ghcr.io                                    # вход (логин + токен)\ndocker tag my-tests:latest ghcr.io/acme/my-tests:1.0    # второе имя для локального образа\ndocker push ghcr.io/acme/my-tests:1.0                   # отправить\ndocker pull ghcr.io/acme/my-tests:1.0                   # скачать на другой машине\n```\n\n`docker tag` не копирует образ — просто добавляет ещё одно имя тому же образу.\n\n## Версии и теги\n\n- Семантические версии `MAJOR.MINOR.PATCH`: `1.10.0` новее `1.9.9`. Сравнивать нужно по числам, а не строками.\n- Часто образ помечают несколькими тегами сразу: `1.4.2`, `1.4`, `latest`, плюс хеш коммита `sha-3f2a1b9` — чтобы точно знать, из какого кода он собран.\n- В тестовых стендах и CI указывай зафиксированную версию или дайджест.\n\n```python\ntags = [\"1.2.0\", \"1.10.1\", \"1.9.9\"]\nprint(max(tags))\nprint(max(tags, key=lambda t: tuple(int(x) for x in t.split(\".\"))))\n```\n\nВывод: `1.9.9` (строками — неверно!) и `1.10.1` (по числам — верно).\n\n## Итог\n\n- Имя: `[реестр/]репозиторий[:тег|@sha256:…]`; без реестра — Docker Hub, без тега — `latest`.\n- `login` → `tag` → `push`; `pull` на другой машине.\n- Версии сравнивай по числам; в CI — только зафиксированные.",
@@ -520,7 +552,8 @@
                   "code": "steps = [\n    (\"FROM python:3.12-slim\", []),\n    (\"COPY requirements.txt .\", [\"requirements.txt\"]),\n    (\"RUN pip install -r requirements.txt\", []),\n    (\"COPY . .\", [\"tests/test_login.py\", \"requirements.txt\"]),\n    ('CMD [\"pytest\"]', []),\n]\nchanged = {\"tests/test_login.py\"}\nfor i, (cmd, files) in enumerate(steps):\n    if changed & set(files):\n        print(i, cmd)\n        break\n",
                   "expected_output": "3 COPY . .",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Слой пересобирается, если изменились его входные файлы; всё после него — тоже.\", \"lines\": [[\"if changed & set(files):\", \"Шаг использует изменённый файл.\"], [\"print(i, cmd)\", \"Первый такой — `COPY . .`.\"]], \"mistake\": \"Думать, что пересоберётся установка зависимостей — requirements.txt не менялся.\"}"
                 },
                 {
                   "slug": "dci-m1-l2-e2",
@@ -530,7 +563,8 @@
                   "tests": "def test_parse():\n    text = \"# тесты\\nFROM python:3.12\\n\\nworkdir /app\\nRUN pip install -r requirements.txt\\n\"\n    assert parse_dockerfile(text) == [(\"FROM\", \"python:3.12\"), (\"WORKDIR\", \"/app\"), (\"RUN\", \"pip install -r requirements.txt\")], \\\n        f\"Получено {parse_dockerfile(text)}\"\n",
                   "solution": "def parse_dockerfile(text):\n    result = []\n    for line in text.splitlines():\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        instr, _, args = line.partition(\" \")\n        result.append((instr.upper(), args.strip()))\n    return result\n",
                   "hint": "`line.partition(\" \")` делит строку по первому пробелу.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Строка Dockerfile: инструкция и аргументы; комментарии и пустые пропускаем.\", \"lines\": [[\"if not line or line.startswith(\\\"#\\\"):\\n            continue\", \"Пропуск.\"], [\"instr, _, args = line.partition(\\\" \\\")\", \"Первое слово.\"], [\"result.append((instr.upper(), args.strip()))\", \"Инструкция — заглавными.\"]], \"mistake\": \"`split()` — аргументы разобьются на слова.\"}"
                 },
                 {
                   "slug": "dci-m1-l2-e3",
@@ -540,7 +574,8 @@
                   "tests": "def _instructions(text):\n    result = []\n    for line in text.splitlines():\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        instr, _, args = line.partition(\" \")\n        result.append((instr.upper(), args.strip()))\n    return result\n\n\ndef test_from():\n    ins = _instructions(DOCKERFILE)\n    assert ins and ins[0] == (\"FROM\", \"python:3.12-slim\"), \"Первая инструкция — FROM python:3.12-slim\"\n\ndef test_workdir():\n    assert (\"WORKDIR\", \"/app\") in _instructions(DOCKERFILE), \"Нужен WORKDIR /app\"\n\ndef test_cache_order():\n    ins = _instructions(DOCKERFILE)\n    names = [f\"{i} {a}\" for i, a in ins]\n    req = next((k for k, s in enumerate(names) if s.startswith(\"COPY requirements.txt\")), None)\n    pip = next((k for k, s in enumerate(names) if s.startswith(\"RUN pip install -r requirements.txt\")), None)\n    code = next((k for k, s in enumerate(names) if s.startswith(\"COPY . \")), None)\n    assert None not in (req, pip, code), \"Нужны COPY requirements.txt, RUN pip install -r requirements.txt и COPY . .\"\n    assert req < pip < code, \"Порядок для кэша: COPY requirements.txt → RUN pip install → COPY . .\"\n\ndef test_cmd():\n    ins = _instructions(DOCKERFILE)\n    assert ins[-1][0] == \"CMD\" and \"pytest\" in ins[-1][1], \"Последняя инструкция — CMD с pytest\"\n",
                   "solution": "DOCKERFILE = \"\"\"\nFROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install -r requirements.txt\nCOPY . .\nCMD [\"pytest\", \"-v\"]\n\"\"\"\n",
                   "hint": "Шесть строк: FROM, WORKDIR, COPY requirements.txt ., RUN pip install -r requirements.txt, COPY . ., CMD [\"pytest\"].",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Сначала копируем только requirements и ставим зависимости — этот слой кэшируется, пока зависимости не меняются.\", \"lines\": [[\"FROM python:3.12-slim\", \"Базовый образ.\"], [\"COPY requirements.txt .\", \"Только список зависимостей.\"], [\"RUN pip install -r requirements.txt\", \"Кэшируемый слой.\"], [\"CMD [\\\"pytest\\\", \\\"-v\\\"]\", \"Команда по умолчанию.\"]], \"mistake\": \"`COPY . .` до установки — любая правка теста переустановит все пакеты.\"}"
                 },
                 {
                   "slug": "dci-m1-l2-e4",
@@ -550,7 +585,8 @@
                   "tests": "STEPS = [\n    (\"FROM python:3.12-slim\", []),\n    (\"COPY requirements.txt .\", [\"requirements.txt\"]),\n    (\"RUN pip install -r requirements.txt\", []),\n    (\"COPY . .\", [\"app.py\", \"requirements.txt\", \"tests/test_api.py\"]),\n]\n\ndef test_code_change():\n    assert first_rebuilt(STEPS, {\"tests/test_api.py\"}) == 3, \"Изменение теста пересобирает с COPY . .\"\n\ndef test_requirements_change():\n    assert first_rebuilt(STEPS, {\"requirements.txt\"}) == 1, \"Изменение зависимостей — с COPY requirements.txt\"\n\ndef test_nothing():\n    assert first_rebuilt(STEPS, {\"README.md\"}) is None, \"Файл не используется в сборке → None\"\n",
                   "solution": "def first_rebuilt(steps, changed):\n    for i, (_, files) in enumerate(steps):\n        if changed & set(files):\n            return i\n    return None\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Первый шаг, который использует изменённый файл, — с него начинается пересборка.\", \"lines\": [[\"if changed & set(files):\\n            return i\", \"Пересечение множеств.\"], [\"return None\", \"Ничего не пересобирается.\"]], \"mistake\": \"Возвращать последний подходящий шаг.\"}"
                 },
                 {
                   "slug": "dci-m1-l2-e5",
@@ -560,7 +596,8 @@
                   "tests": "PATTERNS = [\".git\", \".venv\", \"__pycache__\", \"*.pyc\", \"reports\"]\n\ndef test_ignored():\n    assert ignored(\".git/config\", PATTERNS), \".git исключается\"\n    assert ignored(\"app/__pycache__/x.cpython.pyc\", PATTERNS), \"__pycache__ исключается\"\n    assert ignored(\"tests/old.pyc\", PATTERNS), \"*.pyc исключается\"\n\ndef test_kept():\n    assert not ignored(\"tests/test_api.py\", PATTERNS), \"Тесты должны попасть в образ\"\n    assert not ignored(\"requirements.txt\", PATTERNS), \"requirements.txt нужен\"\n",
                   "solution": "from fnmatch import fnmatch\n\ndef ignored(path, patterns):\n    return any(fnmatch(part, p) for part in path.split(\"/\") for p in patterns)\n",
                   "hint": "`path.split(\"/\")` даёт части пути; `fnmatch(\"x.pyc\", \"*.pyc\")` → True.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Исключаем файл, если хоть одна часть пути подходит под шаблон.\", \"lines\": [[\"return any(fnmatch(part, p) for part in path.split(\\\"/\\\") for p in patterns)\", \"Все части × все шаблоны.\"]], \"mistake\": \"Проверять весь путь — `__pycache__` в середине пути не совпадёт.\"}"
                 },
                 {
                   "slug": "dci-m1-l2-e6",
@@ -570,7 +607,8 @@
                   "expected_output": "docker build -t my-tests .\ndocker build --tag my-tests .\ndocker build . -t my-tests\ndocker image build -t my-tests .",
                   "solution": "docker build -t my-tests .",
                   "hint": "`docker build -t имя .` — точка в конце: контекст сборки.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-t` — имя образа, `.` — контекст сборки (текущая папка).\", \"lines\": [[\"docker build -t my-tests .\", \"Не забыть точку.\"]], \"mistake\": \"Без `.` — «requires 1 argument».\"}"
                 },
                 {
                   "slug": "dci-m1-l2-e7",
@@ -580,7 +618,8 @@
                   "expected_output": "docker build --no-cache -t my-tests .\nre:docker\\ build (?=(?:.* )?\\-\\-no\\-cache(?: |$))(?=(?:.* )?\\-t\\ my\\-tests(?: |$))(?:\\S+ )*\\.\nre:docker\\ build (?=(?:.* )?\\-\\-no\\-cache(?: |$))(?=(?:.* )?\\-\\-tag\\ my\\-tests(?: |$))(?:\\S+ )*\\.",
                   "solution": "docker build --no-cache -t my-tests .",
                   "hint": "Флаг `--no-cache`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--no-cache` — собрать все слои заново.\", \"lines\": [[\"docker build --no-cache -t my-tests .\", \"Без кэша.\"]], \"mistake\": \"Удалять образ ради пересборки.\"}"
                 },
                 {
                   "slug": "dci-m1-l2-e8",
@@ -590,7 +629,8 @@
                   "expected_output": "docker history my-tests\ndocker image history my-tests",
                   "solution": "docker history my-tests",
                   "hint": "`docker history образ`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`docker history` — слои образа и их размер.\", \"lines\": [[\"docker history my-tests\", \"Какой шаг сколько весит.\"]], \"mistake\": \"`docker inspect` — метаданные, а не слои с размерами.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nГотовых образов для твоих автотестов нет — их собирают сами, по рецепту **Dockerfile**. Хороший Dockerfile собирается быстро (кэш), весит мало и одинаково работает везде.\n\n## Dockerfile — рецепт образа\n\n```dockerfile\nFROM python:3.12-slim              # базовый образ\nWORKDIR /app                       # рабочая папка (создастся сама)\nCOPY requirements.txt .            # сначала только зависимости…\nRUN pip install -r requirements.txt\nCOPY . .                           # …потом весь код\nCMD [\"pytest\", \"-v\"]               # что запустить при старте контейнера\n```\n\n- `FROM` — с чего начинаем; всегда первая инструкция (кроме `ARG` перед ней).\n- `WORKDIR` — `cd` внутри образа для всех следующих инструкций и для запуска.\n- `COPY откуда куда` — файлы из **контекста сборки** (папки, переданной в `docker build`) в образ.\n- `RUN` — выполнить команду **при сборке** (установить пакеты).\n- `CMD` — команда **при запуске** контейнера.\n\n```bash\ndocker build -t my-tests .     # . — контекст сборки: текущая папка\ndocker run --rm my-tests\n```\n\n## Слои и кэш\n\nКаждая инструкция создаёт **слой**. При пересборке Docker идёт по инструкциям и берёт слои из кэша, пока ничего не изменилось. Как только инструкция или файлы, которые она копирует, изменились, пересобирается этот слой и **все после него**.\n\nПоэтому зависимости копируют **отдельно и раньше кода**: код тестов меняется постоянно, `requirements.txt` — редко. Правка теста пересоберёт только `COPY . .`, а долгий `pip install` возьмётся из кэша. Если написать `COPY . .` до `pip install`, любая правка будет заново ставить все библиотеки.\n\n```bash\ndocker history my-tests         # слои образа и их размер\ndocker build --no-cache -t my-tests .   # собрать без кэша\n```\n\n## .dockerignore\n\nВсё содержимое контекста отправляется Docker'у при сборке, а `COPY . .` копирует его в образ. Лишнее исключают файлом `.dockerignore` (синтаксис как у `.gitignore`):\n\n```bash\n.git\n.venv\n__pycache__\n*.pyc\n.pytest_cache\nreports\nallure-results\n```\n\nМеньше контекст — быстрее сборка, меньше образ, и правка отчётов не сбивает кэш `COPY . .`.\n\n## Итог\n\n- `FROM`, `WORKDIR`, `COPY`, `RUN` (сборка), `CMD` (запуск).\n- Слой меняется — пересобирается он и всё после; зависимости — до кода.\n- `.dockerignore` убирает мусор из контекста.",
@@ -642,7 +682,8 @@
                   "code": "import json\nimport shlex\n\nexec_form = '[\"pytest\", \"-v\", \"-m\", \"smoke and not slow\"]'\nshell_form = 'pytest -v -m \"smoke and not slow\"'\nprint(json.loads(exec_form))\nprint(shlex.split(shell_form))\nprint(json.loads(exec_form) == shlex.split(shell_form))\n",
                   "expected_output": "['pytest', '-v', '-m', 'smoke and not slow']\n['pytest', '-v', '-m', 'smoke and not slow']\nTrue",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Exec-форма — JSON-список, shell-форма — строка для оболочки; разобранные, они совпадают.\", \"lines\": [[\"print(json.loads(exec_form))\", \"Список как есть.\"], [\"print(shlex.split(shell_form))\", \"Кавычки собрали выражение в один аргумент.\"]], \"mistake\": \"Думать, что shell-форма разрежет `smoke and not slow` — кавычки этого не дают.\"}"
                 },
                 {
                   "slug": "dkr-instructions-e2",
@@ -652,7 +693,8 @@
                   "tests": "def test_rules():\n    assert final_command([\"pytest\"], [\"-v\"], []) == [\"pytest\", \"-v\"]\n    assert final_command([\"pytest\"], [\"-v\"], [\"-m\", \"smoke\"]) == [\"pytest\", \"-m\", \"smoke\"], \"Аргументы run заменяют CMD\"\n    assert final_command([], [\"pytest\", \"-v\"], [\"bash\"]) == [\"bash\"], \"Без ENTRYPOINT аргументы run — вся команда\"\n    assert final_command([\"pytest\"], [], []) == [\"pytest\"]\n",
                   "solution": "def final_command(entrypoint, cmd, run_args):\n    return entrypoint + (run_args or cmd)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Аргументы `docker run` заменяют CMD, ENTRYPOINT остаётся.\", \"lines\": [[\"return entrypoint + (run_args or cmd)\", \"Пустые run_args — берём CMD.\"]], \"mistake\": \"Складывать run_args и cmd вместе.\"}"
                 },
                 {
                   "slug": "dkr-instructions-e3",
@@ -662,7 +704,8 @@
                   "tests": "def _instructions(text):\n    result = []\n    for line in text.splitlines():\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        instr, _, args = line.partition(\" \")\n        result.append((instr.upper(), args.strip()))\n    return result\n\n\ndef test_arg_before_from():\n    ins = _instructions(DOCKERFILE)\n    assert ins[0] == (\"ARG\", \"PYTHON_VERSION=3.12\"), \"Первая строка — ARG PYTHON_VERSION=3.12\"\n    assert ins[1] == (\"FROM\", \"python:${PYTHON_VERSION}-slim\"), \"Затем FROM python:${PYTHON_VERSION}-slim\"\n\ndef test_env():\n    assert (\"ENV\", \"BASE_URL=http://app:8000\") in _instructions(DOCKERFILE), \"Нужен ENV BASE_URL=http://app:8000\"\n\ndef test_entrypoint_cmd():\n    import json\n    ins = dict(_instructions(DOCKERFILE))\n    assert json.loads(ins.get(\"ENTRYPOINT\", \"null\")) == [\"pytest\"], 'ENTRYPOINT [\"pytest\"] в exec-форме'\n    assert json.loads(ins.get(\"CMD\", \"null\")) == [\"-v\"], 'CMD [\"-v\"] в exec-форме'\n    assert (\"RUN\", \"pip install -r requirements.txt\") in _instructions(DOCKERFILE), \"Установи зависимости\"\n",
                   "solution": "DOCKERFILE = \"\"\"\nARG PYTHON_VERSION=3.12\nFROM python:${PYTHON_VERSION}-slim\nWORKDIR /app\nCOPY . .\nRUN pip install -r requirements.txt\nENV BASE_URL=http://app:8000\nENTRYPOINT [\"pytest\"]\nCMD [\"-v\"]\n\"\"\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"ARG до FROM — им можно параметризовать базовый образ; ENV — переменная по умолчанию внутри контейнера.\", \"lines\": [[\"ARG PYTHON_VERSION=3.12\", \"Аргумент сборки.\"], [\"FROM python:${PYTHON_VERSION}-slim\", \"Подстановка.\"], [\"ENV BASE_URL=http://app:8000\", \"Стенд по умолчанию.\"], [\"ENTRYPOINT [\\\"pytest\\\"]\", \"Всегда pytest; CMD — его аргументы.\"]], \"mistake\": \"ARG после FROM — в строке FROM он ещё не определён.\"}"
                 },
                 {
                   "slug": "dkr-instructions-e4",
@@ -672,7 +715,8 @@
                   "expected_output": "docker build --build-arg PYTHON_VERSION=3.11 -t my-tests .\nre:docker\\ build (?=(?:.* )?\\-\\-build\\-arg\\ PYTHON_VERSION=3\\.11(?: |$))(?=(?:.* )?\\-t\\ my\\-tests(?: |$))(?:\\S+ )*\\.\nre:docker\\ build (?=(?:.* )?\\-\\-build\\-arg\\ PYTHON_VERSION=3\\.11(?: |$))(?=(?:.* )?\\-\\-tag\\ my\\-tests(?: |$))(?:\\S+ )*\\.",
                   "solution": "docker build --build-arg PYTHON_VERSION=3.11 -t my-tests .",
                   "hint": "`--build-arg ИМЯ=значение`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--build-arg` задаёт значение ARG при сборке.\", \"lines\": [[\"docker build --build-arg PYTHON_VERSION=3.11\", \"Другая версия.\"], [\"-t my-tests .\", \"Имя и контекст.\"]], \"mistake\": \"`-e` — это для запуска, а не для сборки.\"}"
                 },
                 {
                   "slug": "dkr-instructions-e5",
@@ -682,7 +726,8 @@
                   "tests": "BAD = \"FROM python\\nADD . /app\\nRUN pip install -r requirements.txt\\nCMD [\\\"pytest\\\"]\"\nGOOD = \"# ok\\nFROM python:3.12-slim\\nCOPY . /app\\nRUN pip install --no-cache-dir -r requirements.txt\\nUSER nobody\\nCMD [\\\"pytest\\\"]\"\n\ndef test_bad():\n    assert lint_dockerfile(BAD) == [\"add\", \"latest\", \"no-user\", \"pip-cache\"], lint_dockerfile(BAD)\n\ndef test_good():\n    assert lint_dockerfile(GOOD) == [], lint_dockerfile(GOOD)\n\ndef test_latest_tag():\n    assert \"latest\" in lint_dockerfile(\"from node:latest\\nuser node\")\n",
                   "solution": "def lint_dockerfile(text):\n    problems = set()\n    has_user = False\n    for line in text.splitlines():\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        instr, _, args = line.partition(\" \")\n        instr = instr.upper()\n        if instr == \"FROM\":\n            image = args.split()[0]\n            last = image.split(\"/\")[-1]\n            if \":\" not in last or last.endswith(\":latest\"):\n                problems.add(\"latest\")\n        elif instr == \"ADD\":\n            problems.add(\"add\")\n        elif instr == \"USER\":\n            has_user = True\n        elif instr == \"RUN\" and \"pip install\" in args and \"--no-cache-dir\" not in args:\n            problems.add(\"pip-cache\")\n    if not has_user:\n        problems.add(\"no-user\")\n    return sorted(problems)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Проходим инструкции и копим коды проблем во множество.\", \"lines\": [[\"if \\\":\\\" not in last or last.endswith(\\\":latest\\\"):\", \"Нет тега или latest.\"], [\"elif instr == \\\"ADD\\\":\", \"ADD вместо COPY.\"], [\"elif instr == \\\"RUN\\\" and \\\"pip install\\\" in args and \\\"--no-cache-dir\\\" not in args:\", \"Кэш pip раздует образ.\"], [\"if not has_user:\\n        problems.add(\\\"no-user\\\")\", \"Контейнер от root.\"]], \"mistake\": \"Проверять тег по всей строке FROM — сломается на `--platform` или реестре с портом.\"}"
                 },
                 {
                   "slug": "dkr-instructions-e6",
@@ -691,7 +736,8 @@
                   "code": "dockerfile_env = {\"BASE_URL\": \"http://app:8000\", \"HEADLESS\": \"true\"}\nrun_env = {\"BASE_URL\": \"http://stage.test\", \"BROWSER\": \"firefox\"}\nenv = {**dockerfile_env, **run_env}\nfor name in sorted(env):\n    print(f\"{name}={env[name]}\")\n",
                   "expected_output": "BASE_URL=http://stage.test\nBROWSER=firefox\nHEADLESS=true",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-e` при запуске перекрывает ENV из Dockerfile — как правый словарь при слиянии.\", \"lines\": [[\"env = {**dockerfile_env, **run_env}\", \"run_env — поверх.\"], [\"print(f\\\"{name}={env[name]}\\\")\", \"По алфавиту.\"]], \"mistake\": \"Ожидать BASE_URL из Dockerfile.\"}"
                 },
                 {
                   "slug": "dkr-instructions-e7",
@@ -701,7 +747,8 @@
                   "expected_output": "docker run --rm my-tests -m smoke\nre:docker run --rm my-tests -m (smoke|'smoke'|\\\"smoke\\\")",
                   "solution": "docker run --rm my-tests -m smoke",
                   "hint": "Всё после имени образа заменяет CMD, а ENTRYPOINT остаётся.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Аргументы после образа заменяют CMD: `pytest` + `-m smoke`.\", \"lines\": [[\"docker run --rm my-tests -m smoke\", \"ENTRYPOINT остаётся.\"]], \"mistake\": \"`docker run --rm my-tests pytest -m smoke` — получится `pytest pytest -m smoke`.\"}"
                 },
                 {
                   "slug": "dkr-instructions-e8",
@@ -711,7 +758,8 @@
                   "tests": "def test_expand():\n    env = {\"PY\": \"3.12\", \"EMPTY\": \"\"}\n    assert expand(\"python:${PY}-slim\", env) == \"python:3.12-slim\"\n    assert expand(\"${URL:-http://app:8000}/api\", env) == \"http://app:8000/api\"\n    assert expand(\"[${EMPTY:-x}] [${NOPE}]\", env) == \"[x] []\", expand(\"[${EMPTY:-x}] [${NOPE}]\", env)\n    assert expand(\"no vars\", env) == \"no vars\"\n",
                   "solution": "import re\n\n\ndef expand(text, env):\n    def replace(m):\n        name, default = m.group(1), m.group(2)\n        value = env.get(name, \"\")\n        if default is not None and not value:\n            return default\n        return value\n    return re.sub(r\"\\$\\{(\\w+)(?::-([^}]*))?\\}\", replace, text)\n",
                   "hint": "В функции-замене `m.group(2)` — значение по умолчанию или `None`, если его нет.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Регулярка ловит `${ИМЯ}` и необязательную часть `:-значение`; функция решает, что подставить.\", \"lines\": [[\"value = env.get(name, \\\"\\\")\", \"Нет переменной — пусто.\"], [\"if default is not None and not value:\\n            return default\", \"Пусто и есть значение по умолчанию.\"], [\"return re.sub(r\\\"\\\\$\\\\{(\\\\w+)(?::-([^}]*))?\\\\}\\\", replace, text)\", \"Все вхождения.\"]], \"mistake\": \"Подставлять default только при отсутствии — `:-` срабатывает и на пустом значении.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nОдин и тот же образ с тестами хочется запускать по-разному: на разных стендах, разным набором (`smoke` или весь регресс), с разными версиями Python. Для этого Dockerfile делают **настраиваемым**.\n\n## ENV и ARG\n\n```dockerfile\nARG PYTHON_VERSION=3.12\nFROM python:${PYTHON_VERSION}-slim\nENV BASE_URL=http://app:8000 \\\n    HEADLESS=true\n```\n\n- `ARG` — переменная **сборки**: `docker build --build-arg PYTHON_VERSION=3.11 .`. В запущенном контейнере её нет. Чтобы использовать в `FROM`, объявляй до него.\n- `ENV` — переменная **окружения** контейнера со значением по умолчанию; `docker run -e BASE_URL=…` её переопределяет.\n- Подстановка `${VAR}` и `${VAR:-по_умолчанию}` работает и в Dockerfile, и в compose.\n\n## CMD и ENTRYPOINT\n\n```dockerfile\nENTRYPOINT [\"pytest\"]\nCMD [\"-v\"]\n```\n\n- Контейнер выполняет `ENTRYPOINT + CMD` → `pytest -v`.\n- Аргументы после имени образа **заменяют CMD**: `docker run --rm my-tests -m smoke` → `pytest -m smoke`.\n- Без `ENTRYPOINT` аргументы заменяют всю команду: `docker run --rm my-tests bash`.\n- Итого: `ENTRYPOINT` — что запускаем всегда, `CMD` — аргументы по умолчанию.\n\n## Exec-форма и shell-форма\n\n```dockerfile\nCMD [\"pytest\", \"-v\"]      # exec-форма: JSON-список, процесс запускается напрямую\nCMD pytest -v             # shell-форма: строка, выполняется через /bin/sh -c\n```\n\nПредпочитай exec-форму: процесс получает сигналы остановки (`docker stop` завершит pytest аккуратно), а аргументы не портятся кавычками. Exec-форма — строгий JSON: только **двойные** кавычки.\n\n```python\nimport json\n\nprint(json.loads('[\"pytest\", \"-m\", \"smoke and not slow\"]'))\n```\n\nВывод: `['pytest', '-m', 'smoke and not slow']`.\n\n## Другие инструкции\n\n- `USER nobody` — дальше работать не от root (безопаснее).\n- `EXPOSE 8000` — документирует порт приложения (сам ничего не публикует; публикует `-p`).\n- `ADD` — как `COPY`, но умеет распаковывать архивы и качать URL; для обычных файлов используют `COPY`.\n- `LABEL`, `HEALTHCHECK`, `VOLUME` — метаданные, проверка здоровья, тома.\n\n## Итог\n\n- `ARG` — при сборке (`--build-arg`), `ENV` — в контейнере (`-e` переопределяет).\n- `ENTRYPOINT` + `CMD`; аргументы `docker run` заменяют `CMD`.\n- Exec-форма `[\"…\"]` лучше shell-формы.",
@@ -764,7 +812,8 @@
                   "tests": "def _instructions(text):\n    result = []\n    for line in text.splitlines():\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        instr, _, args = line.partition(\" \")\n        result.append((instr.upper(), args.strip()))\n    return result\n\n\ndef test_layers():\n    ins = _instructions(DOCKERFILE)\n    names = [f\"{i} {a}\" for i, a in ins]\n    assert names[0] == \"FROM python:3.12-slim\" and \"WORKDIR /app\" in names, \"FROM python:3.12-slim и WORKDIR /app\"\n    req = names.index(\"COPY requirements.txt .\") if \"COPY requirements.txt .\" in names else None\n    pip = next((k for k, s in enumerate(names) if s.startswith(\"RUN pip install\") and \"-r requirements.txt\" in s), None)\n    code = names.index(\"COPY . .\") if \"COPY . .\" in names else None\n    assert None not in (req, pip, code) and req < pip < code, \"Порядок: COPY requirements.txt . → RUN pip install → COPY . .\"\n    assert \"--no-cache-dir\" in names[pip], \"pip install с --no-cache-dir\"\n\ndef test_cmd():\n    import json\n    instr, args = _instructions(DOCKERFILE)[-1]\n    assert instr == \"CMD\", \"Последняя инструкция — CMD\"\n    argv = json.loads(args)\n    assert argv[0] == \"pytest\" and \"--junitxml=reports/junit.xml\" in argv, f'CMD [\"pytest\", \"--junitxml=reports/junit.xml\"], а сейчас {argv}'\n",
                   "solution": "DOCKERFILE = \"\"\"\nFROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nCMD [\"pytest\", \"--junitxml=reports/junit.xml\"]\n\"\"\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Зависимости — отдельным слоем и без кэша pip; отчёт JUnit — в папку, которую потом смонтируют.\", \"lines\": [[\"COPY requirements.txt .\", \"Сначала только зависимости.\"], [\"RUN pip install --no-cache-dir -r requirements.txt\", \"Кэш pip не попадёт в образ.\"], [\"CMD [\\\"pytest\\\", \\\"--junitxml=reports/junit.xml\\\"]\", \"Exec-форма.\"]], \"mistake\": \"Shell-форма CMD — сигналы остановки не дойдут до pytest.\"}"
                 },
                 {
                   "slug": "dkr-tests-e2",
@@ -774,7 +823,8 @@
                   "expected_output": "docker run --rm -e BASE_URL=http://stage.test -v $(pwd)/reports:/app/reports my-tests\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-e\\ BASE_URL=http://stage\\.test(?: |$))(?=(?:.* )?\\-v\\ \\$\\(pwd\\)/reports:/app/reports(?: |$))(?:\\S+ )*my\\-tests\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-e\\ BASE_URL=http://stage\\.test(?: |$))(?=(?:.* )?\\-v\\ \\$\\{PWD\\}/reports:/app/reports(?: |$))(?:\\S+ )*my\\-tests\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-e\\ BASE_URL=http://stage\\.test(?: |$))(?=(?:.* )?\\-v\\ \"\\$\\(pwd\\)/reports:/app/reports\"(?: |$))(?:\\S+ )*my\\-tests\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-e\\ BASE_URL=http://stage\\.test(?: |$))(?=(?:.* )?\\-v\\ \\./reports:/app/reports(?: |$))(?:\\S+ )*my\\-tests",
                   "solution": "docker run --rm -e BASE_URL=http://stage.test -v $(pwd)/reports:/app/reports my-tests",
                   "hint": "`-e` для переменной и `-v` для папки.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Стенд — переменной, отчёты — томом; контейнер удалится, а отчёты останутся.\", \"lines\": [[\"-e BASE_URL=http://stage.test\", \"Адрес стенда.\"], [\"-v $(pwd)/reports:/app/reports\", \"Отчёты на хост.\"], [\"my-tests\", \"Образ — последним.\"]], \"mistake\": \"Забыть том — отчёты пропадут вместе с контейнером.\"}"
                 },
                 {
                   "slug": "dkr-tests-e3",
@@ -784,7 +834,8 @@
                   "expected_output": "docker run --rm my-tests pytest -m smoke\nre:docker run --rm my-tests pytest -m (smoke|'smoke'|\\\"smoke\\\")",
                   "solution": "docker run --rm my-tests pytest -m smoke",
                   "hint": "Команда после имени образа заменяет CMD целиком.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Команда после образа заменяет CMD целиком.\", \"lines\": [[\"docker run --rm my-tests\", \"Образ.\"], [\"pytest -m smoke\", \"Новая команда.\"]], \"mistake\": \"`docker run --rm my-tests -m smoke` — при CMD без ENTRYPOINT Docker попробует запустить `-m`.\"}"
                 },
                 {
                   "slug": "dkr-tests-e4",
@@ -794,7 +845,8 @@
                   "tests": "NEED = {\".git\", \".venv\", \"__pycache__\", \"*.pyc\", \"reports\", \"allure-results\", \".pytest_cache\"}\n\ndef test_patterns():\n    got = {line.strip() for line in DOCKERIGNORE.splitlines() if line.strip() and not line.strip().startswith(\"#\")}\n    missing = NEED - got\n    assert not missing, f\"Не хватает: {sorted(missing)}\"\n",
                   "solution": "DOCKERIGNORE = \"\"\"\n.git\n.venv\n__pycache__\n*.pyc\n.pytest_cache\nreports\nallure-results\n\"\"\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`.dockerignore` исключает файлы из контекста сборки: быстрее сборка, меньше образ, нет мусора.\", \"lines\": [[\".git\", \"История не нужна в образе.\"], [\".venv\", \"Окружение хоста.\"], [\"*.pyc\", \"Шаблоны работают.\"]], \"mistake\": \"Не исключить `.venv` — в образ уедут сотни мегабайт.\"}"
                 },
                 {
                   "slug": "dkr-tests-e5",
@@ -804,7 +856,8 @@
                   "tests": "def test_full():\n    got = docker_test_cmd(\"my-tests\", \"/ci/reports\", {\"BASE_URL\": \"http://stage\"}, [\"pytest\", \"-m\", \"smoke\"])\n    assert got == [\"docker\", \"run\", \"--rm\", \"-v\", \"/ci/reports:/app/reports\", \"-e\", \"BASE_URL=http://stage\", \"my-tests\", \"pytest\", \"-m\", \"smoke\"], got\n\ndef test_sorted_env():\n    got = docker_test_cmd(\"t\", \"/r\", {\"B\": \"2\", \"A\": \"1\"}, [])\n    assert got == [\"docker\", \"run\", \"--rm\", \"-v\", \"/r:/app/reports\", \"-e\", \"A=1\", \"-e\", \"B=2\", \"t\"], got\n",
                   "solution": "def docker_test_cmd(image, reports, env, args):\n    cmd = [\"docker\", \"run\", \"--rm\", \"-v\", f\"{reports}:/app/reports\"]\n    for name in sorted(env):\n        cmd += [\"-e\", f\"{name}={env[name]}\"]\n    return cmd + [image, *args]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Список аргументов для `subprocess`: флаги, переменные по алфавиту, образ, затем аргументы команды.\", \"lines\": [[\"cmd = [\\\"docker\\\", \\\"run\\\", \\\"--rm\\\", \\\"-v\\\", f\\\"{reports}:/app/reports\\\"]\", \"Основа.\"], [\"cmd += [\\\"-e\\\", f\\\"{name}={env[name]}\\\"]\", \"Каждая переменная — два элемента.\"], [\"return cmd + [image, *args]\", \"`*args` распаковывает список.\"]], \"mistake\": \"`cmd + [image, args]` — список окажется одним элементом.\"}"
                 },
                 {
                   "slug": "dkr-tests-e6",
@@ -813,7 +866,8 @@
                   "code": "def container_exit(results):\n    return 0 if all(r == \"passed\" for r in results.values()) else 1\n\nfor run in [{\"test_login\": \"passed\", \"test_cart\": \"passed\"},\n            {\"test_login\": \"passed\", \"test_cart\": \"failed\"}]:\n    code = container_exit(run)\n    print(code, \"зелёный\" if code == 0 else \"красный\")\n",
                   "expected_output": "0 зелёный\n1 красный",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"CI смотрит только на код выхода: `docker run` возвращает код команды внутри контейнера.\", \"lines\": [[\"return 0 if all(r == \\\"passed\\\" for r in results.values()) else 1\", \"Все прошли — 0.\"]], \"mistake\": \"Ожидать, что CI прочитает текст отчёта.\"}"
                 },
                 {
                   "slug": "dkr-tests-e7",
@@ -823,7 +877,8 @@
                   "tests": "def _instructions(text):\n    result = []\n    for line in text.splitlines():\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        instr, _, args = line.partition(\" \")\n        result.append((instr.upper(), args.strip()))\n    return result\n\n\ndef test_from():\n    ins = _instructions(DOCKERFILE)\n    assert ins and ins[0][0] == \"FROM\", \"Первая инструкция — FROM\"\n    image = ins[0][1]\n    assert image.startswith(\"mcr.microsoft.com/playwright/python:\"), \"Базовый образ — mcr.microsoft.com/playwright/python\"\n    assert not image.endswith(\":latest\"), \"Зафиксируй версию, не latest\"\n\ndef test_rest():\n    import json\n    ins = _instructions(DOCKERFILE)\n    assert (\"WORKDIR\", \"/app\") in ins and (\"COPY\", \"requirements.txt .\") in ins and (\"COPY\", \". .\") in ins\n    assert any(i == \"RUN\" and \"pip install\" in a and \"--no-cache-dir\" in a for i, a in ins), \"pip install --no-cache-dir\"\n    assert ins[-1][0] == \"CMD\" and json.loads(ins[-1][1]) == [\"pytest\", \"--browser\", \"chromium\"], 'CMD [\"pytest\", \"--browser\", \"chromium\"]'\n",
                   "solution": "DOCKERFILE = \"\"\"\nFROM mcr.microsoft.com/playwright/python:v1.47.0-noble\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nCMD [\"pytest\", \"--browser\", \"chromium\"]\n\"\"\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Официальный образ Playwright уже содержит браузеры; версию фиксируем.\", \"lines\": [[\"FROM mcr.microsoft.com/playwright/python:v1.47.0-noble\", \"Зафиксированный тег.\"], [\"CMD [\\\"pytest\\\", \\\"--browser\\\", \\\"chromium\\\"]\", \"Запуск UI-тестов.\"]], \"mistake\": \"`FROM python` + установка браузеров вручную — долго и много зависимостей.\"}"
                 },
                 {
                   "slug": "dkr-tests-e8",
@@ -833,7 +888,8 @@
                   "expected_output": "echo $?",
                   "solution": "echo $?",
                   "hint": "Специальная переменная оболочки `$?`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`$?` — код выхода последней команды, в том числе `docker run`.\", \"lines\": [[\"echo $?\", \"0 — тесты прошли.\"]], \"mistake\": \"`docker ps` — код выхода там не виден.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nАвтотесты в контейнере запускаются одинаково у всех: у тебя, у коллеги, в CI. Не нужно «поставь Python 3.12, потом вот эти пакеты, потом браузер» — только `docker run`.\n\n## Образ для автотестов\n\n```dockerfile\nFROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nCMD [\"pytest\", \"--junitxml=reports/junit.xml\"]\n```\n\n- `--no-cache-dir` — pip не хранит скачанные пакеты: образ меньше.\n- Отчёт пишется в `reports/` — эту папку пробрасывают наружу томом.\n\n## Запуск\n\n```bash\ndocker build -t my-tests .\ndocker run --rm \\\n  -e BASE_URL=http://stage.test \\\n  -v $(pwd)/reports:/app/reports \\\n  my-tests\necho $?                                    # код выхода: 0 — все тесты прошли\ndocker run --rm my-tests pytest -m smoke   # свой набор вместо CMD\n```\n\n- Адрес стенда — переменной окружения, тесты читают `os.environ[\"BASE_URL\"]`.\n- Отчёты — томом, иначе они исчезнут вместе с контейнером.\n- Код выхода `docker run` = код выхода pytest, и CI поймёт, прошли ли тесты.\n\n## UI-тесты: образ с браузерами\n\nСтавить браузеры и их системные библиотеки руками долго. У Playwright есть официальный образ, где всё уже есть:\n\n```dockerfile\nFROM mcr.microsoft.com/playwright/python:v1.47.0-noble\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nCMD [\"pytest\", \"--browser\", \"chromium\"]\n```\n\nВерсия образа должна совпадать с версией пакета `playwright` в `requirements.txt` — иначе браузеры не подойдут.\n\n## Контейнер тестов и стенд\n\n- Стенд на хосте → в контейнере `localhost` — это сам контейнер, а не хост! На Mac/Windows хост доступен как `host.docker.internal`.\n- Стенд в других контейнерах → общая сеть и адрес по имени сервиса (`http://app:8000`) — это делает Compose (модуль 3).\n\n## Итог\n\n- Образ тестов: зависимости слоем, `--no-cache-dir`, `CMD` с pytest и отчётом.\n- `-e` — стенд, `-v` — отчёты, аргументы после образа — свой набор тестов.\n- Код выхода контейнера = результат тестов для CI.\n- UI-тесты — на официальном образе Playwright той же версии.",
@@ -885,7 +941,8 @@
                   "code": "layers = [\n    (\"FROM python:3.12-slim\", 125.4),\n    (\"RUN pip install -r requirements.txt\", 310.2),\n    (\"COPY . .\", 1.6),\n]\ntotal = sum(size for _, size in layers)\nprint(f\"{total:.1f} MB\")\nbiggest = max(layers, key=lambda layer: layer[1])\nprint(biggest[0])\n",
                   "expected_output": "437.2 MB\nRUN pip install -r requirements.txt",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Размер образа — сумма слоёв; самый тяжёлый обычно — установка зависимостей.\", \"lines\": [[\"total = sum(size for _, size in layers)\", \"Сумма.\"], [\"print(f\\\"{total:.1f} MB\\\")\", \"Один знак.\"], [\"biggest = max(layers, key=lambda layer: layer[1])\", \"По размеру.\"]], \"mistake\": \"`max(layers)` — сравнит команды по алфавиту.\"}"
                 },
                 {
                   "slug": "dkr-optimize-e2",
@@ -895,7 +952,8 @@
                   "tests": "def test_top():\n    layers = [(\"FROM\", 125), (\"RUN apt-get\", 210), (\"COPY\", 2), (\"RUN pip\", 310)]\n    assert biggest_layers(layers, 2) == [\"RUN pip\", \"RUN apt-get\"], biggest_layers(layers, 2)\n    assert biggest_layers(layers, 10) == [\"RUN pip\", \"RUN apt-get\", \"FROM\", \"COPY\"]\n",
                   "solution": "def biggest_layers(layers, n):\n    ordered = sorted(layers, key=lambda layer: layer[1], reverse=True)\n    return [command for command, _ in ordered[:n]]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Сортируем по размеру по убыванию и берём первые n команд.\", \"lines\": [[\"ordered = sorted(layers, key=lambda layer: layer[1], reverse=True)\", \"Тяжёлые первыми.\"], [\"return [command for command, _ in ordered[:n]]\", \"Только команды.\"]], \"mistake\": \"Забыть `reverse=True`.\"}"
                 },
                 {
                   "slug": "dkr-optimize-e3",
@@ -905,7 +963,8 @@
                   "tests": "def _instructions(text):\n    result = []\n    for line in text.splitlines():\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        instr, _, args = line.partition(\" \")\n        result.append((instr.upper(), args.strip()))\n    return result\n\n\ndef test_stages():\n    froms = [a for i, a in _instructions(DOCKERFILE) if i == \"FROM\"]\n    assert len(froms) == 2, f\"Нужно два этапа (два FROM), а сейчас {len(froms)}\"\n    assert froms[0].replace(\" as \", \" AS \").endswith(\" AS builder\"), \"Первый этап: FROM ... AS builder\"\n    assert froms[1] == \"python:3.12-slim\", \"Финальный этап — python:3.12-slim\"\n\ndef test_copy_from():\n    ins = _instructions(DOCKERFILE)\n    assert any(i == \"COPY\" and a.startswith(\"--from=builder\") for i, a in ins), \"Скопируй результат: COPY --from=builder ...\"\n    assert any(i == \"USER\" and a != \"root\" for i, a in ins), \"Запускай не от root: USER nobody\"\n    assert ins[-1][0] == \"CMD\", \"Последняя инструкция — CMD\"\n",
                   "solution": "DOCKERFILE = \"\"\"\nFROM python:3.12 AS builder\nWORKDIR /build\nCOPY requirements.txt .\nRUN pip wheel --no-cache-dir -r requirements.txt -w /wheels\n\nFROM python:3.12-slim\nWORKDIR /app\nCOPY --from=builder /wheels /wheels\nRUN pip install --no-cache-dir /wheels/*\nCOPY . .\nUSER nobody\nCMD [\"pytest\"]\n\"\"\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Многоэтапная сборка: тяжёлый этап собирает колёса, лёгкий берёт только их.\", \"lines\": [[\"FROM python:3.12 AS builder\", \"Этап с компиляторами.\"], [\"RUN pip wheel --no-cache-dir -r requirements.txt -w /wheels\", \"Готовые пакеты.\"], [\"COPY --from=builder /wheels /wheels\", \"Только результат.\"], [\"USER nobody\", \"Не от root.\"]], \"mistake\": \"Один этап на полном образе — финальный образ в разы тяжелее.\"}"
                 },
                 {
                   "slug": "dkr-optimize-e4",
@@ -915,7 +974,8 @@
                   "tests": "def test_find():\n    text = \"FROM python:3.12\\nENV BASE_URL=http://app\\nENV DB_PASSWORD=qwerty\\nARG api_token\\n\"\n    assert find_secrets(text) == [\"DB_PASSWORD\", \"api_token\"], find_secrets(text)\n\ndef test_clean():\n    assert find_secrets(\"FROM x\\nENV HEADLESS=true\\nARG PYTHON_VERSION=3.12\\nRUN echo KEY\") == []\n",
                   "solution": "def find_secrets(text):\n    found = []\n    for line in text.splitlines():\n        instr, _, args = line.strip().partition(\" \")\n        if instr.upper() in (\"ENV\", \"ARG\") and args:\n            name = args.split(\"=\")[0].strip()\n            if any(word in name.upper() for word in (\"PASSWORD\", \"TOKEN\", \"SECRET\", \"KEY\")):\n                found.append(name)\n    return found\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Секреты в ENV и ARG видны в `docker history` — ищем подозрительные имена.\", \"lines\": [[\"if instr.upper() in (\\\"ENV\\\", \\\"ARG\\\") and args:\", \"Только эти инструкции.\"], [\"name = args.split(\\\"=\\\")[0].strip()\", \"Имя без значения.\"], [\"if any(word in name.upper() for word in (\\\"PASSWORD\\\", \\\"TOKEN\\\", \\\"SECRET\\\", \\\"KEY\\\")):\", \"Признаки секрета.\"]], \"mistake\": \"Проверять значение — секрет может прийти через `--build-arg`, а имя всё равно выдаёт его.\"}"
                 },
                 {
                   "slug": "dkr-optimize-e5",
@@ -925,7 +985,8 @@
                   "expected_output": "docker image prune\ndocker image prune -f\ndocker image prune --force",
                   "solution": "docker image prune",
                   "hint": "`docker image prune`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`image prune` удаляет висящие образы без тегов.\", \"lines\": [[\"docker image prune\", \"Освободить место.\"]], \"mistake\": \"`docker image prune -a` — удалит и все неиспользуемые образы с тегами.\"}"
                 },
                 {
                   "slug": "dkr-optimize-e6",
@@ -935,7 +996,8 @@
                   "expected_output": "docker system df\ndocker system df -v",
                   "solution": "docker system df",
                   "hint": "`docker system ...`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`docker system df` — сводка по месту.\", \"lines\": [[\"docker system df\", \"Образы, контейнеры, тома, кэш.\"]], \"mistake\": \"`df -h` — место на диске целиком, без разбивки Docker.\"}"
                 },
                 {
                   "slug": "dkr-optimize-e7",
@@ -945,7 +1007,8 @@
                   "tests": "def test_sizes():\n    assert human_size(512) == \"512 B\"\n    assert human_size(2048) == \"2.0 KB\"\n    assert human_size(131_596_288) == \"125.5 MB\", human_size(131_596_288)\n    assert human_size(3 * 1024**3) == \"3.0 GB\"\n    assert human_size(1023) == \"1023 B\"\n",
                   "solution": "def human_size(n):\n    if n < 1024:\n        return f\"{n} B\"\n    for unit in (\"KB\", \"MB\", \"GB\"):\n        n /= 1024\n        if n < 1024 or unit == \"GB\":\n            return f\"{n:.1f} {unit}\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Делим на 1024, пока значение не станет меньше 1024; GB — предел.\", \"lines\": [[\"if n < 1024:\\n        return f\\\"{n} B\\\"\", \"Байты — целым.\"], [\"n /= 1024\", \"Следующая единица.\"], [\"if n < 1024 or unit == \\\"GB\\\":\\n            return f\\\"{n:.1f} {unit}\\\"\", \"Подходящая единица.\"]], \"mistake\": \"Основание 1000 — по условию 1024.\"}"
                 },
                 {
                   "slug": "dkr-optimize-e8",
@@ -955,7 +1018,8 @@
                   "expected_output": "trivy image my-tests:1.0\ndocker scout cves my-tests:1.0",
                   "solution": "trivy image my-tests:1.0",
                   "hint": "`trivy image образ`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Trivy сканирует образ на известные уязвимости пакетов.\", \"lines\": [[\"trivy image my-tests:1.0\", \"Сканирование.\"]], \"mistake\": \"Думать, что официальный базовый образ всегда без уязвимостей.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nОбраз на 2 ГБ скачивается в CI минутами на каждый прогон, а образ с паролем внутри — дыра в безопасности. Размер и безопасность образа — тоже качество.\n\n## Откуда берётся размер\n\nОбраз — сумма слоёв. Посмотреть:\n\n```bash\ndocker history my-tests       # слои и их размер\ndocker images                 # итоговый размер образов\ndocker system df              # сколько места занимает Docker целиком\n```\n\nЧто помогает:\n\n- **slim/alpine-база**: `python:3.12-slim` (~130 МБ) вместо `python:3.12` (~1 ГБ).\n- `pip install --no-cache-dir` и `apt-get install … && rm -rf /var/lib/apt/lists/*` **в одной** инструкции `RUN`: удаление в следующем слое место не вернёт — файлы останутся в предыдущем.\n- `.dockerignore` — не тащить `.git`, `.venv`, отчёты.\n\n## Многоэтапная сборка\n\n```dockerfile\nFROM python:3.12 AS builder\nWORKDIR /build\nCOPY requirements.txt .\nRUN pip wheel --no-cache-dir -r requirements.txt -w /wheels\n\nFROM python:3.12-slim\nWORKDIR /app\nCOPY --from=builder /wheels /wheels\nRUN pip install --no-cache-dir /wheels/*\nCOPY . .\nUSER nobody\nCMD [\"pytest\"]\n```\n\nПервый этап — «толстый» (компиляторы, заголовки), во второй копируется только результат (`COPY --from=builder`). В итоговый образ попадает лишь последний этап.\n\n## Безопасность\n\n- **Не root**: `USER nobody` (или свой пользователь). Уязвимость в зависимости не даст root-доступ.\n- **Никаких секретов в образе**: `ENV DB_PASSWORD=…` и `ARG TOKEN` видны каждому через `docker history` и `docker inspect`. Секреты передают при запуске (`-e`, секреты CI) или через `--secret` при сборке.\n- **Фиксированные версии**: `FROM python:3.12.5-slim`, а не `latest`.\n- **Сканирование уязвимостей**: `trivy image my-tests:1.0` или `docker scout cves my-tests:1.0`.\n\n## Уборка\n\n```bash\ndocker image prune            # висящие образы без тегов\ndocker system prune           # остановленные контейнеры, неиспользуемые сети, висящие образы и кэш\n```\n\n## Итог\n\n- Slim-база, `--no-cache-dir`, установка и уборка в одном `RUN`, `.dockerignore`.\n- Multi-stage: собираем в толстом этапе, копируем результат в тонкий.\n- `USER` не root, секреты — не в образе, версии зафиксированы, образ сканируется.",
@@ -1015,7 +1079,8 @@
                   "code": "import yaml\n\ntext = '''\nservices:\n  app:\n    image: shop-app:1.0\n    ports:\n      - \"8000:8000\"\n  db:\n    image: postgres:16\n'''\ncompose = yaml.safe_load(text)\nprint(list(compose[\"services\"]))\nprint(compose[\"services\"][\"app\"][\"ports\"])\nprint(compose[\"services\"][\"db\"].get(\"ports\", []))\n",
                   "expected_output": "['app', 'db']\n['8000:8000']\n[]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Compose-файл — YAML: словарь сервисов с их настройками.\", \"lines\": [[\"print(list(compose[\\\"services\\\"]))\", \"Имена сервисов.\"], [\"print(compose[\\\"services\\\"][\\\"app\\\"][\\\"ports\\\"])\", \"Порты — список строк.\"], [\"print(compose[\\\"services\\\"][\\\"db\\\"].get(\\\"ports\\\", []))\", \"Нет портов — пустой список.\"]], \"mistake\": \"`[\\\"db\\\"][\\\"ports\\\"]` — KeyError.\"}"
                 },
                 {
                   "slug": "dkr-compose-e2",
@@ -1025,7 +1090,8 @@
                   "tests": "import yaml\n\ndef load():\n    data = yaml.safe_load(COMPOSE)\n    assert isinstance(data, dict) and \"services\" in data, \"Верхний ключ — services\"\n    return data[\"services\"]\n\ndef test_db():\n    db = load().get(\"db\") or {}\n    assert db.get(\"image\") == \"postgres:16\", \"db: image postgres:16\"\n    assert (db.get(\"environment\") or {}).get(\"POSTGRES_PASSWORD\") == \"secret\", \"db: POSTGRES_PASSWORD: secret\"\n\ndef test_app():\n    app = load().get(\"app\") or {}\n    assert app.get(\"image\") == \"shop-app:1.0\", \"app: image shop-app:1.0\"\n    assert app.get(\"ports\") == [\"8000:8000\"], f\"app: ports [\\\"8000:8000\\\"], а сейчас {app.get('ports')}\"\n    assert (app.get(\"environment\") or {}).get(\"DATABASE_URL\") == \"postgresql://postgres:secret@db:5432/postgres\", \"app: DATABASE_URL\"\n    assert app.get(\"depends_on\") == [\"db\"], \"app: depends_on: [db]\"\n",
                   "solution": "COMPOSE = \"\"\"\nservices:\n  db:\n    image: postgres:16\n    environment:\n      POSTGRES_PASSWORD: secret\n  app:\n    image: shop-app:1.0\n    ports:\n      - \"8000:8000\"\n    environment:\n      DATABASE_URL: postgresql://postgres:secret@db:5432/postgres\n    depends_on:\n      - db\n\"\"\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Сервисы видят друг друга по имени: адрес базы — `db:5432`.\", \"lines\": [[\"POSTGRES_PASSWORD: secret\", \"Пароль базы.\"], [\"DATABASE_URL: postgresql://postgres:secret@db:5432/postgres\", \"Хост — имя сервиса.\"], [\"depends_on:\", \"app стартует после db.\"]], \"mistake\": \"`localhost` в адресе базы — внутри контейнера app это сам app.\"}"
                 },
                 {
                   "slug": "dkr-compose-e3",
@@ -1035,7 +1101,8 @@
                   "expected_output": "docker compose up -d\ndocker compose up --detach\ndocker-compose up -d",
                   "solution": "docker compose up -d",
                   "hint": "`docker compose up` + флаг фона.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`up -d` поднимает все сервисы в фоне.\", \"lines\": [[\"docker compose up -d\", \"Стенд в фоне.\"]], \"mistake\": \"Без `-d` — терминал занят логами.\"}"
                 },
                 {
                   "slug": "dkr-compose-e4",
@@ -1045,7 +1112,8 @@
                   "expected_output": "docker compose down -v\ndocker compose down --volumes\ndocker-compose down -v",
                   "solution": "docker compose down -v",
                   "hint": "`docker compose down` + флаг томов.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`down -v` удаляет контейнеры, сеть и тома.\", \"lines\": [[\"docker compose down -v\", \"Чистый лист.\"]], \"mistake\": \"`down` без `-v` — данные базы останутся.\"}"
                 },
                 {
                   "slug": "dkr-compose-e5",
@@ -1055,7 +1123,8 @@
                   "expected_output": "docker compose logs -f app\ndocker compose logs --follow app\ndocker-compose logs -f app\ndocker compose logs app -f",
                   "solution": "docker compose logs -f app",
                   "hint": "`docker compose logs -f сервис`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`logs -f сервис` — следить за логами одного сервиса.\", \"lines\": [[\"docker compose logs -f app\", \"Только app.\"]], \"mistake\": \"`docker logs app` — имя контейнера в compose обычно другое.\"}"
                 },
                 {
                   "slug": "dkr-compose-e6",
@@ -1065,7 +1134,8 @@
                   "tests": "def test_order():\n    services = {\"tests\": {\"depends_on\": [\"app\"]}, \"app\": {\"depends_on\": [\"db\", \"cache\"]}, \"db\": {}, \"cache\": {}}\n    assert start_order(services) == [\"cache\", \"db\", \"app\", \"tests\"], start_order(services)\n\ndef test_independent():\n    assert start_order({\"b\": {}, \"a\": {}}) == [\"a\", \"b\"]\n",
                   "solution": "def start_order(services):\n    order = []\n    while len(order) < len(services):\n        ready = [name for name, s in services.items()\n                 if name not in order and all(d in order for d in s.get(\"depends_on\", []))]\n        order.append(min(ready))\n    return order\n",
                   "hint": "Повторяй: из ещё не запущенных выбери тех, чьи зависимости уже в списке, и добавь минимальный по алфавиту.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Топологическая сортировка: на каждом шаге берём готовый сервис (все зависимости уже запущены), из нескольких — по алфавиту.\", \"lines\": [[\"while len(order) < len(services):\", \"Пока не расставили все.\"], [\"ready = [name for name, s in services.items()\", \"Кандидаты…\"], [\"if name not in order and all(d in order for d in s.get(\\\"depends_on\\\", []))]\", \"…у которых все зависимости уже стоят.\"], [\"order.append(min(ready))\", \"Первый по алфавиту.\"]], \"mistake\": \"Сортировать просто по числу зависимостей — порядок цепочек сломается.\"}"
                 },
                 {
                   "slug": "dkr-compose-e7",
@@ -1075,7 +1145,8 @@
                   "tests": "def test_ports():\n    got = published_ports({\"app\": {\"ports\": [\"8000:8000\", \"9000:9000\"]}, \"db\": {\"ports\": [\"127.0.0.1:5432:5432\"]}, \"worker\": {}})\n    assert got == {\"app\": [8000, 9000], \"db\": [5432]}, got\n",
                   "solution": "def published_ports(services):\n    return {name: [int(p.split(\":\")[-2]) for p in s[\"ports\"]]\n            for name, s in services.items() if s.get(\"ports\")}\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Порт хоста — предпоследняя часть строки.\", \"lines\": [[\"return {name: [int(p.split(\\\":\\\")[-2]) for p in s[\\\"ports\\\"]]\", \"Числами.\"], [\"for name, s in services.items() if s.get(\\\"ports\\\")}\", \"Только сервисы с портами.\"]], \"mistake\": \"`split(\\\":\\\")[0]` — в длинной форме это IP.\"}"
                 },
                 {
                   "slug": "dkr-compose-e8",
@@ -1085,7 +1156,8 @@
                   "expected_output": "docker compose ps\ndocker compose ps -a\ndocker-compose ps",
                   "solution": "docker compose ps",
                   "hint": "`docker compose ps`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`compose ps` — контейнеры текущего проекта.\", \"lines\": [[\"docker compose ps\", \"Состояние стенда.\"]], \"mistake\": \"`docker ps` — покажет все контейнеры машины.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nРеальному стенду нужно несколько контейнеров: приложение, база, кэш, иногда очередь и сами тесты. Запускать каждый длинной командой `docker run` с десятком флагов неудобно и легко ошибиться. **Docker Compose** описывает весь стенд одним YAML-файлом и поднимает его одной командой.\n\n## docker-compose.yml\n\n```yaml\nservices:\n  db:\n    image: postgres:16\n    environment:\n      POSTGRES_PASSWORD: secret\n  app:\n    image: shop-app:1.0\n    ports:\n      - \"8000:8000\"\n    environment:\n      DATABASE_URL: postgresql://postgres:secret@db:5432/postgres\n    depends_on:\n      - db\n```\n\n- `services` — контейнеры стенда; ключ — имя сервиса.\n- `image` — готовый образ, или `build: .` — собрать из Dockerfile.\n- `ports`, `environment`, `volumes` — те же `-p`, `-e`, `-v`, только в файле. Порты пиши в кавычках: YAML может прочитать `22:22` как число в шестидесятеричной системе.\n- `depends_on` — порядок запуска: `app` стартует после `db`.\n- Сервисы автоматически в одной сети и находят друг друга **по имени**: в `DATABASE_URL` хост — `db`.\n\nYAML: отступы — только пробелами, списки — через `- `, `ключ: значение`.\n\n## Команды\n\n```bash\ndocker compose up -d            # поднять всё в фоне (соберёт/скачает образы)\ndocker compose ps               # что запущено\ndocker compose logs -f app      # логи сервиса\ndocker compose stop             # остановить, не удаляя\ndocker compose down             # остановить и удалить контейнеры и сеть\ndocker compose down -v          # …и тома (данные базы)\n```\n\n`docker compose` (через пробел) — современная версия, встроенная в Docker. Старая отдельная утилита называлась `docker-compose` (через дефис).\n\n## Это просто YAML\n\n```python\nimport yaml\n\ntext = \"\"\"\nservices:\n  app: {image: shop-app:1.0, depends_on: [db]}\n  db: {image: postgres:16}\n\"\"\"\nservices = yaml.safe_load(text)[\"services\"]\nprint(sorted(services), services[\"app\"][\"depends_on\"])\n```\n\nВывод: `['app', 'db'] ['db']`. Поэтому compose-файлы легко проверять и генерировать скриптами.\n\n## Итог\n\n- Compose = стенд из нескольких сервисов в одном YAML-файле.\n- `image`/`build`, `ports`, `environment`, `volumes`, `depends_on`.\n- Сервисы видят друг друга по именам.\n- `up -d`, `ps`, `logs -f`, `down -v`.",
@@ -1137,7 +1209,8 @@
                   "code": "text = '''\n# стенд\nBASE_URL=http://stage.test\nBROWSER=firefox\n'''\nenv = {}\nfor line in text.splitlines():\n    line = line.strip()\n    if line and not line.startswith(\"#\"):\n        name, value = line.split(\"=\", 1)\n        env[name] = value\nprint(env)\n",
                   "expected_output": "{'BASE_URL': 'http://stage.test', 'BROWSER': 'firefox'}",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`.env` — строки `ИМЯ=значение`, комментарии с `#` пропускаются.\", \"lines\": [[\"if line and not line.startswith(\\\"#\\\"):\", \"Пропуск.\"], [\"name, value = line.split(\\\"=\\\", 1)\", \"По первому `=`.\"]], \"mistake\": \"Посчитать комментарий переменной.\"}"
                 },
                 {
                   "slug": "dkr-env-e2",
@@ -1147,7 +1220,8 @@
                   "tests": "def test_parse():\n    text = \"# стенд\\nBASE_URL=http://stage.test\\nTOKEN='a=b'\\n\\nNAME = \\\"Аня\\\"\\n\"\n    got = parse_env_file(text)\n    assert got == {\"BASE_URL\": \"http://stage.test\", \"TOKEN\": \"a=b\", \"NAME\": \"Аня\"}, got\n\ndef test_empty_value():\n    assert parse_env_file(\"EMPTY=\\n\") == {\"EMPTY\": \"\"}\n",
                   "solution": "def parse_env_file(text):\n    env = {}\n    for line in text.splitlines():\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        name, _, value = line.partition(\"=\")\n        value = value.strip()\n        if len(value) >= 2 and value[0] == value[-1] and value[0] in \"'\\\"\":\n            value = value[1:-1]\n        env[name.strip()] = value\n    return env\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Делим по первому `=`, чистим пробелы, снимаем парные кавычки.\", \"lines\": [[\"name, _, value = line.partition(\\\"=\\\")\", \"Первое `=`.\"], [\"if len(value) >= 2 and value[0] == value[-1] and value[0] in \\\"'\\\\\\\"\\\":\", \"Одинаковые кавычки по краям.\"], [\"value = value[1:-1]\", \"Без кавычек.\"]], \"mistake\": \"`strip(\\\"\\\\\\\"'\\\")` — снимет и непарные кавычки.\"}"
                 },
                 {
                   "slug": "dkr-env-e3",
@@ -1157,7 +1231,8 @@
                   "tests": "def test_priority():\n    assert resolve(\"BASE_URL\", \"http://app\", {\"BASE_URL\": \"http://stage\"}, {}) == \"http://stage\"\n    assert resolve(\"BASE_URL\", \"http://app\", {\"BASE_URL\": \"http://stage\"}, {\"BASE_URL\": \"http://prod\"}) == \"http://prod\"\n    assert resolve(\"BROWSER\", \"chromium\", {}, {\"BROWSER\": \"\"}) == \"chromium\"\n    assert resolve(\"X\", \"d\", {\"X\": \"\"}, {}) == \"d\"\n",
                   "solution": "def resolve(name, default, env_file, shell):\n    return shell.get(name) or env_file.get(name) or default\n",
                   "hint": "`a or b or c` вернёт первое непустое значение.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Цепочка `or` даёт первое непустое значение по приоритету.\", \"lines\": [[\"return shell.get(name) or env_file.get(name) or default\", \"Оболочка → .env → по умолчанию.\"]], \"mistake\": \"Поставить .env выше оболочки — так Compose не делает.\"}"
                 },
                 {
                   "slug": "dkr-env-e4",
@@ -1167,7 +1242,8 @@
                   "expected_output": "docker compose --env-file .env.stage up -d\nre:docker\\ compose (?=(?:.* )?\\-\\-env\\-file\\ \\.env\\.stage(?: |$))(?:\\S+ )*up\\ \\-d\ndocker compose --env-file .env.stage up --detach",
                   "solution": "docker compose --env-file .env.stage up -d",
                   "hint": "Опция `--env-file` пишется до `up`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--env-file` — другой файл переменных; ставится до `up`.\", \"lines\": [[\"docker compose --env-file .env.stage\", \"Файл стенда.\"], [\"up -d\", \"Запуск.\"]], \"mistake\": \"`docker compose up -d --env-file …` — опция compose, а не up.\"}"
                 },
                 {
                   "slug": "dkr-env-e5",
@@ -1177,7 +1253,8 @@
                   "tests": "import yaml\n\ndef test_tests_service():\n    tests = (yaml.safe_load(COMPOSE) or {}).get(\"services\", {}).get(\"tests\") or {}\n    assert tests.get(\"build\") == \".\", \"tests: build: .\"\n    env = tests.get(\"environment\") or {}\n    if isinstance(env, list):\n        env = dict(item.split(\"=\", 1) for item in env)\n    assert env.get(\"BASE_URL\") == \"${BASE_URL:-http://app:8000}\", f\"BASE_URL: ${{BASE_URL:-http://app:8000}}, а сейчас {env.get('BASE_URL')!r}\"\n    assert tests.get(\"volumes\") == [\"./reports:/app/reports\"], \"volumes: ./reports:/app/reports\"\n",
                   "solution": "COMPOSE = \"\"\"\nservices:\n  tests:\n    build: .\n    environment:\n      BASE_URL: ${BASE_URL:-http://app:8000}\n    volumes:\n      - ./reports:/app/reports\n\"\"\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`${VAR:-default}` — значение из окружения или по умолчанию; том забирает отчёты.\", \"lines\": [[\"build: .\", \"Свой Dockerfile.\"], [\"BASE_URL: ${BASE_URL:-http://app:8000}\", \"По умолчанию — сервис app.\"], [\"- ./reports:/app/reports\", \"Отчёты на хосте.\"]], \"mistake\": \"Захардкодить адрес — нельзя переключить стенд.\"}"
                 },
                 {
                   "slug": "dkr-env-e6",
@@ -1187,7 +1264,8 @@
                   "expected_output": "docker compose config\ndocker-compose config",
                   "solution": "docker compose config",
                   "hint": "`docker compose config`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`compose config` печатает итоговую конфигурацию с подставленными переменными.\", \"lines\": [[\"docker compose config\", \"Проверить подстановку.\"]], \"mistake\": \"Гадать, подхватилась ли переменная, по поведению тестов.\"}"
                 },
                 {
                   "slug": "dkr-env-e7",
@@ -1196,7 +1274,8 @@
                   "code": "as_dict = {\"BASE_URL\": \"http://app\", \"HEADLESS\": \"true\"}\nas_list = [\"BASE_URL=http://app\", \"HEADLESS=true\"]\nfrom_list = dict(item.split(\"=\", 1) for item in as_list)\nprint(from_list)\nprint(from_list == as_dict)\n",
                   "expected_output": "{'BASE_URL': 'http://app', 'HEADLESS': 'true'}\nTrue",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Список `A=B` превращаем в словарь — делим по первому `=`.\", \"lines\": [[\"from_list = dict(item.split(\\\"=\\\", 1) for item in as_list)\", \"Пары → словарь.\"], [\"print(from_list == as_dict)\", \"Одно и то же.\"]], \"mistake\": \"`split(\\\"=\\\")` без ограничения — сломается на значении с `=`.\"}"
                 },
                 {
                   "slug": "dkr-env-e8",
@@ -1206,7 +1285,8 @@
                   "tests": "def test_dict():\n    assert normalize_env({\"DEBUG\": True, \"WORKERS\": 4, \"EMPTY\": None}) == {\"DEBUG\": \"true\", \"WORKERS\": \"4\", \"EMPTY\": \"\"}\n    assert normalize_env({\"OFF\": False}) == {\"OFF\": \"false\"}\n\ndef test_list():\n    assert normalize_env([\"A=1\", \"B\", \"C=x=y\"]) == {\"A\": \"1\", \"B\": \"\", \"C\": \"x=y\"}\n\ndef test_none():\n    assert normalize_env(None) == {}\n",
                   "solution": "def normalize_env(env):\n    if env is None:\n        return {}\n    if isinstance(env, list):\n        return {name: value for name, _, value in (item.partition(\"=\") for item in env)}\n    result = {}\n    for name, value in env.items():\n        if isinstance(value, bool):\n            value = \"true\" if value else \"false\"\n        elif value is None:\n            value = \"\"\n        result[name] = str(value)\n    return result\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Три формы: `None`, список и словарь; значения приводим к строкам как Compose.\", \"lines\": [[\"if env is None:\\n        return {}\", \"Ничего.\"], [\"return {name: value for name, _, value in (item.partition(\\\"=\\\") for item in env)}\", \"Без `=` — пустое значение.\"], [\"value = \\\"true\\\" if value else \\\"false\\\"\", \"bool — строчными.\"]], \"mistake\": \"`str(True)` — «True» с заглавной.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nОдин compose-файл должен работать на ноутбуке, в CI и на тестовом стенде — с разными адресами, паролями и версиями. Для этого значения выносят в **переменные**.\n\n## Подстановка переменных\n\n```yaml\nservices:\n  tests:\n    build: .\n    environment:\n      BASE_URL: ${BASE_URL:-http://app:8000}\n      BROWSER: ${BROWSER:-chromium}\n  app:\n    image: shop-app:${APP_VERSION:?укажи версию}\n```\n\n- `${VAR}` — значение переменной (пусто, если её нет).\n- `${VAR:-default}` — значение или `default`, если переменной нет **или она пустая**.\n- `${VAR:?сообщение}` — обязательная: без неё compose остановится с ошибкой.\n\n## Файл .env\n\nCompose сам читает `.env` рядом с `docker-compose.yml`:\n\n```bash\n# .env — не коммитить, если в нём секреты!\nBASE_URL=http://stage.test\nAPP_VERSION=1.4.2\n```\n\nПриоритет значений: переменная **оболочки** (`BASE_URL=… docker compose up`) → файл **`.env`** → значение по умолчанию из `:-`. Другой файл: `docker compose --env-file .env.stage up -d`.\n\nПроверить, что подставилось: `docker compose config` — выводит итоговый файл.\n\n## environment и env_file\n\n- `environment:` — переменные контейнера прямо в файле; словарём (`KEY: value`) или списком (`- KEY=value`) — это одно и то же.\n- `env_file: .env.tests` — загрузить переменные контейнера из файла.\n\nОсторожно с YAML: `DEBUG: true` без кавычек — это булево значение; compose передаст строку, но лучше писать `DEBUG: \"true\"`.\n\n```python\nas_list = [\"BASE_URL=http://app\", \"TOKEN=a=b\"]\nprint(dict(item.split(\"=\", 1) for item in as_list))\n```\n\nВывод: `{'BASE_URL': 'http://app', 'TOKEN': 'a=b'}` — делим по **первому** `=`.\n\n## Итог\n\n- `${VAR}`, `${VAR:-default}`, `${VAR:?error}`.\n- `.env` читается автоматически; `--env-file` — другой файл; `docker compose config` — проверить результат.\n- Оболочка сильнее `.env`, `.env` сильнее значения по умолчанию.",
@@ -1259,7 +1339,8 @@
                   "tests": "import yaml\n\ndef services():\n    return (yaml.safe_load(COMPOSE) or {}).get(\"services\", {})\n\ndef test_healthcheck():\n    db = services().get(\"db\") or {}\n    hc = db.get(\"healthcheck\") or {}\n    assert hc.get(\"test\") == [\"CMD\", \"pg_isready\", \"-U\", \"postgres\"], f\"healthcheck.test: {hc.get('test')}\"\n    assert hc.get(\"interval\") == \"2s\" and hc.get(\"retries\") == 10, \"interval: 2s, retries: 10\"\n\ndef test_depends():\n    tests = services().get(\"tests\") or {}\n    assert tests.get(\"build\") == \".\", \"tests: build: .\"\n    dep = tests.get(\"depends_on\")\n    assert isinstance(dep, dict) and (dep.get(\"db\") or {}).get(\"condition\") == \"service_healthy\", \"depends_on: db: condition: service_healthy\"\n",
                   "solution": "COMPOSE = \"\"\"\nservices:\n  db:\n    image: postgres:16\n    environment:\n      POSTGRES_PASSWORD: secret\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-U\", \"postgres\"]\n      interval: 2s\n      retries: 10\n  tests:\n    build: .\n    depends_on:\n      db:\n        condition: service_healthy\n\"\"\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"healthcheck проверяет готовность базы, а `condition: service_healthy` ждёт её.\", \"lines\": [[\"test: [\\\"CMD\\\", \\\"pg_isready\\\", \\\"-U\\\", \\\"postgres\\\"]\", \"Проверка готовности.\"], [\"retries: 10\", \"Сколько раз пробовать.\"], [\"condition: service_healthy\", \"Ждать здоровую базу.\"]], \"mistake\": \"`depends_on: [db]` — ждёт только запуска контейнера, не готовности.\"}"
                 },
                 {
                   "slug": "dkr-stand-e2",
@@ -1269,7 +1350,8 @@
                   "expected_output": "docker compose up --abort-on-container-exit --exit-code-from tests\nre:docker\\ compose\\ up (?=(?:.* )?\\-\\-abort\\-on\\-container\\-exit(?: |$))(?=(?:.* )?\\-\\-exit\\-code\\-from\\ tests(?: |$))\\S+(?: \\S+)*\ndocker compose up --exit-code-from tests",
                   "solution": "docker compose up --abort-on-container-exit --exit-code-from tests",
                   "hint": "`--exit-code-from сервис` (он же включает `--abort-on-container-exit`).",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--abort-on-container-exit` останавливает стенд, `--exit-code-from tests` отдаёт код тестов.\", \"lines\": [[\"docker compose up\", \"Поднять.\"], [\"--abort-on-container-exit\", \"Остановить всё после тестов.\"], [\"--exit-code-from tests\", \"Код CI — от тестов.\"]], \"mistake\": \"Без них стенд будет работать вечно, а CI получит 0.\"}"
                 },
                 {
                   "slug": "dkr-stand-e3",
@@ -1279,7 +1361,8 @@
                   "expected_output": "docker compose run --rm tests pytest -m smoke\nre:docker compose run --rm tests pytest -m (smoke|'smoke'|\\\"smoke\\\")",
                   "solution": "docker compose run --rm tests pytest -m smoke",
                   "hint": "`docker compose run --rm сервис команда`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`compose run` — одноразовый контейнер сервиса со своей командой.\", \"lines\": [[\"docker compose run --rm tests\", \"Сервис tests.\"], [\"pytest -m smoke\", \"Команда.\"]], \"mistake\": \"`exec` — работает только с уже запущенным контейнером.\"}"
                 },
                 {
                   "slug": "dkr-stand-e4",
@@ -1289,7 +1372,8 @@
                   "tests": "def make(ok_on):\n    calls = {\"n\": 0}\n    def check():\n        calls[\"n\"] += 1\n        return calls[\"n\"] >= ok_on\n    return check\n\ndef test_third():\n    slept = []\n    assert wait_healthy(make(3), 5, 2, slept.append) == 3\n    assert slept == [2, 2], f\"Между попытками — sleep(interval): {slept}\"\n\ndef test_timeout():\n    slept = []\n    try:\n        wait_healthy(make(99), 3, 1, slept.append)\n    except TimeoutError:\n        assert slept == [1, 1], \"После последней попытки спать не нужно\"\n        return\n    assert False, \"Нужно бросить TimeoutError\"\n",
                   "solution": "def wait_healthy(check, retries, interval, sleep):\n    for attempt in range(1, retries + 1):\n        if check():\n            return attempt\n        if attempt < retries:\n            sleep(interval)\n    raise TimeoutError(f\"не дождались за {retries} попыток\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Пробуем, ждём, снова пробуем; после последней неудачи — ошибка.\", \"lines\": [[\"if check():\\n            return attempt\", \"Готово.\"], [\"if attempt < retries:\\n            sleep(interval)\", \"Ждать, кроме последней попытки.\"], [\"raise TimeoutError(f\\\"не дождались за {retries} попыток\\\")\", \"Попытки кончились.\"]], \"mistake\": \"Ждать и после последней попытки — лишняя пауза.\"}"
                 },
                 {
                   "slug": "dkr-stand-e5",
@@ -1298,7 +1382,8 @@
                   "code": "services = {\"app\": {\"ports\": [\"8080:8000\"]}, \"db\": {}}\n\ndef url(service, container_port, from_host):\n    if from_host:\n        for spec in services[service].get(\"ports\", []):\n            host, container = spec.split(\":\")[-2:]\n            if int(container) == container_port:\n                return f\"http://localhost:{host}\"\n        return None\n    return f\"http://{service}:{container_port}\"\n\nprint(url(\"app\", 8000, from_host=False))\nprint(url(\"app\", 8000, from_host=True))\nprint(url(\"db\", 5432, from_host=True))\n",
                   "expected_output": "http://app:8000\nhttp://localhost:8080\nNone",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Внутри сети — имя сервиса и порт контейнера; с хоста — localhost и опубликованный порт.\", \"lines\": [[\"return f\\\"http://{service}:{container_port}\\\"\", \"Из контейнера.\"], [\"host, container = spec.split(\\\":\\\")[-2:]\", \"Пара портов.\"], [\"return None\", \"У db портов нет — с хоста не достучаться.\"]], \"mistake\": \"С хоста идти на `app:8000` — такого имени хост не знает.\"}"
                 },
                 {
                   "slug": "dkr-stand-e6",
@@ -1308,7 +1393,8 @@
                   "tests": "S = {\"app\": {\"ports\": [\"127.0.0.1:8080:8000\", \"9090:9000\"]}, \"db\": {}}\n\ndef test_inside():\n    assert base_url(S, \"app\", 8000, False) == \"http://app:8000\"\n    assert base_url(S, \"db\", 5432, False) == \"http://db:5432\"\n\ndef test_host():\n    assert base_url(S, \"app\", 8000, True) == \"http://localhost:8080\", base_url(S, \"app\", 8000, True)\n    assert base_url(S, \"app\", 9000, True) == \"http://localhost:9090\"\n    assert base_url(S, \"db\", 5432, True) is None, \"Порт не опубликован — None\"\n",
                   "solution": "def base_url(services, service, port, from_host):\n    if not from_host:\n        return f\"http://{service}:{port}\"\n    for spec in services.get(service, {}).get(\"ports\", []):\n        host, container = spec.split(\":\")[-2:]\n        if int(container) == port:\n            return f\"http://localhost:{host}\"\n    return None\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Из контейнера — по имени; с хоста — ищем опубликованный порт для нужного порта контейнера.\", \"lines\": [[\"return f\\\"http://{service}:{port}\\\"\", \"Та же сеть.\"], [\"for spec in services.get(service, {}).get(\\\"ports\\\", []):\", \"Опубликованные порты.\"], [\"return f\\\"http://localhost:{host}\\\"\", \"Порт хоста.\"]], \"mistake\": \"Возвращать порт контейнера для хоста.\"}"
                 },
                 {
                   "slug": "dkr-stand-e7",
@@ -1318,7 +1404,8 @@
                   "expected_output": "docker compose exec db psql -U postgres\ndocker-compose exec db psql -U postgres",
                   "solution": "docker compose exec db psql -U postgres",
                   "hint": "`docker compose exec сервис команда`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`compose exec сервис команда` — команда в запущенном контейнере сервиса.\", \"lines\": [[\"docker compose exec db\", \"Контейнер базы.\"], [\"psql -U postgres\", \"Консоль.\"]], \"mistake\": \"`docker exec db` — имя контейнера в compose другое.\"}"
                 },
                 {
                   "slug": "dkr-stand-e8",
@@ -1328,7 +1415,8 @@
                   "expected_output": "docker compose up -d --build\ndocker compose up --build -d\ndocker compose up --build --detach\ndocker compose up --detach --build",
                   "solution": "docker compose up -d --build",
                   "hint": "Флаг `--build`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--build` пересобирает образы перед запуском.\", \"lines\": [[\"docker compose up -d --build\", \"Свежий код тестов.\"]], \"mistake\": \"`up -d` без `--build` — запустится старый образ.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nТесты стартовали, а база ещё инициализируется — первые тесты падают с «connection refused». `depends_on` в короткой форме ждёт только **запуска** контейнера, а не готовности сервиса. Надёжный стенд ждёт **здоровья**.\n\n## healthcheck и condition\n\n```yaml\nservices:\n  db:\n    image: postgres:16\n    environment:\n      POSTGRES_PASSWORD: secret\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-U\", \"postgres\"]\n      interval: 2s\n      retries: 10\n  app:\n    image: shop-app:1.0\n    depends_on:\n      db:\n        condition: service_healthy\n  tests:\n    build: .\n    environment:\n      BASE_URL: http://app:8000\n    depends_on:\n      - app\n```\n\n- `healthcheck.test` — команда проверки; код 0 — здоров. Docker повторяет её каждые `interval`, после `retries` неудач помечает сервис `unhealthy`.\n- `condition: service_healthy` — стартовать, когда зависимость **здорова**. Есть ещё `service_started` (по умолчанию) и `service_completed_successfully` (дождаться, пока одноразовый сервис вроде миграций завершится с кодом 0).\n\n## Прогон тестов в CI одной командой\n\n```bash\ndocker compose up --build --exit-code-from tests\ndocker compose down -v --remove-orphans\n```\n\n- `--exit-code-from tests` — вся команда завершится, когда закончится сервис `tests`, и вернёт **его** код выхода (включает `--abort-on-container-exit`).\n- `--build` — пересобрать образы (код тестов мог измениться).\n\nТочечные запуски на поднятом стенде:\n\n```bash\ndocker compose run --rm tests pytest -m smoke    # одноразовый контейнер сервиса\ndocker compose exec db psql -U postgres          # консоль в работающем сервисе\n```\n\n## Адреса: изнутри и снаружи\n\n- Тесты **в контейнере** той же сети → `http://app:8000` (имя сервиса и порт контейнера).\n- Тесты **на хосте** → `http://localhost:<опубликованный порт>` из `ports`.\n\n## Ожидание готовности в коде\n\nТа же идея — «пробуем, ждём, повторяем» — нужна и в фикстурах тестов, когда стенд поднимается рядом: опрашивать `/health` с паузами и сдаться после N попыток с понятной ошибкой.\n\n## Итог\n\n- `healthcheck` + `condition: service_healthy` — ждать готовности, а не запуска.\n- `up --build --exit-code-from tests` — прогон в CI, код выхода тестов.\n- `run --rm` — разовый запуск, `exec` — внутрь работающего.\n- Изнутри сети — имя сервиса, снаружи — localhost и опубликованный порт.",
@@ -1381,7 +1469,8 @@
                   "tests": "import yaml\n\ndef services():\n    data = yaml.safe_load(COMPOSE) or {}\n    return data.get(\"services\") or {}\n\ndef env_of(service):\n    env = service.get(\"environment\") or {}\n    return dict(i.split(\"=\", 1) for i in env) if isinstance(env, list) else env\n\ndef test_db():\n    db = services().get(\"db\") or {}\n    assert db.get(\"image\") == \"postgres:16\" and env_of(db).get(\"POSTGRES_PASSWORD\") == \"secret\", \"db: postgres:16 и POSTGRES_PASSWORD\"\n    assert (db.get(\"healthcheck\") or {}).get(\"test\") == [\"CMD\", \"pg_isready\", \"-U\", \"postgres\"], \"db: healthcheck\"\n\ndef test_app():\n    app = services().get(\"app\") or {}\n    assert app.get(\"image\") == \"shop-app:1.0\" and app.get(\"ports\") == [\"8000:8000\"], \"app: образ и порт\"\n    assert ((app.get(\"depends_on\") or {}).get(\"db\") or {}).get(\"condition\") == \"service_healthy\", \"app ждёт здоровую db\"\n\ndef test_tests():\n    tests = services().get(\"tests\") or {}\n    assert tests.get(\"build\") == \".\" and env_of(tests).get(\"BASE_URL\") == \"http://app:8000\", \"tests: build и BASE_URL\"\n    assert tests.get(\"volumes\") == [\"./reports:/app/reports\"], \"tests: том для отчётов\"\n    dep = tests.get(\"depends_on\")\n    assert dep == [\"app\"] or (isinstance(dep, dict) and \"app\" in dep), \"tests: depends_on app\"\n",
                   "solution": "COMPOSE = \"\"\"\nservices:\n  db:\n    image: postgres:16\n    environment:\n      POSTGRES_PASSWORD: secret\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-U\", \"postgres\"]\n      interval: 2s\n      retries: 10\n  app:\n    image: shop-app:1.0\n    ports:\n      - \"8000:8000\"\n    depends_on:\n      db:\n        condition: service_healthy\n  tests:\n    build: .\n    environment:\n      BASE_URL: http://app:8000\n    volumes:\n      - ./reports:/app/reports\n    depends_on:\n      - app\n\"\"\"\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Полный стенд: база с проверкой готовности, приложение ждёт базу, тесты ходят в приложение по имени.\", \"lines\": [[\"condition: service_healthy\", \"app ждёт готовую базу.\"], [\"BASE_URL: http://app:8000\", \"Тесты обращаются к сервису по имени.\"], [\"- ./reports:/app/reports\", \"Отчёты на хосте.\"]], \"mistake\": \"`BASE_URL: http://localhost:8000` — внутри контейнера tests это он сам.\"}"
                 },
                 {
                   "slug": "dkr-practice-e2",
@@ -1391,7 +1480,8 @@
                   "tests": "def test_diagnose():\n    statuses = {\"tests\": \"exited (1)\", \"app\": \"exited (137)\", \"db\": \"running (unhealthy)\", \"cache\": \"running\", \"migrate\": \"exited (0)\", \"worker\": \"exited (2)\"}\n    logs = {\"tests\": \"collected 10 items\\nTraceback (most recent call last):\", \"worker\": \"bad config\"}\n    assert diagnose(statuses, logs) == [\n        \"app: убит (не хватило памяти?)\",\n        \"db: не прошёл healthcheck\",\n        \"tests: ошибка в коде\",\n        \"worker: код выхода 2\",\n    ], diagnose(statuses, logs)\n\ndef test_ok():\n    assert diagnose({\"db\": \"running\", \"job\": \"exited (0)\"}, {}) == []\n",
                   "solution": "import re\n\n\ndef diagnose(statuses, logs):\n    problems = []\n    for name in sorted(statuses):\n        status = statuses[name]\n        m = re.match(r\"exited \\((\\d+)\\)\", status)\n        if m and m.group(1) != \"0\":\n            code = int(m.group(1))\n            if code == 137:\n                problems.append(f\"{name}: убит (не хватило памяти?)\")\n            elif \"Traceback\" in logs.get(name, \"\"):\n                problems.append(f\"{name}: ошибка в коде\")\n            else:\n                problems.append(f\"{name}: код выхода {code}\")\n        elif \"(unhealthy)\" in status:\n            problems.append(f\"{name}: не прошёл healthcheck\")\n    return problems\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Разбираем статусы по порядку: код выхода (137 — память, Traceback — ошибка), потом healthcheck.\", \"lines\": [[\"m = re.match(r\\\"exited \\\\((\\\\d+)\\\\)\\\", status)\", \"Код выхода.\"], [\"if code == 137:\", \"Убит.\"], [\"elif \\\"Traceback\\\" in logs.get(name, \\\"\\\"):\", \"Ошибка в коде.\"], [\"elif \\\"(unhealthy)\\\" in status:\", \"Работает, но не здоров.\"]], \"mistake\": \"Считать `exited (0)` проблемой — одноразовые сервисы так и завершаются.\"}"
                 },
                 {
                   "slug": "dkr-practice-e3",
@@ -1401,7 +1491,8 @@
                   "expected_output": "docker cp tests:/app/reports .\ndocker cp tests:/app/reports ./\ndocker cp tests:/app/reports ./reports\ndocker compose cp tests:/app/reports .",
                   "solution": "docker cp tests:/app/reports .",
                   "hint": "`docker cp контейнер:путь куда`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`docker cp контейнер:путь куда` копирует файлы и из остановленного контейнера.\", \"lines\": [[\"docker cp tests:/app/reports .\", \"Папка отчётов — сюда.\"]], \"mistake\": \"Думать, что из остановленного контейнера файлы не достать.\"}"
                 },
                 {
                   "slug": "dkr-practice-e4",
@@ -1410,7 +1501,8 @@
                   "code": "exits = {\"migrate\": 0, \"api-tests\": 0, \"ui-tests\": 1}\nfailed = [name for name, code in exits.items() if code != 0]\nprint(\"упали:\", \", \".join(failed) or \"никто\")\nprint(\"код для CI:\", 1 if failed else 0)\n",
                   "expected_output": "упали: ui-tests\nкод для CI: 1",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Итог стенда — ненулевой, если упал хоть один одноразовый сервис.\", \"lines\": [[\"failed = [name for name, code in exits.items() if code != 0]\", \"Упавшие.\"], [\"print(\\\"код для CI:\\\", 1 if failed else 0)\", \"Красный.\"]], \"mistake\": \"Брать код только последнего сервиса.\"}"
                 },
                 {
                   "slug": "dkr-practice-e5",
@@ -1420,7 +1512,8 @@
                   "tests": "def test_full():\n    got = compose_cmd([\"docker-compose.yml\", \"docker-compose.ci.yml\"], \"ui\", [\"app\", \"tests\"])\n    assert got == [\"docker\", \"compose\", \"-f\", \"docker-compose.yml\", \"-f\", \"docker-compose.ci.yml\", \"--profile\", \"ui\", \"up\", \"-d\", \"app\", \"tests\"], got\n\ndef test_minimal():\n    assert compose_cmd([\"docker-compose.yml\"], None, []) == [\"docker\", \"compose\", \"-f\", \"docker-compose.yml\", \"up\", \"-d\"]\n",
                   "solution": "def compose_cmd(files, profile, services):\n    cmd = [\"docker\", \"compose\"]\n    for f in files:\n        cmd += [\"-f\", f]\n    if profile:\n        cmd += [\"--profile\", profile]\n    return cmd + [\"up\", \"-d\", *services]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Флаги compose — до `up`; профиль — только если задан.\", \"lines\": [[\"cmd += [\\\"-f\\\", f]\", \"Каждый файл — своим `-f`.\"], [\"if profile:\\n        cmd += [\\\"--profile\\\", profile]\", \"Профиль.\"], [\"return cmd + [\\\"up\\\", \\\"-d\\\", *services]\", \"Подкоманда и сервисы.\"]], \"mistake\": \"Ставить `-f` после `up`.\"}"
                 },
                 {
                   "slug": "dkr-practice-e6",
@@ -1430,7 +1523,8 @@
                   "expected_output": "docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d\ndocker compose -f docker-compose.yml -f docker-compose.ci.yml up --detach",
                   "solution": "docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d",
                   "hint": "Флаг `-f` повторяется для каждого файла, порядок важен.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Несколько `-f`: следующий файл переопределяет предыдущий.\", \"lines\": [[\"docker compose -f docker-compose.yml -f docker-compose.ci.yml\", \"База + надстройка.\"], [\"up -d\", \"Запуск.\"]], \"mistake\": \"Перепутать порядок — база перекроет CI-настройки.\"}"
                 },
                 {
                   "slug": "dkr-practice-e7",
@@ -1440,7 +1534,8 @@
                   "expected_output": "docker compose --profile ui up -d\ndocker compose --profile ui up --detach",
                   "solution": "docker compose --profile ui up -d",
                   "hint": "`--profile имя` до `up`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Сервисы с профилем стартуют только при `--profile`.\", \"lines\": [[\"docker compose --profile ui up -d\", \"Плюс сервисы профиля ui.\"]], \"mistake\": \"`docker compose up ui` — профиль и имя сервиса — разное.\"}"
                 },
                 {
                   "slug": "dkr-practice-e8",
@@ -1450,7 +1545,8 @@
                   "expected_output": "docker compose down -v --remove-orphans\ndocker compose down --remove-orphans -v\ndocker compose down --volumes --remove-orphans\ndocker compose down --remove-orphans --volumes",
                   "solution": "docker compose down -v --remove-orphans",
                   "hint": "`down` + `-v` + `--remove-orphans`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Полная уборка: тома и «сироты».\", \"lines\": [[\"docker compose down\", \"Контейнеры и сеть.\"], [\"-v --remove-orphans\", \"Тома и лишние контейнеры.\"]], \"mistake\": \"Оставлять тома в CI — следующий прогон начнётся со старыми данными.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nСоберём всё в рабочую схему, которую используют в командах: стенд в compose, тесты в контейнере, отчёты наружу, диагноз при падении и уборка за собой.\n\n## Структура проекта\n\n```bash\nshop-tests/\n  Dockerfile               # образ с тестами\n  .dockerignore\n  docker-compose.yml       # стенд: db + app + tests\n  docker-compose.ci.yml    # надстройка для CI\n  .env.example             # пример переменных (без секретов)\n  tests/ …\n  requirements.txt\n```\n\n## Несколько файлов и профили\n\n```bash\ndocker compose -f docker-compose.yml -f docker-compose.ci.yml up -d\n```\n\nВторой файл **дополняет и переопределяет** первый: в CI можно поменять образы на собранные, убрать публикацию портов, добавить переменные.\n\n```yaml\nservices:\n  ui-tests:\n    build: .\n    profiles: [\"ui\"]        # не стартует без --profile ui\n```\n\n`docker compose --profile ui up -d` — поднять и «необязательные» сервисы профиля.\n\n## Прогон и разбор\n\n```bash\ndocker compose up --build --exit-code-from tests    # прогон\ndocker compose ps -a                                 # кто упал\ndocker compose logs --tail 100 app                   # почему\ndocker cp tests:/app/reports .                       # забрать отчёт, если тома нет\ndocker compose down -v --remove-orphans              # уборка\n```\n\nТипичные диагнозы:\n\n- `exited (137)` — не хватило памяти (подними лимит или найди утечку);\n- `exited (1)` и `Traceback` в логах — ошибка в коде сервиса;\n- `running (unhealthy)` — сервис жив, но не прошёл healthcheck;\n- «connection refused» в тестах — сервис не готов: нет healthcheck/condition или неверный адрес (`localhost` вместо имени сервиса).\n\n## Из Python\n\nОбвязку (скрипты CI, фикстуры) удобно писать на Python — списком аргументов:\n\n```python\nfiles = [\"docker-compose.yml\", \"docker-compose.ci.yml\"]\ncmd = [\"docker\", \"compose\"]\nfor f in files:\n    cmd += [\"-f\", f]\ncmd += [\"up\", \"-d\"]\nprint(\" \".join(cmd))\n```\n\nВывод: `docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d`. Запуск — `subprocess.run(cmd, check=True)`.\n\n## Итог\n\n- Стенд: Dockerfile тестов + compose (db, app, tests) + `.env`.\n- Надстройки `-f`, профили `--profile`.\n- Прогон `--exit-code-from`, разбор `ps`/`logs`, уборка `down -v --remove-orphans`.",
