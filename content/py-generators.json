@@ -545,7 +545,8 @@
                   "code": "g = (x * 10 for x in range(3))\nprint(type(g).__name__)\nprint(list(g))\nprint(list(g))\n",
                   "expected_output": "generator\n[0, 10, 20]\n[]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Круглые скобки вместо квадратных дают генератор — ленивый и одноразовый.\", \"lines\": [[\"g = (x * 10 for x in range(3))\", \"Не список.\"], [\"print(list(g))\", \"Все значения.\"], [\"print(list(g))\", \"Уже пусто.\"]], \"mistake\": \"Ожидать два одинаковых списка.\"}"
                 },
                 {
                   "slug": "gen-m2-l1-e2",
@@ -554,7 +555,8 @@
                   "code": "nums = [3, 8, -1, 4]\nprint(sum(n for n in nums if n > 0))\nprint(any(n < 0 for n in nums))\nprint(all(n < 10 for n in nums))\n",
                   "expected_output": "15\nTrue\nTrue",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Генератор прямо внутри `sum`/`any`/`all` — без лишнего списка.\", \"lines\": [[\"print(sum(n for n in nums if n > 0))\", \"3 + 8 + 4.\"], [\"print(any(n < 0 for n in nums))\", \"Есть −1.\"], [\"print(all(n < 10 for n in nums))\", \"Все меньше 10.\"]], \"mistake\": \"Сложить и −1.\"}"
                 },
                 {
                   "slug": "gen-m2-l1-e3",
@@ -563,7 +565,8 @@
                   "code": "def noisy(x):\n    print(\"считаю\", x)\n    return x > 1\n\nprint(any(noisy(x) for x in [1, 2, 3, 4]))\n",
                   "expected_output": "считаю 1\nсчитаю 2\nTrue",
                   "hint": "any останавливается на первом True — дальше элементы не вычисляются.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`any` останавливается на первом `True` — генератор дальше не считается.\", \"lines\": [[\"print(\\\"считаю\\\", x)\", \"Для 1 и 2.\"], [\"return x > 1\", \"2 > 1 — `True`, стоп.\"]], \"mistake\": \"Ожидать «считаю 3» и «считаю 4».\"}"
                 },
                 {
                   "slug": "gen-m2-l1-e4",
@@ -573,7 +576,8 @@
                   "tests": "def test_total():\n    assert total_length([\"api\", \"ui\", \"ci\"]) == 7, \"3 + 2 + 2 = 7\"\n\ndef test_empty():\n    assert total_length([]) == 0, \"Пустой список → 0\"\n",
                   "solution": "def total_length(words):\n    return sum(len(w) for w in words)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Генератор длин внутри `sum`.\", \"lines\": [[\"return sum(len(w) for w in words)\", \"Пустой список — 0.\"]], \"mistake\": \"`len(words)` — число слов.\"}"
                 },
                 {
                   "slug": "gen-m2-l1-e5",
@@ -583,7 +587,8 @@
                   "tests": "def test_yes():\n    assert has_errors([\"INFO start\", \"ERROR db down\", \"INFO end\"]) is True, \"Есть строка ERROR → True\"\n\ndef test_no():\n    assert has_errors([\"INFO ok\", \"WARN slow\"]) is False, \"Нет ERROR → False\"\n",
                   "solution": "def has_errors(log_lines):\n    return any(line.startswith(\"ERROR\") for line in log_lines)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`any` с генератором — остановится на первой ошибке.\", \"lines\": [[\"return any(line.startswith(\\\"ERROR\\\") for line in log_lines)\", \"Хоть одна.\"]], \"mistake\": \"`\\\"ERROR\\\" in line` — поймает и «NO_ERROR».\"}"
                 },
                 {
                   "slug": "gen-m2-l1-e6",
@@ -593,7 +598,8 @@
                   "tests": "def test_true():\n    assert all_passed([{\"name\": \"a\", \"status\": \"passed\"}, {\"name\": \"b\", \"status\": \"passed\"}]) is True, \"Все passed → True\"\n\ndef test_false():\n    assert all_passed([{\"name\": \"a\", \"status\": \"passed\"}, {\"name\": \"b\", \"status\": \"failed\"}]) is False, \"Есть failed → False\"\n",
                   "solution": "def all_passed(results):\n    return all(r[\"status\"] == \"passed\" for r in results)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`all` — все элементы подходят; для пустого списка `True`.\", \"lines\": [[\"return all(r[\\\"status\\\"] == \\\"passed\\\" for r in results)\", \"Остановится на первом провале.\"]], \"mistake\": \"Сравнивать `results == \\\"passed\\\"`.\"}"
                 },
                 {
                   "slug": "gen-m2-l1-e7",
@@ -602,7 +608,8 @@
                   "code": "words = [\"кот\", \"собака\", \"ёж\"]\nprint(max(len(w) for w in words))\nprint(\", \".join(w.upper() for w in words))\nprint(sorted((len(w), w) for w in words))\nprint(dict((w, len(w)) for w in words))\n",
                   "expected_output": "6\nКОТ, СОБАКА, ЁЖ\n[(2, 'ёж'), (3, 'кот'), (6, 'собака')]\n{'кот': 3, 'собака': 6, 'ёж': 2}",
                   "hint": "Если генераторное выражение — единственный аргумент, вторые скобки не нужны.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Если генератор — единственный аргумент, лишние скобки не нужны. Работают `max`, `join`, `sorted`, `dict`.\", \"lines\": [[\"print(max(len(w) for w in words))\", \"Самое длинное — 6.\"], [\"print(\\\", \\\".join(w.upper() for w in words))\", \"Склейка.\"], [\"print(sorted((len(w), w) for w in words))\", \"Кортежи — по длине.\"], [\"print(dict((w, len(w)) for w in words))\", \"Пары → словарь.\"]], \"mistake\": \"Ожидать «собака» от `max` — сравниваются длины.\"}"
                 },
                 {
                   "slug": "gen-m2-l1-e8",
@@ -612,7 +619,8 @@
                   "tests": "def test_values():\n    assert count_long([\"a\", \"abcd\", \"abc\", \"abcdef\"], 3) == 2 and count_long([], 1) == 0, \"Неверный результат\"\n    assert \"[\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Без списков\"\n",
                   "solution": "def count_long(words, n):\n    return sum(1 for w in words if len(w) > n)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Считаем единицы для подходящих — количество без списка.\", \"lines\": [[\"return sum(1 for w in words if len(w) > n)\", \"По единице на слово.\"]], \"mistake\": \"`len([w for w in words if ...])` — лишний список.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПростые генераторы можно записать в одну строку — **генераторным выражением**. Оно похоже на списковое включение, но в круглых скобках и не создаёт список в памяти. Идеально подходит для `sum`, `any`, `all`, `max`, `join`.\n\n## Синтаксис\n\n```python\ng = (x * 10 for x in range(3))\nprint(type(g).__name__)\nprint(list(g))\nprint(list(g))\n```\n\n- `(выражение for x in итерируемое if условие)` — как списковое включение, только в круглых скобках.\n- Результат — генератор: ленивый и одноразовый.\n- Вывод: `generator`, `[0, 10, 20]`, `[]`.\n\n## С функциями-агрегаторами\n\n```python\nnums = [3, 8, -1, 4]\nprint(sum(n for n in nums if n > 0))\nprint(any(n < 0 for n in nums))\nprint(all(n < 10 for n in nums))\n```\n\n- Если генераторное выражение — **единственный** аргумент функции, дополнительные скобки не нужны.\n- `any` — есть ли хоть один истинный, `all` — все ли истинны.\n- Вывод: `15`, `True`, `True`.\n\n## any и all останавливаются рано\n\n```python\ndef noisy(x):\n    print(\"считаю\", x)\n    return x > 1\n\nprint(any(noisy(x) for x in [1, 2, 3, 4]))\n```\n\n- `any` прекращает перебор на первом `True` — остальные элементы даже не вычисляются. Со списком `[noisy(x) for x in ...]` посчитались бы все четыре.\n- Вывод: `считаю 1`, `считаю 2`, `True`.\n\n## Другие примеры\n\n```python\nwords = [\"кот\", \"собака\", \"ёж\"]\nprint(max(len(w) for w in words))\nprint(\", \".join(w.upper() for w in words))\nprint(sorted((len(w), w) for w in words))\nprint(dict((w, len(w)) for w in words))\n```\n\n- Генераторное выражение подходит везде, где ждут итерируемое.\n- Вывод: `6`, `КОТ, СОБАКА, ЁЖ`, `[(2, 'ёж'), (3, 'кот'), (6, 'собака')]`, `{'кот': 3, 'собака': 6, 'ёж': 2}`.\n\n## Генератор или список\n\n- Нужен **один проход** (сумма, проверка, запись) — генераторное выражение: меньше памяти.\n- Нужно несколько проходов, `len`, индексы, срезы — списковое включение `[...]`.\n\n## Итог\n\n- `(expr for x in items if cond)` — ленивое выражение-генератор.\n- Единственный аргумент — без лишних скобок: `sum(x for x in xs)`.\n- `any`/`all` останавливаются рано.\n- Один проход — генератор, много проходов — список.",
@@ -664,7 +672,8 @@
                   "code": "lines = [\"  10 \", \"\", \"abc\", \"25\", \"  \", \"7\"]\n\nstripped = (s.strip() for s in lines)\nnon_empty = (s for s in stripped if s)\nnumbers = (int(s) for s in non_empty if s.isdigit())\nprint(sum(numbers))\n",
                   "expected_output": "42",
                   "hint": "Каждый этап берёт данные из предыдущего по одному элементу.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Конвейер: каждый генератор берёт из предыдущего. Работа идёт только когда `sum` запрашивает значения.\", \"lines\": [[\"stripped = (s.strip() for s in lines)\", \"Без пробелов.\"], [\"non_empty = (s for s in stripped if s)\", \"Без пустых.\"], [\"numbers = (int(s) for s in non_empty if s.isdigit())\", \"`abc` отброшен.\"], [\"print(sum(numbers))\", \"10 + 25 + 7.\"]], \"mistake\": \"Ожидать ошибку на `abc` — его отсеял `isdigit`.\"}"
                 },
                 {
                   "slug": "gen-pipeline-e2",
@@ -673,7 +682,8 @@
                   "code": "def source():\n    for x in [1, 2, 3]:\n        print(\"взял\", x)\n        yield x\n\ndef double(items):\n    for x in items:\n        print(\"удвоил\", x)\n        yield x * 2\n\nfor result in double(source()):\n    print(\"получил\", result)\n",
                   "expected_output": "взял 1\nудвоил 1\nполучил 2\nвзял 2\nудвоил 2\nполучил 4\nвзял 3\nудвоил 3\nполучил 6",
                   "hint": "Элементы проходят весь конвейер по одному, а не этапами целиком.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Элементы проходят конвейер по одному: взял → удвоил → получил, потом следующий.\", \"lines\": [[\"print(\\\"взял\\\", x)\", \"Источник.\"], [\"print(\\\"удвоил\\\", x)\", \"Сразу следом.\"], [\"print(\\\"получил\\\", result)\", \"И до потребителя.\"]], \"mistake\": \"Ожидать «взял 1, 2, 3» подряд, как со списками.\"}"
                 },
                 {
                   "slug": "gen-pipeline-e3",
@@ -682,7 +692,8 @@
                   "code": "def numbers():\n    n = 0\n    while True:\n        n += 1\n        yield n\n\nsquares = (n * n for n in numbers())\nbig = (s for s in squares if s > 50)\nprint(next(big), next(big))\n",
                   "expected_output": "64 81",
                   "hint": "Бесконечный источник не страшен: конвейер считает только то, что попросили.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Бесконечный источник безопасен: берём лишь столько, сколько попросили.\", \"lines\": [[\"squares = (n * n for n in numbers())\", \"1, 4, 9, …\"], [\"big = (s for s in squares if s > 50)\", \"Первый — 64.\"], [\"print(next(big), next(big))\", \"Два значения.\"]], \"mistake\": \"Ожидать зависание.\"}"
                 },
                 {
                   "slug": "gen-pipeline-e4",
@@ -692,7 +703,8 @@
                   "tests": "import types\n\ndef test_values():\n    lines = [\"# конфиг\", \" url=http://a \", \"\", \"timeout=5\", \"  # ещё\"]\n    assert load_config(lines) == {\"url\": \"http://a\", \"timeout\": \"5\"}, load_config(lines)\n    assert all(isinstance(f([]), types.GeneratorType) for f in (read, skip_comments, parse)), \"Этапы — генераторы\"\n",
                   "solution": "def read(lines):\n    for line in lines:\n        yield line.strip()\n\n\ndef skip_comments(lines):\n    for line in lines:\n        if line and not line.startswith(\"#\"):\n            yield line\n\n\ndef parse(lines):\n    for line in lines:\n        key, value = line.split(\"=\", 1)\n        yield key, value\n\n\ndef load_config(lines):\n    return dict(parse(skip_comments(read(lines))))\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Три маленьких генератора и сборка вложенными вызовами; `dict` принимает поток пар.\", \"lines\": [[\"yield line.strip()\", \"Очистка.\"], [\"if line and not line.startswith(\\\"#\\\"):\", \"Пропуск пустых и комментариев.\"], [\"key, value = line.split(\\\"=\\\", 1)\", \"По первому `=`.\"], [\"return dict(parse(skip_comments(read(lines))))\", \"Конвейер.\"]], \"mistake\": \"Перепутать порядок: `skip_comments` до `read` не уберёт строки из пробелов.\"}"
                 },
                 {
                   "slug": "gen-pipeline-e5",
@@ -702,7 +714,8 @@
                   "tests": "def test_values():\n    assert list(apply([str.strip, str.upper], [\" a\", \"b \"])) == [\"A\", \"B\"] and list(apply([], [1, 2])) == [1, 2], \"Неверный результат\"\n",
                   "solution": "def apply(funcs, items):\n    for item in items:\n        for f in funcs:\n            item = f(item)\n        yield item\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Элемент по очереди проходит через все функции.\", \"lines\": [[\"for f in funcs:\\n            item = f(item)\", \"Результат одной — вход следующей.\"], [\"yield item\", \"Итог.\"]], \"mistake\": \"`yield` внутри внутреннего цикла — выдаст промежуточные значения.\"}"
                 },
                 {
                   "slug": "gen-pipeline-e6",
@@ -712,7 +725,8 @@
                   "tests": "import types\n\ndef test_values():\n    rs = [\n        {\"name\": \"a\", \"status\": \"failed\", \"duration\": 2.5},\n        {\"name\": \"b\", \"status\": \"passed\", \"duration\": 3},\n        {\"name\": \"c\", \"status\": \"failed\", \"duration\": 0.5},\n        {\"name\": \"d\", \"status\": \"failed\", \"duration\": 1.1},\n    ]\n    g = failed_tests(iter(rs))\n    assert isinstance(g, types.GeneratorType) and list(g) == [\"a\", \"d\"], \"Неверный результат\"\n",
                   "solution": "def failed_tests(results):\n    for r in results:\n        if r[\"status\"] == \"failed\" and r[\"duration\"] > 1:\n            yield r[\"name\"]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Фильтр по двум условиям, наружу — только имена.\", \"lines\": [[\"if r[\\\"status\\\"] == \\\"failed\\\" and r[\\\"duration\\\"] > 1:\", \"Упал и долгий.\"], [\"yield r[\\\"name\\\"]\", \"Имя.\"]], \"mistake\": \"`return [...]` — не генератор.\"}"
                 },
                 {
                   "slug": "gen-pipeline-e7",
@@ -722,7 +736,8 @@
                   "tests": "import itertools\n\ndef test_values():\n    assert list(dedupe([3, 1, 3, 2, 1])) == [3, 1, 2], \"Порядок и повторы\"\n    infinite = itertools.cycle([1, 2, 3])\n    g = dedupe(infinite)\n    assert [next(g) for _ in range(3)] == [1, 2, 3], \"Ленивость\"\n",
                   "solution": "def dedupe(items):\n    seen = set()\n    for x in items:\n        if x not in seen:\n            seen.add(x)\n            yield x\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Множество увиденных — выдаём только новое, сразу.\", \"lines\": [[\"if x not in seen:\", \"Новый.\"], [\"seen.add(x)\\n            yield x\", \"Запомнить и выдать.\"]], \"mistake\": \"`set(items)` — не ленив и теряет порядок.\"}"
                 },
                 {
                   "slug": "gen-pipeline-e8",
@@ -732,7 +747,8 @@
                   "tests": "def test_values():\n    assert list(window_avg([1, 2, 3, 4], 2)) == [1.5, 2.5, 3.5] and list(window_avg([10, 20, 30], 3)) == [20.0] and list(window_avg([1], 2)) == [], \"Неверный результат\"\n    assert list(window_avg(iter([2, 4, 6]), 2)) == [3.0, 5.0], \"Итератор на входе\"\n",
                   "solution": "from collections import deque\n\n\ndef window_avg(numbers, size):\n    window = deque(maxlen=size)\n    for n in numbers:\n        window.append(n)\n        if len(window) == size:\n            yield round(sum(window) / size, 2)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`deque(maxlen=size)` — окно: новое число вытесняет самое старое.\", \"lines\": [[\"window = deque(maxlen=size)\", \"Окно.\"], [\"window.append(n)\", \"Сдвиг.\"], [\"if len(window) == size:\", \"Окно заполнено.\"], [\"yield round(sum(window) / size, 2)\", \"Среднее.\"]], \"mistake\": \"Выдавать среднее, пока окно неполное.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nГенераторы удобно соединять в **конвейер**: каждый этап берёт данные из предыдущего и передаёт дальше. Так обрабатывают логи, CSV, потоки событий: «прочитать → очистить → отфильтровать → преобразовать → посчитать». Каждый этап простой, а данные идут по одному элементу — памяти нужно мало.\n\n## Цепочка генераторных выражений\n\n```python\nlines = [\"  10 \", \"\", \"abc\", \"25\", \"  \", \"7\"]\n\nstripped = (s.strip() for s in lines)\nnon_empty = (s for s in stripped if s)\nnumbers = (int(s) for s in non_empty if s.isdigit())\nprint(sum(numbers))\n```\n\n- Каждая переменная — генератор поверх предыдущего. Пока не вызван `sum`, ничего не вычисляется.\n- `isdigit()` — состоит ли строка только из цифр.\n- Вывод: `42`.\n\n## Порядок вычислений\n\n```python\ndef source():\n    for x in [1, 2]:\n        print(\"взял\", x)\n        yield x\n\ndef double(items):\n    for x in items:\n        print(\"удвоил\", x)\n        yield x * 2\n\nfor result in double(source()):\n    print(\"получил\", result)\n```\n\n- Элемент проходит **весь** конвейер, прежде чем начнётся следующий. Это не «сначала всё взять, потом всё удвоить».\n- Вывод: `взял 1`, `удвоил 1`, `получил 2`, `взял 2`, `удвоил 2`, `получил 4`.\n\n## Этапы-функции\n\n```python\ndef read(lines):\n    for line in lines:\n        yield line.strip()\n\ndef skip_comments(lines):\n    for line in lines:\n        if line and not line.startswith(\"#\"):\n            yield line\n\ndef parse(lines):\n    for line in lines:\n        key, value = line.split(\"=\", 1)\n        yield key, value\n\nraw = [\"# конфиг\", \" url=http://a \", \"\", \"timeout=5\"]\nprint(dict(parse(skip_comments(read(raw)))))\n```\n\n- Каждая функция-этап принимает итерируемое и возвращает генератор. Их можно тестировать по отдельности и переставлять.\n- `dict(...)` из генератора пар — готовый словарь.\n- Вывод: `{'url': 'http://a', 'timeout': '5'}`.\n\n## Бесконечный источник\n\n```python\ndef numbers():\n    n = 0\n    while True:\n        n += 1\n        yield n\n\nsquares = (n * n for n in numbers())\nbig = (s for s in squares if s > 50)\nprint(next(big), next(big))\n```\n\n- Конвейер над бесконечным источником безопасен: считается только то, что запросили.\n- Вывод: `64 81`.\n\n## Состояние в этапе\n\n```python\ndef dedupe(items):\n    seen = set()\n    for x in items:\n        if x not in seen:\n            seen.add(x)\n            yield x\n\nprint(list(dedupe([3, 1, 3, 2, 1])))\n```\n\n- Этап может хранить состояние между элементами — здесь множество уже встреченных.\n- Вывод: `[3, 1, 2]`.\n\n## Итог\n\n- Конвейер: `этап3(этап2(этап1(источник)))` или цепочка выражений.\n- Элементы идут по одному через все этапы.\n- Этапы простые, тестируемые, переставляемые.\n- Работает с бесконечными и огромными источниками.",
@@ -784,7 +800,8 @@
                   "code": "def both():\n    yield from [1, 2]\n    yield from \"ab\"\n\nprint(list(both()))\n",
                   "expected_output": "[1, 2, 'a', 'b']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`yield from` выдаёт все элементы другого перебираемого по очереди.\", \"lines\": [[\"yield from [1, 2]\", \"1, 2.\"], [\"yield from \\\"ab\\\"\", \"Строка — по символу.\"]], \"mistake\": \"Ожидать `'ab'` одним элементом.\"}"
                 },
                 {
                   "slug": "gen-m2-l2-e2",
@@ -793,7 +810,8 @@
                   "code": "from itertools import count, islice\nprint(list(islice(count(10, 5), 4)))\n",
                   "expected_output": "[10, 15, 20, 25]",
                   "hint": "count(10, 5) — 10, 15, 20, … бесконечно; islice берёт первые 4.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`count(10, 5)` — бесконечный счёт с шагом; `islice` берёт первые 4.\", \"lines\": [[\"print(list(islice(count(10, 5), 4)))\", \"10, 15, 20, 25.\"]], \"mistake\": \"`list(count(...))` без `islice` — бесконечность.\"}"
                 },
                 {
                   "slug": "gen-m2-l2-e3",
@@ -802,7 +820,8 @@
                   "code": "from itertools import product\nfor browser, os in product([\"chrome\", \"firefox\"], [\"win\", \"mac\"]):\n    print(browser, os)\n",
                   "expected_output": "chrome win\nchrome mac\nfirefox win\nfirefox mac",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`product` — все комбинации, как вложенные циклы: правый меняется быстрее.\", \"lines\": [[\"for browser, os in product([\\\"chrome\\\", \\\"firefox\\\"], [\\\"win\\\", \\\"mac\\\"]):\", \"4 пары.\"]], \"mistake\": \"Ожидать только совпадающие по индексу пары, как у `zip`.\"}"
                 },
                 {
                   "slug": "gen-m2-l2-e4",
@@ -812,7 +831,8 @@
                   "tests": "import inspect\n\ndef test_is_generator():\n    assert inspect.isgeneratorfunction(flatten), \"flatten должна быть генератором\"\n\ndef test_values():\n    assert list(flatten([[1, 2], [], [3], [4, 5]])) == [1, 2, 3, 4, 5], f\"Получено {list(flatten([[1, 2], [], [3], [4, 5]]))}\"\n",
                   "solution": "def flatten(lists):\n    for inner in lists:\n        yield from inner\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`yield from inner` — все элементы вложенного списка.\", \"lines\": [[\"for inner in lists:\", \"Каждый вложенный.\"], [\"yield from inner\", \"Пустой — ничего.\"]], \"mistake\": \"`yield inner` — выдаст списки целиком.\"}"
                 },
                 {
                   "slug": "gen-m2-l2-e5",
@@ -822,7 +842,8 @@
                   "tests": "import inspect\n\ndef test_is_generator():\n    assert inspect.isgeneratorfunction(error_messages), \"Нужен генератор (yield)\"\n\ndef test_values():\n    lines = [\"INFO старт\", \"ERROR нет связи с БД\", \"WARN медленно\", \"ERROR таймаут\"]\n    assert list(error_messages(lines)) == [\"нет связи с БД\", \"таймаут\"], f\"Получено {list(error_messages(lines))}\"\n",
                   "solution": "def error_messages(lines):\n    for line in lines:\n        level, _, text = line.partition(\" \")\n        if level == \"ERROR\":\n            yield text\n",
                   "hint": "`line.partition(\" \")` делит строку по первому пробелу на три части.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`partition(\\\" \\\")` делит по первому пробелу на три части.\", \"lines\": [[\"level, _, text = line.partition(\\\" \\\")\", \"Уровень, пробел, текст.\"], [\"if level == \\\"ERROR\\\":\\n            yield text\", \"Только ошибки.\"]], \"mistake\": \"`split()` — текст разобьётся на слова.\"}"
                 },
                 {
                   "slug": "gen-m2-l2-e6",
@@ -832,7 +853,8 @@
                   "tests": "def test_combinations():\n    assert test_matrix([\"chrome\", \"safari\"], [1920, 375]) == [\"chrome@1920\", \"chrome@375\", \"safari@1920\", \"safari@375\"], \\\n        f\"Получено {test_matrix(['chrome', 'safari'], [1920, 375])}\"\n",
                   "solution": "from itertools import product\n\ndef test_matrix(browsers, sizes):\n    return [f\"{b}@{s}\" for b, s in product(browsers, sizes)]\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`product` перебирает все пары в нужном порядке.\", \"lines\": [[\"return [f\\\"{b}@{s}\\\" for b, s in product(browsers, sizes)]\", \"Все размеры первого браузера — первыми.\"]], \"mistake\": \"`zip` — только пары с одинаковым индексом.\"}"
                 },
                 {
                   "slug": "gen-m2-l2-e7",
@@ -841,7 +863,8 @@
                   "code": "def walk(tree, depth=0):\n    yield \"  \" * depth + tree[\"name\"]\n    for child in tree.get(\"children\", []):\n        yield from walk(child, depth + 1)\n\nsite = {\"name\": \"главная\", \"children\": [\n    {\"name\": \"каталог\", \"children\": [{\"name\": \"товар\"}]},\n    {\"name\": \"корзина\"},\n]}\nfor line in walk(site):\n    print(line)\n",
                   "expected_output": "главная\n  каталог\n    товар\n  корзина",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Рекурсивный генератор: узел, затем `yield from` для каждого ребёнка с глубиной +1.\", \"lines\": [[\"yield \\\"  \\\" * depth + tree[\\\"name\\\"]\", \"Сам узел.\"], [\"yield from walk(child, depth + 1)\", \"Поддерево.\"]], \"mistake\": \"`walk(child, ...)` без `yield from` — вызов создаст генератор и ничего не выдаст.\"}"
                 },
                 {
                   "slug": "gen-m2-l2-e8",
@@ -851,7 +874,8 @@
                   "tests": "def test_values():\n    assert list(deep_flatten([1, [2, (3, [\"ab\", [4]])], []])) == [1, 2, 3, \"ab\", 4] and list(deep_flatten([])) == [], \"Неверный результат\"\n    assert \"yield from\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Используй yield from\"\n",
                   "solution": "def deep_flatten(data):\n    for item in data:\n        if isinstance(item, (list, tuple)):\n            yield from deep_flatten(item)\n        else:\n            yield item\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Список или кортеж — рекурсивно разворачиваем; остальное (и строки) — выдаём как есть.\", \"lines\": [[\"if isinstance(item, (list, tuple)):\", \"Вложенная коллекция.\"], [\"yield from deep_flatten(item)\", \"Рекурсия.\"], [\"yield item\", \"Лист.\"]], \"mistake\": \"Проверять «перебираемое вообще» — строки разложатся на символы бесконечно.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЧасто генератор должен выдать все элементы другого итерируемого или другого генератора — для этого есть `yield from`. А модуль `itertools` — набор готовых «кубиков» для работы с итераторами: бесконечные счётчики, срезы, комбинации параметров.\n\n## yield from\n\n```python\ndef both():\n    yield from [1, 2]\n    yield from \"ab\"\n\nprint(list(both()))\n```\n\n- `yield from итерируемое` — выдать все его элементы по одному. Короткая запись `for x in items: yield x`.\n- Вывод: `[1, 2, 'a', 'b']`.\n\n## Рекурсивный обход\n\n```python\ndef walk(tree, depth=0):\n    yield \"  \" * depth + tree[\"name\"]\n    for child in tree.get(\"children\", []):\n        yield from walk(child, depth + 1)\n\nsite = {\"name\": \"главная\", \"children\": [\n    {\"name\": \"каталог\", \"children\": [{\"name\": \"товар\"}]},\n    {\"name\": \"корзина\"},\n]}\nfor line in walk(site):\n    print(line)\n```\n\n- Генератор вызывает сам себя для детей и передаёт наверх всё, что они выдали.\n- Так обходят деревья: структуру сайта, вложенный JSON, папки.\n- Вывод: `главная`, `  каталог`, `    товар`, `  корзина`.\n\n## count и islice\n\n```python\nfrom itertools import count, islice\n\nprint(list(islice(count(10, 5), 4)))\nprint(list(islice(\"abcdefg\", 2, 6, 2)))\n```\n\n- `count(start, step)` — бесконечный счётчик.\n- `islice(итерируемое, stop)` или `islice(it, start, stop, step)` — срез для любых итераторов (обычный `[a:b]` у генераторов не работает).\n- Вывод: `[10, 15, 20, 25]`, `['c', 'e']`.\n\n## product: все комбинации\n\n```python\nfrom itertools import product\n\nfor browser, os in product([\"chrome\", \"firefox\"], [\"win\", \"mac\"]):\n    print(browser, os)\n```\n\n- `product(a, b, ...)` — декартово произведение: каждый элемент первого с каждым элементом второго. Удобно для матрицы кроссбраузерных прогонов.\n- Вывод: `chrome win`, `chrome mac`, `firefox win`, `firefox mac`.\n\n## cycle и repeat\n\n```python\nfrom itertools import cycle, repeat, islice\n\nprint(list(islice(cycle([\"A\", \"B\"]), 5)))\nprint(list(repeat(\"x\", 3)))\n```\n\n- `cycle(items)` — повторять по кругу бесконечно (например, распределять задачи между воркерами).\n- `repeat(x, n)` — значение `n` раз.\n- Вывод: `['A', 'B', 'A', 'B', 'A']`, `['x', 'x', 'x']`.\n\n## Итог\n\n- `yield from it` — выдать всё из `it`; удобно для рекурсии.\n- `count`, `cycle`, `repeat` — бесконечные источники.\n- `islice` — срез итератора.\n- `product` — все комбинации параметров.",
@@ -903,7 +927,8 @@
                   "code": "from itertools import chain, accumulate, pairwise\n\nprint(list(chain([1, 2], (3,), \"ab\")))\nprint(list(accumulate([1, 2, 3, 4])))\nprint(list(pairwise([10, 13, 19])))\n",
                   "expected_output": "[1, 2, 3, 'a', 'b']\n[1, 3, 6, 10]\n[(10, 13), (13, 19)]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`chain` склеивает потоки, `accumulate` — накопительные суммы, `pairwise` — соседние пары.\", \"lines\": [[\"print(list(chain([1, 2], (3,), \\\"ab\\\")))\", \"Подряд.\"], [\"print(list(accumulate([1, 2, 3, 4])))\", \"1, 1+2, …\"], [\"print(list(pairwise([10, 13, 19])))\", \"Пар на одну меньше.\"]], \"mistake\": \"Ожидать `(19, None)` в конце.\"}"
                 },
                 {
                   "slug": "gen-itertools-e2",
@@ -912,7 +937,8 @@
                   "code": "from itertools import takewhile, dropwhile, batched\n\nnums = [1, 3, 5, 8, 9, 11]\nprint(list(takewhile(lambda n: n % 2, nums)))\nprint(list(dropwhile(lambda n: n % 2, nums)))\nprint(list(batched(\"abcdefg\", 3)))\n",
                   "expected_output": "[1, 3, 5]\n[8, 9, 11]\n[('a', 'b', 'c'), ('d', 'e', 'f'), ('g',)]",
                   "hint": "batched появился в Python 3.12.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`takewhile` берёт, пока условие истинно; `dropwhile` пропускает, пока истинно, дальше берёт всё. `batched` режет на кортежи.\", \"lines\": [[\"print(list(takewhile(lambda n: n % 2, nums)))\", \"До первого чётного.\"], [\"print(list(dropwhile(lambda n: n % 2, nums)))\", \"С 8 — всё, включая нечётные.\"], [\"print(list(batched(\\\"abcdefg\\\", 3)))\", \"Последний — короче.\"]], \"mistake\": \"Думать, что `dropwhile` фильтрует все нечётные.\"}"
                 },
                 {
                   "slug": "gen-itertools-e3",
@@ -921,7 +947,8 @@
                   "code": "from itertools import groupby, combinations\n\nlog = [\"ERROR\", \"ERROR\", \"INFO\", \"ERROR\", \"INFO\", \"INFO\"]\nprint([(k, len(list(g))) for k, g in groupby(log)])\nprint(list(combinations([\"api\", \"ui\", \"db\"], 2)))\n",
                   "expected_output": "[('ERROR', 2), ('INFO', 1), ('ERROR', 1), ('INFO', 2)]\n[('api', 'ui'), ('api', 'db'), ('ui', 'db')]",
                   "hint": "groupby группирует только соседние одинаковые элементы.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`groupby` группирует только **соседние** одинаковые. `combinations` — пары без повторов и без учёта порядка.\", \"lines\": [[\"print([(k, len(list(g))) for k, g in groupby(log)])\", \"Каждая серия отдельно.\"], [\"print(list(combinations([\\\"api\\\", \\\"ui\\\", \\\"db\\\"], 2)))\", \"3 пары.\"]], \"mistake\": \"Ожидать `('ERROR', 3)` — `groupby` не сортирует.\"}"
                 },
                 {
                   "slug": "gen-itertools-e4",
@@ -931,7 +958,8 @@
                   "tests": "def test_values():\n    assert merge_logs([\"a\"], [], [\"b\", \"c\"]) == [\"a\", \"b\", \"c\"] and merge_logs() == [], \"Неверный результат\"\n",
                   "solution": "from itertools import chain\n\n\ndef merge_logs(*logs):\n    return list(chain(*logs))\n",
                   "hint": "chain.from_iterable(logs) — то же самое.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`chain(*logs)` — все списки подряд.\", \"lines\": [[\"return list(chain(*logs))\", \"`*` распаковывает списки аргументами.\"]], \"mistake\": \"`chain(logs)` — получится список списков.\"}"
                 },
                 {
                   "slug": "gen-itertools-e5",
@@ -941,7 +969,8 @@
                   "tests": "def test_values():\n    assert deltas([100, 120, 90]) == [20, -30] and deltas([5]) == [] and deltas([]) == [], \"Неверный результат\"\n",
                   "solution": "from itertools import pairwise\n\n\ndef deltas(values):\n    return [b - a for a, b in pairwise(values)]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`pairwise` даёт соседние пары — разница `b - a`.\", \"lines\": [[\"return [b - a for a, b in pairwise(values)]\", \"Следующее минус предыдущее.\"]], \"mistake\": \"`a - b` — знак обратный.\"}"
                 },
                 {
                   "slug": "gen-itertools-e6",
@@ -951,7 +980,8 @@
                   "tests": "def test_values():\n    assert streaks([\"pass\", \"fail\", \"fail\", \"pass\", \"fail\", \"fail\", \"fail\"]) == 3 and streaks([\"pass\"]) == 0 and streaks([]) == 0, \"Неверный результат\"\n",
                   "solution": "from itertools import groupby\n\n\ndef streaks(results):\n    return max((len(list(g)) for k, g in groupby(results) if k == \"fail\"), default=0)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`groupby` разбивает на серии; длины fail-серий, максимум с `default=0`.\", \"lines\": [[\"return max((len(list(g)) for k, g in groupby(results) if k == \\\"fail\\\"), default=0)\", \"Нет fail — 0.\"]], \"mistake\": \"`results.count(\\\"fail\\\")` — все провалы, а не серия подряд.\"}"
                 },
                 {
                   "slug": "gen-itertools-e7",
@@ -961,7 +991,8 @@
                   "tests": "def test_values():\n    assert send_in_batches([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]] and send_in_batches([], 3) == [], \"Неверный результат\"\n",
                   "solution": "from itertools import batched\n\n\ndef send_in_batches(ids, size):\n    return [list(b) for b in batched(ids, size)]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`batched` выдаёт кортежи — превращаем в списки.\", \"lines\": [[\"return [list(b) for b in batched(ids, size)]\", \"Пачки.\"]], \"mistake\": \"Вернуть кортежи — просили списки.\"}"
                 },
                 {
                   "slug": "gen-itertools-e8",
@@ -971,7 +1002,8 @@
                   "tests": "def test_values():\n    assert cumulative_balance([100, -30, -90, 50]) == ([100, 70, -20, 30], -20) and cumulative_balance([]) == ([], 0), \"Неверный результат\"\n",
                   "solution": "from itertools import accumulate\n\n\ndef cumulative_balance(operations):\n    balances = list(accumulate(operations))\n    return balances, min(balances, default=0)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`accumulate` даёт баланс после каждой операции; `min(..., default=0)` — для пустого.\", \"lines\": [[\"balances = list(accumulate(operations))\", \"Нарастающий итог.\"], [\"return balances, min(balances, default=0)\", \"Минимум.\"]], \"mistake\": \"`min(balances)` без `default` — ошибка на пустом.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nВ `itertools` есть ещё много полезного: склеить несколько последовательностей, получить накопленные суммы, пары соседей, разбить на пачки, сгруппировать подряд идущие одинаковые элементы. Всё это ленивое и работает с любыми итераторами.\n\n## chain, accumulate, pairwise\n\n```python\nfrom itertools import chain, accumulate, pairwise\n\nprint(list(chain([1, 2], (3,), \"ab\")))\nprint(list(accumulate([1, 2, 3, 4])))\nprint(list(pairwise([10, 13, 19])))\n```\n\n- `chain(a, b, ...)` — перебрать последовательности одну за другой без склейки в новый список.\n- `accumulate(xs)` — накопленные суммы (можно передать свою функцию, например `max`).\n- `pairwise(xs)` — пары соседних элементов (Python 3.10+). Удобно для разниц между замерами.\n- Вывод: `[1, 2, 3, 'a', 'b']`, `[1, 3, 6, 10]`, `[(10, 13), (13, 19)]`.\n\n## takewhile, dropwhile, batched\n\n```python\nfrom itertools import takewhile, dropwhile, batched\n\nnums = [1, 3, 5, 8, 9, 11]\nprint(list(takewhile(lambda n: n % 2, nums)))\nprint(list(dropwhile(lambda n: n % 2, nums)))\nprint(list(batched(\"abcdefg\", 3)))\n```\n\n- `takewhile(условие, it)` — брать, **пока** условие истинно; на первом ложном — стоп.\n- `dropwhile(условие, it)` — пропускать, пока истинно, дальше — всё.\n- `batched(it, n)` — пачки по `n` элементов в виде кортежей (Python 3.12+). Для отправки данных в API порциями.\n- `n % 2` — остаток 1 (нечётное) считается истиной.\n- Вывод: `[1, 3, 5]`, `[8, 9, 11]`, `[('a', 'b', 'c'), ('d', 'e', 'f'), ('g',)]`.\n\n## groupby: подряд идущие группы\n\n```python\nfrom itertools import groupby\n\nlog = [\"ERROR\", \"ERROR\", \"INFO\", \"ERROR\", \"INFO\", \"INFO\"]\nprint([(k, len(list(g))) for k, g in groupby(log)])\n\nwords = sorted([\"кот\", \"кит\", \"собака\", \"сом\"], key=lambda w: w[0])\nprint({k: list(g) for k, g in groupby(words, key=lambda w: w[0])})\n```\n\n- `groupby(it, key=...)` выдаёт пары `(ключ, группа)` для **подряд идущих** элементов с одинаковым ключом. Группа — итератор; `list(g)` превращает его в список.\n- Чтобы сгруппировать все одинаковые, данные сначала сортируют по тому же ключу.\n- Вывод: `[('ERROR', 2), ('INFO', 1), ('ERROR', 1), ('INFO', 2)]`, `{'к': ['кот', 'кит'], 'с': ['собака', 'сом']}`.\n\n## combinations и permutations\n\n```python\nfrom itertools import combinations, permutations\n\nprint(list(combinations([\"api\", \"ui\", \"db\"], 2)))\nprint(len(list(permutations(\"abc\"))))\n```\n\n- `combinations(it, r)` — все наборы по `r` без учёта порядка (пары сервисов для интеграционных тестов).\n- `permutations(it)` — все перестановки с учётом порядка.\n- Вывод: `[('api', 'ui'), ('api', 'db'), ('ui', 'db')]`, `6`.\n\n## Итог\n\n- `chain` — склеить, `accumulate` — накопить, `pairwise` — соседние пары.\n- `takewhile` / `dropwhile` — до/после условия; `batched` — пачки.\n- `groupby` — группы подряд идущих (сортируй заранее).\n- `combinations`, `permutations`, `product` — перебор вариантов.",
@@ -1031,7 +1063,8 @@
                   "code": "def echo():\n    received = None\n    while True:\n        received = yield f\"получил {received}\"\n\ng = echo()\nprint(next(g))\nprint(g.send(\"привет\"))\nprint(g.send(42))\n",
                   "expected_output": "получил None\nполучил привет\nполучил 42",
                   "hint": "yield — это ещё и выражение: send(x) делает его значением x.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`send` возобновляет генератор и передаёт значение — оно становится результатом выражения `yield`. Первый `next` доводит до первого `yield`.\", \"trace\": [[\"print(next(g))\", \"received = None\", \"получил None\"], [\"print(g.send(\\\"привет\\\"))\", \"received = привет\", \"получил привет\"], [\"print(g.send(42))\", \"received = 42\", \"получил 42\"]], \"mistake\": \"`send` до первого `next` — ошибка.\"}"
                 },
                 {
                   "slug": "gen-send-e2",
@@ -1040,7 +1073,8 @@
                   "code": "def averager():\n    total = count = 0\n    avg = None\n    while True:\n        value = yield avg\n        total += value\n        count += 1\n        avg = total / count\n\na = averager()\nnext(a)\nprint(a.send(10), a.send(20), a.send(60))\n",
                   "expected_output": "10.0 15.0 30.0",
                   "hint": "Первым всегда вызывают next() — чтобы дойти до первого yield.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Генератор хранит сумму и счётчик между вызовами; `send` отдаёт число, получает среднее.\", \"lines\": [[\"next(a)\", \"Запуск до первого `yield`.\"], [\"value = yield avg\", \"Получили значение.\"], [\"avg = total / count\", \"10, 15, 30.\"]], \"mistake\": \"Забыть `next(a)` — `TypeError` на первом `send`.\"}"
                 },
                 {
                   "slug": "gen-send-e3",
@@ -1049,7 +1083,8 @@
                   "code": "def reader():\n    print(\"открыл\")\n    try:\n        n = 0\n        while True:\n            n += 1\n            yield n\n    finally:\n        print(\"закрыл\")\n\nr = reader()\nprint(next(r), next(r))\nr.close()\nprint(\"после close\")\n",
                   "expected_output": "открыл\n1 2\nзакрыл\nпосле close",
                   "hint": "close() завершает генератор, и выполняется его finally.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`close()` завершает генератор на текущем `yield` — срабатывает `finally`.\", \"lines\": [[\"print(next(r), next(r))\", \"«открыл», 1 2.\"], [\"r.close()\", \"`finally` — «закрыл».\"]], \"mistake\": \"Думать, что незавершённый генератор не делает уборку.\"}"
                 },
                 {
                   "slug": "gen-send-e4",
@@ -1059,7 +1094,8 @@
                   "tests": "def test_values():\n    c = collector()\n    assert next(c) == 0 and c.send(\"a\") == 1 and c.send(\"b\") == 2, \"Неверный результат\"\n",
                   "solution": "def collector():\n    items = []\n    while True:\n        value = yield len(items)\n        items.append(value)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`yield` выдаёт длину и принимает новое значение.\", \"lines\": [[\"value = yield len(items)\", \"Выдать длину, получить значение.\"], [\"items.append(value)\", \"Накопить.\"]], \"mistake\": \"Добавлять `None` от первого `next` — длина собьётся.\"}"
                 },
                 {
                   "slug": "gen-send-e5",
@@ -1069,7 +1105,8 @@
                   "tests": "def test_values():\n    g = running_max()\n    assert next(g) is None and [g.send(x) for x in [3, 1, 7, 5]] == [3, 3, 7, 7], \"Неверный результат\"\n",
                   "solution": "def running_max():\n    best = None\n    while True:\n        value = yield best\n        if best is None or value > best:\n            best = value\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Состояние — текущий максимум; `None` — ещё ничего не было.\", \"lines\": [[\"value = yield best\", \"Выдать максимум, получить число.\"], [\"if best is None or value > best:\\n            best = value\", \"Обновить.\"]], \"mistake\": \"Начать с `best = 0` — отрицательные числа не станут максимумом.\"}"
                 },
                 {
                   "slug": "gen-send-e6",
@@ -1079,7 +1116,8 @@
                   "tests": "def test_values():\n    log = []\n    g = lines_with_cleanup([\"a\", \"b\", \"c\"], log)\n    assert next(g) == \"a\" and log == [\"open\"], log\n    g.close()\n    assert log == [\"open\", \"close\"], log\n    log2 = []\n    assert list(lines_with_cleanup([\"x\"], log2)) == [\"x\"] and log2 == [\"open\", \"close\"], log2\n",
                   "solution": "def lines_with_cleanup(lines, log):\n    log.append(\"open\")\n    try:\n        for line in lines:\n            yield line\n    finally:\n        log.append(\"close\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`finally` вокруг `yield` срабатывает и при обычном завершении, и при `close()`.\", \"lines\": [[\"log.append(\\\"open\\\")\", \"Старт.\"], [\"yield line\", \"Может прерваться на `close`.\"], [\"finally:\\n        log.append(\\\"close\\\")\", \"Всегда.\"]], \"mistake\": \"Записать «close» после цикла без `finally` — при `close()` не выполнится.\"}"
                 },
                 {
                   "slug": "gen-send-e7",
@@ -1089,7 +1127,8 @@
                   "tests": "def test_values():\n    g = state_machine()\n    assert [next(g) for _ in range(4)] == [\"красный\", \"зелёный\", \"жёлтый\", \"красный\"], \"Круг\"\n    next(g)\n    assert g.send(\"reset\") == \"красный\" and next(g) == \"зелёный\", \"reset\"\n",
                   "solution": "COLORS = [\"красный\", \"зелёный\", \"жёлтый\"]\n\n\ndef state_machine():\n    i = 0\n    while True:\n        command = yield COLORS[i]\n        if command == \"reset\":\n            i = 0\n        else:\n            i = (i + 1) % len(COLORS)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`next()` отправляет `None` — значит «дальше»; `send(\\\"reset\\\")` — сброс.\", \"lines\": [[\"command = yield COLORS[i]\", \"Цвет наружу, команда внутрь.\"], [\"if command == \\\"reset\\\":\\n            i = 0\", \"Сброс.\"], [\"i = (i + 1) % len(COLORS)\", \"По кругу.\"]], \"mistake\": \"Сбросить на `i = -1` — после reset выдастся не красный.\"}"
                 },
                 {
                   "slug": "gen-send-e8",
@@ -1099,7 +1138,8 @@
                   "tests": "def test_values():\n    v = validator({\"age\": lambda x: x >= 0, \"name\": lambda x: bool(x)})\n    assert next(v) == [], \"Первый next\"\n    assert v.send({\"age\": 5, \"name\": \"Аня\"}) == [] and v.send({\"age\": -1, \"name\": \"\"}) == [\"age\", \"name\"] and v.send({\"age\": 3}) == [\"name\"], \"Неверный результат\"\n",
                   "solution": "def validator(rules):\n    errors = []\n    while True:\n        record = yield errors\n        errors = [field for field, check in rules.items() if field not in record or not check(record[field])]\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Генератор принимает запись и выдаёт ошибки предыдущей проверки.\", \"lines\": [[\"record = yield errors\", \"Выдали ошибки, получили запись.\"], [\"errors = [field for field, check in rules.items() if field not in record or not check(record[field])]\", \"Нет поля или проверка не прошла.\"]], \"mistake\": \"Сначала `check(record[field])` — `KeyError` на отсутствующем поле.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nГенератор умеет не только выдавать значения, но и **получать** их через `send`, а ещё его можно досрочно закрыть через `close`. Это нужно реже, но встречается: генераторы-накопители, конечные автоматы, `@contextmanager` (он построен на этом механизме), корректная уборка ресурсов в генераторе.\n\n## send: значение внутрь генератора\n\n```python\ndef echo():\n    received = None\n    while True:\n        received = yield f\"получил {received}\"\n\ng = echo()\nprint(next(g))\nprint(g.send(\"привет\"))\nprint(g.send(42))\n```\n\n- `yield` — это ещё и **выражение**: `x = yield значение`.\n- `g.send(v)` возобновляет генератор, и выражение `yield` принимает значение `v`. Затем генератор идёт до следующего `yield` и выдаёт его значение как результат `send`.\n- Первый раз нужно вызвать `next(g)` (или `g.send(None)`), чтобы дойти до первого `yield`.\n- Вывод: `получил None`, `получил привет`, `получил 42`.\n\n## Генератор с состоянием\n\n```python\ndef averager():\n    total = count = 0\n    avg = None\n    while True:\n        value = yield avg\n        total += value\n        count += 1\n        avg = total / count\n\na = averager()\nnext(a)\nprint(a.send(10), a.send(20), a.send(60))\n```\n\n- Генератор хранит `total` и `count` между вызовами — как объект, но без класса.\n- Вывод: `10.0 15.0 30.0`.\n\n## close и finally\n\n```python\ndef reader():\n    print(\"открыл\")\n    try:\n        n = 0\n        while True:\n            n += 1\n            yield n\n    finally:\n        print(\"закрыл\")\n\nr = reader()\nprint(next(r), next(r))\nr.close()\nprint(\"после close\")\n```\n\n- `g.close()` завершает генератор: внутри в точке `yield` возникает `GeneratorExit`, и выполняются блоки `finally`.\n- Генератор также закрывается, когда перестаёт быть нужен (сборщик мусора) — но полагаться лучше на явный `close` или `with`.\n- Вывод: `открыл`, `1 2`, `закрыл`, `после close`.\n\n## Уборка при досрочном выходе из for\n\n```python\ndef lines(log):\n    log.append(\"open\")\n    try:\n        yield from [\"a\", \"b\", \"c\"]\n    finally:\n        log.append(\"close\")\n\nlog = []\ng = lines(log)\nfor line in g:\n    if line == \"a\":\n        break\ng.close()\nprint(log)\n```\n\n- `break` не закрывает генератор сам по себе, пока на него есть ссылка. `close()` запускает `finally`.\n- Вывод: `['open', 'close']`.\n\n## Итог\n\n- `x = yield value` — генератор может получать значения через `g.send(v)`.\n- Перед первым `send` — `next(g)`.\n- `g.close()` → `GeneratorExit` внутри → выполняется `finally`.\n- Ресурсы в генераторе оборачивай в `try/finally`.",
@@ -1151,7 +1191,8 @@
                   "code": "with open(\"big.log\", \"w\", encoding=\"utf-8\") as f:\n    for i in range(1000):\n        f.write(f\"{i} {'ERROR' if i % 250 == 0 else 'INFO'}\\n\")\n\ndef errors(path):\n    with open(path, encoding=\"utf-8\") as f:\n        for line in f:\n            if \"ERROR\" in line:\n                yield int(line.split()[0])\n\nprint(list(errors(\"big.log\")))\n",
                   "expected_output": "[0, 250, 500, 750]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Генератор по файлу держит в памяти одну строку.\", \"lines\": [[\"f.write(f\\\"{i} {'ERROR' if i % 250 == 0 else 'INFO'}\\\\n\\\")\", \"ERROR на 0, 250, 500, 750.\"], [\"yield int(line.split()[0])\", \"Номер строки.\"]], \"mistake\": \"Забыть 0 — `0 % 250 == 0`.\"}"
                 },
                 {
                   "slug": "gen-bigdata-e2",
@@ -1160,7 +1201,8 @@
                   "code": "DATA = list(range(1, 8))\n\ndef fake_api(page, size=3):\n    start = (page - 1) * size\n    items = DATA[start:start + size]\n    return {\"items\": items, \"has_next\": start + size < len(DATA)}\n\ndef all_items():\n    page = 1\n    while True:\n        resp = fake_api(page)\n        print(\"запрос страницы\", page)\n        yield from resp[\"items\"]\n        if not resp[\"has_next\"]:\n            break\n        page += 1\n\nfor item in all_items():\n    if item > 4:\n        break\nprint(\"последний:\", item)\n",
                   "expected_output": "запрос страницы 1\nзапрос страницы 2\nпоследний: 5",
                   "hint": "Лишние страницы не запрашиваются: генератор остановился вместе с циклом.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Ленивая пагинация: следующая страница запрашивается, только когда кончилась текущая.\", \"lines\": [[\"print(\\\"запрос страницы\\\", page)\", \"Страница 1: 1, 2, 3.\"], [\"yield from resp[\\\"items\\\"]\", \"Страница 2: 4, 5, 6.\"], [\"if item > 4:\\n        break\", \"На 5 остановились — третья страница не нужна.\"]], \"mistake\": \"Ожидать запрос третьей страницы.\"}"
                 },
                 {
                   "slug": "gen-bigdata-e3",
@@ -1169,7 +1211,8 @@
                   "code": "import io\n\ndef chunks(f, size):\n    while True:\n        block = f.read(size)\n        if not block:\n            return\n        yield block\n\nstream = io.StringIO(\"абвгдежз\")\nprint(list(chunks(stream, 3)))\n",
                   "expected_output": "['абв', 'где', 'жз']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Читаем кусками фиксированного размера, пустой кусок — конец.\", \"lines\": [[\"block = f.read(size)\", \"До 3 символов.\"], [\"if not block:\\n            return\", \"Конец потока.\"], [\"yield block\", \"Кусок.\"]], \"mistake\": \"Ожидать `'жз '` — последний кусок просто короче.\"}"
                 },
                 {
                   "slug": "gen-bigdata-e4",
@@ -1179,7 +1222,8 @@
                   "tests": "import types\n\ndef test_values():\n    with open(\"r.csv\", \"w\", encoding=\"utf-8\") as f:\n        f.write(\"id,name\\n1,Аня\\n2,Боря\\n\")\n    g = read_records(\"r.csv\")\n    assert isinstance(g, types.GeneratorType) and list(g) == [{\"id\": \"1\", \"name\": \"Аня\"}, {\"id\": \"2\", \"name\": \"Боря\"}], \"Неверный результат\"\n",
                   "solution": "def read_records(path):\n    with open(path, encoding=\"utf-8\") as f:\n        header = f.readline().rstrip(\"\\n\").split(\",\")\n        for line in f:\n            values = line.rstrip(\"\\n\").split(\",\")\n            yield dict(zip(header, values))\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Заголовок — первая строка, дальше каждая строка → словарь через `zip`.\", \"lines\": [[\"header = f.readline().rstrip(\\\"\\\\n\\\").split(\\\",\\\")\", \"Названия колонок.\"], [\"values = line.rstrip(\\\"\\\\n\\\").split(\\\",\\\")\", \"Значения.\"], [\"yield dict(zip(header, values))\", \"Колонка → значение.\"]], \"mistake\": \"Не убрать `\\\\n` — последняя колонка станет `\\\"значение\\\\n\\\"`.\"}"
                 },
                 {
                   "slug": "gen-bigdata-e5",
@@ -1189,7 +1233,8 @@
                   "tests": "def test_values():\n    pages = {1: [\"a\", \"b\"], 2: [\"c\"], 3: []}\n    calls = []\n    def fetch(p):\n        calls.append(p)\n        return pages.get(p, [])\n    g = paginate(fetch)\n    assert next(g) == \"a\" and calls == [1], \"Ленивая загрузка\"\n    assert list(g) == [\"b\", \"c\"] and calls == [1, 2, 3], calls\n",
                   "solution": "def paginate(fetch):\n    page = 1\n    while True:\n        items = fetch(page)\n        if not items:\n            return\n        yield from items\n        page += 1\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Запрос страницы — только когда предыдущая выдана полностью.\", \"lines\": [[\"items = fetch(page)\", \"Запрос.\"], [\"if not items:\\n            return\", \"Пустая — конец.\"], [\"yield from items\", \"По одному.\"], [\"page += 1\", \"Следующая.\"]], \"mistake\": \"Сначала собрать все страницы в список — теряется ленивость.\"}"
                 },
                 {
                   "slug": "gen-bigdata-e6",
@@ -1199,7 +1244,8 @@
                   "tests": "def test_values():\n    with open(\"b.bin\", \"wb\") as f:\n        f.write(bytes(range(10)))\n    chunks = list(read_chunks(\"b.bin\", 4))\n    assert chunks == [bytes([0, 1, 2, 3]), bytes([4, 5, 6, 7]), bytes([8, 9])], chunks\n",
                   "solution": "def read_chunks(path, size):\n    with open(path, \"rb\") as f:\n        while True:\n            block = f.read(size)\n            if not block:\n                return\n            yield block\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Двоичный режим и чтение кусками — работает для файлов любого размера.\", \"lines\": [[\"with open(path, \\\"rb\\\") as f:\", \"Байты.\"], [\"block = f.read(size)\", \"До `size` байт.\"], [\"if not block:\\n                return\", \"Конец файла.\"]], \"mistake\": \"`f.read()` без размера — весь файл в памяти.\"}"
                 },
                 {
                   "slug": "gen-bigdata-e7",
@@ -1209,7 +1255,8 @@
                   "tests": "def test_values():\n    src = [\"ERROR timeout\", \"INFO ok\", \"ERROR db\", \"ERROR timeout\", \"ERROR timeout\", \"ERROR db\", \"ERROR auth\"]\n    assert top_errors((l for l in src), 2) == [(\"timeout\", 3), (\"db\", 2)], top_errors((l for l in src), 2)\n",
                   "solution": "from collections import Counter\n\n\ndef top_errors(lines, n):\n    counts = Counter(line[6:] for line in lines if line.startswith(\"ERROR \"))\n    return counts.most_common(n)\n",
                   "hint": "Counter принимает итерируемое и считает за один проход.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`Counter` принимает генератор — один проход; `most_common` даёт топ.\", \"lines\": [[\"counts = Counter(line[6:] for line in lines if line.startswith(\\\"ERROR \\\"))\", \"`ERROR ` — 6 символов.\"], [\"return counts.most_common(n)\", \"Пары (текст, количество).\"]], \"mistake\": \"Перебирать `lines` дважды — генератор второй раз пуст.\"}"
                 },
                 {
                   "slug": "gen-bigdata-e8",
@@ -1219,7 +1266,8 @@
                   "tests": "def test_values():\n    assert list(merge_sorted([1, 4, 9], iter([2, 3, 10, 11]))) == [1, 2, 3, 4, 9, 10, 11], \"Неверный результат\"\n    assert list(merge_sorted([], [1])) == [1] and list(merge_sorted([], [])) == [], \"Пустые\"\n",
                   "solution": "_END = object()\n\n\ndef merge_sorted(a, b):\n    ia, ib = iter(a), iter(b)\n    x, y = next(ia, _END), next(ib, _END)\n    while x is not _END and y is not _END:\n        if x <= y:\n            yield x\n            x = next(ia, _END)\n        else:\n            yield y\n            y = next(ib, _END)\n    while x is not _END:\n        yield x\n        x = next(ia, _END)\n    while y is not _END:\n        yield y\n        y = next(ib, _END)\n",
                   "hint": "Готовая функция — heapq.merge.",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Слияние двух отсортированных: держим текущий элемент каждого, выдаём меньший. `_END` — метка конца.\", \"lines\": [[\"x, y = next(ia, _END), next(ib, _END)\", \"Первые элементы.\"], [\"if x <= y:\\n            yield x\\n            x = next(ia, _END)\", \"Меньший — наружу.\"], [\"while x is not _END:\\n        yield x\\n        x = next(ia, _END)\", \"Хвост первого.\"], [\"while y is not _END:\\n        yield y\\n        y = next(ib, _END)\", \"Хвост второго.\"]], \"mistake\": \"`sorted(chain(a, b))` — всё в памяти.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nГлавная практическая сила генераторов — работа с данными, которые не помещаются в память или приходят частями: логи на гигабайты, большие CSV, API с пагинацией, потоки событий. Генератор обрабатывает по одному элементу и запрашивает следующую порцию только когда она нужна.\n\n## Файл построчно\n\n```python\nwith open(\"big.log\", \"w\", encoding=\"utf-8\") as f:\n    for i in range(1000):\n        f.write(f\"{i} {'ERROR' if i % 250 == 0 else 'INFO'}\\n\")\n\ndef errors(path):\n    with open(path, encoding=\"utf-8\") as f:\n        for line in f:\n            if \"ERROR\" in line:\n                yield int(line.split()[0])\n\nprint(list(errors(\"big.log\")))\n```\n\n- Файл внутри генератора открыт через `with` — закроется, когда генератор завершится.\n- В памяти одновременно только одна строка.\n- Вывод: `[0, 250, 500, 750]`.\n\n## Пагинация API\n\n```python\nDATA = list(range(1, 8))\n\ndef fake_api(page, size=3):\n    start = (page - 1) * size\n    items = DATA[start:start + size]\n    return {\"items\": items, \"has_next\": start + size < len(DATA)}\n\ndef all_items():\n    page = 1\n    while True:\n        resp = fake_api(page)\n        print(\"запрос страницы\", page)\n        yield from resp[\"items\"]\n        if not resp[\"has_next\"]:\n            break\n        page += 1\n\nfor item in all_items():\n    if item > 4:\n        break\nprint(\"последний:\", item)\n```\n\n- Для вызывающего кода все элементы выглядят как один поток — страницы спрятаны внутри генератора.\n- Когда цикл прерван, лишние страницы не запрашиваются: третья страница не понадобилась.\n- Вывод: `запрос страницы 1`, `запрос страницы 2`, `последний: 5`.\n\n## Чтение кусками\n\n```python\nimport io\n\ndef chunks(f, size):\n    while True:\n        block = f.read(size)\n        if not block:\n            return\n        yield block\n\nstream = io.StringIO(\"абвгдежз\")\nprint(list(chunks(stream, 3)))\n```\n\n- `f.read(n)` читает не больше `n` символов (или байт в режиме `\"rb\"`). Пустой результат — конец файла.\n- Так копируют и хешируют большие файлы, отправляют их по сети.\n- Вывод: `['абв', 'где', 'жз']`.\n\n## Подсчёт за один проход\n\n```python\nfrom collections import Counter\n\nlines = (l for l in [\"ERROR timeout\", \"INFO ok\", \"ERROR db\", \"ERROR timeout\"])\ncounts = Counter(line[6:] for line in lines if line.startswith(\"ERROR \"))\nprint(counts.most_common(1))\n```\n\n- Генератор можно перебрать только один раз, поэтому всю статистику собирают за один проход.\n- `Counter` принимает итерируемое и считает вхождения; `most_common(n)` — самые частые.\n- Вывод: `[('timeout', 2)]`.\n\n## Итог\n\n- Файлы, CSV, логи — генератор поверх `for line in f`.\n- Пагинация — `while` + `yield from страница`; следующая страница только по требованию.\n- Двоичные файлы — `read(size)` кусками.\n- Данные из генератора — один проход: считай всё сразу.",
@@ -1271,7 +1319,8 @@
                   "code": "import sys\n\nbig_list = [x for x in range(100_000)]\nbig_gen = (x for x in range(100_000))\nprint(sys.getsizeof(big_list) > 100_000, sys.getsizeof(big_gen) < 500)\nprint(sum(big_list) == sum(big_gen))\n",
                   "expected_output": "True True\nTrue",
                   "hint": "Генератор хранит только своё состояние, а не все значения.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Список хранит все элементы, генератор — только своё состояние. Результат вычислений одинаковый.\", \"lines\": [[\"print(sys.getsizeof(big_list) > 100_000, sys.getsizeof(big_gen) < 500)\", \"Сотни килобайт против пары сотен байт.\"], [\"print(sum(big_list) == sum(big_gen))\", \"Одинаковая сумма.\"]], \"mistake\": \"Думать, что генератор хранит значения заранее.\"}"
                 },
                 {
                   "slug": "gen-memory-e2",
@@ -1280,7 +1329,8 @@
                   "code": "g = (x * 2 for x in range(5))\nfor op in [lambda: len(g), lambda: g[0]]:\n    try:\n        op()\n    except TypeError as e:\n        print(type(e).__name__)\nitems = list(g)\nprint(len(items), items[0], items[-1])\n",
                   "expected_output": "TypeError\nTypeError\n5 0 8",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"У генератора нет длины и индексов. Нужны — превращаем в список.\", \"lines\": [[\"for op in [lambda: len(g), lambda: g[0]]:\", \"Обе операции — `TypeError`.\"], [\"items = list(g)\", \"Теперь можно.\"], [\"print(len(items), items[0], items[-1])\", \"0 и 8.\"]], \"mistake\": \"Ожидать, что неудачные попытки «съели» элементы.\"}"
                 },
                 {
                   "slug": "gen-memory-e3",
@@ -1289,7 +1339,8 @@
                   "code": "from itertools import tee\n\ndef nums():\n    yield from [3, 1, 2]\n\ng = nums()\nprint(max(g), min(g, default=\"пусто\"))\n\na, b = tee(nums())\nprint(max(a), min(b))\n\ndata = list(nums())\nprint(max(data), min(data))\n",
                   "expected_output": "3 пусто\n3 1\n3 1",
                   "hint": "Для нескольких проходов нужен список (или tee).",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Один генератор — один проход. `tee` делает два независимых итератора, `list` — многоразовые данные.\", \"lines\": [[\"print(max(g), min(g, default=\\\"пусто\\\"))\", \"`max` съел всё.\"], [\"a, b = tee(nums())\", \"Два потока.\"], [\"data = list(nums())\", \"Список — сколько угодно проходов.\"]], \"mistake\": \"Ожидать `3 1` в первой строке.\"}"
                 },
                 {
                   "slug": "gen-memory-e4",
@@ -1299,7 +1350,8 @@
                   "tests": "def test_values():\n    assert stats(x for x in [4, 1, 7]) == (1, 7, 4.0) and stats(iter([])) == (None, None, None), \"Неверный результат\"\n    assert \"list(\" not in open(\"solution.py\", encoding=\"utf-8\").read(), \"Без list\"\n",
                   "solution": "def stats(numbers):\n    lo = hi = None\n    total = count = 0\n    for n in numbers:\n        lo = n if lo is None or n < lo else lo\n        hi = n if hi is None or n > hi else hi\n        total += n\n        count += 1\n    if count == 0:\n        return None, None, None\n    return lo, hi, total / count\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Все показатели за один проход: минимум, максимум, сумма и счётчик одновременно.\", \"lines\": [[\"lo = n if lo is None or n < lo else lo\", \"Минимум.\"], [\"hi = n if hi is None or n > hi else hi\", \"Максимум.\"], [\"if count == 0:\\n        return None, None, None\", \"Пустой вход.\"], [\"return lo, hi, total / count\", \"Среднее.\"]], \"mistake\": \"`min(numbers), max(numbers)` — второй проход по пустому генератору.\"}"
                 },
                 {
                   "slug": "gen-memory-e5",
@@ -1309,7 +1361,8 @@
                   "tests": "def test_values():\n    assert normalize([2, 4]) == [0.5, 1.0], \"Список\"\n    assert normalize(x for x in [1, 2, 4]) == [0.25, 0.5, 1.0], \"Генератор\"\n",
                   "solution": "def normalize(values):\n    values = list(values)\n    top = max(values)\n    return [v / top for v in values]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Нужны два прохода — сначала материализуем в список.\", \"lines\": [[\"values = list(values)\", \"Теперь можно перебирать много раз.\"], [\"top = max(values)\", \"Первый проход.\"], [\"return [v / top for v in values]\", \"Второй.\"]], \"mistake\": \"Оставить генератор — после `max` он пуст, результат `[]`.\"}"
                 },
                 {
                   "slug": "gen-memory-e6",
@@ -1319,7 +1372,8 @@
                   "tests": "def test_values():\n    assert count_items(x for x in range(1000)) == 1000 and count_items([]) == 0 and count_items(\"abc\") == 3, \"Неверный результат\"\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"list(\" not in src and \"len(\" not in src, \"Без list и len\"\n",
                   "solution": "def count_items(iterable):\n    return sum(1 for _ in iterable)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Считаем единицы при переборе — без списка.\", \"lines\": [[\"return sum(1 for _ in iterable)\", \"По одной на элемент.\"]], \"mistake\": \"`len(list(iterable))` — список в памяти.\"}"
                 },
                 {
                   "slug": "gen-memory-e7",
@@ -1329,7 +1383,8 @@
                   "tests": "def test_values():\n    yes, no = split_stream((x for x in range(6)), lambda x: x % 2 == 0)\n    assert list(yes) == [0, 2, 4] and list(no) == [1, 3, 5], \"Неверный результат\"\n",
                   "solution": "from itertools import tee\n\n\ndef split_stream(iterable, predicate):\n    a, b = tee(iterable)\n    return (x for x in a if predicate(x)), (x for x in b if not predicate(x))\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`tee` даёт два независимых итератора, на каждом свой фильтр.\", \"lines\": [[\"a, b = tee(iterable)\", \"Две копии потока.\"], [\"return (x for x in a if predicate(x)), (x for x in b if not predicate(x))\", \"Два ленивых фильтра.\"]], \"mistake\": \"Оба фильтра по одному итератору — они будут отбирать элементы друг у друга.\"}"
                 },
                 {
                   "slug": "gen-memory-e8",
@@ -1339,7 +1394,8 @@
                   "tests": "def test_values():\n    assert choose(1_000_000, 1) == \"генератор\" and choose(10, 3) == \"список\" and choose(100, 1) == \"любой\" and choose(10**6, 2) == \"список\", \"choose\"\n    assert sum_squares(3) == 14 and sum_squares(0) == 0, \"sum_squares\"\n",
                   "solution": "def choose(data_size, passes):\n    if passes > 1:\n        return \"список\"\n    if data_size > 10_000:\n        return \"генератор\"\n    return \"любой\"\n\n\ndef sum_squares(n):\n    return sum(i * i for i in range(1, n + 1))\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Много проходов — список; один проход по большим данным — генератор.\", \"lines\": [[\"if passes > 1:\\n        return \\\"список\\\"\", \"Генератор одноразовый.\"], [\"if data_size > 10_000:\\n        return \\\"генератор\\\"\", \"Экономия памяти.\"], [\"return sum(i * i for i in range(1, n + 1))\", \"Без списка.\"]], \"mistake\": \"Проверять размер раньше проходов — для многих проходов посоветуешь генератор.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nГенератор экономит память, но умеет меньше, чем список. Нужно понимать, когда выбрать генератор, а когда — список, и как не наступить на грабли «функция перебирает данные дважды, а ей передали генератор».\n\n## Размер в памяти\n\n```python\nimport sys\n\nbig_list = [x for x in range(100_000)]\nbig_gen = (x for x in range(100_000))\nprint(sys.getsizeof(big_list) > 100_000, sys.getsizeof(big_gen) < 500)\nprint(sum(big_list) == sum(big_gen))\n```\n\n- `sys.getsizeof(obj)` — сколько байт занимает сам объект.\n- Список хранит все 100 000 ссылок (сотни килобайт), генератор — только своё состояние (около двухсот байт), независимо от количества элементов.\n- Вывод: `True True`, `True`.\n\n## Чего генератор не умеет\n\n```python\ng = (x * 2 for x in range(5))\nfor op in [lambda: len(g), lambda: g[0]]:\n    try:\n        op()\n    except TypeError as e:\n        print(type(e).__name__)\nitems = list(g)\nprint(len(items), items[0], items[-1])\n```\n\n- У генератора нет длины, индексов и срезов: он не знает будущих элементов.\n- Нужны они — превращай в список.\n- Вывод: `TypeError`, `TypeError`, `5 0 8`.\n\n## Два прохода\n\n```python\nfrom itertools import tee\n\ndef nums():\n    yield from [3, 1, 2]\n\ng = nums()\nprint(max(g), min(g, default=\"пусто\"))\n\na, b = tee(nums())\nprint(max(a), min(b))\n\ndata = list(nums())\nprint(max(data), min(data))\n```\n\n- После `max` генератор пуст — `min` уже ничего не получит.\n- `tee(it)` делает два независимых итератора из одного (внутри буферизует значения).\n- Проще всего — сохранить в список, если данных немного.\n- Вывод: `3 пусто`, `3 1`, `3 1`.\n\n## Функция, которая принимает «что угодно»\n\n```python\ndef normalize(values):\n    values = list(values)\n    top = max(values)\n    return [v / top for v in values]\n\nprint(normalize(x for x in [1, 2, 4]))\n```\n\n- Если функции нужны несколько проходов, а на вход может прийти генератор — первой строкой сделай `list(values)`.\n- Вывод: `[0.25, 0.5, 1.0]`.\n\n## Как выбрать\n\n- **Генератор**: один проход, большие или бесконечные данные, нужен только первый результат, конвейер.\n- **Список**: несколько проходов, `len`, индексы, срезы, сортировка, данных немного.\n- Сомневаешься — для небольших данных список проще и понятнее.\n\n## Итог\n\n- Генератор занимает постоянную память, список — пропорционально числу элементов.\n- Нет `len`, индексов, повторного прохода.\n- Несколько проходов — `list(...)` или `itertools.tee`.\n- Выбор: один проход и много данных — генератор; иначе — список.",
@@ -1391,7 +1447,8 @@
                   "code": "from itertools import count\n\n_ids = count(1)\n\ndef make_user():\n    n = next(_ids)\n    return {\"id\": n, \"email\": f\"user{n}@test.ru\"}\n\nprint(make_user())\nprint(make_user()[\"email\"])\n",
                   "expected_output": "{'id': 1, 'email': 'user1@test.ru'}\nuser2@test.ru",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`count(1)` — бесконечный счётчик: каждый вызов фабрики получает новый номер.\", \"lines\": [[\"_ids = count(1)\", \"1, 2, 3…\"], [\"n = next(_ids)\", \"Следующий номер.\"], [\"print(make_user()[\\\"email\\\"])\", \"Второй вызов — user2.\"]], \"mistake\": \"Ожидать user1 во второй строке.\"}"
                 },
                 {
                   "slug": "gen-testing-e2",
@@ -1400,7 +1457,8 @@
                   "code": "def cases():\n    yield \"\", False\n    yield \"a@b.ru\", True\n    yield \"без собаки\", False\n    yield \"@x.ru\", False\n\ndef is_email(s):\n    return \"@\" in s and not s.startswith(\"@\")\n\nfor value, expected in cases():\n    status = \"ok\" if is_email(value) == expected else \"FAIL\"\n    print(repr(value), status)\n",
                   "expected_output": "'' ok\n'a@b.ru' ok\n'без собаки' ok\n'@x.ru' ok",
                   "hint": "Похоже на данные для @pytest.mark.parametrize.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Генератор тестовых случаев: пары «вход, ожидание».\", \"lines\": [[\"return \\\"@\\\" in s and not s.startswith(\\\"@\\\")\", \"Проверяемая функция.\"], [\"for value, expected in cases():\", \"Распаковка пар.\"], [\"status = \\\"ok\\\" if is_email(value) == expected else \\\"FAIL\\\"\", \"Сравнение с ожиданием.\"]], \"mistake\": \"Думать, что `False` в ожидании — провал.\"}"
                 },
                 {
                   "slug": "gen-testing-e3",
@@ -1409,7 +1467,8 @@
                   "code": "def db_fixture(log):\n    log.append(\"подключение\")\n    yield {\"users\": []}\n    log.append(\"отключение\")\n\nlog = []\ngen = db_fixture(log)\ndb = next(gen)\ndb[\"users\"].append(\"аня\")\nlog.append(f\"тест: {db['users']}\")\nnext(gen, None)\nprint(log)\n",
                   "expected_output": "['подключение', \"тест: ['аня']\", 'отключение']",
                   "hint": "Так pytest выполняет фикстуры с yield: next до теста, next после.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Так устроены фикстуры pytest: до `yield` — подготовка, после — уборка.\", \"lines\": [[\"db = next(gen)\", \"Подготовка, получили данные.\"], [\"log.append(f\\\"тест: {db['users']}\\\")\", \"Тест.\"], [\"next(gen, None)\", \"Уборка; `None` гасит `StopIteration`.\"]], \"mistake\": \"Забыть второй `next` — «отключение» не выполнится.\"}"
                 },
                 {
                   "slug": "gen-testing-e4",
@@ -1419,7 +1478,8 @@
                   "tests": "def test_values():\n    f = user_factory()\n    assert next(f) == {\"id\": 1, \"login\": \"user_1\"} and next(f)[\"login\"] == \"user_2\", \"Неверный результат\"\n    assert next(user_factory(\"qa\")) == {\"id\": 1, \"login\": \"qa_1\"}, \"Свой счётчик у каждой фабрики\"\n",
                   "solution": "def user_factory(prefix=\"user\"):\n    n = 1\n    while True:\n        yield {\"id\": n, \"login\": f\"{prefix}_{n}\"}\n        n += 1\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Бесконечная фабрика с номером в замыкании генератора.\", \"lines\": [[\"yield {\\\"id\\\": n, \\\"login\\\": f\\\"{prefix}_{n}\\\"}\", \"Новый словарь.\"], [\"n += 1\", \"Следующий номер.\"]], \"mistake\": \"Один и тот же словарь — изменения одного теста попадут в другой.\"}"
                 },
                 {
                   "slug": "gen-testing-e5",
@@ -1429,7 +1489,8 @@
                   "tests": "def test_values():\n    assert list(boundary_values(1, 100)) == [0, 1, 2, 99, 100, 101] and list(boundary_values(5, 6)) == [4, 5, 6, 7], \"Неверный результат\"\n",
                   "solution": "def boundary_values(low, high):\n    seen = set()\n    for v in (low - 1, low, low + 1, high - 1, high, high + 1):\n        if v not in seen:\n            seen.add(v)\n            yield v\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Шесть граничных значений; множество убирает повторы при узком диапазоне.\", \"lines\": [[\"for v in (low - 1, low, low + 1, high - 1, high, high + 1):\", \"В нужном порядке.\"], [\"if v not in seen:\", \"Без повторов.\"]], \"mistake\": \"`set(...)` — порядок потеряется.\"}"
                 },
                 {
                   "slug": "gen-testing-e6",
@@ -1439,7 +1500,8 @@
                   "tests": "def test_values():\n    r = list(combinations_matrix({\"browser\": [\"chrome\", \"firefox\"], \"lang\": [\"ru\", \"en\"]}))\n    assert r == [\n        {\"browser\": \"chrome\", \"lang\": \"ru\"}, {\"browser\": \"chrome\", \"lang\": \"en\"},\n        {\"browser\": \"firefox\", \"lang\": \"ru\"}, {\"browser\": \"firefox\", \"lang\": \"en\"},\n    ], r\n    assert list(combinations_matrix({\"x\": []})) == [], \"Пустой параметр\"\n",
                   "solution": "from itertools import product\n\n\ndef combinations_matrix(params):\n    keys = list(params)\n    for values in product(*params.values()):\n        yield dict(zip(keys, values))\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`product(*значения)` — все комбинации; `zip` с ключами превращает кортеж в словарь.\", \"lines\": [[\"keys = list(params)\", \"Имена параметров.\"], [\"for values in product(*params.values()):\", \"Каждая комбинация.\"], [\"yield dict(zip(keys, values))\", \"Словарь параметров.\"]], \"mistake\": \"`product(params.values())` без `*` — один аргумент, комбинаций не будет.\"}"
                 },
                 {
                   "slug": "gen-testing-e7",
@@ -1449,7 +1511,8 @@
                   "tests": "def test_values():\n    log = []\n    def fix():\n        log.append(\"setup\")\n        yield 42\n        log.append(\"teardown\")\n    assert run_fixture(fix, lambda v: v + 1) == 43 and log == [\"setup\", \"teardown\"], log\n    log.clear()\n    def bad(v):\n        raise AssertionError(\"упал\")\n    try:\n        run_fixture(fix, bad)\n    except AssertionError:\n        pass\n    else:\n        assert False, \"Ошибка теста должна пробрасываться\"\n    assert log == [\"setup\", \"teardown\"], log\n",
                   "solution": "def run_fixture(fixture_func, test_func):\n    gen = fixture_func()\n    value = next(gen)\n    try:\n        return test_func(value)\n    finally:\n        next(gen, None)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Подготовка — первый `next`; уборка — второй `next` в `finally`.\", \"lines\": [[\"value = next(gen)\", \"Данные фикстуры.\"], [\"return test_func(value)\", \"Тест.\"], [\"finally:\\n        next(gen, None)\", \"Уборка даже при падении.\"]], \"mistake\": \"`next(gen)` без `None` — `StopIteration` в `finally`.\"}"
                 },
                 {
                   "slug": "gen-testing-e8",
@@ -1459,7 +1522,8 @@
                   "tests": "def test_values():\n    assert plan(7) == [1, 2, 4, 8, 16, 30, 30] and plan(0) == [], plan(7)\n    g = retry_delays(base=5, factor=3, max_delay=50)\n    assert [next(g) for _ in range(4)] == [5, 15, 45, 50], \"Свои параметры\"\n",
                   "solution": "from itertools import islice\n\n\ndef retry_delays(base=1, factor=2, max_delay=30):\n    delay = base\n    while True:\n        yield min(delay, max_delay)\n        delay *= factor\n\n\ndef plan(attempts):\n    return list(islice(retry_delays(), attempts))\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Задержка растёт в `factor` раз, но выдаётся не больше `max_delay`. `islice` берёт первые N.\", \"lines\": [[\"yield min(delay, max_delay)\", \"Потолок.\"], [\"delay *= factor\", \"Рост.\"], [\"return list(islice(retry_delays(), attempts))\", \"Первые `attempts`.\"]], \"mistake\": \"`list(retry_delays())` — бесконечность.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nГенераторы — удобный инструмент тестировщика: они выдают уникальные тестовые данные, наборы проверок для параметризации, граничные значения, комбинации параметров. А фикстуры pytest с `yield` — это тоже генераторы.\n\n## Уникальные тестовые данные\n\n```python\nfrom itertools import count\n\n_ids = count(1)\n\ndef make_user():\n    n = next(_ids)\n    return {\"id\": n, \"email\": f\"user{n}@test.ru\"}\n\nprint(make_user())\nprint(make_user()[\"email\"])\n```\n\n- Общий счётчик гарантирует, что каждый пользователь уникален — тесты не конфликтуют из-за занятых логинов и email.\n- Вывод: `{'id': 1, 'email': 'user1@test.ru'}`, `user2@test.ru`.\n\n## Набор случаев\n\n```python\ndef cases():\n    yield \"\", False\n    yield \"a@b.ru\", True\n    yield \"без собаки\", False\n\ndef is_email(s):\n    return \"@\" in s and not s.startswith(\"@\")\n\nfor value, expected in cases():\n    print(repr(value), \"ok\" if is_email(value) == expected else \"FAIL\")\n```\n\n- Генератор выдаёт пары «вход → ожидание». Легко добавлять новые случаи.\n- В pytest: `@pytest.mark.parametrize(\"value, expected\", list(cases()))`.\n- Вывод: `'' ok`, `'a@b.ru' ok`, `'без собаки' ok`.\n\n## Граничные значения и комбинации\n\n```python\nfrom itertools import product\n\ndef boundary_values(low, high):\n    seen = set()\n    for v in (low - 1, low, low + 1, high - 1, high, high + 1):\n        if v not in seen:\n            seen.add(v)\n            yield v\n\nprint(list(boundary_values(1, 100)))\n\nparams = {\"browser\": [\"chrome\", \"firefox\"], \"lang\": [\"ru\", \"en\"]}\ncombos = [dict(zip(params, values)) for values in product(*params.values())]\nprint(len(combos), combos[0])\n```\n\n- Граничные значения — классика тест-дизайна: ошибки чаще всего на краях диапазона.\n- `product(*params.values())` — все комбинации значений; `zip(params, values)` связывает их с именами параметров.\n- Вывод: `[0, 1, 2, 99, 100, 101]`, `4 {'browser': 'chrome', 'lang': 'ru'}`.\n\n## Фикстура — это генератор\n\n```python\ndef db_fixture(log):\n    log.append(\"подключение\")\n    yield {\"users\": []}\n    log.append(\"отключение\")\n\nlog = []\ngen = db_fixture(log)\ndb = next(gen)\ndb[\"users\"].append(\"аня\")\nlog.append(f\"тест: {db['users']}\")\nnext(gen, None)\nprint(log)\n```\n\n- Pytest поступает с фикстурой именно так: `next` — выполнить подготовку и получить значение, запустить тест, ещё один `next` — выполнить уборку после `yield`.\n- `next(gen, None)` — дойти до конца без `StopIteration`.\n- Строка с одинарными кавычками внутри выводится в двойных кавычках.\n- Вывод: `['подключение', \"тест: ['аня']\", 'отключение']`.\n\n## Итог\n\n- `itertools.count` / генератор-фабрика — уникальные данные.\n- Генераторы случаев — источник для `parametrize`.\n- Граничные значения и `product` — тест-дизайн.\n- Фикстуры с `yield` — генераторы: подготовка → значение → уборка.",
