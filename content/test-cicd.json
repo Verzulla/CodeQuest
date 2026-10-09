@@ -26,7 +26,8 @@
                   "code": "jobs = [(\"lint\", 0), (\"unit\", 0), (\"api-tests\", 1), (\"ui-tests\", 0), (\"deploy\", 0)]\nfor name, code in jobs:\n    if code != 0:\n        print(\"❌\", name)\n        break\n    print(\"✅\", name)\nelse:\n    print(\"🚀 всё зелёное\")\n",
                   "expected_output": "✅ lint\n✅ unit\n❌ api-tests",
                   "hint": "`else` у цикла выполняется, только если не было break.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Fail fast: первый упавший job останавливает пайплайн; `else` у цикла срабатывает, только если не было `break`.\", \"lines\": [[\"if code != 0:\", \"Провал.\"], [\"break\", \"Дальше не идём.\"], [\"else:\\n    print(\\\"🚀 всё зелёное\\\")\", \"Сюда не дошли — был break.\"]], \"mistake\": \"Ожидать «всё зелёное» — `else` цикла не выполняется после break.\"}"
                 },
                 {
                   "slug": "dci-m2-l1-e2",
@@ -36,7 +37,8 @@
                   "tests": "def test_failed():\n    assert pipeline_status([(\"lint\", 0), (\"unit\", 1), (\"ui\", 1)]) == (\"failed\", \"unit\"), \"Первый упавший — unit\"\n\ndef test_success():\n    assert pipeline_status([(\"lint\", 0), (\"unit\", 0)]) == (\"success\", None), \"Все с кодом 0 → success\"\n",
                   "solution": "def pipeline_status(jobs):\n    for name, code in jobs:\n        if code != 0:\n            return \"failed\", name\n    return \"success\", None\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Первый ненулевой код — провал с именем job-а; иначе успех.\", \"lines\": [[\"if code != 0:\\n            return \\\"failed\\\", name\", \"Первый упавший.\"], [\"return \\\"success\\\", None\", \"Все прошли.\"]], \"mistake\": \"Возвращать последний упавший.\"}"
                 },
                 {
                   "slug": "dci-m2-l1-e3",
@@ -46,7 +48,8 @@
                   "tests": "def test_codes():\n    got = [pytest_exit(c) for c in range(6)]\n    assert got == [\"all passed\", \"tests failed\", \"interrupted\", \"internal error\", \"usage error\", \"no tests collected\"], f\"Получено {got}\"\n",
                   "solution": "def pytest_exit(code):\n    return [\"all passed\", \"tests failed\", \"interrupted\", \"internal error\", \"usage error\", \"no tests collected\"][code]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Коды 0–5 подряд — удобно хранить в списке и брать по индексу.\", \"lines\": [[\"return [\\\"all passed\\\", \\\"tests failed\\\", \\\"interrupted\\\", \\\"internal error\\\", \\\"usage error\\\", \\\"no tests collected\\\"][code]\", \"Код = индекс.\"]], \"mistake\": \"Считать код 5 успехом — тестов не нашлось, это тоже сигнал.\"}"
                 },
                 {
                   "slug": "dci-m2-l1-e4",
@@ -56,7 +59,8 @@
                   "tests": "def test_main_green():\n    assert should_deploy(\"main\", [0, 0, 0]) is True, \"main + всё зелёное → деплой\"\n\ndef test_feature_branch():\n    assert should_deploy(\"feature/login\", [0, 0]) is False, \"Не main → не деплоим\"\n\ndef test_red():\n    assert should_deploy(\"main\", [0, 1]) is False, \"Есть упавший job → не деплоим\"\n",
                   "solution": "def should_deploy(branch, jobs):\n    return branch == \"main\" and all(code == 0 for code in jobs)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Деплой — только с main и только при всех зелёных job-ах.\", \"lines\": [[\"return branch == \\\"main\\\" and all(code == 0 for code in jobs)\", \"Оба условия.\"]], \"mistake\": \"`any` вместо `all` — выкатится с упавшими тестами.\"}"
                 },
                 {
                   "slug": "dci-m2-l1-e5",
@@ -66,7 +70,8 @@
                   "tests": "def test_pipeline():\n    needs = {\n        \"deploy\": [\"api-tests\", \"ui-tests\"],\n        \"api-tests\": [\"build\"],\n        \"ui-tests\": [\"build\"],\n        \"build\": [\"lint\", \"unit\"],\n        \"lint\": [],\n        \"unit\": [],\n    }\n    assert run_order(needs) == [\"lint\", \"unit\", \"build\", \"api-tests\", \"ui-tests\", \"deploy\"], f\"Получено {run_order(needs)}\"\n\ndef test_independent():\n    assert run_order({\"b\": [], \"a\": []}) == [\"a\", \"b\"], \"Независимые — по алфавиту\"\n",
                   "solution": "def run_order(needs):\n    done = []\n    while len(done) < len(needs):\n        ready = sorted(j for j, deps in needs.items() if j not in done and all(d in done for d in deps))\n        done.append(ready[0])\n    return done\n",
                   "hint": "Пока не все выполнены: найди готовые (не выполнен, все зависимости в done), отсортируй, возьми первый.",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"На каждом шаге запускаем готовый job (все зависимости выполнены), из нескольких — по алфавиту.\", \"lines\": [[\"while len(done) < len(needs):\", \"Пока не все.\"], [\"ready = sorted(j for j, deps in needs.items() if j not in done and all(d in done for d in deps))\", \"Готовые.\"], [\"done.append(ready[0])\", \"Первый.\"]], \"mistake\": \"Запускать в порядке словаря — зависимость может оказаться позже.\"}"
                 },
                 {
                   "slug": "dci-m2-l1-e6",
@@ -75,7 +80,8 @@
                   "code": "def run(name, code):\n    print(\"run\", name)\n    return code\n\ndef and_(a, b):\n    code = a()\n    return b() if code == 0 else code\n\nprint(\"exit\", and_(lambda: run(\"ruff\", 1), lambda: run(\"pytest\", 0)))\nprint(\"exit\", and_(lambda: run(\"ruff\", 0), lambda: run(\"pytest\", 0)))\n",
                   "expected_output": "run ruff\nexit 1\nrun ruff\nrun pytest\nexit 0",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`a && b`: b запускается, только если a вернула 0; иначе возвращается код a.\", \"lines\": [[\"return b() if code == 0 else code\", \"Логика `&&`.\"], [\"print(\\\"exit\\\", and_(lambda: run(\\\"ruff\\\", 1), lambda: run(\\\"pytest\\\", 0)))\", \"ruff упал — pytest не запускался.\"]], \"mistake\": \"Ждать «run pytest» в первом случае.\"}"
                 },
                 {
                   "slug": "dci-m2-l1-e7",
@@ -85,7 +91,8 @@
                   "expected_output": "pytest -x\npytest --exitfirst\npython -m pytest -x",
                   "solution": "pytest -x",
                   "hint": "Флаг `-x`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-x` — остановиться на первом упавшем тесте.\", \"lines\": [[\"pytest -x\", \"Быстрая обратная связь.\"]], \"mistake\": \"Использовать в CI по умолчанию — не увидишь остальные падения.\"}"
                 },
                 {
                   "slug": "dci-m2-l1-e8",
@@ -95,7 +102,8 @@
                   "expected_output": "ruff check . && pytest\nruff check && pytest",
                   "solution": "ruff check . && pytest",
                   "hint": "Оператор `&&`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`&&` — второй шаг только после успешного первого.\", \"lines\": [[\"ruff check . && pytest\", \"Линтер, потом тесты.\"]], \"mistake\": \"`;` — pytest запустится и после упавшего линтера.\"}"
                 }
               ],
               "theory_full": "## Зачем тестировщику CI/CD\n\nАвтотесты, которые запускают «когда вспомнят», быстро перестают что-то значить. **CI** запускает их сам — на каждый push и pull request, — и баг находится в течение минут после коммита, пока автор ещё помнит, что менял. Тестировщик в команде часто и отвечает за эту часть пайплайна: какие тесты, когда, в каком окружении и куда идут отчёты.\n\n## CI и CD\n\n- **CI (Continuous Integration)** — на каждое изменение автоматически собрать проект и прогнать проверки.\n- **CD (Continuous Delivery / Deployment)** — если всё зелёное, автоматически выкатить на стенд (delivery) или сразу в прод (deployment).\n\n## Пайплайн\n\nПайплайн — цепочка **стадий** (stages) из **job-ов**:\n\n```bash\nlint → unit → build (docker) → api-tests → ui-tests → deploy\n```\n\n- **Fail fast** — быстрые и дешёвые проверки первыми. Упал линтер за 20 секунд — незачем 20 минут гонять UI-тесты.\n- Job-ы без зависимостей идут **параллельно**; зависимости задают порядок.\n- **Артефакты** — файлы, которые job сохраняет: отчёты, скриншоты, логи.\n\n## Всё решает код выхода\n\nCI не читает вывод — он смотрит на **код выхода** команды: `0` — успех, всё остальное — провал. Поэтому тесты «упали, но пайплайн зелёный» почти всегда означают, что код выхода потерялся (например, `pytest | tee log.txt` вернул код `tee`).\n\nКоды выхода pytest:\n\n- `0` — все тесты прошли;\n- `1` — есть упавшие;\n- `2` — прерван (Ctrl+C);\n- `3` — внутренняя ошибка;\n- `4` — ошибка в аргументах командной строки;\n- `5` — не собрано ни одного теста — частая ошибка конфигурации (не тот путь, не те имена файлов).\n\n## Склейка команд\n\n```bash\nruff check . && pytest      # pytest — только если линтер прошёл\npytest || echo \"упали\"      # echo — только если pytest упал\npytest -x                   # остановиться на первом упавшем тесте\n```\n\n## Итог\n\n- CI — автопроверки на каждое изменение, CD — автовыкатка.\n- Пайплайн: стадии, job-ы, fail fast, артефакты.\n- Решает код выхода; `5` у pytest — «тестов не нашлось».",
@@ -147,7 +155,8 @@
                   "code": "import yaml\n\ndata = yaml.safe_load('''\nname: tests\non: [push, pull_request]\n''')\nprint(list(data))\nprint(data[True])\n",
                   "expected_output": "['name', True]\n['push', 'pull_request']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"В YAML 1.1 `on` — это булево «да»; PyYAML превращает ключ в `True`. GitHub читает файл правильно.\", \"lines\": [[\"print(list(data))\", \"Ключ — True.\"], [\"print(data[True])\", \"Значение под ним.\"]], \"mistake\": \"Искать `data[\\\"on\\\"]` при разборе workflow в Python — KeyError.\"}"
                 },
                 {
                   "slug": "ci-triggers-e2",
@@ -157,7 +166,8 @@
                   "tests": "import yaml\n\n\ndef wf(text=None):\n    data = yaml.safe_load(WORKFLOW if text is None else text) or {}\n    if True in data:\n        data[\"on\"] = data.pop(True)\n    return data\n\n\ndef steps(job):\n    return wf()[\"jobs\"][job].get(\"steps\", [])\n\n\n\ndef test_push_pr():\n    on = wf().get(\"on\") or {}\n    assert isinstance(on, dict), \"on — словарь событий\"\n    assert (on.get(\"push\") or {}).get(\"branches\") == [\"main\"], \"push: branches: [main]\"\n    assert (on.get(\"pull_request\") or {}).get(\"branches\") == [\"main\"], \"pull_request: branches: [main]\"\n\ndef test_schedule_manual():\n    on = wf().get(\"on\") or {}\n    assert on.get(\"schedule\") == [{\"cron\": \"0 3 * * *\"}], f'schedule: - cron: \"0 3 * * *\", а сейчас {on.get(\"schedule\")}'\n    assert \"workflow_dispatch\" in on, \"Нужен ручной запуск workflow_dispatch\"\n",
                   "solution": "WORKFLOW = \"\"\"\nname: nightly\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\n  schedule:\n    - cron: \"0 3 * * *\"\n  workflow_dispatch:\n\"\"\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Под `on` — события; у push/PR — фильтр веток, у schedule — cron, `workflow_dispatch` — ручной запуск.\", \"lines\": [[\"branches: [main]\", \"Только main.\"], [\"- cron: \\\"0 3 * * *\\\"\", \"Каждую ночь в 03:00 UTC.\"], [\"workflow_dispatch:\", \"Кнопка «Run workflow».\"]], \"mistake\": \"Писать время cron по Москве — GitHub считает в UTC.\"}"
                 },
                 {
                   "slug": "ci-triggers-e3",
@@ -167,7 +177,8 @@
                   "expected_output": "30 6 * * 1-5\n30 6 * * MON-FRI\n30 6 * * mon-fri\n30 06 * * 1-5",
                   "solution": "30 6 * * 1-5",
                   "hint": "Минута `30`, час `6`, дни недели `1-5`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Поля cron: минута, час, день, месяц, день недели; `1-5` — пн–пт.\", \"lines\": [[\"30 6 * * 1-5\", \"06:30 по будням.\"]], \"mistake\": \"`6 30 * * 1-5` — сначала минуты, потом часы.\"}"
                 },
                 {
                   "slug": "ci-triggers-e4",
@@ -177,7 +188,8 @@
                   "tests": "def test_match():\n    p = [\"main\", \"release/*\"]\n    assert branch_matches(\"main\", p) and branch_matches(\"release/1.4\", p)\n    assert not branch_matches(\"feature/login\", p) and not branch_matches(\"mainline\", p)\n    assert branch_matches(\"hotfix-7\", [\"hotfix-*\"])\n",
                   "solution": "from fnmatch import fnmatch\n\n\ndef branch_matches(branch, patterns):\n    return any(fnmatch(branch, p) for p in patterns)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`fnmatch` понимает шаблоны со `*`.\", \"lines\": [[\"return any(fnmatch(branch, p) for p in patterns)\", \"Хоть один подходит.\"]], \"mistake\": \"Сравнивать `branch in patterns` — шаблоны не сработают.\"}"
                 },
                 {
                   "slug": "ci-triggers-e5",
@@ -187,7 +199,8 @@
                   "tests": "P = [\"frontend/*\", \"tests/ui/*\"]\n\ndef test_ui():\n    assert needs_ui_tests([\"README.md\", \"frontend/src/App.vue\"], P) is True\n    assert needs_ui_tests([\"tests/ui/test_login.py\"], P) is True\n\ndef test_skip():\n    assert needs_ui_tests([\"backend/api.py\", \"docs/x.md\"], P) is False\n    assert needs_ui_tests([], P) is False\n",
                   "solution": "from fnmatch import fnmatch\n\n\ndef needs_ui_tests(changed, paths):\n    return any(fnmatch(f, p) for f in changed for p in paths)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Хоть один изменённый файл под хоть одним шаблоном — запускаем UI-тесты.\", \"lines\": [[\"return any(fnmatch(f, p) for f in changed for p in paths)\", \"Все пары файл × шаблон.\"]], \"mistake\": \"Проверять только первый изменённый файл.\"}"
                 },
                 {
                   "slug": "ci-triggers-e6",
@@ -197,7 +210,8 @@
                   "tests": "C = {\"push\": {\"branches\": [\"main\", \"release/*\"]}, \"pull_request\": {}, \"workflow_dispatch\": None}\n\ndef test_rules():\n    assert should_run(\"push\", \"release/2.0\", C) is True\n    assert should_run(\"push\", \"feature/x\", C) is False\n    assert should_run(\"pull_request\", \"feature/x\", C) is True\n    assert should_run(\"schedule\", \"main\", C) is False\n    assert should_run(\"workflow_dispatch\", \"any\", C) is True\n",
                   "solution": "from fnmatch import fnmatch\n\n\ndef should_run(event, branch, config):\n    if event not in config:\n        return False\n    branches = (config[event] or {}).get(\"branches\")\n    if branches is None:\n        return True\n    return any(fnmatch(branch, p) for p in branches)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Событие должно быть в конфиге; фильтр веток — только если он задан.\", \"lines\": [[\"if event not in config:\\n        return False\", \"Событие не настроено.\"], [\"branches = (config[event] or {}).get(\\\"branches\\\")\", \"`None` у события без настроек → `{}`.\"], [\"if branches is None:\\n        return True\", \"Без фильтра — любая ветка.\"]], \"mistake\": \"`config[event].get(...)` — упадёт на `pull_request:` без значения (там None).\"}"
                 },
                 {
                   "slug": "ci-triggers-e7",
@@ -207,7 +221,8 @@
                   "expected_output": "gh workflow run tests.yml\ngh workflow run tests",
                   "solution": "gh workflow run tests.yml",
                   "hint": "`gh workflow run файл`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`gh workflow run` запускает workflow с `workflow_dispatch`.\", \"lines\": [[\"gh workflow run tests.yml\", \"Ручной запуск.\"]], \"mistake\": \"Делать пустой коммит ради запуска.\"}"
                 },
                 {
                   "slug": "ci-triggers-e8",
@@ -216,7 +231,8 @@
                   "code": "from fnmatch import fnmatch\n\non = {\"push\": [\"main\", \"release/*\"], \"pull_request\": [\"main\"]}\nevents = [(\"push\", \"main\"), (\"push\", \"feature/cart\"), (\"pull_request\", \"main\"), (\"push\", \"release/1.0\")]\nfor event, branch in events:\n    ok = any(fnmatch(branch, p) for p in on.get(event, []))\n    print(f\"{event:12} {branch:14} {'▶' if ok else '—'}\")\n",
                   "expected_output": "push         main           ▶\npush         feature/cart   —\npull_request main           ▶\npush         release/1.0    ▶",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Событие запускает workflow, если ветка подходит под один из шаблонов этого события.\", \"lines\": [[\"ok = any(fnmatch(branch, p) for p in on.get(event, []))\", \"Фильтр веток.\"], [\"print(f\\\"{event:12} {branch:14} {'▶' if ok else '—'}\\\")\", \"`:12` — выравнивание.\"]], \"mistake\": \"Считать, что `feature/cart` подходит под `release/*`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nГонять все тесты на каждый чих дорого, а не гонять — опасно. Раздел `on` в workflow решает, **когда** пайплайн запускается: на какие события, в каких ветках, при каких изменённых файлах.\n\n## События\n\n```yaml\non:\n  push:\n    branches: [main, \"release/*\"]\n  pull_request:\n    branches: [main]\n  schedule:\n    - cron: \"0 3 * * *\"        # каждую ночь в 03:00 UTC\n  workflow_dispatch:           # кнопка «Run workflow» и gh workflow run\n```\n\n- `push` — коммит в ветку; `pull_request` — открытие и обновление PR (в целевую ветку `main`).\n- `schedule` — по расписанию: ночной полный регресс, который слишком долог для каждого PR.\n- `workflow_dispatch` — ручной запуск (из интерфейса или `gh workflow run tests.yml`).\n\n## Шаблоны веток и путей\n\n- `branches: [\"release/*\"]` — шаблоны: `*` — любые символы кроме `/`, `**` — с `/`.\n- `paths` / `paths-ignore` — запуск только при изменении нужных файлов: UI-тесты — если менялся фронтенд.\n\n```yaml\non:\n  pull_request:\n    paths: [\"frontend/**\", \"tests/ui/**\"]\n```\n\n## cron\n\nПять полей: **минута, час, день месяца, месяц, день недели** (0 или 7 — воскресенье).\n\n```bash\n0 3 * * *       # каждый день в 03:00\n30 6 * * 1-5    # по будням в 06:30\n0 */4 * * *     # каждые 4 часа\n```\n\nВремя — в UTC: 03:00 UTC — это 06:00 по Москве.\n\n## Ловушка YAML: on = True\n\nВ YAML 1.1 слова `on`, `off`, `yes`, `no` — логические значения. GitHub понимает ключ `on:` правильно, но обычный парсер Python — нет:\n\n```python\nimport yaml\n\nprint(yaml.safe_load(\"on: [push]\"))\n```\n\nВывод: `{True: ['push']}`. Если пишешь скрипты, которые читают workflow, — учитывай это.\n\n## Итог\n\n- `push`, `pull_request`, `schedule` (cron, UTC), `workflow_dispatch`.\n- `branches` и `paths` с шаблонами — запускать только нужное.\n- `on:` в PyYAML — ключ `True`.",
@@ -268,7 +284,8 @@
                   "code": "durations = {\"lint\": 1, \"unit\": 3, \"api\": 6, \"ui\": 12}\nneeds = {\"lint\": [], \"unit\": [], \"api\": [\"lint\", \"unit\"], \"ui\": [\"lint\", \"unit\"]}\n\nfinish = {}\nfor job in [\"lint\", \"unit\", \"api\", \"ui\"]:\n    start = max((finish[d] for d in needs[job]), default=0)\n    finish[job] = start + durations[job]\nprint(finish)\nprint(\"пайплайн:\", max(finish.values()), \"мин, последовательно было бы\", sum(durations.values()))\n",
                   "expected_output": "{'lint': 1, 'unit': 3, 'api': 9, 'ui': 15}\nпайплайн: 15 мин, последовательно было бы 22",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Независимые job-ы идут параллельно: время — самая длинная цепочка.\", \"lines\": [[\"start = max((finish[d] for d in needs[job]), default=0)\", \"Старт после всех зависимостей.\"], [\"finish[job] = start + durations[job]\", \"Окончание.\"], [\"print(\\\"пайплайн:\\\", max(finish.values()), \\\"мин, последовательно было бы\\\", sum(durations.values()))\", \"15 против 22.\"]], \"mistake\": \"Складывать длительности всех job-ов.\"}"
                 },
                 {
                   "slug": "ci-jobs-e2",
@@ -278,7 +295,8 @@
                   "tests": "def test_waves():\n    got = waves({\"lint\": [], \"unit\": [], \"build\": [\"unit\"], \"api\": [\"build\"], \"ui\": [\"build\", \"lint\"]})\n    assert got == [[\"lint\", \"unit\"], [\"build\"], [\"api\", \"ui\"]], got\n\ndef test_single():\n    assert waves({\"a\": []}) == [[\"a\"]]\n",
                   "solution": "def waves(needs):\n    done, result = set(), []\n    while len(done) < len(needs):\n        wave = sorted(j for j, deps in needs.items() if j not in done and all(d in done for d in deps))\n        result.append(wave)\n        done.update(wave)\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Волна — все job-ы, чьи зависимости уже выполнены; добавляем её целиком.\", \"lines\": [[\"wave = sorted(j for j, deps in needs.items() if j not in done and all(d in done for d in deps))\", \"Готовые сейчас.\"], [\"done.update(wave)\", \"Отмечаем всю волну.\"]], \"mistake\": \"Добавлять job-ы в `done` по одному внутри волны — следующий попадёт в ту же волну раньше времени.\"}"
                 },
                 {
                   "slug": "ci-jobs-e3",
@@ -288,7 +306,8 @@
                   "tests": "def test_time():\n    d = {\"lint\": 1, \"unit\": 3, \"api\": 6, \"ui\": 12, \"deploy\": 2}\n    n = {\"deploy\": [\"api\", \"ui\", \"lint\"], \"ui\": [\"unit\"], \"api\": [\"unit\"], \"lint\": [], \"unit\": []}\n    assert pipeline_time(d, n) == 17, pipeline_time(d, n)\n\ndef test_parallel():\n    assert pipeline_time({\"a\": 5, \"b\": 7}, {\"a\": [], \"b\": []}) == 7\n",
                   "solution": "def pipeline_time(durations, needs):\n    finish = {}\n\n    def end(job):\n        if job not in finish:\n            finish[job] = max((end(d) for d in needs[job]), default=0) + durations[job]\n        return finish[job]\n\n    return max(end(job) for job in durations)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Окончание job-а = максимум окончаний зависимостей + своя длительность; запоминаем, чтобы не считать повторно.\", \"lines\": [[\"if job not in finish:\", \"Ещё не считали.\"], [\"finish[job] = max((end(d) for d in needs[job]), default=0) + durations[job]\", \"Рекурсия по зависимостям.\"], [\"return max(end(job) for job in durations)\", \"Самый поздний.\"]], \"mistake\": \"Сумма длительностей зависимостей — они идут параллельно.\"}"
                 },
                 {
                   "slug": "ci-jobs-e4",
@@ -298,7 +317,8 @@
                   "tests": "import yaml\n\n\ndef wf(text=None):\n    data = yaml.safe_load(WORKFLOW if text is None else text) or {}\n    if True in data:\n        data[\"on\"] = data.pop(True)\n    return data\n\n\ndef steps(job):\n    return wf()[\"jobs\"][job].get(\"steps\", [])\n\n\n\ndef test_jobs():\n    jobs = wf().get(\"jobs\") or {}\n    assert set(jobs) == {\"lint\", \"unit\", \"api-tests\", \"ui-tests\"}, f\"Нужны job-ы lint, unit, api-tests, ui-tests: {sorted(jobs)}\"\n    for name, job in jobs.items():\n        assert job.get(\"runs-on\") == \"ubuntu-latest\", f\"{name}: runs-on: ubuntu-latest\"\n        assert job.get(\"steps\"), f\"{name}: нужны steps\"\n\ndef test_needs():\n    jobs = wf()[\"jobs\"]\n    as_list = lambda v: [v] if isinstance(v, str) else list(v or [])\n    assert not jobs[\"lint\"].get(\"needs\") and not jobs[\"unit\"].get(\"needs\"), \"lint и unit — без needs\"\n    assert sorted(as_list(jobs[\"api-tests\"].get(\"needs\"))) == [\"lint\", \"unit\"], \"api-tests: needs [lint, unit]\"\n    assert as_list(jobs[\"ui-tests\"].get(\"needs\")) == [\"api-tests\"], \"ui-tests: needs api-tests\"\n",
                   "solution": "WORKFLOW = \"\"\"\nname: pipeline\non: [push]\njobs:\n  lint:\n    runs-on: ubuntu-latest\n    steps:\n      - run: ruff check .\n  unit:\n    runs-on: ubuntu-latest\n    steps:\n      - run: pytest tests/unit\n  api-tests:\n    needs: [lint, unit]\n    runs-on: ubuntu-latest\n    steps:\n      - run: pytest tests/api\n  ui-tests:\n    needs: [api-tests]\n    runs-on: ubuntu-latest\n    steps:\n      - run: pytest tests/ui\n\"\"\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`needs` задаёт зависимости; без него job-ы идут параллельно.\", \"lines\": [[\"lint:\", \"Без needs.\"], [\"needs: [lint, unit]\", \"После обоих.\"], [\"needs: [api-tests]\", \"После API-тестов.\"]], \"mistake\": \"Забыть needs — UI-тесты стартуют одновременно с линтером.\"}"
                 },
                 {
                   "slug": "ci-jobs-e5",
@@ -308,7 +328,8 @@
                   "tests": "N = {\"lint\": [], \"unit\": [], \"build\": [\"unit\"], \"api\": [\"build\"], \"ui\": [\"build\"], \"report\": [\"lint\"]}\n\ndef test_chain():\n    assert skipped_jobs(N, {\"unit\"}) == [\"api\", \"build\", \"ui\"], skipped_jobs(N, {\"unit\"})\n\ndef test_leaf():\n    assert skipped_jobs(N, {\"api\"}) == []\n    assert skipped_jobs(N, {\"lint\", \"build\"}) == [\"api\", \"report\", \"ui\"]\n",
                   "solution": "def skipped_jobs(needs, failed):\n    bad = set(failed)\n    skipped = set()\n    changed = True\n    while changed:\n        changed = False\n        for job, deps in needs.items():\n            if job not in bad and job not in skipped and any(d in bad or d in skipped for d in deps):\n                skipped.add(job)\n                changed = True\n    return sorted(skipped)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Пропуск распространяется по цепочке: повторяем, пока список пропущенных растёт.\", \"lines\": [[\"while changed:\", \"Пока что-то добавилось.\"], [\"if job not in bad and job not in skipped and any(d in bad or d in skipped for d in deps):\", \"Зависит от упавшего или пропущенного.\"], [\"skipped.add(job)\\n                changed = True\", \"Ещё один пропуск.\"]], \"mistake\": \"Один проход — непрямые зависимости потеряются.\"}"
                 },
                 {
                   "slug": "ci-jobs-e6",
@@ -318,7 +339,8 @@
                   "tests": "def test_shards():\n    tests = [\"t1\", \"t2\", \"t3\", \"t4\", \"t5\"]\n    assert shard(tests, 1, 2) == [\"t1\", \"t3\", \"t5\"] and shard(tests, 2, 2) == [\"t2\", \"t4\"]\n\ndef test_cover():\n    tests = [f\"t{i}\" for i in range(10)]\n    parts = [shard(tests, i, 3) for i in (1, 2, 3)]\n    assert sorted(sum(parts, [])) == sorted(tests), \"Шарды должны покрыть все тесты по одному разу\"\n",
                   "solution": "def shard(tests, index, total):\n    return tests[index - 1::total]\n",
                   "hint": "Срез с шагом: `tests[index - 1::total]`.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Шард — срез с шагом: раннер i берёт каждый total-й тест, начиная с i-го.\", \"lines\": [[\"return tests[index - 1::total]\", \"Индекс с 1 → срез с 0.\"]], \"mistake\": \"`tests[index::total]` — сдвиг на один.\"}"
                 },
                 {
                   "slug": "ci-jobs-e7",
@@ -328,7 +350,8 @@
                   "expected_output": "pytest -n auto\npython -m pytest -n auto\npytest --numprocesses auto\npytest --numprocesses=auto",
                   "solution": "pytest -n auto",
                   "hint": "`-n auto`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-n auto` — по числу ядер раннера.\", \"lines\": [[\"pytest -n auto\", \"Параллельно внутри job-а.\"]], \"mistake\": \"Ставить фиксированное число — на другом раннере ядер может быть меньше.\"}"
                 },
                 {
                   "slug": "ci-jobs-e8",
@@ -337,7 +360,8 @@
                   "code": "needs = {\"lint\": [], \"unit\": [], \"api\": [\"unit\"], \"ui\": [\"api\"]}\nresult = {}\nfor job in [\"lint\", \"unit\", \"api\", \"ui\"]:\n    if any(result[d] != \"success\" for d in needs[job]):\n        result[job] = \"skipped\"\n    else:\n        result[job] = \"failure\" if job == \"unit\" else \"success\"\nprint(result)\n",
                   "expected_output": "{'lint': 'success', 'unit': 'failure', 'api': 'skipped', 'ui': 'skipped'}",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Если хоть одна зависимость не успешна — job пропускается.\", \"lines\": [[\"if any(result[d] != \\\"success\\\" for d in needs[job]):\", \"Зависимость упала или пропущена.\"], [\"result[job] = \\\"skipped\\\"\", \"Пропуск.\"]], \"mistake\": \"Ожидать, что ui выполнится — он зависит от пропущенного api.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПайплайн из десяти последовательных шагов идёт час. Те же шаги, разложенные по параллельным job-ам, — 15 минут. Разработчики ждут результата — значит, скорость пайплайна напрямую влияет на то, насколько серьёзно к тестам относятся.\n\n## Job-ы и needs\n\n```yaml\njobs:\n  lint:\n    runs-on: ubuntu-latest\n    steps: [...]\n  unit:\n    runs-on: ubuntu-latest\n    steps: [...]\n  api-tests:\n    needs: [lint, unit]\n    runs-on: ubuntu-latest\n    steps: [...]\n  ui-tests:\n    needs: api-tests\n    runs-on: ubuntu-latest\n    steps: [...]\n```\n\n- Каждый job — **отдельная чистая машина** (раннер): код заново скачивается, зависимости заново ставятся. Передавать файлы между job-ами — через артефакты.\n- Без `needs` job-ы стартуют **одновременно**. `needs` — ждать успеха перечисленных.\n- Если зависимость упала, зависящие job-ы **пропускаются** (skipped) — и дальше по цепочке.\n\n## Время пайплайна\n\nПараллельные job-ы идут одновременно, поэтому время пайплайна — это **самая длинная цепочка** зависимостей (критический путь), а не сумма всех job-ов. Ускорять имеет смысл именно её.\n\n## Шардинг\n\nОдин огромный набор UI-тестов делят на части и гоняют на нескольких раннерах параллельно:\n\n```python\ntests = [\"t1\", \"t2\", \"t3\", \"t4\", \"t5\"]\nprint(tests[0::2], tests[1::2])\n```\n\nВывод: `['t1', 't3', 't5'] ['t2', 't4']`. В реальности — матрица `shard: [1, 2, 3]` и плагины вроде `pytest-split`. Внутри одного раннера — `pytest -n auto` (pytest-xdist) на всех ядрах.\n\n## Итог\n\n- Job — отдельная машина; `needs` задаёт порядок, остальное — параллельно.\n- Упал job — зависимые пропущены.\n- Время = критический путь; ускоряй его: параллельность, шардинг, `-n auto`.",
@@ -390,7 +414,8 @@
                   "tests": "import yaml\n\n\ndef wf(text=None):\n    data = yaml.safe_load(WORKFLOW if text is None else text) or {}\n    if True in data:\n        data[\"on\"] = data.pop(True)\n    return data\n\n\ndef steps(job):\n    return wf()[\"jobs\"][job].get(\"steps\", [])\n\n\n\ndef test_steps():\n    s = steps(\"tests\")\n    assert s and s[0].get(\"uses\") == \"actions/checkout@v4\", \"Первый шаг — actions/checkout@v4\"\n    runs = [x.get(\"run\", \"\") for x in s]\n    assert \"pip install -r requirements.txt\" in runs and \"pytest --junitxml=reports/junit.xml\" in runs, \"Нужны установка и pytest с отчётом\"\n    assert runs.index(\"pip install -r requirements.txt\") < runs.index(\"pytest --junitxml=reports/junit.xml\")\n\ndef test_upload():\n    up = [x for x in steps(\"tests\") if str(x.get(\"uses\", \"\")).startswith(\"actions/upload-artifact@\")]\n    assert up, \"Нужен шаг actions/upload-artifact@v4\"\n    assert str(up[0].get(\"if\", \"\")).replace(\"${{\", \"\").replace(\"}}\", \"\").strip() == \"always()\", \"Условие if: always()\"\n    assert (up[0].get(\"with\") or {}) == {\"name\": \"reports\", \"path\": \"reports/\"}, f\"with: name reports, path reports/: {up[0].get('with')}\"\n",
                   "solution": "WORKFLOW = \"\"\"\nname: tests\non: [push]\njobs:\n  tests:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: pip install -r requirements.txt\n      - run: pytest --junitxml=reports/junit.xml\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: reports\n          path: reports/\n\"\"\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Артефакт с `if: always()` сохраняет отчёты и при упавших тестах.\", \"lines\": [[\"- run: pytest --junitxml=reports/junit.xml\", \"Отчёт в папку.\"], [\"- uses: actions/upload-artifact@v4\", \"Загрузка.\"], [\"if: always()\", \"Даже после провала.\"]], \"mistake\": \"Без `always()` — при упавших тестах шаг пропустится.\"}"
                 },
                 {
                   "slug": "ci-artifacts-e2",
@@ -399,7 +424,8 @@
                   "code": "import hashlib\n\ndef cache_key(requirements):\n    digest = hashlib.sha256(requirements.encode()).hexdigest()[:8]\n    return f\"pip-linux-{digest}\"\n\na = cache_key(\"pytest==8.3\\nrequests==2.32\\n\")\nb = cache_key(\"pytest==8.3\\nrequests==2.32\\n\")\nc = cache_key(\"pytest==8.4\\nrequests==2.32\\n\")\nprint(a == b, a == c)\nprint(len(a))\n",
                   "expected_output": "True False\n18",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Ключ кэша — хеш файла зависимостей: изменился файл — новый ключ.\", \"lines\": [[\"digest = hashlib.sha256(requirements.encode()).hexdigest()[:8]\", \"Первые 8 символов хеша.\"], [\"print(a == b, a == c)\", \"Одинаковый текст — одинаковый ключ.\"], [\"print(len(a))\", \"`pip-linux-` (10) + 8.\"]], \"mistake\": \"Ключ без хеша — кэш не обновится после изменения зависимостей.\"}"
                 },
                 {
                   "slug": "ci-artifacts-e3",
@@ -409,7 +435,8 @@
                   "tests": "import hashlib as _h\n\ndef test_key():\n    req = \"pytest==8.3\\n\"\n    want = \"pip-Linux-3.12-\" + _h.sha256(req.encode()).hexdigest()[:12]\n    assert cache_key(\"Linux\", \"3.12\", req) == want, cache_key(\"Linux\", \"3.12\", req)\n\ndef test_changes():\n    assert cache_key(\"Linux\", \"3.12\", \"a\") != cache_key(\"Linux\", \"3.12\", \"b\"), \"Другие зависимости — другой ключ\"\n    assert cache_key(\"Linux\", \"3.11\", \"a\") != cache_key(\"Linux\", \"3.12\", \"a\"), \"Другой Python — другой ключ\"\n",
                   "solution": "import hashlib\n\n\ndef cache_key(os_name, python, requirements):\n    digest = hashlib.sha256(requirements.encode()).hexdigest()[:12]\n    return f\"pip-{os_name}-{python}-{digest}\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"ОС и версия Python в ключе — у разных раннеров свои кэши.\", \"lines\": [[\"digest = hashlib.sha256(requirements.encode()).hexdigest()[:12]\", \"12 символов.\"], [\"return f\\\"pip-{os_name}-{python}-{digest}\\\"\", \"Формат ключа.\"]], \"mistake\": \"Один кэш на все ОС — пакеты с бинарниками не подойдут.\"}"
                 },
                 {
                   "slug": "ci-artifacts-e4",
@@ -419,7 +446,8 @@
                   "expected_output": "pytest --junitxml=reports/junit.xml\npytest --junit-xml=reports/junit.xml\npython -m pytest --junitxml=reports/junit.xml\npytest --junitxml reports/junit.xml",
                   "solution": "pytest --junitxml=reports/junit.xml",
                   "hint": "Опция `--junitxml=путь`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"JUnit XML — формат, который понимают все CI.\", \"lines\": [[\"pytest --junitxml=reports/junit.xml\", \"Отчёт.\"]], \"mistake\": \"Сохранять только текстовый вывод.\"}"
                 },
                 {
                   "slug": "ci-artifacts-e5",
@@ -429,7 +457,8 @@
                   "tests": "def test_failed():\n    got = step_summary({\"test_b\": \"failed\", \"test_a\": \"passed\", \"test_c\": \"failed\"})\n    assert got == \"### Тесты: 1 ✅ 2 ❌ 0 ⏭️\\n\\nУпали:\\n- test_b\\n- test_c\", repr(got)\n\ndef test_green():\n    assert step_summary({\"t\": \"passed\", \"s\": \"skipped\"}) == \"### Тесты: 1 ✅ 0 ❌ 1 ⏭️\"\n",
                   "solution": "def step_summary(results):\n    count = lambda status: sum(1 for r in results.values() if r == status)\n    lines = [f\"### Тесты: {count('passed')} ✅ {count('failed')} ❌ {count('skipped')} ⏭️\"]\n    failed = sorted(name for name, r in results.items() if r == \"failed\")\n    if failed:\n        lines += [\"\", \"Упали:\"] + [f\"- {name}\" for name in failed]\n    return \"\\n\".join(lines)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Markdown-сводка: строка с цифрами и список упавших, если они есть.\", \"lines\": [[\"count = lambda status: sum(1 for r in results.values() if r == status)\", \"Подсчёт по статусу.\"], [\"failed = sorted(name for name, r in results.items() if r == \\\"failed\\\")\", \"Упавшие.\"], [\"lines += [\\\"\\\", \\\"Упали:\\\"] + [f\\\"- {name}\\\" for name in failed]\", \"Список Markdown.\"]], \"mistake\": \"Выводить заголовок «Упали» и при нуле падений.\"}"
                 },
                 {
                   "slug": "ci-artifacts-e6",
@@ -439,7 +468,8 @@
                   "expected_output": "echo \"### Итоги\" >> $GITHUB_STEP_SUMMARY\necho \"### Итоги\" >> \"$GITHUB_STEP_SUMMARY\"\necho '### Итоги' >> $GITHUB_STEP_SUMMARY\necho '### Итоги' >> \"$GITHUB_STEP_SUMMARY\"",
                   "solution": "echo \"### Итоги\" >> $GITHUB_STEP_SUMMARY",
                   "hint": "`echo \"текст\" >> $ПЕРЕМЕННАЯ` — дописать в файл.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`>>` дописывает строку в файл сводки.\", \"lines\": [[\"echo \\\"### Итоги\\\" >> $GITHUB_STEP_SUMMARY\", \"Markdown на странице запуска.\"]], \"mistake\": \"`>` — перезапишет то, что уже написали другие шаги.\"}"
                 },
                 {
                   "slug": "ci-artifacts-e7",
@@ -449,7 +479,8 @@
                   "tests": "def test_names():\n    assert artifact_name(\"reports\", {\"python\": \"3.12\", \"os\": \"ubuntu-latest\"}) == \"reports-ubuntu-latest-3.12\"\n    assert artifact_name(\"shots\", {\"browser\": \"chromium\", \"device\": \"iPhone 13\"}) == \"shots-chromium-iPhone_13\"\n    assert artifact_name(\"r\", {\"ref\": \"release/1.0\"}) == \"r-release_1.0\"\n    assert artifact_name(\"r\", {}) == \"r\"\n",
                   "solution": "def artifact_name(prefix, matrix):\n    parts = [prefix] + [str(matrix[k]).replace(\"/\", \"_\").replace(\" \", \"_\") for k in sorted(matrix)]\n    return \"-\".join(parts)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Значения матрицы по алфавиту ключей, проблемные символы — в `_`.\", \"lines\": [[\"parts = [prefix] + [str(matrix[k]).replace(\\\"/\\\", \\\"_\\\").replace(\\\" \\\", \\\"_\\\") for k in sorted(matrix)]\", \"Стабильный порядок.\"], [\"return \\\"-\\\".join(parts)\", \"Через дефис.\"]], \"mistake\": \"Порядок словаря — имя зависит от порядка ключей в YAML.\"}"
                 },
                 {
                   "slug": "ci-artifacts-e8",
@@ -459,7 +490,8 @@
                   "expected_output": "gh run download 9876543210 -n reports\ngh run download 9876543210 --name reports\ngh run download -n reports 9876543210",
                   "solution": "gh run download 9876543210 -n reports",
                   "hint": "`gh run download <номер запуска> -n имя`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`gh run download` скачивает артефакты запуска.\", \"lines\": [[\"gh run download 9876543210\", \"Номер запуска.\"], [\"-n reports\", \"Имя артефакта.\"]], \"mistake\": \"Скачивать zip вручную через браузер.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nТест упал в CI, а на ноутбуке проходит. Без отчёта, скриншотов и логов из CI разбор превращается в гадание. **Артефакты** сохраняют эти файлы, **кэш** ускоряет установку зависимостей, а **сводка** показывает результат прямо на странице запуска.\n\n## Артефакты\n\n```yaml\n- run: pytest --junitxml=reports/junit.xml\n- uses: actions/upload-artifact@v4\n  if: always()\n  with:\n    name: reports\n    path: reports/\n    retention-days: 14\n```\n\n- По умолчанию шаг выполняется, только если предыдущие успешны. `if: always()` — выполнить всегда: отчёт нужен **особенно** когда тесты упали.\n- Имена артефактов в матрице должны различаться: `reports-${{ matrix.browser }}`.\n- Скачать: на странице запуска или `gh run download <номер> -n reports`.\n\n## JUnit XML\n\n`pytest --junitxml=reports/junit.xml` — универсальный формат отчёта, его читают GitHub (через экшены-репортёры), GitLab, Jenkins, TeamCity, Allure.\n\n## Кэш зависимостей\n\n```yaml\n- uses: actions/setup-python@v5\n  with:\n    python-version: \"3.12\"\n    cache: pip\n```\n\nКэш хранится по **ключу**, куда входят ОС, версия Python и **хеш файла зависимостей**: поменялся `requirements.txt` — ключ новый, кэш собирается заново.\n\n```python\nimport hashlib\n\nprint(hashlib.sha256(b\"pytest==8.3\\n\").hexdigest()[:12])\nprint(hashlib.sha256(b\"pytest==8.4\\n\").hexdigest()[:12])\n```\n\nДва разных хеша — два разных ключа кэша.\n\n## Сводка запуска\n\nВсё, что шаг допишет в файл `$GITHUB_STEP_SUMMARY`, GitHub покажет Markdown-ом на странице запуска:\n\n```bash\necho \"### Тесты: 120 ✅ 2 ❌\" >> $GITHUB_STEP_SUMMARY\n```\n\n## Итог\n\n- Отчёты и скриншоты — артефактами с `if: always()`.\n- JUnit XML — общий язык CI-систем.\n- Кэш pip — по ключу с хешем зависимостей.\n- `$GITHUB_STEP_SUMMARY` — сводка на странице запуска.",
@@ -519,7 +551,8 @@
                   "code": "log = \"login with token=abc123 to https://user:pa55@host\"\nfor secret in [\"abc123\", \"pa55\"]:\n    log = log.replace(secret, \"***\")\nprint(log)\n",
                   "expected_output": "login with token=*** to https://user:***@host",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"CI заменяет значения секретов на `***` в логах.\", \"lines\": [[\"log = log.replace(secret, \\\"***\\\")\", \"Каждый секрет.\"]], \"mistake\": \"Печатать секреты в лог, надеясь на маскировку, — изменённый (например, base64) не замаскируется.\"}"
                 },
                 {
                   "slug": "dci-m2-l2-e2",
@@ -529,7 +562,8 @@
                   "tests": "import re\n\ndef lines():\n    return [l.strip() for l in WORKFLOW.splitlines() if l.strip()]\n\ndef test_triggers():\n    on = next((l for l in lines() if l.startswith(\"on:\")), \"\")\n    text = WORKFLOW\n    assert \"push\" in on or re.search(r\"^\\s*push:\", text, re.M), \"Нужен триггер push\"\n    assert \"pull_request\" in text, \"Нужен триггер pull_request\"\n\ndef test_runner():\n    assert \"runs-on: ubuntu-latest\" in lines(), \"Нужно runs-on: ubuntu-latest\"\n\ndef test_steps():\n    text = WORKFLOW\n    assert \"actions/checkout\" in text, \"Нужен шаг actions/checkout — без него в раннере нет кода\"\n    assert \"actions/setup-python\" in text, \"Нужен шаг actions/setup-python\"\n    assert \"pip install -r requirements.txt\" in text, \"Нужна установка зависимостей\"\n\ndef test_pytest_after_install():\n    text = WORKFLOW\n    assert \"pytest\" in text, \"Нужен запуск pytest\"\n    assert text.index(\"pip install -r requirements.txt\") < text.rindex(\"pytest\"), \"pytest запускается после установки зависимостей\"\n",
                   "solution": "WORKFLOW = \"\"\"\nname: tests\non: [push, pull_request]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n        with:\n          python-version: \"3.12\"\n      - run: pip install -r requirements.txt\n      - run: pytest\n\"\"\"\n",
                   "hint": "Возьми пример из теории и упрости: без matrix и артефактов.",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Базовый workflow: скачать код, поставить Python и зависимости, запустить тесты.\", \"lines\": [[\"on: [push, pull_request]\", \"Два события.\"], [\"- uses: actions/checkout@v4\", \"Код репозитория.\"], [\"python-version: \\\"3.12\\\"\", \"В кавычках — иначе 3.10 станет 3.1.\"], [\"- run: pytest\", \"Тесты.\"]], \"mistake\": \"Забыть checkout — в раннере пусто.\"}"
                 },
                 {
                   "slug": "dci-m2-l2-e3",
@@ -539,7 +573,8 @@
                   "tests": "def test_mask():\n    assert mask_secrets(\"token=abc pass=xyz\", [\"abc\", \"xyz\"]) == \"token=*** pass=***\", f\"Получено {mask_secrets('token=abc pass=xyz', ['abc', 'xyz'])!r}\"\n\ndef test_empty_secret():\n    assert mask_secrets(\"hello\", [\"\"]) == \"hello\", \"Пустой секрет не должен ничего ломать\"\n",
                   "solution": "def mask_secrets(log, secrets):\n    for s in secrets:\n        if s:\n            log = log.replace(s, \"***\")\n    return log\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Пустой секрет пропускаем — `replace(\\\"\\\", …)` вставил бы `***` между каждым символом.\", \"lines\": [[\"if s:\", \"Только непустые.\"], [\"log = log.replace(s, \\\"***\\\")\", \"Все вхождения.\"]], \"mistake\": \"Не проверить пустую строку — лог станет нечитаемым.\"}"
                 },
                 {
                   "slug": "dci-m2-l2-e4",
@@ -549,7 +584,8 @@
                   "tests": "def test_matrix():\n    got = matrix_jobs({\"python\": [\"3.11\", \"3.12\"], \"os\": [\"ubuntu\", \"windows\"]})\n    assert got == [\n        {\"python\": \"3.11\", \"os\": \"ubuntu\"},\n        {\"python\": \"3.11\", \"os\": \"windows\"},\n        {\"python\": \"3.12\", \"os\": \"ubuntu\"},\n        {\"python\": \"3.12\", \"os\": \"windows\"},\n    ], f\"Получено {got}\"\n\ndef test_single():\n    assert matrix_jobs({\"browser\": [\"chrome\"]}) == [{\"browser\": \"chrome\"}], \"Один параметр — одна комбинация\"\n",
                   "solution": "from itertools import product\n\ndef matrix_jobs(matrix):\n    keys = list(matrix)\n    return [dict(zip(keys, combo)) for combo in product(*matrix.values())]\n",
                   "hint": "`product(*matrix.values())` даёт кортежи значений; `dict(zip(keys, combo))` превращает их в словари.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Матрица — декартово произведение значений; `zip` с ключами даёт словарь запуска.\", \"lines\": [[\"keys = list(matrix)\", \"Порядок параметров.\"], [\"return [dict(zip(keys, combo)) for combo in product(*matrix.values())]\", \"Все комбинации.\"]], \"mistake\": \"`product(matrix.values())` без `*` — один аргумент-список.\"}"
                 },
                 {
                   "slug": "dci-m2-l2-e5",
@@ -559,7 +595,8 @@
                   "tests": "REPORT = '''<testsuites>\n  <testsuite name=\"api\" tests=\"4\">\n    <testcase name=\"test_get_user\" time=\"0.1\"/>\n    <testcase name=\"test_create_user\" time=\"0.2\"><failure message=\"assert 200 == 201\"/></testcase>\n    <testcase name=\"test_delete\" time=\"0.1\"><skipped/></testcase>\n  </testsuite>\n  <testsuite name=\"ui\" tests=\"1\">\n    <testcase name=\"test_login\" time=\"3.1\"><error message=\"TimeoutError\"/></testcase>\n  </testsuite>\n</testsuites>'''\n\ndef test_summary():\n    got = junit_summary(REPORT)\n    assert got == {\"total\": 4, \"failed\": 2, \"skipped\": 1, \"failed_names\": [\"test_create_user\", \"test_login\"]}, f\"Получено {got}\"\n",
                   "solution": "import xml.etree.ElementTree as ET\n\ndef junit_summary(xml_text):\n    root = ET.fromstring(xml_text)\n    cases = list(root.iter(\"testcase\"))\n    failed = [c for c in cases if c.find(\"failure\") is not None or c.find(\"error\") is not None]\n    return {\n        \"total\": len(cases),\n        \"failed\": len(failed),\n        \"skipped\": sum(1 for c in cases if c.find(\"skipped\") is not None),\n        \"failed_names\": [c.get(\"name\") for c in failed],\n    }\n",
                   "hint": "`root.iter(\"testcase\")` найдёт все testcase на любой глубине; `case.find(\"failure\") is not None` — есть ли вложенный тег.",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Упавший тест — с `<failure>` или `<error>` внутри; пропущенный — со `<skipped>`.\", \"lines\": [[\"cases = list(root.iter(\\\"testcase\\\"))\", \"Все тесты.\"], [\"failed = [c for c in cases if c.find(\\\"failure\\\") is not None or c.find(\\\"error\\\") is not None]\", \"`is not None` — пустой элемент ложен.\"], [\"\\\"failed_names\\\": [c.get(\\\"name\\\") for c in failed],\", \"Имена.\"]], \"mistake\": \"`if c.find(\\\"failure\\\")` — элемент без детей считается ложным.\"}"
                 },
                 {
                   "slug": "dci-m2-l2-e6",
@@ -569,7 +606,8 @@
                   "expected_output": "gh run list\ngh run ls",
                   "solution": "gh run list",
                   "hint": "`gh run ...`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`gh run list` — последние запуски.\", \"lines\": [[\"gh run list\", \"Статусы запусков.\"]], \"mistake\": \"`gh workflow list` — это список workflow, а не запусков.\"}"
                 },
                 {
                   "slug": "dci-m2-l2-e7",
@@ -579,7 +617,8 @@
                   "expected_output": "gh run view 9876543210 --log-failed\ngh run view --log-failed 9876543210",
                   "solution": "gh run view 9876543210 --log-failed",
                   "hint": "`gh run view <номер> --log-failed`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--log-failed` — логи только упавших шагов.\", \"lines\": [[\"gh run view 9876543210\", \"Запуск.\"], [\"--log-failed\", \"Только упавшее.\"]], \"mistake\": \"`--log` — весь лог, искать долго.\"}"
                 },
                 {
                   "slug": "dci-m2-l2-e8",
@@ -589,7 +628,8 @@
                   "expected_output": "gh run rerun 9876543210 --failed\ngh run rerun --failed 9876543210",
                   "solution": "gh run rerun 9876543210 --failed",
                   "hint": "`gh run rerun <номер> --failed`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`rerun --failed` перезапускает только упавшие job-ы.\", \"lines\": [[\"gh run rerun 9876543210 --failed\", \"Экономит время.\"]], \"mistake\": \"Перезапускать весь пайплайн.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nGitHub Actions — самый распространённый CI для проектов на GitHub: workflow лежит прямо в репозитории, запускается на готовых раннерах и не требует своего сервера. Большинство вакансий автоматизаторов ждут умения его читать и править.\n\n## Workflow\n\nФайл `.github/workflows/tests.yml`:\n\n```yaml\nname: tests\non: [push, pull_request]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    timeout-minutes: 30\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n        with:\n          python-version: \"3.12\"\n          cache: pip\n      - run: pip install -r requirements.txt\n      - run: pytest --junitxml=reports/junit.xml\n        env:\n          BASE_URL: ${{ vars.STAGE_URL }}\n          API_TOKEN: ${{ secrets.API_TOKEN }}\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: reports\n          path: reports/\n```\n\n- `on` — когда запускать; `jobs` — что делать; `runs-on` — на какой машине (`ubuntu-latest`, `windows-latest`, `macos-latest`).\n- `steps` — шаги по порядку: `uses` — готовое действие (action) с версией после `@`, `run` — команда оболочки.\n- `actions/checkout` — скачать код репозитория. Без него на раннере пусто!\n- `with` — параметры действия, `env` — переменные окружения шага.\n- `${{ … }}` — выражения: `matrix.*`, `secrets.*`, `vars.*`, `github.*`.\n- `timeout-minutes` — не дать зависшему тесту съесть 6 часов (лимит по умолчанию).\n\n## Секреты маскируются\n\nЗначения из `secrets` GitHub заменяет в логах на `***`. Но только их — токен, который тест сам сгенерировал и напечатал, утечёт.\n\n## Матрица\n\n```yaml\nstrategy:\n  matrix:\n    python: [\"3.11\", \"3.12\"]\n```\n\nJob запустится для каждой комбинации значений — `${{ matrix.python }}` в шагах.\n\n## GitHub CLI\n\n```bash\ngh run list                          # последние запуски\ngh run view 9876543210 --log-failed  # логи упавших шагов\ngh run rerun 9876543210 --failed     # перезапустить упавшие job-ы\ngh run watch                         # следить за текущим запуском\n```\n\n## Итог\n\n- Workflow = `on` + `jobs`; job = `runs-on` + `steps`.\n- `uses` — action с версией, `run` — команда; первым шагом — `actions/checkout`.\n- `secrets` маскируются, `if: always()` — для отчётов, `timeout-minutes` — от зависаний.\n- `gh run list/view/rerun` — работа с запусками из терминала.",
@@ -641,7 +681,8 @@
                   "code": "from itertools import product\n\nmatrix = {\"os\": [\"ubuntu-latest\", \"windows-latest\"], \"python\": [\"3.11\", \"3.12\"]}\nruns = [dict(zip(matrix, combo)) for combo in product(*matrix.values())]\nprint(len(runs))\nfor run in runs:\n    print(run[\"os\"], run[\"python\"])\n",
                   "expected_output": "4\nubuntu-latest 3.11\nubuntu-latest 3.12\nwindows-latest 3.11\nwindows-latest 3.12",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Матрица — все комбинации параметров, каждая — отдельный запуск.\", \"lines\": [[\"runs = [dict(zip(matrix, combo)) for combo in product(*matrix.values())]\", \"2 × 2 = 4.\"], [\"print(run[\\\"os\\\"], run[\\\"python\\\"])\", \"Правый параметр меняется быстрее.\"]], \"mistake\": \"Ожидать 2 запуска — это не zip, а произведение.\"}"
                 },
                 {
                   "slug": "ci-matrix-e2",
@@ -651,7 +692,8 @@
                   "tests": "def test_expand():\n    got = expand_matrix({\n        \"os\": [\"ubuntu\", \"windows\"],\n        \"browser\": [\"chromium\", \"webkit\"],\n        \"exclude\": [{\"os\": \"windows\", \"browser\": \"webkit\"}],\n        \"include\": [{\"os\": \"macos\", \"browser\": \"webkit\"}],\n    })\n    assert got == [{\"os\": \"ubuntu\", \"browser\": \"chromium\"}, {\"os\": \"ubuntu\", \"browser\": \"webkit\"},\n                   {\"os\": \"windows\", \"browser\": \"chromium\"}, {\"os\": \"macos\", \"browser\": \"webkit\"}], got\n\ndef test_partial_exclude():\n    got = expand_matrix({\"os\": [\"a\", \"b\"], \"py\": [\"1\", \"2\"], \"exclude\": [{\"os\": \"b\"}]})\n    assert got == [{\"os\": \"a\", \"py\": \"1\"}, {\"os\": \"a\", \"py\": \"2\"}], \"exclude по одному ключу убирает все комбинации с ним\"\n",
                   "solution": "from itertools import product\n\n\ndef expand_matrix(matrix):\n    keys = [k for k in matrix if k not in (\"exclude\", \"include\")]\n    runs = [dict(zip(keys, combo)) for combo in product(*(matrix[k] for k in keys))]\n    for ex in matrix.get(\"exclude\", []):\n        runs = [r for r in runs if not all(r.get(k) == v for k, v in ex.items())]\n    return runs + list(matrix.get(\"include\", []))\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Сначала все комбинации, затем убираем `exclude`, в конце добавляем `include`.\", \"lines\": [[\"keys = [k for k in matrix if k not in (\\\"exclude\\\", \\\"include\\\")]\", \"Только параметры.\"], [\"runs = [r for r in runs if not all(r.get(k) == v for k, v in ex.items())]\", \"Совпали все ключи exclude — убрать.\"], [\"return runs + list(matrix.get(\\\"include\\\", []))\", \"Добавить свои.\"]], \"mistake\": \"Включить `exclude` в декартово произведение как параметр.\"}"
                 },
                 {
                   "slug": "ci-matrix-e3",
@@ -661,7 +703,8 @@
                   "tests": "import yaml\n\n\ndef wf(text=None):\n    data = yaml.safe_load(WORKFLOW if text is None else text) or {}\n    if True in data:\n        data[\"on\"] = data.pop(True)\n    return data\n\n\ndef steps(job):\n    return wf()[\"jobs\"][job].get(\"steps\", [])\n\n\n\ndef test_strategy():\n    job = wf()[\"jobs\"][\"ui-tests\"]\n    st = job.get(\"strategy\") or {}\n    assert st.get(\"fail-fast\") is False, \"fail-fast: false\"\n    assert (st.get(\"matrix\") or {}).get(\"browser\") == [\"chromium\", \"firefox\", \"webkit\"], \"matrix.browser: [chromium, firefox, webkit]\"\n\ndef test_step():\n    runs = [s.get(\"run\", \"\") for s in steps(\"ui-tests\")]\n    assert any(r.replace(\" \", \"\") == \"pytest--browser${{matrix.browser}}\" for r in runs), f\"Шаг: pytest --browser ${{{{ matrix.browser }}}}: {runs}\"\n",
                   "solution": "WORKFLOW = \"\"\"\nname: ui\non: [push]\njobs:\n  ui-tests:\n    runs-on: ubuntu-latest\n    strategy:\n      fail-fast: false\n      matrix:\n        browser: [chromium, firefox, webkit]\n    steps:\n      - uses: actions/checkout@v4\n      - run: pip install -r requirements.txt\n      - run: pytest --browser ${{ matrix.browser }}\n\"\"\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`fail-fast: false` — упал один браузер, остальные доигрывают; значение подставляется выражением `${{ matrix.browser }}`.\", \"lines\": [[\"fail-fast: false\", \"Все браузеры до конца.\"], [\"browser: [chromium, firefox, webkit]\", \"Три запуска.\"], [\"- run: pytest --browser ${{ matrix.browser }}\", \"Значение из матрицы.\"]], \"mistake\": \"Оставить fail-fast по умолчанию — не узнаешь, падает ли в других браузерах.\"}"
                 },
                 {
                   "slug": "ci-matrix-e4",
@@ -671,7 +714,8 @@
                   "tests": "def test_render():\n    ctx = {\"matrix\": {\"python\": \"3.12\"}, \"github\": {\"ref_name\": \"main\"}}\n    assert render(\"tests-${{ matrix.python }}-${{github.ref_name}}\", ctx) == \"tests-3.12-main\"\n    assert render(\"x${{ env.NOPE }}y\", ctx) == \"xy\"\n    assert render(\"no expr\", ctx) == \"no expr\"\n",
                   "solution": "import re\n\n\ndef render(template, context):\n    def value(m):\n        node = context\n        for key in m.group(1).split(\".\"):\n            if not isinstance(node, dict) or key not in node:\n                return \"\"\n            node = node[key]\n        return str(node)\n    return re.sub(r\"\\$\\{\\{\\s*([\\w.-]+)\\s*\\}\\}\", value, template)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Регулярка ловит `${{ путь }}`; путь проходим по вложенным словарям, нет ключа — пустая строка.\", \"lines\": [[\"for key in m.group(1).split(\\\".\\\"):\", \"Части пути.\"], [\"if not isinstance(node, dict) or key not in node:\\n                return \\\"\\\"\", \"Нет — пусто.\"], [\"return re.sub(r\\\"\\\\$\\\\{\\\\{\\\\s*([\\\\w.-]+)\\\\s*\\\\}\\\\}\\\", value, template)\", \"Пробелы внутри — не важны.\"]], \"mistake\": \"Падать с KeyError — GitHub подставляет пустую строку.\"}"
                 },
                 {
                   "slug": "ci-matrix-e5",
@@ -680,7 +724,8 @@
                   "code": "results = [(\"chromium\", \"success\"), (\"firefox\", \"failure\"), (\"webkit\", \"success\")]\nfor fail_fast in (True, False):\n    status = {}\n    stopped = False\n    for browser, result in results:\n        status[browser] = \"cancelled\" if stopped else result\n        if result == \"failure\" and fail_fast:\n            stopped = True\n    print(fail_fast, status)\n",
                   "expected_output": "True {'chromium': 'success', 'firefox': 'failure', 'webkit': 'cancelled'}\nFalse {'chromium': 'success', 'firefox': 'failure', 'webkit': 'success'}",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"С fail-fast первое падение отменяет оставшиеся запуски.\", \"lines\": [[\"status[browser] = \\\"cancelled\\\" if stopped else result\", \"После падения — отмена.\"], [\"if result == \\\"failure\\\" and fail_fast:\", \"Только при fail-fast.\"]], \"mistake\": \"Думать, что fail-fast отменяет уже завершившиеся.\"}"
                 },
                 {
                   "slug": "ci-matrix-e6",
@@ -690,7 +735,8 @@
                   "tests": "def test_envs():\n    assert target_env(\"refs/heads/main\") == \"staging\"\n    assert target_env(\"refs/tags/v1.4.0\") == \"production\"\n    assert target_env(\"refs/pull/42/merge\") == \"review\"\n    assert target_env(\"refs/heads/feature/cart\") == \"dev\"\n    assert target_env(\"refs/heads/main-old\") == \"dev\"\n",
                   "solution": "def target_env(ref):\n    if ref == \"refs/heads/main\":\n        return \"staging\"\n    if ref.startswith(\"refs/tags/v\"):\n        return \"production\"\n    if ref.startswith(\"refs/pull/\"):\n        return \"review\"\n    return \"dev\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Стенд выбираем по ссылке git: main, тег версии, PR, остальное.\", \"lines\": [[\"if ref == \\\"refs/heads/main\\\":\", \"Ветка main.\"], [\"if ref.startswith(\\\"refs/tags/v\\\"):\", \"Релиз.\"], [\"if ref.startswith(\\\"refs/pull/\\\"):\", \"Pull request.\"]], \"mistake\": \"Проверять `\\\"main\\\" in ref` — сработает на `refs/heads/feature/main-page`.\"}"
                 },
                 {
                   "slug": "ci-matrix-e7",
@@ -700,7 +746,8 @@
                   "expected_output": "github.ref == 'refs/heads/main'\n${{ github.ref == 'refs/heads/main' }}\ngithub.ref_name == 'main'\n${{ github.ref_name == 'main' }}",
                   "solution": "github.ref == 'refs/heads/main'",
                   "hint": "`github.ref == 'refs/heads/main'` — строки в выражениях Actions в одинарных кавычках.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`github.ref` — полная ссылка; для main — `refs/heads/main`.\", \"lines\": [[\"github.ref == 'refs/heads/main'\", \"Условие шага.\"]], \"mistake\": \"`github.ref == 'main'` — ref содержит префикс refs/heads.\"}"
                 },
                 {
                   "slug": "ci-matrix-e8",
@@ -709,7 +756,8 @@
                   "code": "runs = [{\"browser\": \"chromium\"}, {\"browser\": \"firefox\"}]\ninclude = [{\"browser\": \"chromium\", \"headed\": True}, {\"browser\": \"webkit\"}]\nfor extra in include:\n    base = {k: v for k, v in extra.items() if k == \"browser\"}\n    match = next((r for r in runs if all(r.get(k) == v for k, v in base.items())), None)\n    if match is not None:\n        match.update(extra)\n    else:\n        runs.append(dict(extra))\nprint(runs)\n",
                   "expected_output": "[{'browser': 'chromium', 'headed': True}, {'browser': 'firefox'}, {'browser': 'webkit'}]",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"include дополняет совпавшую комбинацию новыми ключами, а без совпадения — добавляет новую.\", \"lines\": [[\"match = next((r for r in runs if all(r.get(k) == v for k, v in base.items())), None)\", \"Ищем комбинацию.\"], [\"match.update(extra)\", \"chromium получил headed.\"], [\"runs.append(dict(extra))\", \"webkit — новый запуск.\"]], \"mistake\": \"Ждать отдельный второй chromium.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПриложение должно работать в трёх браузерах, на двух версиях Python и на разных ОС. Писать job на каждую комбинацию — копипаста. **Матрица** описывает оси, а GitHub сам разворачивает все комбинации.\n\n## Матрица\n\n```yaml\njobs:\n  ui-tests:\n    runs-on: ${{ matrix.os }}\n    strategy:\n      fail-fast: false\n      max-parallel: 4\n      matrix:\n        os: [ubuntu-latest, windows-latest]\n        browser: [chromium, firefox, webkit]\n        exclude:\n          - os: windows-latest\n            browser: webkit\n        include:\n          - os: macos-latest\n            browser: webkit\n    steps:\n      - run: pytest --browser ${{ matrix.browser }}\n```\n\n- Комбинаций: 2 × 3 = 6, минус 1 (`exclude`), плюс 1 (`include`) = 6 запусков.\n- `exclude` убирает комбинации, совпадающие по всем указанным ключам.\n- `include` добавляет новые комбинации — или новые ключи к существующим, если совпали все её значения.\n- `fail-fast` (по умолчанию `true`) — первое падение **отменяет** остальные незаконченные запуски. Для тестов обычно ставят `false`: нужно видеть все упавшие браузеры, а не только первый.\n- `max-parallel` — не больше N запусков одновременно.\n\n## Выражения и контексты\n\n- `${{ matrix.browser }}`, `${{ github.ref }}` (`refs/heads/main`), `${{ github.ref_name }}` (`main`), `${{ github.sha }}`, `${{ github.event_name }}`.\n- Условия: `if: github.ref == 'refs/heads/main'` — строки в одинарных кавычках; функции `success()`, `failure()`, `always()`, `contains(...)`, `startsWith(...)`.\n\n## Окружения\n\nРазные ветки → разные стенды: `main` → staging, тег `v1.2.0` → production, pull request → временный review-стенд. В GitHub это **environments** (`environment: staging`) — со своими секретами и правилами одобрения.\n\n```python\nref = \"refs/tags/v1.4.0\"\nprint(ref.startswith(\"refs/tags/v\"), ref.split(\"/\")[-1])\n```\n\nВывод: `True v1.4.0`.\n\n## Итог\n\n- Матрица = оси; `exclude`/`include` правят комбинации.\n- `fail-fast: false` для тестов — видеть все падения.\n- Контексты `matrix`, `github`; условия `if:` с функциями.\n- Ветка определяет стенд; environments хранят его секреты.",
@@ -761,7 +809,8 @@
                   "code": "import os\n\nos.environ[\"BASE_URL\"] = \"https://stage.shop.test\"\nbase_url = os.environ.get(\"BASE_URL\", \"http://localhost:8000\")\ntoken = os.environ.get(\"API_TOKEN\")\nprint(base_url)\nprint(token is None)\n",
                   "expected_output": "https://stage.shop.test\nTrue",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Настройки тестов — из переменных окружения; секрета нет — `None`.\", \"lines\": [[\"base_url = os.environ.get(\\\"BASE_URL\\\", \\\"http://localhost:8000\\\")\", \"Задан — берём.\"], [\"token = os.environ.get(\\\"API_TOKEN\\\")\", \"Не задан — None.\"]], \"mistake\": \"`os.environ[\\\"API_TOKEN\\\"]` — KeyError вместо понятной обработки.\"}"
                 },
                 {
                   "slug": "ci-secrets-e2",
@@ -771,7 +820,8 @@
                   "tests": "def test_ok():\n    assert require_env([\"BASE_URL\", \"API_TOKEN\"], {\"BASE_URL\": \"u\", \"API_TOKEN\": \"t\", \"X\": \"1\"}) == {\"BASE_URL\": \"u\", \"API_TOKEN\": \"t\"}\n\ndef test_missing():\n    try:\n        require_env([\"BASE_URL\", \"API_TOKEN\", \"DB\"], {\"BASE_URL\": \"u\", \"DB\": \"\"})\n    except RuntimeError as e:\n        assert str(e) == \"Не заданы: API_TOKEN, DB\", str(e)\n        return\n    assert False, \"Нужно бросить RuntimeError\"\n",
                   "solution": "def require_env(names, env):\n    missing = [n for n in names if not env.get(n)]\n    if missing:\n        raise RuntimeError(\"Не заданы: \" + \", \".join(missing))\n    return {n: env[n] for n in names}\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Проверяем все обязательные переменные сразу и называем недостающие.\", \"lines\": [[\"missing = [n for n in names if not env.get(n)]\", \"Нет или пустая.\"], [\"raise RuntimeError(\\\"Не заданы: \\\" + \\\", \\\".join(missing))\", \"Понятная ошибка.\"], [\"return {n: env[n] for n in names}\", \"Только нужные.\"]], \"mistake\": \"Падать на первой недостающей — придётся перезапускать по одной.\"}"
                 },
                 {
                   "slug": "ci-secrets-e3",
@@ -781,7 +831,8 @@
                   "tests": "import yaml\n\n\ndef wf(text=None):\n    data = yaml.safe_load(WORKFLOW if text is None else text) or {}\n    if True in data:\n        data[\"on\"] = data.pop(True)\n    return data\n\n\ndef steps(job):\n    return wf()[\"jobs\"][job].get(\"steps\", [])\n\n\n\ndef norm(v):\n    return str(v).replace(\" \", \"\")\n\ndef test_env():\n    job = wf()[\"jobs\"][\"api-tests\"]\n    env = job.get(\"env\") or {}\n    assert norm(env.get(\"BASE_URL\")) == \"${{vars.STAGE_URL}}\", \"BASE_URL: ${{ vars.STAGE_URL }}\"\n    assert norm(env.get(\"API_TOKEN\")) == \"${{secrets.API_TOKEN}}\", \"API_TOKEN: ${{ secrets.API_TOKEN }}\"\n    assert any(s.get(\"run\") == \"pytest tests/api\" for s in steps(\"api-tests\")), \"Шаг: pytest tests/api\"\n\ndef test_no_plain_secret():\n    assert \"secrets.\" in WORKFLOW and \"token=\" not in WORKFLOW.lower(), \"Секрет — только через secrets\"\n",
                   "solution": "WORKFLOW = \"\"\"\nname: api\non: [push]\njobs:\n  api-tests:\n    runs-on: ubuntu-latest\n    env:\n      BASE_URL: ${{ vars.STAGE_URL }}\n      API_TOKEN: ${{ secrets.API_TOKEN }}\n    steps:\n      - uses: actions/checkout@v4\n      - run: pip install -r requirements.txt\n      - run: pytest tests/api\n\"\"\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`env` на уровне job-а доступен всем шагам; `vars` — настройки, `secrets` — секреты.\", \"lines\": [[\"BASE_URL: ${{ vars.STAGE_URL }}\", \"Обычная переменная.\"], [\"API_TOKEN: ${{ secrets.API_TOKEN }}\", \"Маскируется в логах.\"]], \"mistake\": \"Хранить токен в `vars` — он виден в логах.\"}"
                 },
                 {
                   "slug": "ci-secrets-e4",
@@ -791,7 +842,8 @@
                   "tests": "LOG = \"\\n\".join([\n    \"GET /users 200\",\n    \"Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.payload.sig\",\n    \"clone with ghp_\" + \"a1\" * 18,\n    \"login ok\",\n    \"db url postgres://u@h?password=qwerty\",\n    \"Bearer short\",\n])\n\ndef test_leaks():\n    assert find_leaks(LOG) == [2, 3, 5], find_leaks(LOG)\n\ndef test_clean():\n    assert find_leaks(\"all good\\nBearer ***\") == []\n",
                   "solution": "import re\n\nPATTERNS = [r\"Bearer [A-Za-z0-9._-]{20,}\", r\"ghp_[A-Za-z0-9]{36}\", r\"password=\\S+\"]\n\n\ndef find_leaks(log):\n    return [i for i, line in enumerate(log.splitlines(), 1)\n            if any(re.search(p, line) for p in PATTERNS)]\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Ищем по шаблонам строки, похожие на токены и пароли.\", \"lines\": [[\"PATTERNS = [r\\\"Bearer [A-Za-z0-9._-]{20,}\\\", r\\\"ghp_[A-Za-z0-9]{36}\\\", r\\\"password=\\\\S+\\\"]\", \"Три признака утечки.\"], [\"if any(re.search(p, line) for p in PATTERNS)]\", \"Номера строк.\"]], \"mistake\": \"`re.match` — ищет только с начала строки.\"}"
                 },
                 {
                   "slug": "ci-secrets-e5",
@@ -801,7 +853,8 @@
                   "expected_output": "gh secret set API_TOKEN",
                   "solution": "gh secret set API_TOKEN",
                   "hint": "`gh secret set ИМЯ`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`gh secret set` добавляет секрет; значение вводится без эха.\", \"lines\": [[\"gh secret set API_TOKEN\", \"Секрет репозитория.\"]], \"mistake\": \"Передавать значение в аргументе — останется в истории оболочки.\"}"
                 },
                 {
                   "slug": "ci-secrets-e6",
@@ -811,7 +864,8 @@
                   "expected_output": "echo \"::add-mask::$TOKEN\"\necho ::add-mask::$TOKEN\necho '::add-mask::'$TOKEN",
                   "solution": "echo \"::add-mask::$TOKEN\"",
                   "hint": "`echo \"::add-mask::значение\"`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Команда `::add-mask::значение` просит GitHub скрывать значение в логах дальше.\", \"lines\": [[\"echo \\\"::add-mask::$TOKEN\\\"\", \"Маска для динамического секрета.\"]], \"mistake\": \"Печатать токен до маскировки — он уже в логе.\"}"
                 },
                 {
                   "slug": "ci-secrets-e7",
@@ -821,7 +875,8 @@
                   "tests": "def test_ignored():\n    assert env_ignored(\".venv\\n.env\\n\") is True\n    assert env_ignored(\"# local\\n.env*\\n\") is True\n    assert env_ignored(\"/.env\\n\") is True\n\ndef test_not_ignored():\n    assert env_ignored(\".venv\\n__pycache__\\n\") is False\n    assert env_ignored(\".env*\\n!.env\\n\") is False, \"!.env отменяет игнор\"\n    assert env_ignored(\"# .env\\n\") is False\n",
                   "solution": "from fnmatch import fnmatch\n\n\ndef env_ignored(gitignore):\n    ignored = False\n    for line in gitignore.splitlines():\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        negate = line.startswith(\"!\")\n        pattern = line.lstrip(\"!\").lstrip(\"/\")\n        if fnmatch(\".env\", pattern):\n            ignored = not negate\n    return ignored\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Правила `.gitignore` применяются по порядку: последнее подходящее решает, `!` отменяет.\", \"lines\": [[\"negate = line.startswith(\\\"!\\\")\", \"Исключение.\"], [\"pattern = line.lstrip(\\\"!\\\").lstrip(\\\"/\\\")\", \"Чистый шаблон.\"], [\"if fnmatch(\\\".env\\\", pattern):\\n            ignored = not negate\", \"Последнее совпадение побеждает.\"]], \"mistake\": \"Остановиться на первом совпадении — `!.env` ниже не учтётся.\"}"
                 },
                 {
                   "slug": "ci-secrets-e8",
@@ -830,7 +885,8 @@
                   "code": "def secret_for(event, from_fork, secrets):\n    if event == \"pull_request\" and from_fork:\n        return \"\"\n    return secrets.get(\"API_TOKEN\", \"\")\n\nsecrets = {\"API_TOKEN\": \"s3cr3t\"}\nfor event, fork in [(\"push\", False), (\"pull_request\", False), (\"pull_request\", True)]:\n    value = secret_for(event, fork, secrets)\n    print(event, fork, \"есть\" if value else \"пусто\")\n",
                   "expected_output": "push False есть\npull_request False есть\npull_request True пусто",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"PR из форка не получает секретов — иначе любой мог бы их украсть.\", \"lines\": [[\"if event == \\\"pull_request\\\" and from_fork:\\n        return \\\"\\\"\", \"Пусто для форка.\"]], \"mistake\": \"Думать, что тесты из форка получат токен.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nАвтотестам нужны пароли тестовых пользователей, токены API, строки подключения к базе. Положить их в код — значит отдать всем, у кого есть доступ к репозиторию (а иногда и всему интернету). CI хранит их отдельно и подставляет только во время работы.\n\n## Секреты и переменные в GitHub\n\n- **Secrets** (`Settings → Secrets and variables → Actions` или `gh secret set API_TOKEN`) — зашифрованы, маскируются в логах: `${{ secrets.API_TOKEN }}`.\n- **Variables** — несекретные настройки (адрес стенда): `${{ vars.STAGE_URL }}`.\n- Уровни: репозиторий, окружение (environment), организация.\n\n```yaml\njobs:\n  api-tests:\n    runs-on: ubuntu-latest\n    env:\n      BASE_URL: ${{ vars.STAGE_URL }}\n      API_TOKEN: ${{ secrets.API_TOKEN }}\n```\n\n## В тестах — через окружение\n\n```python\nimport os\n\nos.environ[\"BASE_URL\"] = \"https://stage.test\"\nprint(os.environ.get(\"BASE_URL\"), os.environ.get(\"API_TOKEN\", \"нет\"))\n```\n\nВывод: `https://stage.test нет`. Если секрет обязателен — падай **сразу** с понятным сообщением («Не задан API_TOKEN»), а не через десять тестов с «401 Unauthorized».\n\n## Утечки\n\n- Маскируются только известные значения. Если тест печатает заголовки запросов или URL с паролем — секрет уйдёт в лог. Не логируй `Authorization`, пароли в URL.\n- Секрет, полученный во время работы, можно замаскировать: `echo \"::add-mask::$TOKEN\"`.\n- Pull request из **форка** не получает секреты — иначе любой мог бы их украсть, изменив workflow.\n- `.env` с настоящими значениями — в `.gitignore`; в репозитории — `.env.example` без секретов.\n- Утёкший секрет — **сразу отозвать** и выпустить новый: удаление коммита не помогает, история и форки остаются.\n\n## Итог\n\n- `secrets.*` — зашифровано и маскируется, `vars.*` — обычные настройки.\n- В тестах — `os.environ`, обязательные проверяй в начале.\n- Не печатай секреты; `::add-mask::`; `.env` — в `.gitignore`; утёк — отзывай.",
@@ -883,7 +939,8 @@
                   "tests": "import yaml\n\n\ndef wf(text=None):\n    data = yaml.safe_load(WORKFLOW if text is None else text) or {}\n    if True in data:\n        data[\"on\"] = data.pop(True)\n    return data\n\n\ndef steps(job):\n    return wf()[\"jobs\"][job].get(\"steps\", [])\n\n\n\ndef test_service():\n    job = wf()[\"jobs\"][\"api-tests\"]\n    pg = (job.get(\"services\") or {}).get(\"postgres\") or {}\n    assert pg.get(\"image\") == \"postgres:16\", \"services.postgres.image: postgres:16\"\n    assert (pg.get(\"env\") or {}).get(\"POSTGRES_PASSWORD\") == \"secret\", \"POSTGRES_PASSWORD: secret\"\n    assert pg.get(\"ports\") == [\"5432:5432\"], f'ports: [\"5432:5432\"] — в кавычках, а сейчас {pg.get(\"ports\")}'\n    assert \"--health-cmd\" in str(pg.get(\"options\", \"\")), \"options: --health-cmd ...\"\n\ndef test_steps():\n    s = steps(\"api-tests\")\n    assert s and s[0].get(\"uses\") == \"actions/checkout@v4\"\n    test = [x for x in s if x.get(\"run\") == \"pytest tests/api\"]\n    assert test, \"Шаг pytest tests/api\"\n    assert (test[0].get(\"env\") or {}).get(\"DATABASE_URL\") == \"postgresql://postgres:secret@localhost:5432/postgres\", \"DATABASE_URL у шага тестов\"\n",
                   "solution": "WORKFLOW = \"\"\"\nname: api\non: [push]\njobs:\n  api-tests:\n    runs-on: ubuntu-latest\n    services:\n      postgres:\n        image: postgres:16\n        env:\n          POSTGRES_PASSWORD: secret\n        ports:\n          - \"5432:5432\"\n        options: >-\n          --health-cmd \"pg_isready -U postgres\"\n          --health-interval 2s\n          --health-retries 10\n    steps:\n      - uses: actions/checkout@v4\n      - run: pip install -r requirements.txt\n      - run: pytest tests/api\n        env:\n          DATABASE_URL: postgresql://postgres:secret@localhost:5432/postgres\n\"\"\"\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"`services` поднимает контейнеры рядом с job-ом; healthcheck ждёт готовности базы.\", \"lines\": [[\"image: postgres:16\", \"Сервис базы.\"], [\"--health-cmd \\\"pg_isready -U postgres\\\"\", \"Проверка готовности.\"], [\"DATABASE_URL: postgresql://postgres:secret@localhost:5432/postgres\", \"С раннера — localhost и опубликованный порт.\"]], \"mistake\": \"Хост `postgres` в адресе — job работает на раннере, а не в контейнере.\"}"
                 },
                 {
                   "slug": "ci-docker-e2",
@@ -893,7 +950,8 @@
                   "tests": "I = \"ghcr.io/acme/tests\"\n\ndef test_main():\n    assert image_tags(I, \"3f2a1b9c8d7e6f\", \"refs/heads/main\") == [I + \":sha-3f2a1b9\", I + \":main\", I + \":latest\"]\n\ndef test_branch():\n    assert image_tags(I, \"abcdef0123\", \"refs/heads/feature/cart\") == [I + \":sha-abcdef0\", I + \":feature-cart\"]\n\ndef test_version():\n    assert image_tags(I, \"abcdef0123\", \"refs/tags/v1.4.2\") == [I + \":sha-abcdef0\", I + \":1.4.2\"]\n",
                   "solution": "def image_tags(image, sha, ref):\n    tags = [f\"{image}:sha-{sha[:7]}\"]\n    if ref.startswith(\"refs/heads/\"):\n        branch = ref[len(\"refs/heads/\"):]\n        tags.append(f\"{image}:{branch.replace('/', '-')}\")\n        if branch == \"main\":\n            tags.append(f\"{image}:latest\")\n    elif ref.startswith(\"refs/tags/v\"):\n        tags.append(f\"{image}:{ref[len('refs/tags/v'):]}\")\n    return tags\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Теги образа: всегда по коммиту, плюс ветка (и latest для main) или версия тега.\", \"lines\": [[\"tags = [f\\\"{image}:sha-{sha[:7]}\\\"]\", \"Короткий хеш.\"], [\"tags.append(f\\\"{image}:{branch.replace('/', '-')}\\\")\", \"В теге нельзя `/`.\"], [\"tags.append(f\\\"{image}:{ref[len('refs/tags/v'):]}\\\")\", \"Версия без `v`.\"]], \"mistake\": \"Оставить `/` в имени ветки — Docker не примет тег.\"}"
                 },
                 {
                   "slug": "ci-docker-e3",
@@ -903,7 +961,8 @@
                   "expected_output": "docker build -t ghcr.io/acme/tests:$GITHUB_SHA .\ndocker build -t ghcr.io/acme/tests:${GITHUB_SHA} .\ndocker build --tag ghcr.io/acme/tests:$GITHUB_SHA .\ndocker build -t ghcr.io/acme/tests:${{ github.sha }} .",
                   "solution": "docker build -t ghcr.io/acme/tests:$GITHUB_SHA .",
                   "hint": "`docker build -t образ:$GITHUB_SHA .`",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Тег по хешу коммита — образ однозначно связан с кодом.\", \"lines\": [[\"docker build -t ghcr.io/acme/tests:$GITHUB_SHA .\", \"Переменная раннера.\"]], \"mistake\": \"Тег latest в CI — неясно, какой код внутри.\"}"
                 },
                 {
                   "slug": "ci-docker-e4",
@@ -913,7 +972,8 @@
                   "expected_output": "docker compose up --build --exit-code-from tests\ndocker compose up --exit-code-from tests --build\ndocker compose up --build --abort-on-container-exit --exit-code-from tests",
                   "solution": "docker compose up --build --exit-code-from tests",
                   "hint": "`--exit-code-from сервис`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--exit-code-from tests` делает код шага кодом тестов; `--build` — свежие образы.\", \"lines\": [[\"docker compose up --build\", \"Пересобрать.\"], [\"--exit-code-from tests\", \"Код тестов.\"]], \"mistake\": \"`docker compose up -d` — CI не узнает результат.\"}"
                 },
                 {
                   "slug": "ci-docker-e5",
@@ -923,7 +983,8 @@
                   "tests": "import yaml\n\n\ndef wf(text=None):\n    data = yaml.safe_load(WORKFLOW if text is None else text) or {}\n    if True in data:\n        data[\"on\"] = data.pop(True)\n    return data\n\n\ndef steps(job):\n    return wf()[\"jobs\"][job].get(\"steps\", [])\n\n\n\ndef cond(step):\n    return str(step.get(\"if\", \"\")).replace(\"${{\", \"\").replace(\"}}\", \"\").strip()\n\ndef test_order():\n    s = steps(\"e2e\")\n    kinds = [x.get(\"uses\", \"\").split(\"@\")[0] or x.get(\"run\", \"\") for x in s]\n    assert kinds == [\"actions/checkout\", \"docker compose up --build --exit-code-from tests\", \"actions/upload-artifact\", \"docker compose down -v\"], kinds\n\ndef test_always():\n    s = steps(\"e2e\")\n    assert cond(s[2]) == \"always()\" and cond(s[3]) == \"always()\", \"Выгрузка отчёта и уборка — с if: always()\"\n    assert (s[2].get(\"with\") or {}) == {\"name\": \"reports\", \"path\": \"reports/\"}\n",
                   "solution": "WORKFLOW = \"\"\"\nname: e2e\non: [push]\njobs:\n  e2e:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: docker compose up --build --exit-code-from tests\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: reports\n          path: reports/\n      - run: docker compose down -v\n        if: always()\n\"\"\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Отчёты и уборка — с `if: always()`, чтобы выполнились и после падения.\", \"lines\": [[\"- run: docker compose up --build --exit-code-from tests\", \"Прогон.\"], [\"if: always()\", \"Отчёт и при провале.\"], [\"- run: docker compose down -v\", \"Уборка.\"]], \"mistake\": \"Уборка без always() — после падения стенд останется.\"}"
                 },
                 {
                   "slug": "ci-docker-e6",
@@ -932,7 +993,8 @@
                   "code": "def runs(condition, failed_before):\n    return {\"success()\": not failed_before, \"always()\": True, \"failure()\": failed_before}[condition]\n\nsteps = [(\"pytest\", \"success()\"), (\"upload report\", \"always()\"), (\"notify\", \"failure()\"), (\"deploy\", \"success()\")]\nfailed = False\nfor name, condition in steps:\n    if runs(condition, failed):\n        print(\"▶\", name)\n        if name == \"pytest\":\n            failed = True\n    else:\n        print(\"—\", name)\n",
                   "expected_output": "▶ pytest\n▶ upload report\n▶ notify\n— deploy",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"После упавшего шага выполняются только шаги с `always()` и `failure()`.\", \"lines\": [[\"return {\\\"success()\\\": not failed_before, \\\"always()\\\": True, \\\"failure()\\\": failed_before}[condition]\", \"Таблица условий.\"], [\"if name == \\\"pytest\\\":\\n            failed = True\", \"Тесты упали.\"]], \"mistake\": \"Ждать deploy — success() после падения ложно.\"}"
                 },
                 {
                   "slug": "ci-docker-e7",
@@ -942,7 +1004,8 @@
                   "expected_output": "echo \"$CR_TOKEN\" | docker login ghcr.io -u acme --password-stdin\necho $CR_TOKEN | docker login ghcr.io -u acme --password-stdin\necho \"$CR_TOKEN\" | docker login ghcr.io --username acme --password-stdin\necho \"$CR_TOKEN\" | docker login -u acme --password-stdin ghcr.io",
                   "solution": "echo \"$CR_TOKEN\" | docker login ghcr.io -u acme --password-stdin",
                   "hint": "`echo \"$CR_TOKEN\" | docker login реестр -u пользователь --password-stdin`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--password-stdin` читает токен из входа — его не будет в списке процессов и логах.\", \"lines\": [[\"echo \\\"$CR_TOKEN\\\"\", \"Токен в конвейер.\"], [\"| docker login ghcr.io -u acme --password-stdin\", \"Вход.\"]], \"mistake\": \"`-p $CR_TOKEN` — токен виден в аргументах.\"}"
                 },
                 {
                   "slug": "ci-docker-e8",
@@ -952,7 +1015,8 @@
                   "tests": "def test_conditions():\n    assert step_runs(\"\", [\"success\"]) is True\n    assert step_runs(\"success()\", [\"success\", \"failure\"]) is False\n    assert step_runs(\"${{ failure() }}\", [\"success\", \"failure\"]) is True\n    assert step_runs(\"failure()\", [\"success\", \"skipped\"]) is False\n    assert step_runs(\" always() \", [\"failure\"]) is True\n    assert step_runs(\"cancelled()\", [\"failure\"]) is False\n",
                   "solution": "def step_runs(condition, previous):\n    cond = condition.strip()\n    if cond.startswith(\"${{\") and cond.endswith(\"}}\"):\n        cond = cond[3:-2].strip()\n    failed = \"failure\" in previous\n    return {\"\": not failed, \"success()\": not failed, \"failure()\": failed,\n            \"always()\": True, \"cancelled()\": False}[cond]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Снимаем `${{ }}`, затем решаем по таблице; пустое условие = success().\", \"lines\": [[\"if cond.startswith(\\\"${{\\\") and cond.endswith(\\\"}}\\\"):\", \"Обёртка выражения.\"], [\"failed = \\\"failure\\\" in previous\", \"Было ли падение.\"], [\"return {\\\"\\\": not failed, \\\"success()\\\": not failed, \\\"failure()\\\": failed,\", \"Пропущенные шаги провалом не считаются.\"]], \"mistake\": \"Считать skipped падением.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nAPI-тестам нужна база, UI-тестам — запущенное приложение. В CI их поднимают теми же контейнерами, что и локально, — окружение одинаковое, и «у меня работает» перестаёт быть оправданием.\n\n## Сервисы job-а\n\n```yaml\njobs:\n  api-tests:\n    runs-on: ubuntu-latest\n    services:\n      postgres:\n        image: postgres:16\n        env:\n          POSTGRES_PASSWORD: secret\n        ports:\n          - \"5432:5432\"\n        options: >-\n          --health-cmd \"pg_isready -U postgres\"\n          --health-interval 2s\n          --health-retries 10\n    steps:\n      - uses: actions/checkout@v4\n      - run: pytest tests/api\n        env:\n          DATABASE_URL: postgresql://postgres:secret@localhost:5432/postgres\n```\n\n- GitHub поднимает контейнеры **до** шагов и ждёт их healthcheck (`options` — флаги `docker run`).\n- Шаги идут прямо на раннере, поэтому база доступна как `localhost:5432` (порт опубликован).\n\n## Docker Compose в CI\n\nЕсли стенд уже описан в compose — используй его и в CI:\n\n```yaml\nsteps:\n  - uses: actions/checkout@v4\n  - run: docker compose up --build --exit-code-from tests\n  - uses: actions/upload-artifact@v4\n    if: always()\n    with: {name: reports, path: reports/}\n  - run: docker compose down -v\n    if: always()\n```\n\n## Условия шагов\n\n- по умолчанию `success()` — все предыдущие шаги успешны;\n- `failure()` — только если что-то упало (уведомления, дамп логов);\n- `always()` — всегда (отчёты, уборка).\n\n## Образ тестов в реестр\n\n```bash\necho \"$CR_TOKEN\" | docker login ghcr.io -u acme --password-stdin\ndocker build -t ghcr.io/acme/tests:$GITHUB_SHA .\ndocker push ghcr.io/acme/tests:$GITHUB_SHA\n```\n\n- Токен — через `--password-stdin`: в аргументах он попал бы в историю и в список процессов.\n- Теги: `sha-<коммит>` (точно знаем код), имя ветки, версия из git-тега, `latest` для main.\n\n## Итог\n\n- `services:` — контейнеры рядом с job-ом; с healthcheck; доступ через localhost.\n- Compose в CI: `up --build --exit-code-from tests`, отчёты и `down -v` с `if: always()`.\n- `success()` / `failure()` / `always()`.\n- Логин по `--password-stdin`, теги по коммиту и версии.",
@@ -1012,7 +1076,8 @@
                   "code": "import yaml\n\nci = yaml.safe_load('''\nstages: [lint, test, report]\nruff:\n  stage: lint\n  script: [ruff check .]\napi:\n  stage: test\n  script: [pytest tests/api]\nui:\n  stage: test\n  script: [pytest tests/ui]\n''')\nfor stage in ci[\"stages\"]:\n    jobs = [name for name, job in ci.items() if isinstance(job, dict) and job.get(\"stage\") == stage]\n    print(stage, jobs)\n",
                   "expected_output": "lint ['ruff']\ntest ['api', 'ui']\nreport []",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Стадии идут по очереди, job-ы одной стадии — параллельно.\", \"lines\": [[\"jobs = [name for name, job in ci.items() if isinstance(job, dict) and job.get(\\\"stage\\\") == stage]\", \"Job-ы стадии; `stages` — список, его пропускаем.\"], [\"print(stage, jobs)\", \"У report — пусто.\"]], \"mistake\": \"Посчитать `stages` job-ом.\"}"
                 },
                 {
                   "slug": "ci-gitlab-e2",
@@ -1022,7 +1087,8 @@
                   "tests": "import yaml\n\n\ndef gl():\n    return yaml.safe_load(GITLAB_CI) or {}\n\n\n\ndef test_stages():\n    assert gl().get(\"stages\") == [\"lint\", \"test\"], \"stages: [lint, test]\"\n\ndef test_ruff():\n    job = gl().get(\"ruff\") or {}\n    assert job.get(\"stage\") == \"lint\" and job.get(\"image\") == \"python:3.12-slim\", \"ruff: stage lint, image python:3.12-slim\"\n    assert job.get(\"script\") == [\"pip install ruff\", \"ruff check .\"], job.get(\"script\")\n\ndef test_pytest():\n    job = gl().get(\"pytest\") or {}\n    assert job.get(\"stage\") == \"test\", \"pytest: stage test\"\n    assert job.get(\"script\") == [\"pip install -r requirements.txt\", \"pytest --junitxml=report.xml\"], job.get(\"script\")\n    art = job.get(\"artifacts\") or {}\n    assert art.get(\"when\") == \"always\" and (art.get(\"reports\") or {}).get(\"junit\") == \"report.xml\", \"artifacts: when always, reports.junit report.xml\"\n",
                   "solution": "GITLAB_CI = \"\"\"\nstages: [lint, test]\n\nruff:\n  stage: lint\n  image: python:3.12-slim\n  script:\n    - pip install ruff\n    - ruff check .\n\npytest:\n  stage: test\n  image: python:3.12-slim\n  script:\n    - pip install -r requirements.txt\n    - pytest --junitxml=report.xml\n  artifacts:\n    when: always\n    reports:\n      junit: report.xml\n\"\"\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"В GitLab: `stages`, у job-а — `stage`, `image`, `script`; отчёт JUnit — в `artifacts.reports`.\", \"lines\": [[\"stage: lint\", \"Первая стадия.\"], [\"- pytest --junitxml=report.xml\", \"Отчёт.\"], [\"junit: report.xml\", \"GitLab покажет результаты в MR.\"]], \"mistake\": \"Забыть `when: always` — при падении отчёт не сохранится.\"}"
                 },
                 {
                   "slug": "ci-gitlab-e3",
@@ -1032,7 +1098,8 @@
                   "tests": "CI = {\n    \"stages\": [\"build\", \"test\", \"deploy\"],\n    \"variables\": {\"PY\": \"3.12\"},\n    \".base\": {\"image\": \"python\", \"script\": [\"x\"]},\n    \"unit\": {\"script\": [\"pytest\"]},\n    \"api\": {\"stage\": \"test\", \"script\": [\"pytest tests/api\"]},\n    \"image\": {\"stage\": \"build\", \"script\": [\"docker build .\"]},\n}\n\ndef test_plan():\n    assert gitlab_plan(CI) == [(\"build\", [\"image\"]), (\"test\", [\"api\", \"unit\"])], gitlab_plan(CI)\n",
                   "solution": "def gitlab_plan(ci):\n    jobs = {name: job for name, job in ci.items()\n            if isinstance(job, dict) and \"script\" in job and not name.startswith(\".\")}\n    plan = []\n    for stage in ci.get(\"stages\", []):\n        names = sorted(n for n, j in jobs.items() if j.get(\"stage\", \"test\") == stage)\n        if names:\n            plan.append((stage, names))\n    return plan\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Job — словарь со `script` и именем не с точки; стадия по умолчанию — test.\", \"lines\": [[\"if isinstance(job, dict) and \\\"script\\\" in job and not name.startswith(\\\".\\\")}\", \"Отбор job-ов.\"], [\"names = sorted(n for n, j in jobs.items() if j.get(\\\"stage\\\", \\\"test\\\") == stage)\", \"По алфавиту.\"], [\"if names:\\n            plan.append((stage, names))\", \"Пустые стадии не добавляем.\"]], \"mistake\": \"Считать шаблоны `.base` job-ами.\"}"
                 },
                 {
                   "slug": "ci-gitlab-e4",
@@ -1042,7 +1109,8 @@
                   "tests": "import yaml\n\n\ndef gl():\n    return yaml.safe_load(GITLAB_CI) or {}\n\n\n\ndef test_rules():\n    job = gl().get(\"ui-tests\") or {}\n    assert job.get(\"stage\") == \"test\" and job.get(\"script\") == [\"pytest tests/ui\"], \"ui-tests: stage test, script pytest tests/ui\"\n    rules = job.get(\"rules\") or []\n    assert len(rules) == 2, \"Два правила\"\n    assert rules[0] == {\"if\": '$CI_PIPELINE_SOURCE == \"schedule\"'}, rules[0]\n    assert rules[1] == {\"if\": '$CI_COMMIT_BRANCH == \"main\"', \"when\": \"manual\"}, rules[1]\n",
                   "solution": "GITLAB_CI = \"\"\"\nstages: [test]\n\nui-tests:\n  stage: test\n  script:\n    - pytest tests/ui\n  rules:\n    - if: $CI_PIPELINE_SOURCE == \"schedule\"\n    - if: $CI_COMMIT_BRANCH == \"main\"\n      when: manual\n\"\"\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`rules` проверяются по порядку: первое совпавшее правило решает, как запускать job.\", \"lines\": [[\"- if: $CI_PIPELINE_SOURCE == \\\"schedule\\\"\", \"По расписанию — автоматически.\"], [\"- if: $CI_COMMIT_BRANCH == \\\"main\\\"\", \"В main…\"], [\"when: manual\", \"…только вручную.\"]], \"mistake\": \"Поставить правила в обратном порядке — расписание в main станет ручным.\"}"
                 },
                 {
                   "slug": "ci-gitlab-e5",
@@ -1052,7 +1120,8 @@
                   "expected_output": "$CI_COMMIT_BRANCH\n$CI_COMMIT_REF_NAME",
                   "solution": "$CI_COMMIT_BRANCH",
                   "hint": "Все предопределённые переменные начинаются с `CI_`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Имя ветки — `$CI_COMMIT_BRANCH`.\", \"lines\": [[\"$CI_COMMIT_BRANCH\", \"Текущая ветка.\"]], \"mistake\": \"`$CI_BRANCH` — такой переменной нет.\"}"
                 },
                 {
                   "slug": "ci-gitlab-e6",
@@ -1062,7 +1131,8 @@
                   "expected_output": "$CI_COMMIT_SHA",
                   "solution": "$CI_COMMIT_SHA",
                   "hint": "`CI_COMMIT_…`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Полный хеш — `$CI_COMMIT_SHA`, короткий — `$CI_COMMIT_SHORT_SHA`.\", \"lines\": [[\"$CI_COMMIT_SHA\", \"Хеш коммита.\"]], \"mistake\": \"Путать с `$GITHUB_SHA` из GitHub Actions.\"}"
                 },
                 {
                   "slug": "ci-gitlab-e7",
@@ -1071,7 +1141,8 @@
                   "code": "base = {\"image\": \"python:3.12-slim\", \"before_script\": [\"pip install -r requirements.txt\"]}\napi = {\"extends\": \".base\", \"script\": [\"pytest tests/api\"]}\n\nresolved = {**base, **{k: v for k, v in api.items() if k != \"extends\"}}\nfor key in sorted(resolved):\n    print(key, resolved[key])\n",
                   "expected_output": "before_script ['pip install -r requirements.txt']\nimage python:3.12-slim\nscript ['pytest tests/api']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`extends` — настройки шаблона, поверх — свои ключи job-а.\", \"lines\": [[\"resolved = {**base, **{k: v for k, v in api.items() if k != \\\"extends\\\"}}\", \"Шаблон + job без extends.\"], [\"for key in sorted(resolved):\", \"По алфавиту.\"]], \"mistake\": \"Оставить ключ extends в итоге.\"}"
                 },
                 {
                   "slug": "ci-gitlab-e8",
@@ -1081,7 +1152,8 @@
                   "tests": "CI = {\n    \".py\": {\"image\": \"python:3.12-slim\", \"tags\": [\"docker\"]},\n    \".tests\": {\"extends\": \".py\", \"before_script\": [\"pip install -r requirements.txt\"]},\n    \"api\": {\"extends\": \".tests\", \"script\": [\"pytest tests/api\"], \"tags\": [\"fast\"]},\n    \"lint\": {\"script\": [\"ruff check .\"]},\n}\n\ndef test_chain():\n    got = resolve_extends(CI, \"api\")\n    assert got == {\"image\": \"python:3.12-slim\", \"tags\": [\"fast\"], \"before_script\": [\"pip install -r requirements.txt\"], \"script\": [\"pytest tests/api\"]}, got\n\ndef test_plain():\n    assert resolve_extends(CI, \"lint\") == {\"script\": [\"ruff check .\"]}\n",
                   "solution": "def resolve_extends(ci, name):\n    job = dict(ci[name])\n    parent = job.pop(\"extends\", None)\n    if parent is None:\n        return job\n    return {**resolve_extends(ci, parent), **job}\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Рекурсия: сначала разворачиваем шаблон, потом накладываем ключи job-а.\", \"lines\": [[\"parent = job.pop(\\\"extends\\\", None)\", \"Убираем extends из копии.\"], [\"return {**resolve_extends(ci, parent), **job}\", \"Шаблон снизу, job сверху.\"]], \"mistake\": \"Менять `ci[name]` напрямую — испортишь исходный словарь.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nМногие компании (особенно в России) держат код в GitLab, а значит — пайплайны в **GitLab CI**. Идеи те же, что в GitHub Actions, синтаксис другой.\n\n## .gitlab-ci.yml\n\n```yaml\nstages: [lint, test, report]\n\ndefault:\n  image: python:3.12-slim\n\nruff:\n  stage: lint\n  script:\n    - pip install ruff\n    - ruff check .\n\napi-tests:\n  stage: test\n  script:\n    - pip install -r requirements.txt\n    - pytest tests/api --junitxml=report.xml\n  artifacts:\n    when: always\n    reports:\n      junit: report.xml\n```\n\n- `stages` — порядок стадий; job-ы одной стадии идут **параллельно**, следующая стадия ждёт окончания предыдущей. Стадия по умолчанию — `test`.\n- Job — ключ верхнего уровня со `script` (список команд). Служебные ключи: `stages`, `variables`, `default`, `include`, `workflow`.\n- `image` — Docker-образ, в котором идёт job (в GitLab job-ы обычно работают в контейнере).\n- `artifacts.reports.junit` — GitLab покажет результаты тестов прямо в merge request. `when: always` — сохранить и при падении.\n- `needs: [job]` — начать раньше, не дожидаясь всей стадии.\n\n## rules — когда запускать\n\n```yaml\nui-tests:\n  script: [pytest tests/ui]\n  rules:\n    - if: $CI_PIPELINE_SOURCE == \"schedule\"\n    - if: $CI_COMMIT_BRANCH == \"main\"\n      when: manual\n```\n\nПравила проверяются сверху вниз, срабатывает первое подошедшее; ни одно не подошло — job не создаётся. `when: manual` — запуск кнопкой.\n\nПолезные переменные: `$CI_COMMIT_BRANCH`, `$CI_COMMIT_SHA`, `$CI_PIPELINE_SOURCE` (`push`, `merge_request_event`, `schedule`), `$CI_MERGE_REQUEST_IID`. Свои — в `variables:` или в настройках проекта (маскируемые — для секретов).\n\n## Шаблоны\n\n```yaml\n.tests:\n  image: python:3.12-slim\n  before_script:\n    - pip install -r requirements.txt\n\napi-tests:\n  extends: .tests\n  script: [pytest tests/api]\n```\n\nJob с именем на точку — скрытый шаблон, не запускается. `extends` берёт его настройки; ключи job-а перекрывают шаблон.\n\n## Итог\n\n- `stages` + job-ы со `script`; одна стадия — параллельно.\n- `artifacts: reports: junit` — тесты в merge request.\n- `rules` с `$CI_*` — когда запускать; `when: manual` — кнопкой.\n- `.шаблон` + `extends` — без копипасты.",
@@ -1134,7 +1206,8 @@
                   "expected_output": "pytest --cov=app --cov-fail-under=80\npytest --cov app --cov-fail-under 80\npytest --cov-fail-under=80 --cov=app\npython -m pytest --cov=app --cov-fail-under=80",
                   "solution": "pytest --cov=app --cov-fail-under=80",
                   "hint": "`--cov=пакет` и `--cov-fail-under=N`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--cov-fail-under` превращает покрытие в условие прохождения.\", \"lines\": [[\"pytest --cov=app\", \"Замер для пакета.\"], [\"--cov-fail-under=80\", \"Ниже 80% — провал.\"]], \"mistake\": \"Мерить покрытие без порога — оно будет тихо падать.\"}"
                 },
                 {
                   "slug": "ci-gates-e2",
@@ -1144,7 +1217,8 @@
                   "tests": "def test_percent():\n    xml = '<?xml version=\"1.0\" ?><coverage line-rate=\"0.8347\" branch-rate=\"0\" version=\"7.6\"><packages/></coverage>'\n    assert coverage_percent(xml) == 83.5, coverage_percent(xml)\n    assert coverage_percent('<coverage line-rate=\"1\"/>') == 100.0\n",
                   "solution": "import xml.etree.ElementTree as ET\n\n\ndef coverage_percent(xml_text):\n    root = ET.fromstring(xml_text)\n    return round(float(root.get(\"line-rate\")) * 100, 1)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`line-rate` — доля от 0 до 1; переводим в проценты.\", \"lines\": [[\"return round(float(root.get(\\\"line-rate\\\")) * 100, 1)\", \"Строка → float → %.\"]], \"mistake\": \"Забыть float — атрибут XML — строка.\"}"
                 },
                 {
                   "slug": "ci-gates-e3",
@@ -1154,7 +1228,8 @@
                   "tests": "S = {\"passed\": 12, \"failed\": 3, \"skipped\": 5, \"coverage\": 75.0, \"duration\": 700}\n\ndef test_violations():\n    rules = {\"max_failed\": 0, \"min_coverage\": 80, \"max_skipped_share\": 0.1, \"max_duration\": 600}\n    assert gate(S, rules) == [\"failed 3 > 0\", \"coverage 75.0 < 80\", \"skipped 25% > 10%\", \"duration 700 > 600\"], gate(S, rules)\n\ndef test_partial():\n    assert gate(S, {\"min_coverage\": 70}) == []\n    assert gate(S, {\"max_failed\": 5, \"max_duration\": 700}) == []\n",
                   "solution": "def gate(stats, rules):\n    problems = []\n    if \"max_failed\" in rules and stats[\"failed\"] > rules[\"max_failed\"]:\n        problems.append(f\"failed {stats['failed']} > {rules['max_failed']}\")\n    if \"min_coverage\" in rules and stats[\"coverage\"] < rules[\"min_coverage\"]:\n        problems.append(f\"coverage {stats['coverage']} < {rules['min_coverage']}\")\n    total = stats[\"passed\"] + stats[\"failed\"] + stats[\"skipped\"]\n    if \"max_skipped_share\" in rules and total and stats[\"skipped\"] / total > rules[\"max_skipped_share\"]:\n        problems.append(f\"skipped {round(100 * stats['skipped'] / total)}% > {round(100 * rules['max_skipped_share'])}%\")\n    if \"max_duration\" in rules and stats[\"duration\"] > rules[\"max_duration\"]:\n        problems.append(f\"duration {stats['duration']} > {rules['max_duration']}\")\n    return problems\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Каждое правило проверяется, только если задано; нарушения копятся списком.\", \"lines\": [[\"if \\\"max_failed\\\" in rules and stats[\\\"failed\\\"] > rules[\\\"max_failed\\\"]:\", \"Упавшие.\"], [\"if \\\"min_coverage\\\" in rules and stats[\\\"coverage\\\"] < rules[\\\"min_coverage\\\"]:\", \"Покрытие.\"], [\"if \\\"max_skipped_share\\\" in rules and total and stats[\\\"skipped\\\"] / total > rules[\\\"max_skipped_share\\\"]:\", \"Доля пропусков; `total` — защита от деления на ноль.\"]], \"mistake\": \"Падать на отсутствующем правиле с KeyError.\"}"
                 },
                 {
                   "slug": "ci-gates-e4",
@@ -1163,7 +1238,8 @@
                   "code": "quarantine = {\"test_payment_timeout\"}\nresults = {\"test_login\": \"passed\", \"test_payment_timeout\": \"failed\", \"test_cart\": \"passed\"}\n\nreal = [t for t, r in results.items() if r == \"failed\" and t not in quarantine]\nknown = [t for t, r in results.items() if r == \"failed\" and t in quarantine]\nprint(\"упали:\", real)\nprint(\"в карантине:\", known)\nprint(\"пайплайн:\", \"красный\" if real else \"зелёный\")\n",
                   "expected_output": "упали: []\nв карантине: ['test_payment_timeout']\nпайплайн: зелёный",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Карантин: падения известных флаки-тестов показываем, но пайплайн не краснеет.\", \"lines\": [[\"real = [t for t, r in results.items() if r == \\\"failed\\\" and t not in quarantine]\", \"Настоящие падения.\"], [\"print(\\\"пайплайн:\\\", \\\"красный\\\" if real else \\\"зелёный\\\")\", \"Решают только они.\"]], \"mistake\": \"Держать тесты в карантине вечно — их нужно чинить.\"}"
                 },
                 {
                   "slug": "ci-gates-e5",
@@ -1173,7 +1249,8 @@
                   "tests": "def test_diff():\n    before = {\"a\": \"passed\", \"b\": \"failed\", \"c\": \"failed\", \"d\": \"skipped\"}\n    after = {\"a\": \"failed\", \"b\": \"passed\", \"c\": \"failed\", \"d\": \"failed\", \"e\": \"failed\"}\n    assert new_failures(before, after) == {\"new\": [\"a\", \"d\", \"e\"], \"fixed\": [\"b\"], \"still\": [\"c\"]}, new_failures(before, after)\n",
                   "solution": "def new_failures(before, after):\n    failed_before = {t for t, r in before.items() if r == \"failed\"}\n    failed_after = {t for t, r in after.items() if r == \"failed\"}\n    fixed = {t for t in failed_before if after.get(t) == \"passed\"}\n    return {\"new\": sorted(failed_after - failed_before),\n            \"fixed\": sorted(fixed),\n            \"still\": sorted(failed_after & failed_before)}\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Множества упавших до и после: разность — новые, пересечение — старые, прошедшие теперь — исправленные.\", \"lines\": [[\"fixed = {t for t in failed_before if after.get(t) == \\\"passed\\\"}\", \"Починили.\"], [\"return {\\\"new\\\": sorted(failed_after - failed_before),\", \"Новые падения.\"], [\"\\\"still\\\": sorted(failed_after & failed_before)}\", \"Падали и падают.\"]], \"mistake\": \"Считать исправленным тест, который в ветке пропущен.\"}"
                 },
                 {
                   "slug": "ci-gates-e6",
@@ -1183,7 +1260,8 @@
                   "expected_output": "ruff check . && ruff format --check .\nruff format --check . && ruff check .\nruff check && ruff format --check",
                   "solution": "ruff check . && ruff format --check .",
                   "hint": "`ruff format --check` только проверяет.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Линтер и проверка формата — два независимых барьера.\", \"lines\": [[\"ruff check .\", \"Ошибки.\"], [\"ruff format --check .\", \"Формат без изменений.\"]], \"mistake\": \"`ruff format .` в CI — исправит файлы и пройдёт.\"}"
                 },
                 {
                   "slug": "ci-gates-e7",
@@ -1193,7 +1271,8 @@
                   "tests": "R = '''<testsuites><testsuite>\n  <testcase name=\"test_a\" time=\"0.2\"/>\n  <testcase name=\"test_ui_checkout\" time=\"14.8\"/>\n  <testcase name=\"test_b\" time=\"1.5\"/>\n</testsuite><testsuite><testcase name=\"test_ui_login\" time=\"9.25\"/></testsuite></testsuites>'''\n\ndef test_top():\n    assert slowest(R, 2) == [(\"test_ui_checkout\", 14.8), (\"test_ui_login\", 9.25)], slowest(R, 2)\n    assert len(slowest(R, 10)) == 4\n",
                   "solution": "import xml.etree.ElementTree as ET\n\n\ndef slowest(junit_xml, n):\n    cases = [(c.get(\"name\"), float(c.get(\"time\", 0))) for c in ET.fromstring(junit_xml).iter(\"testcase\")]\n    return sorted(cases, key=lambda c: c[1], reverse=True)[:n]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Собираем (имя, время) и сортируем по убыванию времени.\", \"lines\": [[\"cases = [(c.get(\\\"name\\\"), float(c.get(\\\"time\\\", 0))) for c in ET.fromstring(junit_xml).iter(\\\"testcase\\\")]\", \"Время — число.\"], [\"return sorted(cases, key=lambda c: c[1], reverse=True)[:n]\", \"Топ-n.\"]], \"mistake\": \"Сортировать строки времени.\"}"
                 },
                 {
                   "slug": "ci-gates-e8",
@@ -1203,7 +1282,8 @@
                   "expected_output": "pytest --durations=10\npytest --durations 10\npython -m pytest --durations=10",
                   "solution": "pytest --durations=10",
                   "hint": "Опция `--durations=N`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--durations=N` — N самых медленных тестов.\", \"lines\": [[\"pytest --durations=10\", \"Кандидаты на оптимизацию.\"]], \"mistake\": \"Оценивать скорость тестов на глаз.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n«Тесты запустились» — ещё не качество. **Quality gate** — набор правил, при нарушении которых пайплайн красный и слияние блокируется: упавшие тесты, низкое покрытие, линтер, слишком долгий прогон, выросшее число пропущенных.\n\n## Линтер и форматирование\n\n```bash\nruff check .              # ошибки и подозрительный код\nruff format --check .     # отформатирован ли код (без изменений)\n```\n\n## Покрытие\n\n```bash\npytest --cov=app --cov-report=xml --cov-fail-under=80\n```\n\n- `pytest-cov` меряет, какие строки кода выполнились в тестах.\n- `--cov-fail-under=80` — код выхода ≠ 0, если покрыто меньше 80%.\n- `coverage.xml` (формат Cobertura) читают GitLab, SonarQube, Codecov; доля покрытых строк — атрибут `line-rate` корневого тега.\n\nПокрытие — не цель, а сигнал: 100% покрытия без проверок ничего не гарантирует, но резкое падение значит, что новый код пришёл без тестов.\n\n## Правила gate\n\n- упавших тестов — 0;\n- покрытие не ниже порога и не падает относительно `main`;\n- доля пропущенных (`skip`) не растёт — пропущенные тесты имеют свойство копиться;\n- время прогона в пределах бюджета;\n- **новые** падения блокируют слияние; известные флаки — в карантине с задачей на починку.\n\n## Карантин флаки\n\nНестабильный тест помечают (`@pytest.mark.flaky` или свой маркер `quarantine`), его падение не красит пайплайн, но попадает в отчёт. Карантин без срока и владельца превращается в кладбище тестов — у каждого должна быть задача.\n\n## Медленные тесты\n\n```bash\npytest --durations=10        # 10 самых медленных тестов\n```\n\n## Защита ветки\n\nВ настройках репозитория: **Require status checks to pass before merging** — без зелёного пайплайна кнопка слияния недоступна. Это и делает gate обязательным.\n\n## Итог\n\n- Gate = правила: падения, покрытие, линтер, время, пропуски.\n- `--cov-fail-under`, `ruff check`, `ruff format --check`, `--durations`.\n- Блокируют новые падения; флаки — в карантин с владельцем.\n- Защита ветки делает gate обязательным.",
@@ -1256,7 +1336,8 @@
                   "expected_output": "allure generate allure-results -o allure-report --clean\nallure generate allure-results --clean -o allure-report\nallure generate --clean allure-results -o allure-report\nallure generate allure-results -o allure-report -c",
                   "solution": "allure generate allure-results -o allure-report --clean",
                   "hint": "`allure generate <результаты> -o <отчёт> --clean`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`allure generate` строит отчёт; `--clean` — очистить старый.\", \"lines\": [[\"allure generate allure-results\", \"Откуда.\"], [\"-o allure-report --clean\", \"Куда, с очисткой.\"]], \"mistake\": \"Без `--clean` — ошибка на существующей папке.\"}"
                 },
                 {
                   "slug": "ci-notify-e2",
@@ -1266,7 +1347,8 @@
                   "tests": "def test_red():\n    s = {\"branch\": \"main\", \"passed\": 40, \"failed\": 2, \"skipped\": 1, \"failed_names\": [\"test_login\", \"test_cart\"]}\n    assert chat_message(s, \"https://ci.example/run/1\") == \"❌ main: 2 упало, 40 прошло, 1 пропущено\\n• test_login\\n• test_cart\\nОтчёт: https://ci.example/run/1\", repr(chat_message(s, \"https://ci.example/run/1\"))\n\ndef test_green():\n    s = {\"branch\": \"dev\", \"passed\": 5, \"failed\": 0, \"skipped\": 0, \"failed_names\": []}\n    assert chat_message(s, \"u\") == \"✅ dev: 0 упало, 5 прошло, 0 пропущено\\nОтчёт: u\"\n\ndef test_many():\n    names = [f\"t{i}\" for i in range(8)]\n    msg = chat_message({\"branch\": \"b\", \"passed\": 0, \"failed\": 8, \"skipped\": 0, \"failed_names\": names}, \"u\")\n    assert msg.count(\"•\") == 5 and \"…и ещё 3\" in msg, msg\n",
                   "solution": "def chat_message(summary, url):\n    icon = \"❌\" if summary[\"failed\"] else \"✅\"\n    lines = [f\"{icon} {summary['branch']}: {summary['failed']} упало, {summary['passed']} прошло, {summary['skipped']} пропущено\"]\n    names = summary[\"failed_names\"]\n    lines += [f\"• {name}\" for name in names[:5]]\n    if len(names) > 5:\n        lines.append(f\"…и ещё {len(names) - 5}\")\n    lines.append(f\"Отчёт: {url}\")\n    return \"\\n\".join(lines)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Иконка по наличию падений, до пяти имён упавших, ссылка в конце.\", \"lines\": [[\"icon = \\\"❌\\\" if summary[\\\"failed\\\"] else \\\"✅\\\"\", \"Статус.\"], [\"lines += [f\\\"• {name}\\\" for name in names[:5]]\", \"Первые пять.\"], [\"lines.append(f\\\"…и ещё {len(names) - 5}\\\")\", \"Остальные числом.\"]], \"mistake\": \"Перечислять все упавшие — сообщение станет простынёй.\"}"
                 },
                 {
                   "slug": "ci-notify-e3",
@@ -1275,7 +1357,8 @@
                   "code": "import json\n\npayload = {\"text\": \"❌ main: 2 упало\", \"link\": \"https://ci.example/run/1\"}\nprint(json.dumps(payload))\nprint(json.dumps(payload, ensure_ascii=False))\n",
                   "expected_output": "{\"text\": \"\\u274c main: 2 \\u0443\\u043f\\u0430\\u043b\\u043e\", \"link\": \"https://ci.example/run/1\"}\n{\"text\": \"❌ main: 2 упало\", \"link\": \"https://ci.example/run/1\"}",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"По умолчанию `json.dumps` экранирует не-ASCII символы; `ensure_ascii=False` оставляет как есть.\", \"lines\": [[\"print(json.dumps(payload))\", \"`\\\\u…` вместо букв.\"], [\"print(json.dumps(payload, ensure_ascii=False))\", \"Читаемо.\"]], \"mistake\": \"Думать, что экранированный JSON неправильный — он валиден, просто нечитаем.\"}"
                 },
                 {
                   "slug": "ci-notify-e4",
@@ -1285,7 +1368,8 @@
                   "tests": "def test_rules():\n    assert should_notify(\"success\", \"failure\") is True\n    assert should_notify(\"failure\", \"failure\") is True\n    assert should_notify(\"failure\", \"success\") is True, \"Починили — сообщить\"\n    assert should_notify(\"success\", \"success\") is False, \"Зелёный после зелёного — тишина\"\n    assert should_notify(None, \"success\") is False and should_notify(None, \"failure\") is True\n",
                   "solution": "def should_notify(prev, cur):\n    if cur == \"failure\":\n        return True\n    return prev is not None and prev != cur\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Уведомляем о падении и о смене статуса (починили); зелёный после зелёного — тишина.\", \"lines\": [[\"if cur == \\\"failure\\\":\\n        return True\", \"Упал — всегда.\"], [\"return prev is not None and prev != cur\", \"Сменился статус.\"]], \"mistake\": \"Уведомлять на первый зелёный прогон — prev ещё None.\"}"
                 },
                 {
                   "slug": "ci-notify-e5",
@@ -1295,7 +1379,8 @@
                   "expected_output": "curl -X POST -H \"Content-Type: application/json\" -d '{\"text\": \"tests failed\"}' $WEBHOOK_URL\ncurl -X POST -H 'Content-Type: application/json' -d '{\"text\": \"tests failed\"}' $WEBHOOK_URL\ncurl -X POST -H \"Content-Type: application/json\" -d '{\"text\": \"tests failed\"}' \"$WEBHOOK_URL\"\ncurl -H \"Content-Type: application/json\" -d '{\"text\": \"tests failed\"}' $WEBHOOK_URL\ncurl -X POST --json '{\"text\": \"tests failed\"}' $WEBHOOK_URL\ncurl --json '{\"text\": \"tests failed\"}' $WEBHOOK_URL",
                   "solution": "curl -X POST -H \"Content-Type: application/json\" -d '{\"text\": \"tests failed\"}' $WEBHOOK_URL",
                   "hint": "`curl -X POST -H \"Content-Type: application/json\" -d '<json>' $WEBHOOK_URL`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Вебхук — POST с JSON; адрес из переменной.\", \"lines\": [[\"-H \\\"Content-Type: application/json\\\"\", \"Тип тела.\"], [\"-d '{\\\"text\\\": \\\"tests failed\\\"}'\", \"JSON в одинарных кавычках.\"], [\"$WEBHOOK_URL\", \"Адрес.\"]], \"mistake\": \"JSON в двойных кавычках — оболочка съест внутренние кавычки.\"}"
                 },
                 {
                   "slug": "ci-notify-e6",
@@ -1305,7 +1390,8 @@
                   "tests": "def test_trend():\n    history = [{\"passed\": 50, \"failed\": 0}] * 5\n    got = trend(history, {\"passed\": 30, \"failed\": 20})\n    assert got == [\"2 █████\", \"3 █████\", \"4 █████\", \"5 █████\", \"6 ███░░\"], got\n\ndef test_short():\n    assert trend([], {\"passed\": 19, \"failed\": 9}) == [\"1 █\"]\n",
                   "solution": "def trend(history, current):\n    runs = history + [current]\n    start = max(0, len(runs) - 5)\n    return [f\"{i + 1} \" + \"█\" * (r[\"passed\"] // 10) + \"░\" * (r[\"failed\"] // 10)\n            for i, r in enumerate(runs) if i >= start]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Последние 5 прогонов; полоска — число прошедших и упавших по десяткам.\", \"lines\": [[\"runs = history + [current]\", \"История + текущий.\"], [\"start = max(0, len(runs) - 5)\", \"Последние пять.\"], [\"return [f\\\"{i + 1} \\\" + \\\"█\\\" * (r[\\\"passed\\\"] // 10) + \\\"░\\\" * (r[\\\"failed\\\"] // 10)\", \"Номер прогона сохраняется.\"]], \"mistake\": \"Нумеровать срез заново с 1 — номера прогонов собьются.\"}"
                 },
                 {
                   "slug": "ci-notify-e7",
@@ -1315,7 +1401,8 @@
                   "expected_output": "cp -r allure-report/history allure-results/\ncp -r allure-report/history allure-results\ncp -R allure-report/history allure-results/\ncp -R allure-report/history allure-results",
                   "solution": "cp -r allure-report/history allure-results/",
                   "hint": "`cp -r откуда куда`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Копия `history` из прошлого отчёта даёт тренды в новом.\", \"lines\": [[\"cp -r allure-report/history allure-results/\", \"До генерации.\"]], \"mistake\": \"Копировать после `allure generate` — история не попадёт.\"}"
                 },
                 {
                   "slug": "ci-notify-e8",
@@ -1325,7 +1412,8 @@
                   "tests": "import yaml\n\n\ndef wf(text=None):\n    data = yaml.safe_load(WORKFLOW if text is None else text) or {}\n    if True in data:\n        data[\"on\"] = data.pop(True)\n    return data\n\n\ndef steps(job):\n    return wf()[\"jobs\"][job].get(\"steps\", [])\n\n\n\ndef cond(step):\n    return str(step.get(\"if\", \"\")).replace(\"${{\", \"\").replace(\"}}\", \"\").strip()\n\ndef test_steps():\n    s = steps(\"tests\")\n    kinds = [x.get(\"uses\", \"\").split(\"@\")[0] or x.get(\"run\", \"\") for x in s]\n    assert kinds == [\"actions/checkout\", \"pytest --alluredir=allure-results\", \"allure generate allure-results -o allure-report --clean\", \"actions/upload-artifact\"], kinds\n    assert cond(s[2]) == \"always()\" and cond(s[3]) == \"always()\", \"Генерация и выгрузка — с if: always()\"\n    assert (s[3].get(\"with\") or {}) == {\"name\": \"allure-report\", \"path\": \"allure-report/\"}\n",
                   "solution": "WORKFLOW = \"\"\"\nname: allure\non: [push]\njobs:\n  tests:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: pytest --alluredir=allure-results\n      - run: allure generate allure-results -o allure-report --clean\n        if: always()\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: allure-report\n          path: allure-report/\n\"\"\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Генерация и загрузка отчёта — с `if: always()`.\", \"lines\": [[\"- run: pytest --alluredir=allure-results\", \"Результаты.\"], [\"- run: allure generate allure-results -o allure-report --clean\", \"Отчёт.\"], [\"name: allure-report\", \"Артефакт.\"]], \"mistake\": \"Без always() — отчёт появится только у зелёных прогонов, когда он не нужен.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПайплайн упал ночью, а узнали об этом через два дня — значит, CI не работает как система раннего оповещения. Отчёт должен быть **доступен** (ссылка, история), а о падениях должны **узнавать** — но без спама, который перестают читать.\n\n## Allure в CI\n\n```yaml\n- run: pytest --alluredir=allure-results\n- run: allure generate allure-results -o allure-report --clean\n  if: always()\n- uses: actions/upload-artifact@v4\n  if: always()\n  with: {name: allure-report, path: allure-report/}\n```\n\n- Для **истории** (графики трендов, «этот тест падал вчера») перед генерацией копируют `allure-report/history` прошлого отчёта в `allure-results/`: `cp -r allure-report/history allure-results/`.\n- Публикация: GitHub Pages, GitLab Pages, Allure TestOps / свой сервер отчётов — чтобы у отчёта была постоянная ссылка.\n\n## Уведомления\n\nЧат-боты (Slack, Telegram, Mattermost) принимают сообщение POST-запросом на **вебхук**:\n\n```bash\ncurl -X POST -H \"Content-Type: application/json\" \\\n     -d '{\"text\": \"❌ main: 2 теста упали\"}' $WEBHOOK_URL\n```\n\nАдрес вебхука — секрет: по нему кто угодно может писать в чат.\n\nХорошее уведомление:\n\n- статус и ветка в первой строке — понятно без открытия;\n- что упало (первые несколько тестов, не простыня);\n- ссылка на запуск или отчёт.\n\n```python\nimport json\n\nprint(json.dumps({\"text\": \"Упало\"}))\nprint(json.dumps({\"text\": \"Упало\"}, ensure_ascii=False))\n```\n\nВывод: `{\"text\": \"Упало\"}` и `{\"text\": \"Упало\"}` — оба корректный JSON, но второй читаем в логах.\n\n## Когда уведомлять\n\n- упал — всегда;\n- починили (красный → зелёный) — да, чтобы все знали;\n- зелёный после зелёного — нет, это шум.\n\nВ GitHub Actions шаг уведомления ставят с `if: failure()` (только при падении) или считают смену статуса сами.\n\n## Итог\n\n- Allure: `--alluredir` → `allure generate` (с `if: always()`), история через `history/`, публикация по постоянной ссылке.\n- Уведомления — вебхук (секрет), коротко: статус, что упало, ссылка.\n- Уведомляй о падениях и починках, не о каждом зелёном прогоне.",
@@ -1378,7 +1466,8 @@
                   "tests": "import yaml\n\n\ndef wf(text=None):\n    data = yaml.safe_load(WORKFLOW if text is None else text) or {}\n    if True in data:\n        data[\"on\"] = data.pop(True)\n    return data\n\n\ndef steps(job):\n    return wf()[\"jobs\"][job].get(\"steps\", [])\n\n\n\ndef as_list(v):\n    return [v] if isinstance(v, str) else list(v or [])\n\ndef test_triggers():\n    on = wf().get(\"on\") or {}\n    assert (on.get(\"push\") or {}).get(\"branches\") == [\"main\"] and \"pull_request\" in on, \"push в main и pull_request\"\n\ndef test_lint():\n    runs = [s.get(\"run\") for s in steps(\"lint\")]\n    assert steps(\"lint\")[0].get(\"uses\") == \"actions/checkout@v4\" and \"ruff check .\" in runs, \"lint: checkout и ruff check .\"\n\ndef test_api():\n    job = wf()[\"jobs\"][\"api\"]\n    assert as_list(job.get(\"needs\")) == [\"lint\"], \"api: needs lint\"\n    runs = [s.get(\"run\") for s in job[\"steps\"]]\n    assert \"pytest tests/api --junitxml=reports/api.xml\" in runs, \"api: pytest с отчётом\"\n    up = [s for s in job[\"steps\"] if str(s.get(\"uses\", \"\")).startswith(\"actions/upload-artifact\")]\n    assert up and str(up[0].get(\"if\", \"\")).replace(\"${{\", \"\").replace(\"}}\", \"\").strip() == \"always()\", \"api: выгрузка отчёта с if: always()\"\n    assert (up[0].get(\"with\") or {}).get(\"name\") == \"api-reports\" and (up[0].get(\"with\") or {}).get(\"path\") == \"reports/\"\n\ndef test_ui():\n    job = wf()[\"jobs\"][\"ui\"]\n    assert as_list(job.get(\"needs\")) == [\"api\"], \"ui: needs api\"\n    st = job.get(\"strategy\") or {}\n    assert st.get(\"fail-fast\") is False and (st.get(\"matrix\") or {}).get(\"browser\") == [\"chromium\", \"firefox\"], \"ui: матрица браузеров, fail-fast false\"\n    assert any(str(s.get(\"run\", \"\")).replace(\" \", \"\") == \"pytesttests/ui--browser${{matrix.browser}}\" for s in job[\"steps\"]), \"ui: pytest tests/ui --browser ${{ matrix.browser }}\"\n",
                   "solution": "WORKFLOW = \"\"\"\nname: autotests\non:\n  push:\n    branches: [main]\n  pull_request:\njobs:\n  lint:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: pip install ruff\n      - run: ruff check .\n  api:\n    needs: lint\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: pip install -r requirements.txt\n      - run: pytest tests/api --junitxml=reports/api.xml\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: api-reports\n          path: reports/\n  ui:\n    needs: api\n    runs-on: ubuntu-latest\n    strategy:\n      fail-fast: false\n      matrix:\n        browser: [chromium, firefox]\n    steps:\n      - uses: actions/checkout@v4\n      - run: pip install -r requirements.txt\n      - run: pytest tests/ui --browser ${{ matrix.browser }}\n\"\"\"\n",
                   "hint": "",
-                  "xp": 30
+                  "xp": 30,
+                  "explain": "{\"idea\": \"Полный пайплайн: линтер → API → UI по матрице браузеров; отчёты — с always().\", \"lines\": [[\"needs: lint\", \"API после линтера.\"], [\"- run: pytest tests/api --junitxml=reports/api.xml\", \"Отчёт.\"], [\"fail-fast: false\", \"Все браузеры до конца.\"], [\"- run: pytest tests/ui --browser ${{ matrix.browser }}\", \"Браузер из матрицы.\"]], \"mistake\": \"UI без needs — тратит раннеры, даже когда линтер красный.\"}"
                 },
                 {
                   "slug": "ci-practice-e2",
@@ -1388,7 +1477,8 @@
                   "tests": "BAD = {\"jobs\": {\n    \"a\": {\"steps\": [{\"run\": \"pytest\"}, {\"uses\": \"actions/upload-artifact@v4\", \"with\": {\"path\": \"r\"}}]},\n    \"b\": {\"timeout-minutes\": 20, \"steps\": [{\"uses\": \"actions/checkout\"}]},\n}}\nGOOD = {\"jobs\": {\"t\": {\"timeout-minutes\": 30, \"steps\": [\n    {\"uses\": \"actions/checkout@v4\"}, {\"run\": \"pytest\"},\n    {\"uses\": \"actions/upload-artifact@v4\", \"if\": \"${{ always() }}\"}]}}}\n\ndef test_bad():\n    assert lint_workflow(BAD) == [\"artifact-not-always\", \"no-checkout\", \"no-timeout\", \"unpinned-action\"], lint_workflow(BAD)\n\ndef test_good():\n    assert lint_workflow(GOOD) == []\n",
                   "solution": "def lint_workflow(wf):\n    problems = set()\n    for job in wf.get(\"jobs\", {}).values():\n        steps = job.get(\"steps\", [])\n        uses = [s.get(\"uses\", \"\") for s in steps if s.get(\"uses\")]\n        if not any(u.startswith(\"actions/checkout\") for u in uses):\n            problems.add(\"no-checkout\")\n        if any(\"@\" not in u for u in uses):\n            problems.add(\"unpinned-action\")\n        for s in steps:\n            if s.get(\"uses\", \"\").startswith(\"actions/upload-artifact\") and \"always()\" not in str(s.get(\"if\", \"\")):\n                problems.add(\"artifact-not-always\")\n        if \"timeout-minutes\" not in job:\n            problems.add(\"no-timeout\")\n    return sorted(problems)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Проходим job-ы и копим коды проблем во множество.\", \"lines\": [[\"if not any(u.startswith(\\\"actions/checkout\\\") for u in uses):\", \"Нет checkout.\"], [\"if any(\\\"@\\\" not in u for u in uses):\", \"Действие без версии.\"], [\"if s.get(\\\"uses\\\", \\\"\\\").startswith(\\\"actions/upload-artifact\\\") and \\\"always()\\\" not in str(s.get(\\\"if\\\", \\\"\\\")):\", \"Артефакт без always().\"], [\"if \\\"timeout-minutes\\\" not in job:\", \"Нет таймаута.\"]], \"mistake\": \"Список вместо множества — повторы кодов из разных job-ов.\"}"
                 },
                 {
                   "slug": "ci-practice-e3",
@@ -1397,7 +1487,8 @@
                   "code": "jobs = {\"lint\": \"success\", \"api\": \"failure\", \"ui\": \"skipped\", \"report\": \"success\"}\nicons = {\"success\": \"✅\", \"failure\": \"❌\", \"skipped\": \"⏭️\"}\nprint(\" \".join(f\"{icons[s]} {name}\" for name, s in jobs.items()))\noverall = \"failure\" if \"failure\" in jobs.values() else \"success\"\nprint(\"итог:\", overall)\n",
                   "expected_output": "✅ lint ❌ api ⏭️ ui ✅ report\nитог: failure",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Одно падение — весь пайплайн красный; пропущенные job-ы итог не меняют.\", \"lines\": [[\"print(\\\" \\\".join(f\\\"{icons[s]} {name}\\\" for name, s in jobs.items()))\", \"Строка статусов.\"], [\"overall = \\\"failure\\\" if \\\"failure\\\" in jobs.values() else \\\"success\\\"\", \"Итог.\"]], \"mistake\": \"Считать skipped провалом.\"}"
                 },
                 {
                   "slug": "ci-practice-e4",
@@ -1407,7 +1498,8 @@
                   "tests": "R = '''<testsuites><testsuite name=\"pytest\">\n  <testcase classname=\"tests.test_api\" name=\"test_get\" time=\"0.1\"/>\n  <testcase classname=\"tests.test_api\" name=\"test_post\" time=\"0.2\"><failure message=\"422\"/></testcase>\n  <testcase classname=\"tests.test_ui\" name=\"test_login\" time=\"3\"><error message=\"Timeout\"/></testcase>\n  <testcase classname=\"tests.test_ui\" name=\"test_old\" time=\"0\"><skipped/></testcase>\n</testsuite></testsuites>'''\n\ndef test_parse():\n    assert parse_junit(R) == {\"passed\": 1, \"failed\": 2, \"skipped\": 1,\n                              \"failed_names\": [\"tests.test_api::test_post\", \"tests.test_ui::test_login\"]}, parse_junit(R)\n",
                   "solution": "import xml.etree.ElementTree as ET\n\n\ndef parse_junit(xml_text):\n    summary = {\"passed\": 0, \"failed\": 0, \"skipped\": 0, \"failed_names\": []}\n    for case in ET.fromstring(xml_text).iter(\"testcase\"):\n        if case.find(\"failure\") is not None or case.find(\"error\") is not None:\n            summary[\"failed\"] += 1\n            summary[\"failed_names\"].append(f\"{case.get('classname')}::{case.get('name')}\")\n        elif case.find(\"skipped\") is not None:\n            summary[\"skipped\"] += 1\n        else:\n            summary[\"passed\"] += 1\n    return summary\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Каждый testcase попадает ровно в одну категорию: упал, пропущен или прошёл.\", \"lines\": [[\"if case.find(\\\"failure\\\") is not None or case.find(\\\"error\\\") is not None:\", \"Упал.\"], [\"summary[\\\"failed_names\\\"].append(f\\\"{case.get('classname')}::{case.get('name')}\\\")\", \"Полное имя.\"], [\"elif case.find(\\\"skipped\\\") is not None:\", \"Пропущен.\"], [\"summary[\\\"passed\\\"] += 1\", \"Иначе — прошёл.\"]], \"mistake\": \"Считать прошедшими только кейсы с атрибутом — у прошедших нет вложенных тегов.\"}"
                 },
                 {
                   "slug": "ci-practice-e5",
@@ -1417,7 +1509,8 @@
                   "expected_output": "pytest tests/ui/test_cart.py::test_remove_item -v\npytest -v tests/ui/test_cart.py::test_remove_item\npython -m pytest tests/ui/test_cart.py::test_remove_item -v\npytest tests/ui/test_cart.py::test_remove_item -vv",
                   "solution": "pytest tests/ui/test_cart.py::test_remove_item -v",
                   "hint": "`pytest путь::тест -v`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Упавший тест воспроизводят точечно — по id узла, с подробным выводом.\", \"lines\": [[\"pytest tests/ui/test_cart.py::test_remove_item\", \"Один тест.\"], [\"-v\", \"Подробно.\"]], \"mistake\": \"Запускать весь набор ради одного теста.\"}"
                 },
                 {
                   "slug": "ci-practice-e6",
@@ -1427,7 +1520,8 @@
                   "expected_output": "timeout-minutes\ntimeout-minutes:",
                   "solution": "timeout-minutes",
                   "hint": "`timeout-…`.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`timeout-minutes` — предел времени job-а или шага.\", \"lines\": [[\"timeout-minutes\", \"По умолчанию 360 минут — слишком много.\"]], \"mistake\": \"Не задавать — зависший тест съест 6 часов раннера.\"}"
                 },
                 {
                   "slug": "ci-practice-e7",
@@ -1437,7 +1531,8 @@
                   "tests": "def test_report():\n    got = retry_report({\"t_login\": [\"passed\"], \"t_pay\": [\"failed\", \"passed\"], \"t_cart\": [\"failed\", \"failed\", \"failed\"], \"t_a\": [\"failed\", \"failed\", \"passed\"]})\n    assert got == {\"passed\": [\"t_login\"], \"flaky\": [\"t_a\", \"t_pay\"], \"failed\": [\"t_cart\"]}, got\n",
                   "solution": "def retry_report(attempts):\n    report = {\"passed\": [], \"flaky\": [], \"failed\": []}\n    for name, results in attempts.items():\n        if results[0] == \"passed\":\n            report[\"passed\"].append(name)\n        elif \"passed\" in results:\n            report[\"flaky\"].append(name)\n        else:\n            report[\"failed\"].append(name)\n    return {k: sorted(v) for k, v in report.items()}\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Прошёл с первой попытки — passed; позже — flaky; ни разу — failed.\", \"lines\": [[\"if results[0] == \\\"passed\\\":\", \"Сразу.\"], [\"elif \\\"passed\\\" in results:\", \"Со второй и далее — флаки.\"], [\"return {k: sorted(v) for k, v in report.items()}\", \"Списки по алфавиту.\"]], \"mistake\": \"Считать флаки обычным прохождением — пайплайн зелёный, а проблема остаётся.\"}"
                 },
                 {
                   "slug": "ci-practice-e8",
@@ -1447,7 +1542,8 @@
                   "expected_output": "status\nstatus checks",
                   "solution": "status",
                   "hint": "«Require status checks to pass before merging».",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Branch protection: «Require status checks to pass» — без зелёного CI слить нельзя.\", \"lines\": [[\"status\", \"Status checks.\"]], \"mistake\": \"Полагаться на договорённость «не мержим красное».\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nСоберём всё в пайплайн, который не стыдно показать на собеседовании и поддерживать в команде.\n\n## Пайплайн автотестов\n\n```yaml\nname: autotests\non:\n  push:\n    branches: [main]\n  pull_request:\n  schedule:\n    - cron: \"0 3 * * *\"\n\njobs:\n  lint:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n    steps:\n      - uses: actions/checkout@v4\n      - run: pip install ruff\n      - run: ruff check .\n\n  api:\n    needs: lint\n    runs-on: ubuntu-latest\n    timeout-minutes: 15\n    env:\n      BASE_URL: ${{ vars.STAGE_URL }}\n      API_TOKEN: ${{ secrets.API_TOKEN }}\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n        with: {python-version: \"3.12\", cache: pip}\n      - run: pip install -r requirements.txt\n      - run: pytest tests/api --junitxml=reports/api.xml\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with: {name: api-reports, path: reports/}\n\n  ui:\n    needs: api\n    runs-on: ubuntu-latest\n    timeout-minutes: 30\n    strategy:\n      fail-fast: false\n      matrix:\n        browser: [chromium, firefox]\n    steps:\n      - uses: actions/checkout@v4\n      - run: pip install -r requirements.txt && playwright install --with-deps ${{ matrix.browser }}\n      - run: pytest tests/ui --browser ${{ matrix.browser }} --tracing retain-on-failure\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with: {name: \"ui-${{ matrix.browser }}\", path: test-results/}\n```\n\n## Чек-лист хорошего пайплайна\n\n- быстрые проверки первыми, `needs` — только где нужен порядок;\n- версии actions и образов зафиксированы (`@v4`, `postgres:16`);\n- `timeout-minutes` у каждого job-а;\n- секреты — только через `secrets`, в логи не печатаются;\n- отчёты, трейсы, скриншоты — артефактами с `if: always()`;\n- матрицы с `fail-fast: false` для тестов;\n- ночной полный регресс по `schedule`, быстрый смоук — на каждый PR;\n- защита ветки: без зелёного пайплайна нет слияния.\n\n## Когда пайплайн красный\n\n1. Открыть сводку и упавший job: `gh run view <id> --log-failed`.\n2. Скачать артефакты: отчёт, скриншоты, трейс.\n3. Воспроизвести локально **только упавший** тест: `pytest tests/ui/test_cart.py::test_remove_item -v`.\n4. Флаки? Посмотреть историю теста в Allure; перезапуск — только чтобы подтвердить гипотезу, не вместо починки.\n5. Баг продукта — баг-репорт со ссылкой на запуск; баг теста — чинить тест.\n\n## Итог\n\n- lint → api → ui (матрица), отчёты с `if: always()`, таймауты, секреты.\n- Разбор падения: логи упавших шагов → артефакты → локальный запуск одного теста.\n- Пайплайн — продукт команды: его тоже тестируют и поддерживают.",
