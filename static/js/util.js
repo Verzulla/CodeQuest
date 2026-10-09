@@ -99,6 +99,8 @@ function inline(s) {
 const PY_LANGS = new Set(["", "python", "py"]);
 
 function codeBlock(lang, code, runnable) {
+  // интерактивная схема (viz.js: bindViz) — JSON внутри блока ```viz
+  if (lang === "viz") return `<div class="viz" data-viz="${esc(code)}"></div>`;
   const body = PY_LANGS.has(lang) ? highlight(code) : esc(code);
   const pre = `<pre${lang && !PY_LANGS.has(lang) ? ` data-lang="${esc(lang)}"` : ""}><code>${body}</code></pre>`;
   if (!(runnable && lang === "python")) return pre;

@@ -18,6 +18,10 @@ T = {
 - `HEAD` — указатель на ветку, на которой ты сейчас.
 - Новая ветка начинается с текущего коммита; дальше её коммиты не влияют на другие ветки.
 
+```viz
+{"type": "git", "title": "Ветки — подвижные указатели. Нажимай «Шаг»", "intro": "Кружки — коммиты, ярлыки — ветки. Зелёный ярлык `HEAD → …` — ветка, на которой ты сейчас.", "steps": [{"cmd": "git commit -m 'login page'", "note": "Новый коммит `C2`. Ветка `main` передвинулась на него."}, {"cmd": "git switch -c feature", "note": "Новая ветка `feature` указывает на тот же коммит, и HEAD теперь на ней. Коммитов не прибавилось."}, {"cmd": "git commit -m 'login tests'", "note": "Коммит идёт в `feature`. Ярлык `main` остался на месте."}, {"cmd": "git commit -m 'more tests'"}, {"cmd": "git switch main", "note": "Вернулись на `main`: файлы стали такими, как в `C2`."}, {"cmd": "git commit -m 'hotfix'", "note": "Ветки разошлись: у каждой свои коммиты после `C2`."}], "sandbox": true}
+```
+
 ## Команды
 
 ```bash
@@ -95,6 +99,10 @@ Fast-forward
 - `git merge ветка` — влить указанную ветку в **текущую**.
 - **Fast-forward** — в `main` новых коммитов не было, git просто передвинул указатель.
 - Если изменения были в обеих ветках, git создаст **коммит слияния** (merge commit).
+
+```viz
+{"type": "git", "title": "Fast-forward и коммит слияния", "steps": [{"cmd": "git switch -c feature", "note": "Отвели ветку."}, {"cmd": "git commit -m 'cart tests'"}, {"cmd": "git switch main"}, {"cmd": "git merge feature", "note": "В `main` новых коммитов не было — **fast-forward**: указатель `main` просто передвинулся."}, {"cmd": "git switch -c bugfix"}, {"cmd": "git commit -m 'fix timeout'"}, {"cmd": "git switch main"}, {"cmd": "git commit -m 'new page'", "note": "Теперь изменения есть в обеих ветках."}, {"cmd": "git merge bugfix", "note": "Git создал **коммит слияния** с двумя родителями (фиолетовый)."}], "sandbox": true}
+```
 
 ## Конфликт
 

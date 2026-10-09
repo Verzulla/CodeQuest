@@ -44,6 +44,10 @@ $ git reset --hard HEAD~1
 - `--soft` — коммит отменён, изменения остались в индексе.
 - `--hard` — коммит и изменения **выброшены**. Опасно.
 
+```viz
+{"type": "git", "title": "reset --hard: ветка уходит назад", "steps": [{"cmd": "git commit -m 'good'"}, {"cmd": "git commit -m 'oops'", "note": "Этот коммит хотим отменить (он ещё не отправлен)."}, {"cmd": "git reset --hard HEAD~1", "note": "Ветка вернулась на коммит назад. `C3` больше не в ветке (полупрозрачный) — его можно найти только через `git reflog`."}], "sandbox": true}
+```
+
 ## revert: отменить отправленный коммит
 
 ```bash
@@ -201,6 +205,10 @@ Successfully rebased and updated refs/heads/test/cart.
 - Git берёт коммиты твоей ветки, которых нет в `main`, и заново применяет их поверх последнего коммита `main`.
 - У перенесённых коммитов **новые хеши** — это переписывание истории.
 - `git log --oneline main..test/cart` — какие коммиты будут перенесены.
+
+```viz
+{"type": "git", "title": "rebase: переставить свои коммиты поверх main", "steps": [{"cmd": "git switch -c test/cart"}, {"cmd": "git commit -m 'cart tests'"}, {"cmd": "git commit -m 'edge cases'"}, {"cmd": "git switch main"}, {"cmd": "git commit -m 'new api'", "note": "Пока мы писали тесты, в `main` появился новый коммит."}, {"cmd": "git switch test/cart"}, {"cmd": "git rebase main", "note": "Коммиты ветки переписаны поверх свежего `main` — у них **новые** хеши (`C2′`, `C3′`). Старые больше не в ветке. История прямая, без коммита слияния."}], "sandbox": true}
+```
 
 ## Конфликты при rebase
 

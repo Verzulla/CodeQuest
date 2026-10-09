@@ -10,11 +10,28 @@
 """
 import importlib
 import json
+import re
 import sys
 from pathlib import Path
 
 SRC = Path(__file__).parent
 OUT = SRC.parent
+
+
+VIZ_TYPES = {"memory", "git"}
+
+
+def check_viz(where: str, text: str) -> None:
+    """Интерактивные схемы (```viz в теории) — валидный JSON известного типа (static/js/viz.js)."""
+    for block in re.findall(r"^```viz\n(.*?)^```", text or "", flags=re.S | re.M):
+        try:
+            spec = json.loads(block)
+        except ValueError as e:
+            raise SystemExit(f"{where}: схема viz — не JSON: {e}")
+        if spec.get("type") not in VIZ_TYPES:
+            raise SystemExit(f"{where}: схема viz неизвестного типа {spec.get('type')!r}")
+        if not spec.get("steps"):
+            raise SystemExit(f"{where}: в схеме viz нет шагов")
 
 
 def attach_theory(name: str, topic: dict) -> None:
@@ -40,6 +57,7 @@ def attach_theory(name: str, topic: dict) -> None:
             lesson["theory"] = item["short"]
         lesson["theory_full"] = item["full"]
         lesson["quiz"] = item.get("quiz", [])
+        check_viz(f"theory_{name}.py: {slug}", item["full"] + "\n" + item.get("short", ""))
 
 
 def attach_explain(name: str, topic: dict) -> None:

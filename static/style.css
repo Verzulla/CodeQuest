@@ -1363,3 +1363,81 @@ body[data-page="settings"] { background: var(--bg); }
 .editor .gutter { overflow: hidden; box-sizing: border-box; }
 /* Ручку высоты пальцем легче поймать, если она повыше */
 @media (pointer: coarse) { .ed-grip { height: 30px; } }
+
+/* ===== Интерактивные схемы в теории (viz.js) ===== */
+.viz { margin: 18px 0; border: 1px solid var(--line-strong); border-radius: 18px; background: var(--code-bg); padding: 14px; text-align: left; }
+.viz-title { font-weight: 800; font-size: 14px; margin-bottom: 10px; color: var(--text); }
+.viz-err { color: var(--bad-text); font-size: 13px; }
+.viz-note { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: var(--bg-soft); color: var(--text-2); font-size: 14px; line-height: 1.5; }
+.viz-note code { font-family: var(--mono); font-size: 12.5px; background: var(--bg-hover); padding: 1px 5px; border-radius: 6px; }
+.viz-ctrl { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.viz-count { flex: 1; text-align: center; color: var(--muted); font: 12px var(--mono); }
+.viz-btn { border: 1px solid var(--line-strong); background: var(--bg-soft); color: var(--text); border-radius: 12px; padding: 8px 12px; font: 600 13px var(--font); cursor: pointer; min-height: 38px; }
+.viz-btn:disabled { opacity: .4; cursor: default; }
+.viz-btn.main { background: var(--acc); color: var(--acc-ink); border-color: transparent; }
+.viz-btn.main:disabled { background: var(--bg-soft); color: var(--muted); border-color: var(--line-strong); }
+
+/* память: код, имена, объекты, стрелки */
+.viz-mem { display: grid; gap: 12px; }
+.viz-code { margin: 0; padding: 8px 0; border-radius: 12px; background: var(--code-bg); font: 13px/1.6 var(--mono); overflow-x: auto; }
+.viz-code .ln { display: block; padding: 0 12px; border-left: 3px solid transparent; color: var(--code-text); opacity: .55; white-space: pre; }
+.viz-code .ln.done { opacity: .85; }
+.viz-code .ln.cur { opacity: 1; border-left-color: var(--acc); background: color-mix(in srgb, var(--acc) 14%, transparent); }
+.viz-mem-graph { position: relative; display: flex; gap: 46px; align-items: flex-start; overflow-x: auto; padding: 6px 4px 10px; min-height: 70px; }
+.viz-col { display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1; }
+.viz-col.names { min-width: 44px; }
+.viz-empty { color: var(--muted); font-size: 12px; padding-top: 6px; }
+.viz-var { align-self: flex-start; padding: 6px 12px; border-radius: 10px; background: var(--card); border: 1px solid var(--line-strong); font: 700 14px var(--mono); color: var(--text); }
+.viz-var.fresh { border-color: var(--acc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 22%, transparent); }
+.viz-obj { border: 1px solid var(--line-strong); border-radius: 12px; background: var(--card); padding: 6px 8px 8px; transition: box-shadow .3s, border-color .3s, opacity .3s; }
+.viz-obj.changed { border-color: var(--gold); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 22%, transparent); }
+.viz-obj.garbage { opacity: .45; border-style: dashed; }
+.viz-obj-type { font: 600 10.5px var(--mono); color: var(--muted); margin-bottom: 4px; text-transform: lowercase; }
+.viz-cells { display: flex; gap: 4px; }
+.viz-cell { display: flex; flex-direction: column; align-items: center; min-width: 30px; padding: 2px 6px 4px; border-radius: 8px; background: var(--bg-soft); }
+.viz-cell i { font: 9.5px var(--mono); color: var(--muted); font-style: normal; }
+.viz-cell b { font: 600 14px var(--mono); color: var(--code-text); }
+.viz-cell.empty b { font: 12px var(--font); color: var(--muted); }
+.viz-ref { color: var(--blue) !important; }
+.viz-scalar { font: 700 15px var(--mono); color: var(--code-text); padding: 2px 6px; }
+.viz-arrows { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 2; overflow: visible; }
+.viz-arrow { fill: none; stroke: var(--muted); stroke-width: 2; }
+.viz-arrow.fresh { stroke: var(--acc); }
+.viz-arrow.inner { stroke: var(--blue); stroke-dasharray: 4 3; }
+.viz-arrow-head { fill: var(--muted); }
+.viz-out { display: flex; gap: 10px; align-items: baseline; padding: 8px 12px; border-radius: 12px; background: var(--bg-soft); }
+.viz-out span { font: 600 11px var(--font); color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.viz-out pre { margin: 0; font: 13px/1.5 var(--mono); color: var(--acc2); white-space: pre-wrap; }
+
+/* git: граф коммитов и песочница */
+.viz-cmd { font: 13px var(--mono); color: var(--code-text); padding: 8px 12px; border-radius: 10px; background: var(--code-bg); margin-bottom: 8px; overflow-x: auto; white-space: nowrap; }
+.viz-cmd span { color: var(--acc); margin-right: 4px; }
+.viz-cmd.muted { color: var(--muted); }
+.viz-git-wrap { overflow-x: auto; padding: 4px 0; }
+.viz-git { display: block; }
+.g-edge { fill: none; stroke: var(--line-strong); stroke-width: 3; }
+.g-edge.dead { stroke-dasharray: 4 4; opacity: .5; }
+.g-node circle { fill: var(--card); stroke: var(--acc); stroke-width: 2.5; }
+.g-node text { font: 700 10px var(--mono); fill: var(--text); text-anchor: middle; }
+.g-node.merge circle { stroke: var(--purple); }
+.g-node.fresh circle { fill: color-mix(in srgb, var(--acc) 30%, var(--card)); }
+.g-node.dead { opacity: .35; }
+.g-tag rect { fill: var(--bg-hover); stroke: var(--line-strong); }
+.g-tag text { font: 600 10.5px var(--mono); fill: var(--text-2); text-anchor: middle; }
+.g-tag.head rect { fill: var(--acc); stroke: none; }
+.g-tag.head text { fill: var(--acc-ink); }
+.g-tag.moved rect { stroke: var(--gold); stroke-width: 2; }
+.viz-sandbox { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line-strong); }
+.viz-sb-head { font: 600 13px var(--font); color: var(--muted); margin-bottom: 8px; }
+.viz-sb-form { display: flex; gap: 8px; }
+.viz-sb-input { flex: 1; min-width: 0; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--code-bg); color: var(--code-text); padding: 9px 12px; font: 14px var(--mono); outline: none; }
+.viz-sb-input:focus { border-color: color-mix(in srgb, var(--acc) 55%, transparent); }
+.viz-sb-quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.viz-chip { border: 1px solid var(--line-strong); background: var(--bg-soft); color: var(--text-2); border-radius: 999px; padding: 5px 10px; font: 12px var(--mono); cursor: pointer; }
+.viz-chip:hover { border-color: var(--acc); color: var(--text); }
+.viz-sb-msg { margin-top: 6px; font-size: 13px; min-height: 1px; }
+.viz-sb-msg.err { color: var(--bad-text); }
+@media (pointer: coarse) { .viz-sb-input { font-size: 16px; } }
+.viz-cells.dict { flex-direction: column; } .viz-cells.dict .viz-cell { flex-direction: row; gap: 8px; justify-content: space-between; } .viz-cells.dict .viz-cell i { font-size: 11px; }
+.viz-git-wrap, .viz-mem-graph { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+@media (max-width: 600px) { .viz { padding: 12px 10px; } .viz-mem-graph { gap: 28px; } .viz-cell { min-width: 26px; padding: 2px 4px 3px; } .viz-cell b { font-size: 13px; } .viz-var { padding: 5px 9px; font-size: 13px; } }

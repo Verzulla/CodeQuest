@@ -4,6 +4,7 @@ import { createEditor } from "../editor.js";
 import { achMini } from "../achievements.js";
 import { keybarHtml, bindKeybar } from "../keybar.js";
 import { bindRunnable } from "../runnable.js";
+import { bindViz } from "../viz.js";
 import { store, setState, announce } from "../store.js";
 
 export async function renderLesson(view, id) {
@@ -199,6 +200,7 @@ export function runSession(view, opts) {
           <div class="btns"><button class="btn" data-a="ok">Понятно</button></div>`);
         m.root.style.maxWidth = "720px";
         bindRunnable(m.root);
+        bindViz(m.root);
         m.root.querySelector('[data-a="ok"]').onclick = m.close;
         return;
       }
@@ -209,6 +211,7 @@ export function runSession(view, opts) {
         <button class="btn" data-a="ok">Понятно</button></div>`);
       m.root.style.maxWidth = "720px";
       bindRunnable(m.root);
+      bindViz(m.root);
       m.root.querySelector('[data-a="ok"]').onclick = m.close;
       m.root.querySelector('[data-a="full"]')?.addEventListener("click", () => {
         m.close();
@@ -276,6 +279,7 @@ export function runSession(view, opts) {
     bindTop();
     bindMode();
     bindRunnable(view);
+    bindViz(view);
     const heads = [...view.querySelectorAll(".theory.full > h3")];
     view.querySelectorAll("[data-sec]").forEach((b) => b.onclick = () => {
       const el = b.dataset.sec === "cheat" ? view.querySelector("details.cheat") : heads[Number(b.dataset.sec)];
@@ -303,6 +307,7 @@ export function runSession(view, opts) {
     bindTop();
     bindMode();
     bindRunnable(view);
+    bindViz(view);
     const to = (j) => { theoryStep = j; window.scrollTo(0, 0); showTheoryStep(); };
     $("#step-back", view)?.addEventListener("click", () => to(k - 1));
     view.querySelectorAll("[data-step]").forEach((b) => b.onclick = () => to(Number(b.dataset.step)));
@@ -321,6 +326,7 @@ export function runSession(view, opts) {
         <button class="btn" id="go">${back !== null ? `Вернуться к заданию ${back + 1} →` : anySolved || s.solvedNow ? "Дальше →" : "Поехали!"}</button></div></div>`;
     bindTop();
     bindRunnable(view);
+    bindViz(view);
     $("#go", view).onclick = () => { returnTo = null; goTo(back !== null ? back : 0); };
   }
 

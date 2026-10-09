@@ -1,6 +1,7 @@
 // «Обучение»: каталог тем (сгруппированный) → страница темы с дорожкой уроков (зигзаг или список).
 import { api, esc, md, sound, plural, toast, ic, owl } from "../util.js";
 import { bindRunnable } from "../runnable.js";
+import { bindViz } from "../viz.js";
 import { store, pills, statusStrip } from "../store.js";
 import { glyph } from "../glyphs.js";
 import { drawScenery } from "../scenery.js";
@@ -149,6 +150,7 @@ export async function renderTopicTheory(view, topicId) {
         ${body}
       </div>`;
     bindRunnable(view);
+    bindViz(view);
     view.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => {
       mode = b.dataset.mode;
       try { localStorage.setItem(THEORY_KEY, mode); } catch { /* ок */ }
