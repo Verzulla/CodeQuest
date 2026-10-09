@@ -27,7 +27,8 @@
                   "expected_output": "pwd",
                   "solution": "pwd",
                   "hint": "print working directory",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`pwd` — print working directory: полный путь текущей папки.\", \"lines\": [[\"pwd\", \"Печатает, где ты сейчас.\"]], \"mistake\": \"`ls` — покажет содержимое, а не путь.\"}"
                 },
                 {
                   "slug": "lnx-terminal-e2",
@@ -37,7 +38,8 @@
                   "expected_output": "cd projects\ncd ./projects\ncd projects/\ncd ./projects/",
                   "solution": "cd projects",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`cd` без `/` в начале — путь относительно текущей папки.\", \"lines\": [[\"cd\", \"Change directory.\"], [\"projects\", \"Папка внутри текущей.\"]], \"mistake\": \"`cd /projects` — искать от корня диска.\"}"
                 },
                 {
                   "slug": "lnx-terminal-e3",
@@ -47,7 +49,8 @@
                   "expected_output": "cd ..\ncd ../",
                   "solution": "cd ..",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`..` — родительская папка.\", \"lines\": [[\"cd ..\", \"На уровень выше.\"]], \"mistake\": \"`cd .` — `.` это текущая папка, ничего не изменится.\"}"
                 },
                 {
                   "slug": "lnx-terminal-e4",
@@ -57,7 +60,8 @@
                   "expected_output": "cd ~\ncd\ncd ~/\ncd $HOME",
                   "solution": "cd ~",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`~` — домашняя папка. `cd` без аргументов тоже ведёт домой.\", \"lines\": [[\"cd ~\", \"Домой из любого места.\"]], \"mistake\": \"`cd /home` — это папка со всеми домашними папками, а не твоя.\"}"
                 },
                 {
                   "slug": "lnx-terminal-e5",
@@ -67,17 +71,19 @@
                   "expected_output": "/home/anna/projects/api",
                   "solution": "/home/anna/projects/api",
                   "hint": "cd api — относительный путь от текущей папки.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Относительный путь добавляется к текущему.\", \"lines\": [[\"cd api\", \"Из `/home/anna/projects` — в `api` внутри неё.\"]], \"mistake\": \"Ответить `api` — `pwd` печатает полный путь.\"}"
                 },
                 {
                   "slug": "lnx-terminal-e6",
                   "type": "command",
                   "prompt": "Что выведет последняя команда?",
                   "code": "$ pwd\n/home/anna/projects/api/tests\n$ cd ../..\n$ pwd\n",
-                  "expected_output": "/home/anna",
-                  "solution": "/home/anna",
+                  "expected_output": "/home/anna/projects",
+                  "solution": "/home/anna/projects",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Каждое `..` поднимает на одну папку.\", \"lines\": [[\"cd ../..\", \"Из `tests`: первый `..` — в `api`, второй — в `projects`.\"]], \"mistake\": \"Подняться на уровень больше — до `/home/anna`.\"}"
                 },
                 {
                   "slug": "lnx-terminal-e7",
@@ -87,7 +93,8 @@
                   "expected_output": "cd /var/log\ncd /var/log/",
                   "solution": "cd /var/log",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Абсолютный путь начинается с `/` и не зависит от текущей папки.\", \"lines\": [[\"cd /var/log\", \"От корня диска.\"]], \"mistake\": \"`cd var/log` — будет искать внутри текущей папки.\"}"
                 },
                 {
                   "slug": "lnx-terminal-e8",
@@ -97,7 +104,8 @@
                   "expected_output": "cd -",
                   "solution": "cd -",
                   "hint": "У cd есть специальный аргумент «минус».",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`cd -` возвращает в предыдущую папку (переключает туда-обратно).\", \"lines\": [[\"cd -\", \"Назад в `/home/anna/projects/api`.\"]], \"mistake\": \"`cd ..` — поднимет из `/tmp` в `/`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nТестировщику терминал нужен каждый день: запустить тесты, посмотреть логи на сервере, установить зависимости, поднять Docker, разобраться, почему упал CI. Серверы почти всегда работают на Linux и управляются только через терминал — без окон и мышки. macOS устроена так же, поэтому все команды темы работают и там.\n\n## Термины\n\n- **Терминал** — окно, в которое вводят текстовые команды.\n- **Shell** (оболочка) — программа, которая читает команды и выполняет их. Чаще всего это `bash` или `zsh`.\n- **Приглашение** (prompt) — текст перед курсором, например `anna@server:~/projects$`. Дальше в уроках приглашение сокращаем до `$`. Вводить его не нужно.\n- **Команда** состоит из имени программы, **флагов** (опций, начинаются с `-`) и **аргументов**: `ls -l tests` — программа `ls`, флаг `-l`, аргумент `tests`.\n\n## Где я: pwd\n\n```bash\n$ pwd\n/home/anna/projects\n```\n\n- `pwd` (print working directory) — показать **текущую папку**, в которой ты сейчас «стоишь». Все относительные пути отсчитываются от неё.\n- `/home/anna` — домашняя папка пользователя `anna`. На macOS это `/Users/anna`.\n\n## Пути: абсолютные и относительные\n\n- **Абсолютный путь** начинается с `/` — от корня диска: `/var/log/app.log`. Работает откуда угодно.\n- **Относительный путь** — от текущей папки: `tests/test_api.py`.\n- `.` — текущая папка, `..` — родительская (на уровень выше).\n- `~` — домашняя папка: `~/projects` = `/home/anna/projects`.\n\n## Переход: cd\n\n```bash\n$ pwd\n/home/anna/projects\n$ cd api\n$ pwd\n/home/anna/projects/api\n$ cd ../..\n$ pwd\n/home/anna\n$ cd /var/log\n$ cd -\n/home/anna\n```\n\nЧто делает каждая команда:\n\n- `cd api` — перейти в папку `api` внутри текущей (относительный путь).\n- `cd ../..` — подняться на два уровня вверх.\n- `cd /var/log` — перейти по абсолютному пути.\n- `cd -` — вернуться в **предыдущую** папку (удобно прыгать между двумя местами).\n- `cd` или `cd ~` без аргументов — в домашнюю папку.\n\n## Полезные приёмы\n\n- **Tab** — автодополнение: набери `cd pro` и нажми Tab, shell допишет `projects/`. Экономит время и защищает от опечаток.\n- **Стрелка вверх** — предыдущая команда из истории. `history` — вся история.\n- **Ctrl+R** — поиск по истории команд.\n- **Ctrl+L** или `clear` — очистить экран.\n- Пробелы в именах мешают: `cd \"My Tests\"` — имя в кавычках.\n\n## Итог\n\n- `pwd` — где я; `cd путь` — перейти.\n- Абсолютный путь от `/`, относительный — от текущей папки.\n- `.` — здесь, `..` — выше, `~` — домой, `cd -` — назад.\n- Tab дополняет имена, стрелка вверх повторяет команды.",
@@ -150,7 +158,8 @@
                   "expected_output": "ls\nls .\nls ./",
                   "solution": "ls",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`ls` — список файлов и папок.\", \"lines\": [[\"ls\", \"Без аргумента — текущая папка.\"]], \"mistake\": \"`dir` — команда Windows.\"}"
                 },
                 {
                   "slug": "lnx-ls-e2",
@@ -160,7 +169,8 @@
                   "expected_output": "ls -l\nll\nls -l .",
                   "solution": "ls -l",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Флаг `-l` (long) — подробная таблица.\", \"lines\": [[\"ls -l\", \"Права, владелец, размер, дата, имя.\"]], \"mistake\": \"`ls -L` — другой флаг (переходит по ссылкам).\"}"
                 },
                 {
                   "slug": "lnx-ls-e3",
@@ -170,7 +180,8 @@
                   "expected_output": "ls -la\nls -al\nls -l -a\nls -a -l\nll -a",
                   "solution": "ls -la",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Флаги можно склеивать: `-l` подробно, `-a` все, включая скрытые.\", \"lines\": [[\"ls -la\", \"`-l` + `-a`.\"]], \"mistake\": \"Забыть `-a` — файлы вроде `.env` не видны.\"}"
                 },
                 {
                   "slug": "lnx-ls-e4",
@@ -180,7 +191,8 @@
                   "expected_output": "ls -lh\nls -hl\nls -l -h\nls -h -l\nls -lah\nls -alh\nls -lha\nls -hla",
                   "solution": "ls -lh",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-h` (human-readable) переводит байты в К/М/Г; работает вместе с `-l`.\", \"lines\": [[\"ls -lh\", \"Подробно и понятными размерами.\"]], \"mistake\": \"`ls -h` без `-l` — размеров нет, флагу нечего менять.\"}"
                 },
                 {
                   "slug": "lnx-ls-e5",
@@ -190,7 +202,8 @@
                   "expected_output": "2",
                   "solution": "2",
                   "hint": "Первый символ строки: d — папка, - — обычный файл.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Первый символ строки `ls -l` — тип: `d` — папка, `-` — обычный файл.\", \"lines\": [[\"2\", \"README.md и requirements.txt начинаются с `-`.\"]], \"mistake\": \"Посчитать строку `total` или папки.\"}"
                 },
                 {
                   "slug": "lnx-ls-e6",
@@ -200,7 +213,8 @@
                   "expected_output": "57",
                   "solution": "57",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Размер в `ls -l` — пятый столбец, перед датой.\", \"lines\": [[\"57\", \"Столбцы: права, ссылки, владелец, группа, **размер**.\"]], \"mistake\": \"Взять 1 — это число ссылок.\"}"
                 },
                 {
                   "slug": "lnx-ls-e7",
@@ -210,7 +224,8 @@
                   "expected_output": "ls -lt\nls -tl\nls -l -t\nls -t -l\nls -lat\nls -alt\nls -lta\nls -tla",
                   "solution": "ls -lt",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-t` сортирует по времени изменения, новые — сверху.\", \"lines\": [[\"ls -lt\", \"Подробно + по времени.\"]], \"mistake\": \"`ls -lr` — `-r` переворачивает порядок, а не сортирует по времени.\"}"
                 },
                 {
                   "slug": "lnx-ls-e8",
@@ -220,7 +235,8 @@
                   "tests": "OUT = '''drwxr-xr-x 2 anna anna 4096 Mar  8 10:00 reports\n-rw-r--r-- 1 anna anna  220 Mar  8 10:01 README.md\ndrwxr-xr-x 3 anna anna 4096 Mar  8 10:02 tests'''\n\ndef test_values():\n    assert parse_ls(OUT) == {\"reports\": \"dir\", \"README.md\": \"file\", \"tests\": \"dir\"}, parse_ls(OUT)\n    assert parse_ls(\"\") == {}, \"Пустой вывод\"\n",
                   "solution": "def parse_ls(output):\n    result = {}\n    for line in output.splitlines():\n        line = line.strip()\n        if not line:\n            continue\n        name = line.split()[-1]\n        result[name] = \"dir\" if line.startswith(\"d\") else \"file\"\n    return result\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Каждая строка `ls -l`: первый символ — тип, последнее слово — имя.\", \"lines\": [[\"for line in output.splitlines():\", \"Построчно.\"], [\"if not line:\\n            continue\", \"Пустые пропускаем.\"], [\"name = line.split()[-1]\", \"Последнее слово.\"], [\"result[name] = \\\"dir\\\" if line.startswith(\\\"d\\\") else \\\"file\\\"\", \"Тип по первому символу.\"]], \"mistake\": \"Брать `split()[0]` — это права, а не имя.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПрежде чем что-то запускать или удалять, нужно посмотреть, что лежит в папке: есть ли отчёт, создался ли лог, какого размера файл, можно ли его запустить. Команда `ls` — самая частая в терминале.\n\n## ls: список файлов\n\n```bash\n$ ls\nREADME.md  reports  requirements.txt  tests\n```\n\n- `ls` (list) без аргументов показывает содержимое текущей папки; `ls tests` — папки `tests`.\n\n## Подробный список: ls -l\n\n```bash\n$ ls -l\ntotal 12\ndrwxr-xr-x 2 anna anna 4096 Mar  8 10:00 reports\n-rw-r--r-- 1 anna anna  220 Mar  8 10:01 README.md\ndrwxr-xr-x 3 anna anna 4096 Mar  8 10:02 tests\n-rw-r--r-- 1 anna anna   57 Mar  8 10:03 requirements.txt\n```\n\nЧто в каждом столбце:\n\n- **Первый символ**: `d` — папка (directory), `-` — обычный файл, `l` — ссылка.\n- `rwxr-xr-x` — права доступа (разберём в уроке про права).\n- Число ссылок (обычно не важно).\n- **Владелец** и **группа**: `anna anna`.\n- **Размер** в байтах: `57`.\n- **Дата изменения**: `Mar  8 10:03`.\n- **Имя**.\n- `total 12` — служебная строка про занятые блоки, её можно не читать.\n\n## Скрытые файлы: -a\n\n```bash\n$ ls -a\n.  ..  .env  .gitignore  .venv  README.md  tests\n```\n\n- Файлы, имя которых начинается с точки, **скрыты** — обычный `ls` их не показывает. Это конфиги: `.env`, `.gitignore`, `.github`, папка виртуального окружения `.venv`.\n- `-a` (all) показывает всё, включая `.` и `..`.\n\n## Комбинирование флагов\n\n```bash\n$ ls -lah\n$ ls -lt\n$ ls -R tests\n```\n\n- Однобуквенные флаги можно склеивать: `-lah` = `-l -a -h`.\n- `-h` (human-readable) — размеры в `K`, `M`, `G` вместо байтов. Работает вместе с `-l`.\n- `-t` — сортировка по времени изменения, новые сверху. Удобно найти свежий лог или отчёт.\n- `-R` — рекурсивно, со всеми вложенными папками.\n- `ll` — во многих системах сокращение для `ls -l` (или `ls -alF`).\n\n## Шаблоны имён\n\n```bash\n$ ls *.py\nconftest.py  test_api.py\n$ ls test_*\ntest_api.py  test_ui.py\n```\n\n- `*` — любые символы, `?` — один символ. Шаблон раскрывает сам shell до запуска команды, поэтому это работает с любой командой (`cp`, `rm`, `mv`).\n\n## Итог\n\n- `ls` — список; `-l` — подробно; `-a` — со скрытыми; `-h` — понятные размеры; `-t` — по времени.\n- В `ls -l`: `d` — папка, `-` — файл; дальше права, владелец, размер, дата, имя.\n- Файлы с точкой в начале — скрытые.\n- `*` и `?` — шаблоны имён.",
@@ -273,7 +289,8 @@
                   "expected_output": "mkdir reports",
                   "solution": "mkdir reports",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`mkdir` — make directory.\", \"lines\": [[\"mkdir reports\", \"Новая папка.\"]], \"mistake\": \"`touch reports` — создаст файл, а не папку.\"}"
                 },
                 {
                   "slug": "lnx-files-e2",
@@ -283,7 +300,8 @@
                   "expected_output": "mkdir -p reports/2024/march\nmkdir -p ./reports/2024/march",
                   "solution": "mkdir -p reports/2024/march",
                   "hint": "Нужен флаг, который создаёт родителей.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-p` (parents) создаёт недостающие промежуточные папки и не ругается, если они есть.\", \"lines\": [[\"mkdir -p\", \"С родителями.\"], [\"reports/2024/march\", \"Вся цепочка.\"]], \"mistake\": \"Без `-p` — ошибка: `reports/2024` не существует.\"}"
                 },
                 {
                   "slug": "lnx-files-e3",
@@ -293,7 +311,8 @@
                   "expected_output": "touch conftest.py",
                   "solution": "touch conftest.py",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`touch` создаёт пустой файл (или обновляет дату существующего).\", \"lines\": [[\"touch conftest.py\", \"Пустой файл.\"]], \"mistake\": \"`mkdir conftest.py` — получится папка.\"}"
                 },
                 {
                   "slug": "lnx-files-e4",
@@ -303,7 +322,8 @@
                   "expected_output": "cp config.yaml config.backup.yaml",
                   "solution": "cp config.yaml config.backup.yaml",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`cp откуда куда`.\", \"lines\": [[\"cp config.yaml config.backup.yaml\", \"Сначала источник, потом копия.\"]], \"mistake\": \"Перепутать порядок — затрёшь оригинал.\"}"
                 },
                 {
                   "slug": "lnx-files-e5",
@@ -313,7 +333,8 @@
                   "expected_output": "cp -r tests tests_old\ncp -R tests tests_old\ncp -a tests tests_old",
                   "solution": "cp -r tests tests_old",
                   "hint": "Для папок нужен рекурсивный флаг.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Папку копируют рекурсивно: `-r`.\", \"lines\": [[\"cp -r\", \"Со всем содержимым.\"], [\"tests tests_old\", \"Откуда и куда.\"]], \"mistake\": \"Без `-r` — «omitting directory».\"}"
                 },
                 {
                   "slug": "lnx-files-e6",
@@ -323,7 +344,8 @@
                   "expected_output": "mv test_old.py test_login.py",
                   "solution": "mv test_old.py test_login.py",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Переименование — это `mv` (перемещение) в новое имя.\", \"lines\": [[\"mv test_old.py test_login.py\", \"Старое имя → новое.\"]], \"mistake\": \"Искать команду `rename` — она есть не везде и работает иначе.\"}"
                 },
                 {
                   "slug": "lnx-files-e7",
@@ -333,7 +355,8 @@
                   "expected_output": "rm -r tmp_reports\nrm -rf tmp_reports\nrm -fr tmp_reports\nrm -R tmp_reports",
                   "solution": "rm -r tmp_reports",
                   "hint": "rm -rf удаляет без вопросов и без корзины — всегда проверяй путь.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Папку с содержимым удаляют рекурсивно: `rm -r`. Удаление без корзины — безвозвратно.\", \"lines\": [[\"rm -r tmp_reports\", \"Папка и всё внутри.\"]], \"mistake\": \"`rmdir` — удаляет только пустую папку.\"}"
                 },
                 {
                   "slug": "lnx-files-e8",
@@ -343,7 +366,8 @@
                   "expected_output": "mv *.log logs\nmv *.log logs/\nmv ./*.log logs/\nmv ./*.log logs",
                   "solution": "mv *.log logs",
                   "hint": "* — любые символы в имени.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`*.log` — шаблон: оболочка подставит все подходящие имена.\", \"lines\": [[\"mv *.log logs\", \"Все `.log` — в папку `logs`.\"]], \"mistake\": \"`mv .log logs` — ищет файл с именем `.log`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nСоздать папку для отчётов, сделать копию конфига перед изменением, переименовать тест, удалить старые результаты — базовые операции с файлами. В терминале они быстрее, чем в проводнике, и их можно записать в скрипт для CI.\n\n## Создать: mkdir и touch\n\n```bash\n$ mkdir reports\n$ mkdir -p reports/2024/march\n$ touch conftest.py\n```\n\n- `mkdir папка` — создать папку (make directory).\n- `mkdir -p a/b/c` — создать всю цепочку вложенных папок; если что-то уже есть — не ругаться. В скриптах пиши всегда с `-p`.\n- `touch файл` — создать пустой файл (или обновить дату изменения существующего).\n\n## Копировать: cp\n\n```bash\n$ cp config.yaml config.backup.yaml\n$ cp config.yaml backups/\n$ cp -r tests tests_old\n```\n\n- `cp откуда куда` — копия файла. Если «куда» — существующая папка, файл попадёт в неё с тем же именем.\n- `cp -r` — копировать **папку** со всем содержимым (recursive). Без `-r` папку скопировать нельзя.\n- Если файл назначения существует, `cp` молча его перезапишет. `cp -i` спросит подтверждение.\n\n## Переместить и переименовать: mv\n\n```bash\n$ mv test_old.py test_login.py\n$ mv report.html reports/\n$ mv *.log logs/\n```\n\n- `mv` — и перемещение, и переименование: это одно и то же действие «сменить путь».\n- Для папок флаг не нужен.\n- `*.log` — все файлы с расширением `.log` (шаблон раскрывает shell).\n\n## Удалить: rm\n\n```bash\n$ rm old_report.html\n$ rm -r tmp_reports\n$ rmdir empty_folder\n```\n\n- `rm файл` — удалить файл. **Корзины нет** — удалённое не вернуть.\n- `rm -r папка` — удалить папку со всем содержимым.\n- `rm -rf` — то же, но без вопросов и без ошибок, если чего-то нет (`-f` — force). Самая опасная команда: `rm -rf /` или `rm -rf ~` уничтожат систему или все твои файлы. Перед `rm -rf` всегда проверяй путь (`ls путь`).\n- `rmdir` — удалить только **пустую** папку.\n\n## Итог\n\n- `mkdir -p` — папки с родителями; `touch` — пустой файл.\n- `cp` — файл, `cp -r` — папка.\n- `mv` — переместить или переименовать.\n- `rm` — файл, `rm -r` — папка; корзины нет, `rm -rf` — осторожно.",
@@ -396,7 +420,8 @@
                   "expected_output": "cat requirements.txt",
                   "solution": "cat requirements.txt",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`cat` выводит файл целиком.\", \"lines\": [[\"cat requirements.txt\", \"Весь файл в терминал.\"]], \"mistake\": \"Открывать `cat` огромный лог — выведет всё сразу; там лучше `less`.\"}"
                 },
                 {
                   "slug": "lnx-view-e2",
@@ -406,7 +431,8 @@
                   "expected_output": "head -n 5 app.log\nhead -5 app.log\nhead -n5 app.log",
                   "solution": "head -n 5 app.log",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`head -n N` — первые N строк.\", \"lines\": [[\"head -n 5\", \"Пять строк.\"], [\"app.log\", \"Файл.\"]], \"mistake\": \"`tail` — это конец файла.\"}"
                 },
                 {
                   "slug": "lnx-view-e3",
@@ -416,7 +442,8 @@
                   "expected_output": "tail -n 20 app.log\ntail -20 app.log\ntail -n20 app.log",
                   "solution": "tail -n 20 app.log",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`tail -n N` — последние N строк, удобно для свежих записей лога.\", \"lines\": [[\"tail -n 20 app.log\", \"Конец файла.\"]], \"mistake\": \"`head -n 20` — начало файла.\"}"
                 },
                 {
                   "slug": "lnx-view-e4",
@@ -426,7 +453,8 @@
                   "expected_output": "tail -f app.log\ntail -F app.log\ntail -n 20 -f app.log\ntail -f -n 20 app.log",
                   "solution": "tail -f app.log",
                   "hint": "Выход — Ctrl+C.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`tail -f` (follow) не завершается и печатает новые строки по мере записи. Выход — Ctrl+C.\", \"lines\": [[\"tail -f app.log\", \"Слежение за логом.\"]], \"mistake\": \"Повторять `tail` вручную.\"}"
                 },
                 {
                   "slug": "lnx-view-e5",
@@ -436,7 +464,8 @@
                   "expected_output": "wc -l users.csv\nwc -l < users.csv\ncat users.csv | wc -l",
                   "solution": "wc -l users.csv",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`wc -l` считает переводы строк.\", \"lines\": [[\"wc -l users.csv\", \"Число строк и имя файла.\"]], \"mistake\": \"`wc -w` — это слова.\"}"
                 },
                 {
                   "slug": "lnx-view-e6",
@@ -446,7 +475,8 @@
                   "expected_output": "3",
                   "solution": "3",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"С `<` файл подаётся на вход, поэтому `wc` печатает только число, без имени.\", \"lines\": [[\"wc -l < data.txt\", \"Три строки.\"]], \"mistake\": \"Ожидать `3 data.txt` — имени нет при вводе через `<`.\"}"
                 },
                 {
                   "slug": "lnx-view-e7",
@@ -456,7 +486,8 @@
                   "expected_output": "less server.log\nless +G server.log\nmore server.log",
                   "solution": "less server.log",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`less` показывает файл постранично: стрелки, пробел, `/` — поиск, `q` — выход.\", \"lines\": [[\"less server.log\", \"Не грузит файл в терминал целиком.\"]], \"mistake\": \"`cat server.log` — весь файл пролетит на экране.\"}"
                 },
                 {
                   "slug": "lnx-view-e8",
@@ -466,7 +497,8 @@
                   "expected_output": "b c",
                   "solution": "b c",
                   "hint": "tail -n 2 — две последние строки.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`tail -n 2` — две последние строки.\", \"lines\": [[\"tail -n 2 letters.txt\", \"b и c.\"]], \"mistake\": \"Ответить `a b` — это начало файла.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nГлавный источник информации при разборе бага — **логи**. Их нужно быстро посмотреть целиком, найти начало и конец, следить за новыми записями во время прогона тестов, посчитать строки. Для этого есть маленькие команды, каждая делает одно дело.\n\n## cat: весь файл\n\n```bash\n$ cat requirements.txt\npytest==8.3.2\nrequests==2.32.3\n```\n\n- `cat файл` — вывести содержимое файла целиком. Подходит для коротких файлов.\n- `cat a.txt b.txt` — вывести несколько файлов подряд (concatenate — «склеить»).\n\n## head и tail: начало и конец\n\n```bash\n$ head -n 5 app.log\n$ tail -n 20 app.log\n$ tail -f app.log\n```\n\n- `head -n 5` — первые 5 строк (по умолчанию 10). Сокращённо: `head -5`.\n- `tail -n 20` — последние 20 строк. Самое свежее в логе — в конце, поэтому `tail` — частая команда.\n- `tail -f` (follow) — показывать новые строки по мере их появления. Запусти в одном окне, а тесты — в другом, и увидишь логи сервера в реальном времени. Выход — **Ctrl+C**.\n\n## less: большой файл\n\n```bash\n$ less server.log\n```\n\n- Открывает файл постранично, не загружая его целиком.\n- Управление: стрелки и пробел — прокрутка, `/текст` — поиск вперёд, `n` — следующее совпадение, `G` — в конец, `g` — в начало, `q` — выход.\n\n## wc: посчитать\n\n```bash\n$ wc -l users.csv\n101 users.csv\n$ wc -l < users.csv\n101\n```\n\n- `wc` (word count) считает строки, слова и байты. `-l` — только строки.\n- `< файл` — подать файл на вход команде; тогда имя файла не печатается, выводится только число.\n- Строк 101, значит, если есть заголовок, — 100 записей.\n\n## Пример: хвост файла\n\n```bash\n$ cat letters.txt\na\nb\nc\n$ tail -n 2 letters.txt\nb\nc\n```\n\n- `tail -n 2` взял две последние строки.\n\n## Итог\n\n- `cat` — весь файл; `head` — начало; `tail` — конец.\n- `tail -f` — следить за логом в реальном времени, выход Ctrl+C.\n- `less` — большие файлы, `/` — поиск, `q` — выход.\n- `wc -l` — количество строк.",
@@ -527,7 +559,8 @@
                   "expected_output": "grep ERROR app.log\ngrep 'ERROR' app.log\ngrep \"ERROR\" app.log",
                   "solution": "grep ERROR app.log",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`grep шаблон файл` — строки, где встречается шаблон.\", \"lines\": [[\"grep ERROR app.log\", \"Только строки с ERROR.\"]], \"mistake\": \"Перепутать порядок: сначала что искать, потом где.\"}"
                 },
                 {
                   "slug": "lnx-grep-e2",
@@ -537,7 +570,8 @@
                   "expected_output": "grep -i error app.log\ngrep -i 'error' app.log\ngrep -i \"error\" app.log",
                   "solution": "grep -i error app.log",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-i` (ignore case) — без учёта регистра.\", \"lines\": [[\"grep -i\", \"error, Error, ERROR.\"], [\"error app.log\", \"Шаблон и файл.\"]], \"mistake\": \"Без `-i` — найдёт только строчное `error`.\"}"
                 },
                 {
                   "slug": "lnx-grep-e3",
@@ -547,7 +581,8 @@
                   "expected_output": "grep -c ERROR app.log\ngrep -c 'ERROR' app.log\ngrep -c \"ERROR\" app.log",
                   "solution": "grep -c ERROR app.log",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-c` (count) печатает число совпавших строк.\", \"lines\": [[\"grep -c ERROR app.log\", \"Одно число.\"]], \"mistake\": \"`grep ERROR app.log | wc -l` — тоже верно, но просили одной командой grep.\"}"
                 },
                 {
                   "slug": "lnx-grep-e4",
@@ -557,7 +592,8 @@
                   "expected_output": "grep -n ERROR app.log\ngrep -n 'ERROR' app.log\ngrep -n \"ERROR\" app.log",
                   "solution": "grep -n ERROR app.log",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-n` добавляет номер строки перед совпадением.\", \"lines\": [[\"grep -n ERROR app.log\", \"`12:ERROR …`.\"]], \"mistake\": \"`-c` — даст количество, а не номера.\"}"
                 },
                 {
                   "slug": "lnx-grep-e5",
@@ -567,7 +603,8 @@
                   "expected_output": "grep -r @pytest.fixture tests\ngrep -r '@pytest.fixture' tests\ngrep -r \"@pytest.fixture\" tests\ngrep -rn '@pytest.fixture' tests\ngrep -rn \"@pytest.fixture\" tests\ngrep -rn @pytest.fixture tests\ngrep -r '@pytest.fixture' tests/\ngrep -r \"@pytest.fixture\" tests/",
                   "solution": "grep -r @pytest.fixture tests",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-r` — рекурсивно по всем файлам папки.\", \"lines\": [[\"grep -r\", \"Во вложенных тоже.\"], [\"@pytest.fixture tests\", \"Что и где.\"]], \"mistake\": \"`grep @pytest.fixture tests` без `-r` — «Is a directory».\"}"
                 },
                 {
                   "slug": "lnx-grep-e6",
@@ -577,7 +614,8 @@
                   "expected_output": "grep -v DEBUG app.log\ngrep -v 'DEBUG' app.log\ngrep -v \"DEBUG\" app.log",
                   "solution": "grep -v DEBUG app.log",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-v` (invert) — строки, где совпадения **нет**.\", \"lines\": [[\"grep -v DEBUG app.log\", \"Всё, кроме DEBUG.\"]], \"mistake\": \"`grep -i DEBUG` — это поиск DEBUG без учёта регистра.\"}"
                 },
                 {
                   "slug": "lnx-grep-e7",
@@ -587,7 +625,8 @@
                   "expected_output": "2",
                   "solution": "2",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"С `-i` совпадают и `ERROR`, и `error`.\", \"lines\": [[\"grep -i error app.log\", \"ERROR нет базы и error таймаут.\"]], \"mistake\": \"Ответить 1 — забыть, что регистр игнорируется.\"}"
                 },
                 {
                   "slug": "lnx-grep-e8",
@@ -597,7 +636,8 @@
                   "tests": "def test_values():\n    lines = [\"INFO старт\", \"ERROR нет базы\", \"WARN медленно\", \"error таймаут\"]\n    assert grep(lines, \"error\") == [\"2:ERROR нет базы\", \"4:error таймаут\"] and grep(lines, \"xyz\") == [], grep(lines, \"error\")\n",
                   "solution": "def grep(lines, pattern):\n    p = pattern.lower()\n    return [f\"{i}:{line}\" for i, line in enumerate(lines, start=1) if p in line.lower()]\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Приводим и шаблон, и строку к нижнему регистру; `enumerate(start=1)` даёт номера.\", \"lines\": [[\"p = pattern.lower()\", \"Один раз.\"], [\"return [f\\\"{i}:{line}\\\" for i, line in enumerate(lines, start=1) if p in line.lower()]\", \"Строка — в исходном виде.\"]], \"mistake\": \"Возвращать строку в нижнем регистре — `grep` печатает её как есть.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЛог сервера — тысячи строк, а нужны пять: ошибки за время прогона. `grep` находит строки по слову или шаблону — это главный инструмент разбора логов и поиска по коду («где объявлена эта фикстура?»).\n\n## Поиск строк\n\n```bash\n$ cat app.log\nINFO старт\nERROR нет базы\nWARN медленно\nerror таймаут\n$ grep ERROR app.log\nERROR нет базы\n```\n\n- `grep шаблон файл` — вывести строки, в которых есть шаблон.\n- По умолчанию учитывается регистр: `error` в последней строке не найден.\n- Шаблон с пробелами или спецсимволами бери в кавычки: `grep 'нет базы' app.log`.\n\n## Главные флаги\n\n```bash\n$ grep -i error app.log\nERROR нет базы\nerror таймаут\n$ grep -c ERROR app.log\n1\n$ grep -n ERROR app.log\n2:ERROR нет базы\n$ grep -v INFO app.log\nERROR нет базы\nWARN медленно\nerror таймаут\n```\n\n- `-i` — без учёта регистра (ignore case).\n- `-c` — только количество совпавших строк (count).\n- `-n` — с номерами строк: удобно открыть файл на нужном месте.\n- `-v` — наоборот: строки **без** шаблона (invert). Помогает убрать шум, например `DEBUG`.\n- `-w` — только целое слово: `grep -w test` не найдёт `testing`.\n\n## Поиск по папкам\n\n```bash\n$ grep -rn \"@pytest.fixture\" tests\ntests/conftest.py:5:@pytest.fixture\ntests/api/conftest.py:12:@pytest.fixture\n$ grep -rl \"BASE_URL\" .\n./config.py\n./tests/conftest.py\n```\n\n- `-r` — рекурсивно по всем файлам папки.\n- `-l` — только имена файлов, где есть совпадения.\n- Вместе `-rn` — где именно встречается: файл и номер строки.\n\n## Контекст вокруг совпадения\n\n```bash\n$ grep -A 3 \"Traceback\" app.log\n$ grep -B 2 -A 2 \"ERROR\" app.log\n```\n\n- `-A n` — ещё n строк **после** совпадения (after), `-B n` — **до** (before), `-C n` — с обеих сторон.\n- Так видно всю трассировку ошибки, а не только первую строку.\n\n## Регулярные выражения\n\n```bash\n$ grep -E \"ERROR|CRITICAL\" app.log\n$ grep -E \"status=5[0-9]{2}\" access.log\n```\n\n- `-E` — расширенные регулярные выражения: `|` — или, `[0-9]` — цифра, `{2}` — повторить дважды.\n- Второй пример найдёт все ответы с кодом 5xx.\n\n## Итог\n\n- `grep слово файл` — строки со словом.\n- `-i` регистр, `-n` номера, `-c` количество, `-v` исключить, `-w` целое слово.\n- `-r` по папке, `-l` только имена файлов.\n- `-A/-B/-C` — контекст, `-E` — регулярные выражения.",
@@ -650,7 +690,8 @@
                   "expected_output": "ls > files.txt\nls >files.txt",
                   "solution": "ls > files.txt",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`>` перенаправляет вывод в файл, перезаписывая его.\", \"lines\": [[\"ls > files.txt\", \"Вывод `ls` — в файл, не на экран.\"]], \"mistake\": \"`>>` — допишет в конец.\"}"
                 },
                 {
                   "slug": "lnx-pipes-e2",
@@ -660,7 +701,8 @@
                   "expected_output": "echo done >> progress.log\necho 'done' >> progress.log\necho \"done\" >> progress.log",
                   "solution": "echo done >> progress.log",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`>>` дописывает в конец файла.\", \"lines\": [[\"echo done >> progress.log\", \"Не затирая старое.\"]], \"mistake\": \"`>` — сотрёт всё, что было в файле.\"}"
                 },
                 {
                   "slug": "lnx-pipes-e3",
@@ -670,7 +712,8 @@
                   "expected_output": "grep ERROR app.log | wc -l\ngrep 'ERROR' app.log | wc -l\ngrep \"ERROR\" app.log | wc -l\ncat app.log | grep ERROR | wc -l",
                   "solution": "grep ERROR app.log | wc -l",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`|` передаёт вывод одной команды на вход другой.\", \"lines\": [[\"grep ERROR app.log\", \"Строки с ошибками.\"], [\"| wc -l\", \"Их количество.\"]], \"mistake\": \"`grep ERROR app.log > wc -l` — создаст файл `wc`.\"}"
                 },
                 {
                   "slug": "lnx-pipes-e4",
@@ -680,7 +723,8 @@
                   "expected_output": "pytest > pytest.log 2>&1\npytest &> pytest.log\npytest >pytest.log 2>&1\npytest &>pytest.log",
                   "solution": "pytest > pytest.log 2>&1",
                   "hint": "2>&1 — отправить поток ошибок туда же, куда обычный вывод.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Ошибки идут в поток 2. `2>&1` — «ошибки туда же, куда обычный вывод».\", \"lines\": [[\"pytest > pytest.log\", \"Обычный вывод — в файл.\"], [\"2>&1\", \"Ошибки — следом.\"]], \"mistake\": \"`pytest 2>&1 > pytest.log` — порядок важен: ошибки уйдут на экран.\"}"
                 },
                 {
                   "slug": "lnx-pipes-e5",
@@ -690,7 +734,8 @@
                   "expected_output": "./cleanup.sh 2> /dev/null\n./cleanup.sh 2>/dev/null",
                   "solution": "./cleanup.sh 2> /dev/null",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`/dev/null` — «чёрная дыра»: всё, что туда пишется, исчезает.\", \"lines\": [[\"./cleanup.sh\", \"Запуск.\"], [\"2> /dev/null\", \"Только поток ошибок — в никуда.\"]], \"mistake\": \"`> /dev/null` — выбросит обычный вывод, а ошибки останутся.\"}"
                 },
                 {
                   "slug": "lnx-pipes-e6",
@@ -700,7 +745,8 @@
                   "expected_output": "grep ERROR app.log | tail -n 50\ngrep ERROR app.log | tail -50\ngrep 'ERROR' app.log | tail -n 50\ngrep \"ERROR\" app.log | tail -n 50\ngrep 'ERROR' app.log | tail -50\ngrep \"ERROR\" app.log | tail -50",
                   "solution": "grep ERROR app.log | tail -n 50",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Сначала отбираем строки, потом берём хвост результата.\", \"lines\": [[\"grep ERROR app.log\", \"Только ошибки.\"], [\"| tail -n 50\", \"Последние 50 из них.\"]], \"mistake\": \"`tail -n 50 app.log | grep ERROR` — ошибки только среди последних 50 строк файла.\"}"
                 },
                 {
                   "slug": "lnx-pipes-e7",
@@ -710,7 +756,8 @@
                   "expected_output": "b",
                   "solution": "b",
                   "hint": "> перезаписывает файл.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`>` каждый раз перезаписывает файл.\", \"lines\": [[\"echo a > out.txt\", \"В файле `a`.\"], [\"echo b > out.txt\", \"Затёрли — теперь `b`.\"]], \"mistake\": \"Ответить `a b` — так было бы с `>>`.\"}"
                 },
                 {
                   "slug": "lnx-pipes-e8",
@@ -720,7 +767,8 @@
                   "expected_output": "pytest | tee run.log\npytest 2>&1 | tee run.log\npytest |& tee run.log",
                   "solution": "pytest | tee run.log",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`tee` — «тройник»: пишет вход и на экран, и в файл.\", \"lines\": [[\"pytest | tee run.log\", \"Видно сразу и сохранено.\"]], \"mistake\": \"`pytest > run.log` — на экране ничего не будет.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nСила терминала — в комбинации маленьких команд. Вывод одной можно передать на вход другой (**конвейер**) или сохранить в файл (**перенаправление**). Так одной строкой решаются задачи вроде «сколько ошибок в логе» или «сохрани вывод тестов в файл для отчёта».\n\n## Потоки\n\nУ каждой программы три потока:\n\n- **stdin** (0) — вход, по умолчанию клавиатура;\n- **stdout** (1) — обычный вывод, по умолчанию экран;\n- **stderr** (2) — сообщения об ошибках, тоже экран, но отдельным потоком.\n\n## Перенаправление в файл\n\n```bash\n$ ls > files.txt\n$ echo done >> progress.log\n$ pytest > pytest.log 2>&1\n$ ./cleanup.sh 2> /dev/null\n```\n\n- `>` — записать stdout в файл, **перезаписав** его.\n- `>>` — **дописать** в конец файла.\n- `2>` — перенаправить поток ошибок.\n- `2>&1` — отправить ошибки туда же, куда обычный вывод. Порядок важен: сначала `> файл`, потом `2>&1`. Короткая запись в bash — `&> файл`.\n- `/dev/null` — «чёрная дыра»: всё, что туда отправлено, исчезает.\n- `echo текст` — напечатать текст.\n\n## Конвейер: |\n\n```bash\n$ grep ERROR app.log | wc -l\n3\n$ ps aux | grep chrome\n$ grep ERROR app.log | tail -n 50\n```\n\n- `команда1 | команда2` — stdout первой становится stdin второй.\n- Первый пример: найти строки с ошибками и посчитать их.\n- Команды в конвейере работают одновременно и не создают промежуточных файлов.\n\n## tee: и на экран, и в файл\n\n```bash\n$ pytest | tee run.log\n$ pytest 2>&1 | tee run.log\n```\n\n- `tee файл` пишет вход и в файл, и дальше на экран. Видишь результат сразу и сохраняешь его для отчёта.\n- `tee -a` — дописывать, а не перезаписывать.\n\n## Ввод из файла\n\n```bash\n$ wc -l < users.csv\n```\n\n- `<` — подать файл на stdin команде.\n\n## Пример: перезапись\n\n```bash\n$ echo a > out.txt\n$ echo b > out.txt\n$ cat out.txt\nb\n```\n\n- Второй `>` стёр первое содержимое. Хотели накапливать — нужен `>>`.\n\n## Итог\n\n- `>` перезаписать, `>>` дописать, `2>` ошибки, `2>&1` ошибки туда же, `&>` всё сразу.\n- `/dev/null` — выбросить вывод.\n- `|` — передать вывод следующей команде.\n- `tee` — и на экран, и в файл.",
@@ -773,7 +821,8 @@
                   "expected_output": "find . -name conftest.py\nfind . -name 'conftest.py'\nfind . -name \"conftest.py\"\nfind . -type f -name conftest.py\nfind . -type f -name 'conftest.py'\nfind . -type f -name \"conftest.py\"",
                   "solution": "find . -name conftest.py",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`find где -name имя` ищет рекурсивно, во всех вложенных папках.\", \"lines\": [[\"find .\", \"От текущей папки.\"], [\"-name conftest.py\", \"По имени.\"]], \"mistake\": \"`ls conftest.py` — ищет только в текущей папке.\"}"
                 },
                 {
                   "slug": "lnx-find-e2",
@@ -783,7 +832,8 @@
                   "expected_output": "find tests -name 'test_*.py'\nfind tests -name \"test_*.py\"\nfind tests -type f -name 'test_*.py'\nfind tests -type f -name \"test_*.py\"\nfind tests/ -name 'test_*.py'\nfind tests/ -name \"test_*.py\"",
                   "solution": "find tests -name 'test_*.py'",
                   "hint": "Шаблон с * бери в кавычки, иначе его раскроет сам shell.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Шаблон берут в кавычки, чтобы `*` раскрыл `find`, а не оболочка.\", \"lines\": [[\"find tests\", \"Где искать.\"], [\"-name 'test_*.py'\", \"Все тестовые файлы.\"]], \"mistake\": \"Без кавычек — оболочка может подставить имена из текущей папки.\"}"
                 },
                 {
                   "slug": "lnx-find-e3",
@@ -793,7 +843,8 @@
                   "expected_output": "find . -type d -name __pycache__\nfind . -type d -name '__pycache__'\nfind . -type d -name \"__pycache__\"\nfind . -name __pycache__ -type d\nfind . -name '__pycache__' -type d",
                   "solution": "find . -type d -name __pycache__",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-type d` — только папки (`f` — только файлы).\", \"lines\": [[\"find . -type d\", \"Папки.\"], [\"-name __pycache__\", \"С таким именем.\"]], \"mistake\": \"Без `-type d` — найдутся и файлы с таким именем.\"}"
                 },
                 {
                   "slug": "lnx-find-e4",
@@ -803,7 +854,8 @@
                   "expected_output": "find logs -name '*.log' -mtime +7\nfind logs -name \"*.log\" -mtime +7\nfind logs -type f -name '*.log' -mtime +7\nfind logs -type f -name \"*.log\" -mtime +7\nfind logs -mtime +7 -name '*.log'",
                   "solution": "find logs -name '*.log' -mtime +7",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-mtime +7` — изменённые больше 7 дней назад (`-7` — меньше).\", \"lines\": [[\"find logs -name '*.log'\", \"Логи в папке.\"], [\"-mtime +7\", \"Старше недели.\"]], \"mistake\": \"`-mtime -7` — наоборот, свежие.\"}"
                 },
                 {
                   "slug": "lnx-find-e5",
@@ -813,7 +865,8 @@
                   "expected_output": "find . -type d -name __pycache__ -exec rm -rf {} +\nfind . -type d -name '__pycache__' -exec rm -rf {} +\nfind . -type d -name \"__pycache__\" -exec rm -rf {} +\nfind . -name __pycache__ -type d -exec rm -rf {} +\nfind . -type d -name __pycache__ -prune -exec rm -rf {} +\nfind . -type d -name '__pycache__' -prune -exec rm -rf {} +\nfind . -type d -name __pycache__ | xargs rm -rf\nfind . -type d -name '__pycache__' | xargs rm -rf\nre:find \\. -type d -name ['\"]?__pycache__['\"]? -exec rm -rf \\{\\} (\\+|\\\\;)",
                   "solution": "find . -type d -name __pycache__ -exec rm -rf {} +",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-exec команда {} +` выполняет команду для найденного; `{}` — подставленные пути.\", \"lines\": [[\"find . -type d -name __pycache__\", \"Что найти.\"], [\"-exec rm -rf {} +\", \"Удалить найденное.\"]], \"mistake\": \"Проверить сначала без `-exec` — `rm -rf` удаляет безвозвратно.\"}"
                 },
                 {
                   "slug": "lnx-find-e6",
@@ -823,7 +876,8 @@
                   "expected_output": "find . -size +100M\nfind . -type f -size +100M",
                   "solution": "find . -size +100M",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-size +100M` — больше 100 мегабайт.\", \"lines\": [[\"find . -size +100M\", \"Крупные файлы.\"]], \"mistake\": \"`-size 100M` без `+` — ровно 100 МБ.\"}"
                 },
                 {
                   "slug": "lnx-find-e7",
@@ -833,7 +887,8 @@
                   "expected_output": "2",
                   "solution": "2",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`find` ищет во вложенных папках; `helpers.py` под шаблон не подходит.\", \"lines\": [[\"find . -name 'test_*.py'\", \"test_api.py и test_ui.py.\"]], \"mistake\": \"Посчитать helpers.py.\"}"
                 },
                 {
                   "slug": "lnx-find-e8",
@@ -843,7 +898,8 @@
                   "tests": "def test_values():\n    paths = [\"tests/test_api.py\", \"tests/helpers.py\", \"test_main.py\", \"src/app.py\", \"tests/ui/test_login.py\"]\n    assert find_files(paths, \"test_*.py\") == [\"test_main.py\", \"tests/test_api.py\", \"tests/ui/test_login.py\"], find_files(paths, \"test_*.py\")\n    assert find_files(paths, \"*.txt\") == [], \"Нет совпадений\"\n",
                   "solution": "import fnmatch\n\n\ndef find_files(paths, pattern):\n    return sorted(p for p in paths if fnmatch.fnmatch(p.split(\"/\")[-1], pattern))\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Имя — последняя часть пути; `fnmatch` проверяет шаблон с `*` как в оболочке.\", \"lines\": [[\"return sorted(p for p in paths if fnmatch.fnmatch(p.split(\\\"/\\\")[-1], pattern))\", \"Только имя файла, без папок.\"]], \"mistake\": \"Проверять весь путь — `tests/test_a.py` не совпадёт с `test_*.py`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n`grep` ищет **внутри** файлов, а `find` — сами **файлы** по имени, типу, размеру, дате. Где лежат все `conftest.py`? Какие логи старше недели? Какие файлы раздули репозиторий? Плюс `find` умеет сразу что-то сделать с найденным — например, удалить `__pycache__`.\n\n## Поиск по имени\n\n```bash\n$ find . -name conftest.py\n./tests/conftest.py\n./tests/api/conftest.py\n$ find tests -name 'test_*.py'\ntests/test_api.py\ntests/test_ui.py\n```\n\n- `find где условия` — «где» — папка, откуда начинать (`.` — текущая), поиск идёт во все вложенные.\n- `-name` — по имени, с шаблонами `*` и `?`. `-iname` — без учёта регистра.\n- Шаблон **бери в кавычки**: без них `test_*.py` раскроет shell ещё до запуска `find`.\n\n## По типу, размеру, дате\n\n```bash\n$ find . -type d -name __pycache__\n$ find . -type f -size +100M\n$ find logs -name '*.log' -mtime +7\n```\n\n- `-type f` — только файлы, `-type d` — только папки.\n- `-size +100M` — больше 100 мегабайт (`k`, `M`, `G`; `-` — меньше).\n- `-mtime +7` — изменённые больше 7 дней назад, `-mtime -1` — за последние сутки.\n- Условия объединяются через «и».\n\n## Действие с найденным\n\n```bash\n$ find . -type d -name __pycache__ -exec rm -rf {} +\n$ find logs -name '*.log' -mtime +7 -delete\n$ find . -name '*.py' | xargs grep -l \"TODO\"\n```\n\n- `-exec команда {} +` — выполнить команду для найденного; `{}` заменяется путями. Вариант `{} \\;` запускает команду для каждого файла отдельно.\n- `-delete` — удалить найденные файлы. Сначала запусти без `-delete` и посмотри список!\n- `xargs` превращает строки со входа в аргументы команды: найти `.py` и в них искать `TODO`.\n\n## Пример\n\n```bash\n$ ls -R\n.:\ntests  README.md\n./tests:\ntest_api.py  test_ui.py  helpers.py\n$ find . -name 'test_*.py'\n./tests/test_api.py\n./tests/test_ui.py\n```\n\n- `helpers.py` не подходит под шаблон.\n\n## Итог\n\n- `find . -name 'шаблон'` — файлы по имени во всех вложенных папках.\n- `-type f/d`, `-size +100M`, `-mtime +7`.\n- `-exec ... {} +`, `-delete`, `| xargs` — действие с найденным.\n- Шаблоны — в кавычках; перед удалением — пробный запуск.",
@@ -896,7 +952,8 @@
                   "expected_output": "sort names.txt\ncat names.txt | sort",
                   "solution": "sort names.txt",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`sort` сортирует строки по алфавиту.\", \"lines\": [[\"sort names.txt\", \"Результат — на экран, файл не меняется.\"]], \"mistake\": \"Ожидать, что файл отсортируется сам.\"}"
                 },
                 {
                   "slug": "lnx-text-e2",
@@ -906,7 +963,8 @@
                   "expected_output": "sort -u names.txt\nsort names.txt | uniq\ncat names.txt | sort | uniq\ncat names.txt | sort -u",
                   "solution": "sort -u names.txt",
                   "hint": "uniq убирает только соседние повторы — сначала sort.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-u` — уникальные строки. `uniq` убирает только соседние повторы, поэтому сначала `sort`.\", \"lines\": [[\"sort -u names.txt\", \"Отсортировать и убрать повторы.\"]], \"mistake\": \"`uniq names.txt` без сортировки — повторы, стоящие не рядом, останутся.\"}"
                 },
                 {
                   "slug": "lnx-text-e3",
@@ -916,7 +974,8 @@
                   "expected_output": "sort levels.txt | uniq -c\ncat levels.txt | sort | uniq -c",
                   "solution": "sort levels.txt | uniq -c",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`uniq -c` считает соседние одинаковые строки — поэтому перед ним `sort`.\", \"lines\": [[\"sort levels.txt\", \"Одинаковые — рядом.\"], [\"| uniq -c\", \"Число перед каждой.\"]], \"mistake\": \"Без `sort` — одна строка посчитается несколько раз по кускам.\"}"
                 },
                 {
                   "slug": "lnx-text-e4",
@@ -926,7 +985,8 @@
                   "expected_output": "cut -d , -f 2 users.csv\ncut -d, -f2 users.csv\ncut -d ',' -f 2 users.csv\ncut -d',' -f2 users.csv\ncut -d \",\" -f 2 users.csv\ncut -d\",\" -f2 users.csv\ncut -f 2 -d , users.csv\ncut -f2 -d, users.csv",
                   "solution": "cut -d , -f 2 users.csv",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`cut -d` — разделитель, `-f` — номер поля.\", \"lines\": [[\"cut -d , -f 2\", \"Второй столбец по запятой.\"], [\"users.csv\", \"Файл.\"]], \"mistake\": \"Забыть `-d` — по умолчанию разделитель табуляция.\"}"
                 },
                 {
                   "slug": "lnx-text-e5",
@@ -936,7 +996,8 @@
                   "expected_output": "awk '{print $1}' access.log\nawk \"{print \\$1}\" access.log\nawk '{ print $1 }' access.log\ncat access.log | awk '{print $1}'",
                   "solution": "awk '{print $1}' access.log",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`awk` делит строку по пробелам; `$1` — первое поле.\", \"lines\": [[\"awk '{print $1}' access.log\", \"Одинарные кавычки — чтобы `$1` не подставила оболочка.\"]], \"mistake\": \"Двойные кавычки без экранирования — `$1` станет пустым.\"}"
                 },
                 {
                   "slug": "lnx-text-e6",
@@ -946,7 +1007,8 @@
                   "expected_output": "sed -i 's/dev/prod/g' config.env\nsed -i \"s/dev/prod/g\" config.env\nsed -i '' 's/dev/prod/g' config.env\nsed -i -e 's/dev/prod/g' config.env",
                   "solution": "sed -i 's/dev/prod/g' config.env",
                   "hint": "На macOS после -i нужен пустой аргумент ''.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`sed 's/старое/новое/g'` — замена; `-i` — прямо в файле; `g` — все вхождения в строке.\", \"lines\": [[\"sed -i\", \"Правка на месте.\"], [\"'s/dev/prod/g'\", \"Заменить все `dev`.\"], [\"config.env\", \"Файл.\"]], \"mistake\": \"Без `g` — заменится только первое вхождение в каждой строке.\"}"
                 },
                 {
                   "slug": "lnx-text-e7",
@@ -956,7 +1018,8 @@
                   "expected_output": "2 ERROR 1 INFO",
                   "solution": "2 ERROR 1 INFO",
                   "hint": "Вывод uniq -c: количество, пробел, строка.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`sort` ставит ERROR рядом, `uniq -c` печатает число и строку.\", \"lines\": [[\"sort levels.txt | uniq -c\", \"2 ERROR, 1 INFO.\"]], \"mistake\": \"Без `sort` было бы 1 ERROR, 1 INFO, 1 ERROR.\"}"
                 },
                 {
                   "slug": "lnx-text-e8",
@@ -966,7 +1029,8 @@
                   "tests": "def test_values():\n    lines = [\"ERROR E42 нет базы\", \"INFO ok\", \"ERROR E13 таймаут\", \"ERROR E42 снова\", \"ERROR E7 x\", \"ERROR E13 y\", \"ERROR E42 z\"]\n    assert top_errors(lines, 2) == [(\"E42\", 3), (\"E13\", 2)] and top_errors([], 3) == [], top_errors(lines, 2)\n    assert top_errors([\"ERROR B\", \"ERROR A\"], 5) == [(\"A\", 1), (\"B\", 1)], \"Равенство — по алфавиту\"\n",
                   "solution": "def top_errors(lines, n):\n    counts = {}\n    for line in lines:\n        words = line.split()\n        if len(words) >= 2 and words[0] == \"ERROR\":\n            counts[words[1]] = counts.get(words[1], 0) + 1\n    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:n]\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Повторяем конвейер на Python: фильтр, второе слово, подсчёт, сортировка по убыванию.\", \"lines\": [[\"words = line.split()\", \"awk: поля.\"], [\"if len(words) >= 2 and words[0] == \\\"ERROR\\\":\", \"grep: только ERROR.\"], [\"counts[words[1]] = counts.get(words[1], 0) + 1\", \"uniq -c.\"], [\"return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:n]\", \"sort -rn | head; при равенстве — по коду.\"]], \"mistake\": \"`\\\"ERROR\\\" in line` — поймает ERROR в тексте сообщения.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nЛоги и CSV — это текст со столбцами. Отсортировать, убрать повторы, посчитать частоту, вырезать нужный столбец, заменить слово — всё это делается маленькими командами, которые соединяются конвейером. Так за минуту получается ответ на вопрос «какие ошибки самые частые».\n\n## sort и uniq\n\n```bash\n$ cat levels.txt\nERROR\nINFO\nERROR\n$ sort levels.txt\nERROR\nERROR\nINFO\n$ sort levels.txt | uniq -c\n      2 ERROR\n      1 INFO\n$ sort levels.txt | uniq -c | sort -rn\n```\n\n- `sort` — отсортировать строки. `-r` — в обратном порядке, `-n` — как числа (иначе `10` окажется раньше `9`), `-u` — без повторов.\n- `uniq` убирает **соседние** повторы — поэтому перед ним всегда `sort`.\n- `uniq -c` — с количеством повторов.\n- `sort -rn` в конце — самые частые сверху.\n\n## cut: столбец\n\n```bash\n$ cat users.csv\nid,name,role\n1,anna,admin\n2,bob,qa\n$ cut -d , -f 2 users.csv\nname\nanna\nbob\n```\n\n- `-d ,` — разделитель (delimiter), `-f 2` — номер поля. `-f 1,3` — несколько полей.\n\n## awk: столбцы по пробелам\n\n```bash\n$ cat access.log\nGET /api/users 200 153ms\nPOST /api/login 500 950ms\n$ awk '{print $1, $3}' access.log\nGET 200\nPOST 500\n$ awk '$3 >= 500' access.log\nPOST /api/login 500 950ms\n```\n\n- `awk` делит строку на поля по пробелам: `$1`, `$2`… `$0` — вся строка.\n- `{print ...}` — что вывести; условие перед фигурными скобками — фильтр строк.\n- Одинарные кавычки обязательны, иначе shell сам подставит `$1`.\n\n## sed: замена\n\n```bash\n$ sed 's/dev/prod/g' config.env\n$ sed -i 's/dev/prod/g' config.env\n```\n\n- `s/что/на что/g` — заменить; `g` — все вхождения в строке, а не только первое.\n- Без `-i` результат выводится на экран, файл не меняется.\n- `-i` — изменить файл на месте. На macOS пишут `sed -i '' 's/…/…/g' файл`.\n\n## Классика: топ ошибок\n\n```bash\n$ grep ERROR app.log | awk '{print $2}' | sort | uniq -c | sort -rn | head -n 5\n```\n\n- Строки с ошибками → код ошибки (второе слово) → сортировка → подсчёт → самые частые сверху → первые пять.\n\n## Итог\n\n- `sort` (`-r`, `-n`, `-u`), `uniq -c` — только после `sort`.\n- `cut -d , -f 2` — столбец CSV.\n- `awk '{print $1}'` — поле по пробелам, с условиями.\n- `sed 's/a/b/g'` — замена, `-i` — в файле.",
@@ -1027,7 +1091,8 @@
                   "expected_output": "chmod +x run_tests.sh\nchmod u+x run_tests.sh\nchmod a+x run_tests.sh\nchmod 755 run_tests.sh",
                   "solution": "chmod +x run_tests.sh",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`chmod +x` добавляет право на запуск.\", \"lines\": [[\"chmod +x run_tests.sh\", \"Теперь его можно запускать.\"]], \"mistake\": \"`chmod 644` — права на запуск как раз нет.\"}"
                 },
                 {
                   "slug": "lnx-perms-e2",
@@ -1037,7 +1102,8 @@
                   "expected_output": "./run_tests.sh\nbash run_tests.sh\nsh run_tests.sh",
                   "solution": "./run_tests.sh",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Скрипт из текущей папки запускают через `./` — текущая папка не в PATH.\", \"lines\": [[\"./run_tests.sh\", \"`./` — «здесь».\"]], \"mistake\": \"`run_tests.sh` без `./` — «command not found».\"}"
                 },
                 {
                   "slug": "lnx-perms-e3",
@@ -1047,7 +1113,8 @@
                   "expected_output": "владелец",
                   "solution": "владелец",
                   "hint": "rw- — владелец, r-- — группа, r-- — остальные.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Права — три тройки: владелец, группа, остальные. `w` есть только в первой.\", \"lines\": [[\"-rw-r--r--\", \"`rw-` владелец, `r--` группа, `r--` все.\"]], \"mistake\": \"Решить, что `r` у всех — значит, могут менять.\"}"
                 },
                 {
                   "slug": "lnx-perms-e4",
@@ -1057,7 +1124,8 @@
                   "expected_output": "755",
                   "solution": "755",
                   "hint": "r = 4, w = 2, x = 1; складывай по тройкам.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"r = 4, w = 2, x = 1; каждая тройка — сумма.\", \"lines\": [[\"755\", \"rwx = 7, r-x = 5, r-x = 5.\"]], \"mistake\": \"Посчитать r-x как 6 — это rw-.\"}"
                 },
                 {
                   "slug": "lnx-perms-e5",
@@ -1067,7 +1135,8 @@
                   "expected_output": "chmod 600 secret.env\nchmod u=rw,go= secret.env\nchmod u=rw,g=,o= secret.env",
                   "solution": "chmod 600 secret.env",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"6 = rw-, 0 = ---. Так хранят секреты.\", \"lines\": [[\"chmod 600 secret.env\", \"Только владелец читает и пишет.\"]], \"mistake\": \"`chmod 644` — читать смогут все.\"}"
                 },
                 {
                   "slug": "lnx-perms-e6",
@@ -1077,7 +1146,8 @@
                   "expected_output": "sudo apt update\nsudo apt-get update",
                   "solution": "sudo apt update",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`sudo` выполняет команду от имени администратора.\", \"lines\": [[\"sudo\", \"Права root.\"], [\"apt update\", \"Обновить список пакетов.\"]], \"mistake\": \"Без `sudo` — «Permission denied».\"}"
                 },
                 {
                   "slug": "lnx-perms-e7",
@@ -1087,7 +1157,8 @@
                   "expected_output": "sudo chown -R qa /opt/reports\nsudo chown -R qa:qa /opt/reports\nsudo chown -R qa: /opt/reports",
                   "solution": "sudo chown -R qa /opt/reports",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`chown` меняет владельца, `-R` — рекурсивно; менять владельца может только root.\", \"lines\": [[\"sudo chown -R\", \"Для всего содержимого.\"], [\"qa /opt/reports\", \"Новый владелец и папка.\"]], \"mistake\": \"`chmod` — меняет права, а не владельца.\"}"
                 },
                 {
                   "slug": "lnx-perms-e8",
@@ -1097,7 +1168,8 @@
                   "tests": "def test_values():\n    assert [to_octal(p) for p in [\"rwxr-xr--\", \"rw-r--r--\", \"rwx------\", \"---------\"]] == [\"754\", \"644\", \"700\", \"000\"], \"Неверный результат\"\n",
                   "solution": "def to_octal(perms):\n    values = {\"r\": 4, \"w\": 2, \"x\": 1}\n    digits = []\n    for i in range(0, 9, 3):\n        digits.append(str(sum(values.get(ch, 0) for ch in perms[i:i + 3])))\n    return \"\".join(digits)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Три тройки по 3 символа; в каждой суммируем значения букв, `-` даёт 0.\", \"lines\": [[\"values = {\\\"r\\\": 4, \\\"w\\\": 2, \\\"x\\\": 1}\", \"Веса.\"], [\"for i in range(0, 9, 3):\", \"Начала троек: 0, 3, 6.\"], [\"digits.append(str(sum(values.get(ch, 0) for ch in perms[i:i + 3])))\", \"Сумма тройки.\"]], \"mistake\": \"`values[ch]` — `KeyError` на `-`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n«Permission denied» — одна из самых частых ошибок: скрипт не запускается, в папку нельзя записать отчёт, контейнер не видит файл. Нужно уметь читать права, давать право на запуск и выполнять команды от администратора.\n\n## Как читать права\n\n```bash\n$ ls -l run_tests.sh report.html\n-rwxr-xr-x 1 anna qa  512 Mar  8 10:00 run_tests.sh\n-rw-r--r-- 1 anna qa 5120 Mar  8 10:00 report.html\n```\n\n- После первого символа (тип) идут три тройки: **владелец**, **группа**, **остальные**.\n- В каждой тройке: `r` — читать, `w` — писать (изменять), `x` — выполнять (для папки — входить в неё), `-` — нет права.\n- `report.html`: владелец `anna` читает и пишет, группа `qa` и остальные только читают.\n\n## Числовая запись\n\n- `r` = 4, `w` = 2, `x` = 1; цифра тройки — сумма.\n- `rwx` = 7, `r-x` = 5, `rw-` = 6, `r--` = 4, `---` = 0.\n- `rwxr-xr-x` = **755** (скрипты, папки), `rw-r--r--` = **644** (обычные файлы), `rw-------` = **600** (секреты: ключи, `.env`).\n\n## chmod: изменить права\n\n```bash\n$ chmod +x run_tests.sh\n$ ./run_tests.sh\n$ chmod 600 secret.env\n$ chmod -R 755 scripts\n```\n\n- `chmod +x` — разрешить выполнение. Без него `./run_tests.sh` → `Permission denied`.\n- `./скрипт` — запустить файл из текущей папки. `./` нужен: текущая папка не входит в `PATH`.\n- Число задаёт все права сразу. `-R` — рекурсивно для папки.\n- Буквенная форма: `u` (владелец), `g` (группа), `o` (остальные): `chmod u+x,go-w файл`.\n\n## chown и sudo\n\n```bash\n$ sudo apt update\n$ sudo chown -R qa:qa /opt/reports\n```\n\n- `sudo команда` — выполнить от имени администратора (root). Попросит **твой** пароль.\n- `chown пользователь:группа путь` — сменить владельца; обычно требует `sudo`.\n- `root` может всё, поэтому `sudo` — только когда действительно нужно. Никогда не запускай через `sudo` непонятные команды из интернета.\n\n## Итог\n\n- Права: владелец / группа / остальные, `r` `w` `x`.\n- Числа: r=4, w=2, x=1 → 755, 644, 600.\n- `chmod +x` + `./скрипт` — запуск своего скрипта.\n- `sudo` — от администратора, `chown` — сменить владельца.",
@@ -1150,7 +1222,8 @@
                   "expected_output": "ps aux\nps -ef\nps -aux",
                   "solution": "ps aux",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`ps aux` — все процессы всех пользователей с подробностями.\", \"lines\": [[\"ps aux\", \"a — все пользователи, u — подробно, x — и без терминала.\"]], \"mistake\": \"`ps` без флагов — только процессы текущего терминала.\"}"
                 },
                 {
                   "slug": "lnx-proc-e2",
@@ -1160,7 +1233,8 @@
                   "expected_output": "ps aux | grep chrome\nps -ef | grep chrome\nps aux | grep -i chrome\npgrep -a chrome\npgrep -l chrome",
                   "solution": "ps aux | grep chrome",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Список процессов фильтруем `grep`.\", \"lines\": [[\"ps aux\", \"Все процессы.\"], [\"| grep chrome\", \"Только chrome.\"]], \"mistake\": \"Удивиться строке с самим `grep chrome` в выводе — это нормально.\"}"
                 },
                 {
                   "slug": "lnx-proc-e3",
@@ -1170,7 +1244,8 @@
                   "expected_output": "kill 4321\nkill -15 4321\nkill -TERM 4321\nkill -SIGTERM 4321",
                   "solution": "kill 4321",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`kill PID` посылает сигнал TERM — просьбу завершиться корректно.\", \"lines\": [[\"kill 4321\", \"Процесс успеет закрыть файлы.\"]], \"mistake\": \"Сразу `kill -9` — процесс не успеет прибраться.\"}"
                 },
                 {
                   "slug": "lnx-proc-e4",
@@ -1180,7 +1255,8 @@
                   "expected_output": "kill -9 4321\nkill -KILL 4321\nkill -SIGKILL 4321",
                   "solution": "kill -9 4321",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-9` (KILL) — принудительное завершение, процесс не может его перехватить.\", \"lines\": [[\"kill -9 4321\", \"Крайняя мера.\"]], \"mistake\": \"`kill 4321` ещё раз — зависший процесс его игнорирует.\"}"
                 },
                 {
                   "slug": "lnx-proc-e5",
@@ -1190,7 +1266,8 @@
                   "expected_output": "lsof -i :8000\nsudo lsof -i :8000\nlsof -i tcp:8000\nss -ltnp | grep 8000\nsudo ss -ltnp | grep 8000\nnetstat -tlnp | grep 8000\nsudo netstat -tlnp | grep 8000\nss -tlnp | grep 8000\nsudo ss -tlnp | grep 8000",
                   "solution": "lsof -i :8000",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`lsof -i :порт` показывает, кто слушает порт.\", \"lines\": [[\"lsof -i :8000\", \"Процесс и его PID.\"]], \"mistake\": \"`ps aux | grep 8000` — порт в списке процессов обычно не виден.\"}"
                 },
                 {
                   "slug": "lnx-proc-e6",
@@ -1200,7 +1277,8 @@
                   "expected_output": "python -m http.server 8000 &\npython3 -m http.server 8000 &\nnohup python -m http.server 8000 &\nnohup python3 -m http.server 8000 &",
                   "solution": "python -m http.server 8000 &",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`&` в конце запускает команду в фоне.\", \"lines\": [[\"python -m http.server 8000\", \"Сервер.\"], [\"&\", \"Терминал свободен.\"]], \"mistake\": \"Без `&` — терминал занят, пока сервер работает.\"}"
                 },
                 {
                   "slug": "lnx-proc-e7",
@@ -1210,7 +1288,8 @@
                   "expected_output": "Ctrl+C\nctrl+c\nCtrl-C\nctrl-c\n^C",
                   "solution": "Ctrl+C",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Ctrl+C посылает программе сигнал прерывания.\", \"lines\": [[\"Ctrl+C\", \"Остановить текущую команду.\"]], \"mistake\": \"Ctrl+Z — не останавливает, а приостанавливает (процесс остаётся).\"}"
                 },
                 {
                   "slug": "lnx-proc-e8",
@@ -1220,7 +1299,8 @@
                   "expected_output": "2817",
                   "solution": "2817",
                   "hint": "PID — второй столбец; последняя строка — это сам grep.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"PID — второй столбец `ps aux`. Строка с `grep uvicorn` — сам поиск.\", \"lines\": [[\"2817\", \"Процесс `python -m uvicorn`.\"]], \"mistake\": \"Взять 3001 — это процесс `grep`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nТестовый сервер не запускается: «Address already in use» — порт занят старым процессом. Браузер от упавшего UI-теста висит в памяти. Нужно найти процесс, узнать его номер и остановить.\n\n## Что такое процесс\n\n- **Процесс** — запущенная программа. У каждого есть номер **PID**.\n- Один и тот же Python может работать в нескольких процессах одновременно.\n\n## ps: список процессов\n\n```bash\n$ ps aux | grep uvicorn\nanna  2817  1.2  0.8 123456 34567 ?     S  10:00  0:03 python -m uvicorn app:app\nanna  3001  0.0  0.0   6432   736 pts/0 S+ 10:05  0:00 grep uvicorn\n$ pgrep -a uvicorn\n2817 python -m uvicorn app:app\n```\n\n- `ps aux` — все процессы всех пользователей: пользователь, **PID**, загрузка CPU и памяти, команда.\n- Через `grep` находим нужный. Последняя строка — сам `grep`, её пропускаем.\n- `pgrep -a имя` — короче: сразу PID и команда.\n- `top` или `htop` — «диспетчер задач» в реальном времени (выход `q`).\n\n## kill: остановить\n\n```bash\n$ kill 2817\n$ kill -9 2817\n$ pkill -f uvicorn\n```\n\n- `kill PID` посылает сигнал «завершись» (TERM). Программа корректно закрывается.\n- `kill -9 PID` (KILL) — убить принудительно, если процесс завис. Он не успеет ничего сохранить — это крайняя мера.\n- `pkill -f текст` — завершить все процессы, в команде которых есть текст.\n\n## Кто занял порт\n\n```bash\n$ lsof -i :8000\nCOMMAND  PID USER  FD  TYPE DEVICE SIZE/OFF NODE NAME\npython  2817 anna  3u  IPv4 0x1234      0t0  TCP *:8000 (LISTEN)\n$ ss -ltnp | grep 8000\n```\n\n- `lsof -i :порт` — какой процесс слушает порт; дальше — `kill PID`.\n- В Linux-серверах чаще есть `ss -ltnp` (listening TCP с процессами). Для чужих процессов нужен `sudo`.\n\n## Фон и Ctrl+C\n\n```bash\n$ python -m http.server 8000 &\n[1] 4120\n$ jobs\n$ fg\n```\n\n- **Ctrl+C** — прервать программу, которая сейчас работает в терминале.\n- `команда &` — запустить в фоне, терминал останется свободным. `jobs` — фоновые задачи, `fg` — вернуть на передний план.\n- **Ctrl+Z** — приостановить (не завершить!) программу; `bg` — продолжить в фоне.\n- `nohup команда &` — процесс не завершится, даже если закрыть терминал.\n\n## Итог\n\n- PID — номер процесса; `ps aux | grep`, `pgrep -a`, `top`.\n- `kill PID` — вежливо, `kill -9 PID` — принудительно.\n- `lsof -i :8000` / `ss -ltnp` — кто занял порт.\n- Ctrl+C — прервать, `&` — фон, Ctrl+Z — пауза.",
@@ -1273,7 +1353,8 @@
                   "expected_output": "echo $HOME\necho \"$HOME\"\necho ${HOME}\nprintenv HOME",
                   "solution": "echo $HOME",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`$ИМЯ` подставляет значение переменной.\", \"lines\": [[\"echo $HOME\", \"Путь домашней папки.\"]], \"mistake\": \"`echo HOME` — напечатает слово HOME.\"}"
                 },
                 {
                   "slug": "lnx-env-e2",
@@ -1283,7 +1364,8 @@
                   "expected_output": "export BASE_URL=https://stage.example.com\nexport BASE_URL='https://stage.example.com'\nexport BASE_URL=\"https://stage.example.com\"",
                   "solution": "export BASE_URL=https://stage.example.com",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`export` делает переменную видимой для запускаемых программ.\", \"lines\": [[\"export\", \"Передать дочерним процессам.\"], [\"BASE_URL=https://stage.example.com\", \"Без пробелов вокруг `=`.\"]], \"mistake\": \"`BASE_URL = …` с пробелами — оболочка примет за команду.\"}"
                 },
                 {
                   "slug": "lnx-env-e3",
@@ -1293,7 +1375,8 @@
                   "expected_output": "ENV=stage pytest\nenv ENV=stage pytest",
                   "solution": "ENV=stage pytest",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`ИМЯ=значение команда` — переменная только для одного запуска.\", \"lines\": [[\"ENV=stage pytest\", \"После запуска переменной нет.\"]], \"mistake\": \"`export ENV=stage` — останется для всех следующих команд.\"}"
                 },
                 {
                   "slug": "lnx-env-e4",
@@ -1303,7 +1386,8 @@
                   "expected_output": "env\nprintenv\nexport -p",
                   "solution": "env",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`env` печатает все переменные окружения.\", \"lines\": [[\"env\", \"Список `ИМЯ=значение`.\"]], \"mistake\": \"`echo $` — ничего полезного.\"}"
                 },
                 {
                   "slug": "lnx-env-e5",
@@ -1313,7 +1397,8 @@
                   "expected_output": "which python\ncommand -v python\ntype python\nwhich -a python",
                   "solution": "which python",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`which` ищет команду по PATH и печатает путь к файлу.\", \"lines\": [[\"which python\", \"Например, `/usr/bin/python`.\"]], \"mistake\": \"`python --version` — версия, а не путь.\"}"
                 },
                 {
                   "slug": "lnx-env-e6",
@@ -1323,7 +1408,8 @@
                   "expected_output": "echo $PATH\necho \"$PATH\"\nprintenv PATH\necho ${PATH}",
                   "solution": "echo $PATH",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"PATH — список папок через `:`, где оболочка ищет команды.\", \"lines\": [[\"echo $PATH\", \"Папки по порядку поиска.\"]], \"mistake\": \"`echo PATH` — без `$` напечатается слово.\"}"
                 },
                 {
                   "slug": "lnx-env-e7",
@@ -1333,7 +1419,8 @@
                   "expected_output": "stage",
                   "solution": "stage",
                   "hint": "VAR=значение перед командой задаёт переменную только для неё.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Переменная перед командой перекрывает экспортированную — только для этой команды.\", \"lines\": [[\"ENV=stage bash -c 'echo $ENV'\", \"Внутри — stage.\"]], \"mistake\": \"Ответить prod — `ENV=stage` действует на этот запуск.\"}"
                 },
                 {
                   "slug": "lnx-env-e8",
@@ -1343,7 +1430,8 @@
                   "tests": "def test_values():\n    assert load_settings({}) == {\"base_url\": \"http://localhost:8000\", \"timeout\": 10, \"headless\": True}, load_settings({})\n    assert load_settings({\"BASE_URL\": \"https://stage\", \"TIMEOUT\": \"30\", \"HEADLESS\": \"no\"}) == {\"base_url\": \"https://stage\", \"timeout\": 30, \"headless\": False}, \"Заданные значения\"\n    assert load_settings({\"HEADLESS\": \"YES\"})[\"headless\"] is True, \"Регистр не важен\"\n",
                   "solution": "def load_settings(env):\n    return {\n        \"base_url\": env.get(\"BASE_URL\", \"http://localhost:8000\"),\n        \"timeout\": int(env.get(\"TIMEOUT\", \"10\")),\n        \"headless\": env.get(\"HEADLESS\", \"true\").lower() in (\"1\", \"true\", \"yes\"),\n    }\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Значения окружения — строки: число переводим `int`, флаг сравниваем с набором «истинных» слов.\", \"lines\": [[\"\\\"base_url\\\": env.get(\\\"BASE_URL\\\", \\\"http://localhost:8000\\\"),\", \"Значение по умолчанию.\"], [\"\\\"timeout\\\": int(env.get(\\\"TIMEOUT\\\", \\\"10\\\")),\", \"Строка → число.\"], [\"\\\"headless\\\": env.get(\\\"HEADLESS\\\", \\\"true\\\").lower() in (\\\"1\\\", \\\"true\\\", \\\"yes\\\"),\", \"`\\\"false\\\"` — ложь.\"]], \"mistake\": \"`bool(env.get(\\\"HEADLESS\\\"))` — строка `\\\"false\\\"` даст `True`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nАдрес стенда, токены, режим браузера почти никогда не пишут в коде тестов — их передают через **переменные окружения**. Один набор тестов запускают на dev, stage и prod, меняя только переменные. В CI секреты попадают в тесты именно так.\n\n## Переменные окружения\n\n```bash\n$ echo $HOME\n/home/anna\n$ export BASE_URL=https://stage.example.com\n$ echo $BASE_URL\nhttps://stage.example.com\n$ env | grep BASE\nBASE_URL=https://stage.example.com\n```\n\n- `$ИМЯ` — подставить значение переменной. `echo` его печатает.\n- `export ИМЯ=значение` — создать переменную, которую увидят все программы, запущенные дальше из этого терминала. Пробелов вокруг `=` быть не должно.\n- `env` или `printenv` — все переменные.\n- После закрытия терминала переменные из `export` пропадают.\n\n## Только для одной команды\n\n```bash\n$ ENV=stage pytest\n$ export ENV=prod\n$ ENV=stage bash -c 'echo $ENV'\nstage\n$ echo $ENV\nprod\n```\n\n- `ИМЯ=значение команда` — переменная задаётся **только** для этой команды.\n- В Python её читают через `os.environ[\"ENV\"]` или `os.environ.get(\"ENV\", \"dev\")`.\n\n## PATH и which\n\n```bash\n$ echo $PATH\n/home/anna/.local/bin:/usr/local/bin:/usr/bin:/bin\n$ which python\n/home/anna/project/.venv/bin/python\n```\n\n- `PATH` — список папок через `:`, в которых shell ищет программы. Когда вводишь `pytest`, shell перебирает эти папки по порядку.\n- `which программа` — какой именно файл запустится. Если `which python` показывает не `.venv` — виртуальное окружение не активировано.\n- «command not found» — программы нет ни в одной папке из `PATH`.\n\n## Навсегда: .bashrc и .env\n\n- Чтобы переменная была всегда, добавь `export` в `~/.bashrc` (bash) или `~/.zshrc` (zsh, macOS) и открой новый терминал или выполни `source ~/.zshrc`.\n- В проектах переменные хранят в файле `.env` и загружают библиотекой `python-dotenv` или в CI. Файл с секретами не коммитят в git.\n\n## Итог\n\n- `$VAR` — значение, `export VAR=...` — задать, `env` — все переменные.\n- `VAR=x команда` — только для одной команды.\n- `PATH` — где искать программы; `which` — что запустится.\n- Постоянно — в `~/.bashrc` / `~/.zshrc`; секреты — не в git.",
@@ -1396,7 +1484,8 @@
                   "expected_output": "curl https://api.example.com/health\ncurl -s https://api.example.com/health\ncurl -sS https://api.example.com/health",
                   "solution": "curl https://api.example.com/health",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`curl URL` — GET-запрос, ответ печатается в терминал.\", \"lines\": [[\"curl https://api.example.com/health\", \"Тело ответа.\"]], \"mistake\": \"Ждать заголовки — нужен `-I` или `-i`.\"}"
                 },
                 {
                   "slug": "lnx-net-e2",
@@ -1406,7 +1495,8 @@
                   "expected_output": "curl -I https://api.example.com/health\ncurl --head https://api.example.com/health\ncurl -sI https://api.example.com/health",
                   "solution": "curl -I https://api.example.com/health",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`-I` отправляет HEAD и показывает только заголовки.\", \"lines\": [[\"curl -I\", \"Статус и заголовки.\"], [\"https://api.example.com/health\", \"Адрес.\"]], \"mistake\": \"`-i` — заголовки **и** тело.\"}"
                 },
                 {
                   "slug": "lnx-net-e3",
@@ -1416,7 +1506,8 @@
                   "expected_output": "curl -X POST https://api.example.com/users -H 'Content-Type: application/json' -d '{\"name\": \"anna\"}'\ncurl -X POST -H 'Content-Type: application/json' -d '{\"name\": \"anna\"}' https://api.example.com/users\ncurl https://api.example.com/users -H 'Content-Type: application/json' -d '{\"name\": \"anna\"}'\ncurl -H 'Content-Type: application/json' -d '{\"name\": \"anna\"}' https://api.example.com/users\ncurl -X POST https://api.example.com/users -H \"Content-Type: application/json\" -d '{\"name\": \"anna\"}'\ncurl -X POST https://api.example.com/users --json '{\"name\": \"anna\"}'\ncurl https://api.example.com/users --json '{\"name\": \"anna\"}'\nre:curl .*-d '\\{\"name\": ?\"anna\"\\}'.*\nre:curl .*--data '\\{\"name\": ?\"anna\"\\}'.*",
                   "solution": "curl -X POST https://api.example.com/users -H 'Content-Type: application/json' -d '{\"name\": \"anna\"}'",
                   "hint": "-X — метод, -H — заголовок, -d — тело запроса.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`-X POST` — метод, `-H` — заголовок, `-d` — тело запроса.\", \"lines\": [[\"curl -X POST https://api.example.com/users\", \"Метод и адрес.\"], [\"-H 'Content-Type: application/json'\", \"Тип тела.\"], [\"-d '{\\\"name\\\": \\\"anna\\\"}'\", \"JSON в одинарных кавычках.\"]], \"mistake\": \"JSON в двойных кавычках без экранирования — оболочка съест внутренние кавычки.\"}"
                 },
                 {
                   "slug": "lnx-net-e4",
@@ -1426,7 +1517,8 @@
                   "expected_output": "ssh qa@203.0.113.10\nssh -l qa 203.0.113.10",
                   "solution": "ssh qa@203.0.113.10",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`ssh пользователь@хост`.\", \"lines\": [[\"ssh qa@203.0.113.10\", \"Вход под `qa`.\"]], \"mistake\": \"`ssh 203.0.113.10@qa` — порядок наоборот.\"}"
                 },
                 {
                   "slug": "lnx-net-e5",
@@ -1436,7 +1528,8 @@
                   "expected_output": "scp qa@203.0.113.10:/var/log/app.log .\nscp qa@203.0.113.10:/var/log/app.log ./",
                   "solution": "scp qa@203.0.113.10:/var/log/app.log .",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`scp откуда куда`; удалённый путь — `пользователь@хост:путь`, `.` — текущая папка.\", \"lines\": [[\"scp qa@203.0.113.10:/var/log/app.log\", \"Источник на сервере.\"], [\".\", \"Сюда.\"]], \"mistake\": \"Забыть `:` — scp примет адрес за имя локального файла.\"}"
                 },
                 {
                   "slug": "lnx-net-e6",
@@ -1446,7 +1539,8 @@
                   "expected_output": "df -h\ndf -H",
                   "solution": "df -h",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`df` — свободное место на дисках, `-h` — в понятных единицах.\", \"lines\": [[\"df -h\", \"Размер, занято, свободно.\"]], \"mistake\": \"`du` — размер папок, а не дисков.\"}"
                 },
                 {
                   "slug": "lnx-net-e7",
@@ -1456,7 +1550,8 @@
                   "expected_output": "du -sh allure-results\ndu -sh allure-results/\ndu -hs allure-results\ndu -sh ./allure-results",
                   "solution": "du -sh allure-results",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`du -s` — одно итоговое число, `-h` — понятные единицы.\", \"lines\": [[\"du -sh allure-results\", \"Размер папки целиком.\"]], \"mistake\": \"`du -h` без `-s` — строка на каждую вложенную папку.\"}"
                 },
                 {
                   "slug": "lnx-net-e8",
@@ -1466,7 +1561,8 @@
                   "expected_output": "tar -czf report.tar.gz allure-report\ntar czf report.tar.gz allure-report\ntar -czvf report.tar.gz allure-report\ntar -zcf report.tar.gz allure-report\ntar -czf report.tar.gz allure-report/\ntar czvf report.tar.gz allure-report\ntar -cvzf report.tar.gz allure-report\ntar -zcvf report.tar.gz allure-report",
                   "solution": "tar -czf report.tar.gz allure-report",
                   "hint": "c — create, z — gzip, f — имя архива.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`tar -c` создаёт архив, `-z` сжимает gzip, `-f` — имя файла архива (идёт следующим).\", \"lines\": [[\"tar -czf report.tar.gz\", \"Создать сжатый архив.\"], [\"allure-report\", \"Что упаковать.\"]], \"mistake\": \"`tar -xzf` — это распаковка.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПроверить, отвечает ли API, не открывая Postman; зайти на тестовый сервер и посмотреть логи; скачать отчёт; понять, почему упал прогон — «закончилось место на диске». Всё это — несколько команд, которые тестировщик использует постоянно.\n\n## curl: HTTP-запросы\n\n```bash\n$ curl https://api.example.com/health\n{\"status\": \"ok\"}\n$ curl -I https://api.example.com/health\nHTTP/2 200\ncontent-type: application/json\n$ curl -X POST https://api.example.com/users \\\n    -H 'Content-Type: application/json' \\\n    -d '{\"name\": \"anna\"}'\n```\n\n- `curl адрес` — GET-запрос, тело ответа выводится на экран.\n- `-I` — только заголовки ответа (метод HEAD).\n- `-i` — заголовки **и** тело; `-v` — подробный лог запроса и ответа.\n- `-X POST` — метод, `-H` — заголовок, `-d` — тело. С `-d` метод по умолчанию и так POST.\n- `\\` в конце строки — продолжение команды на следующей строке.\n- `-s` — без индикатора загрузки, `-o файл` — сохранить ответ в файл.\n\n## ssh и scp: удалённый сервер\n\n```bash\n$ ssh qa@203.0.113.10\n$ scp qa@203.0.113.10:/var/log/app.log .\n$ scp report.tar.gz qa@203.0.113.10:/tmp/\n```\n\n- `ssh пользователь@сервер` — войти на сервер и работать в его терминале. Выход — `exit`.\n- `scp откуда куда` — копировать файлы по SSH. Удалённый путь пишется как `пользователь@сервер:путь`; `.` — текущая папка.\n- Вместо пароля обычно используют SSH-ключи: `ssh-keygen` создаёт пару, публичный ключ кладут на сервер.\n\n## Диск\n\n```bash\n$ df -h\nFilesystem  Size  Used Avail Use% Mounted on\n/dev/sda1    40G   38G  2.0G  95% /\n$ du -sh allure-results\n1.2G    allure-results\n```\n\n- `df -h` — свободное место на дисках. `Use% 95%` — тревожный знак: тесты и Docker начнут падать.\n- `du -sh папка` — сколько занимает папка (`-s` — одной суммой, `-h` — понятные единицы).\n\n## Архивы\n\n```bash\n$ tar -czf report.tar.gz allure-report\n$ tar -xzf report.tar.gz\n$ zip -r report.zip allure-report\n$ unzip report.zip\n```\n\n- `tar -czf архив папка` — упаковать и сжать: `c` — create, `z` — gzip, `f` — имя файла. `v` — показывать файлы.\n- `tar -xzf архив` — распаковать (`x` — extract).\n- `zip -r` / `unzip` — zip-архивы.\n\n## Итог\n\n- `curl` (`-I`, `-i`, `-v`, `-X`, `-H`, `-d`) — HTTP-запросы из терминала.\n- `ssh user@host` — войти, `scp` — копировать.\n- `df -h` — место на дисках, `du -sh` — размер папки.\n- `tar -czf` / `tar -xzf` — архивы.",

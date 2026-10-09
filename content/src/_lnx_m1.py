@@ -27,7 +27,7 @@ lesson(f"{P}-terminal", "Терминал, пути и cd",
     cmd(f"{P}-terminal-e6", t("""
         Что выведет последняя команда?
         """),
-        ["/home/anna"],
+        ["/home/anna/projects"],
         context="""
         $ pwd
         /home/anna/projects/api/tests
