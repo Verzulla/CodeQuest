@@ -18,7 +18,8 @@ SRC = Path(__file__).parent
 OUT = SRC.parent
 
 
-VIZ_TYPES = {"memory", "git", "slice", "fs", "perm", "fixtures", "pipeline", "http", "trace"}
+VIZ_TYPES = {"memory", "git", "slice", "fs", "perm", "fixtures", "pipeline", "http", "trace",
+             "pipe", "redirect", "select", "params", "json", "schema", "matrix", "trigger", "cron", "itertools"}
 VIZ_NEED_STEPS = {"memory", "git", "trace"}   # остальные — песочницы без заранее заданных шагов
 
 

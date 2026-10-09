@@ -112,6 +112,10 @@ on:
     paths: ["frontend/**", "tests/ui/**"]
 ```
 
+```viz
+{"type": "trigger", "title": "Запустится ли workflow?", "on": {"push": {"branches": ["main", "release/*"]}, "pull_request": {"branches": ["main"], "paths": ["frontend/**", "tests/ui/**"]}, "schedule": "0 3 * * *", "workflow_dispatch": true}, "presets": [{"label": "push в main", "event": "push", "branch": "main", "files": "src/api.py"}, {"label": "push в release/1.4", "event": "push", "branch": "release/1.4", "files": "src/api.py"}, {"label": "push в release/1.4/fix", "event": "push", "branch": "release/1.4/fix", "files": "src/api.py"}, {"label": "push в feature/login", "event": "push", "branch": "feature/login", "files": "frontend/login.js"}, {"label": "PR: фронтенд", "event": "pull_request", "branch": "main", "files": "frontend/app.js, README.md"}, {"label": "PR: только бэкенд", "event": "pull_request", "branch": "main", "files": "backend/api.py"}, {"label": "schedule", "event": "schedule"}, {"label": "ручной запуск", "event": "workflow_dispatch", "branch": "feature/login"}]}
+```
+
 ## cron
 
 Пять полей: **минута, час, день месяца, месяц, день недели** (0 или 7 — воскресенье).
@@ -123,6 +127,10 @@ on:
 ```
 
 Время — в UTC: 03:00 UTC — это 06:00 по Москве.
+
+```viz
+{"type": "cron", "title": "Расшифровка cron и ближайшие запуски", "expr": "30 6 * * 1-5", "presets": ["0 3 * * *", "30 6 * * 1-5", "0 */4 * * *", "*/15 * * * *", "0 9 * * 1", "0 0 1 * *"]}
+```
 
 ## Ловушка YAML: on = True
 

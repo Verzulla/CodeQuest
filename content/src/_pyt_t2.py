@@ -61,6 +61,10 @@ def api():
 - Порядок для теста с такой фикстурой: setup → тест → teardown.
 - Так закрывают браузеры, удаляют тестовые данные, откатывают транзакции.
 
+```viz
+{"type": "fixtures", "title": "Тест упал — уборка всё равно выполнится", "failable": true, "fail": ["test_orders"], "fixtures": [{"name": "api", "scope": "function"}], "tests": [{"name": "test_profile", "module": "test_api.py", "uses": ["api"]}, {"name": "test_orders", "module": "test_api.py", "uses": ["api"]}, {"name": "test_logout", "module": "test_api.py", "uses": ["api"]}]}
+```
+
 ## Фабрика
 
 ```py
@@ -273,6 +277,10 @@ def test_home(browser, lang):
 ```
 
 - Два декоратора — декартово произведение: 2 × 3 = 6 тестов.
+
+```viz
+{"type": "params", "title": "Сколько тестов и с какими id", "func": "test_home", "decorators": [{"name": "browser", "values": ["chrome", "firefox"]}, {"name": "lang", "values": ["ru", "en", "de"]}]}
+```
 
 ## Отдельный случай с маркером
 

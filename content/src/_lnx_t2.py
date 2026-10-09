@@ -148,6 +148,10 @@ $ ./cleanup.sh 2> /dev/null
 - `/dev/null` — «чёрная дыра»: всё, что туда отправлено, исчезает.
 - `echo текст` — напечатать текст.
 
+```viz
+{"type": "redirect", "title": "> перезаписывает, >> дописывает", "steps": [{"cmd": "echo старт > progress.log", "note": "`>` создал файл и записал в него строку. На экран ничего не вывелось — вывод ушёл в файл."}, {"cmd": "echo шаг 1 >> progress.log", "note": "`>>` **дописал** строку в конец."}, {"cmd": "echo шаг 2 >> progress.log"}, {"cmd": "cat progress.log", "note": "Без перенаправления вывод идёт на экран."}, {"cmd": "echo заново > progress.log", "note": "Снова `>` — и файл **перезаписан**: три строки пропали. Частая ошибка: хотели дописать, а стёрли."}, {"cmd": "cat nope.txt > out.txt", "note": "Команда упала, а `out.txt` всё равно создан пустым: `>` очищает файл ещё до запуска команды. Текст ошибки — на экране: он идёт в поток ошибок, а не в stdout."}], "sandbox": true, "quick": ["echo привет >> progress.log", "cat progress.log", "ls > files.txt", "wc -l progress.log", "> progress.log"]}
+```
+
 ## Конвейер: |
 
 ```bash
@@ -395,6 +399,10 @@ $ grep ERROR app.log | awk '{print $2}' | sort | uniq -c | sort -rn | head -n 5
 ```
 
 - Строки с ошибками → код ошибки (второе слово) → сортировка → подсчёт → самые частые сверху → первые пять.
+
+```viz
+{"type": "pipe", "title": "Конвейер по этапам: выключай любой", "files": {"app.log": "INFO 10:00 сервис запущен\nERROR E42 таймаут базы\nWARN 10:02 медленный ответ\nERROR E17 нет доступа\nERROR E42 таймаут базы\nINFO 10:05 GET /users 200\nERROR E05 диск заполнен\nERROR E42 таймаут базы\nINFO 10:07 GET /login 200\nERROR E17 нет доступа\nERROR E99 неизвестная ошибка\nERROR E42 таймаут базы"}, "cmd": "grep ERROR app.log | awk '{print $2}' | sort | uniq -c | sort -rn | head -n 3", "presets": ["grep ERROR app.log | awk '{print $2}' | sort | uniq -c | sort -rn | head -n 3", "grep ERROR app.log | wc -l", "grep -v INFO app.log", "grep -i error app.log | cut -d ' ' -f 3", "awk '{print $1}' app.log | sort | uniq -c"]}
+```
 
 ## Итог
 

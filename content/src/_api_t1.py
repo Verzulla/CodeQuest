@@ -200,6 +200,10 @@ print((body["data"]["user"].get("address") or {}).get("city", "нет"))
 - `or {}` — подстраховка, если значение `None`.
 - Вывод: `Аня`, `нет`.
 
+```viz
+{"type": "json", "title": "Нажми на поле — увидишь путь в Python", "var": "body", "select": ["data", "user", "name"], "data": {"data": {"user": {"id": 7, "name": "Аня", "roles": ["qa", "admin"], "active": true, "address": null}}, "meta": {"page": 1, "total": 42}}}
+```
+
 ## Что проверять в ответе
 
 ```python

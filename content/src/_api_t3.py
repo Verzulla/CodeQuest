@@ -58,6 +58,10 @@ except ValidationError as e:
 - `e.errors()` — список словарей: `loc` — путь к полю, `type` — вид ошибки, `msg` — описание.
 - Вывод: `2`, `('id',) int_parsing`, `('name',) missing`.
 
+```viz
+{"type": "schema", "title": "Меняй данные — Pydantic проверит", "model": "User", "fields": [{"name": "id", "type": "int"}, {"name": "name", "type": "str"}, {"name": "active", "type": "bool", "default": true}], "data": "{\"id\": \"abc\"}", "presets": {"ошибки из примера": "{\"id\": \"abc\"}", "всё хорошо": "{\"id\": 7, \"name\": \"Аня\"}", "\"7\" → 7": "{\"id\": \"7\", \"name\": \"Аня\", \"active\": \"yes\"}", "7.5 и число вместо имени": "{\"id\": 7.5, \"name\": 5}", "лишнее поле": "{\"id\": 1, \"name\": \"Аня\", \"password\": \"123\"}", "null": "{\"id\": null, \"name\": \"Аня\", \"active\": null}"}}
+```
+
 ## Строгость
 
 ```py

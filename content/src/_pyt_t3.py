@@ -72,6 +72,10 @@ markers =
 
 - `--strict-markers` превращает незарегистрированный маркер в ошибку — защита от опечаток.
 
+```viz
+{"type": "select", "title": "Какие тесты выберет -m или -k", "mode": "m", "expr": "api and not slow", "tests": [{"name": "test_login", "file": "test_auth.py", "marks": ["smoke"]}, {"name": "test_logout", "file": "test_auth.py", "marks": ["smoke"]}, {"name": "test_report", "file": "test_reports.py", "marks": ["slow", "api"]}, {"name": "test_export_report", "file": "test_reports.py", "marks": ["slow"]}, {"name": "test_get_users", "file": "test_users.py", "marks": ["api"]}, {"name": "test_create_user", "file": "test_users.py", "marks": ["api", "smoke"]}], "presets": {"m": ["api and not slow", "smoke", "not slow", "smoke or slow", "api and smoke"], "k": ["login", "report", "user and not create", "auth or users", "not report"]}}
+```
+
 ## Итог
 
 - `skip`, `skipif(условие)` — пропустить; `reason` — всегда.

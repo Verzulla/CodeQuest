@@ -144,6 +144,10 @@ jobs:
 - `fail-fast` (по умолчанию `true`) — первое падение **отменяет** остальные незаконченные запуски. Для тестов обычно ставят `false`: нужно видеть все упавшие браузеры, а не только первый.
 - `max-parallel` — не больше N запусков одновременно.
 
+```viz
+{"type": "matrix", "title": "Собери матрицу: сколько будет запусков", "axes": {"os": ["ubuntu-latest", "windows-latest"], "browser": ["chromium", "firefox", "webkit"]}, "exclude": [{"os": "windows-latest", "browser": "webkit"}], "include": [{"os": "macos-latest", "browser": "webkit"}]}
+```
+
 ## Выражения и контексты
 
 - `${{ matrix.browser }}`, `${{ github.ref }}` (`refs/heads/main`), `${{ github.ref_name }}` (`main`), `${{ github.sha }}`, `${{ github.event_name }}`.
