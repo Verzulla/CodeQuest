@@ -2061,11 +2061,41 @@ function vmstackViz(box, spec) {
   show();
 }
 
+// ---------- из чего собран образ: цепочка FROM ----------
+// {"type": "imagechain", "select": "my-tests", "pick": ["my-tests", "postgres:16"],
+//  "images": {"my-tests": {"from": "python:3.12-slim", "kind": "…", "adds": "…", "mb": 55}, …}}  from: "scratch" — пустой образ
+
+function imagechainViz(box, spec) {
+  let sel = spec.select || spec.pick[0];
+  const show = () => {
+    const chain = [];
+    for (let name = sel; name && name !== "scratch" && spec.images[name]; name = spec.images[name].from) chain.push(name);
+    const total = chain.reduce((a, n) => a + spec.images[n].mb, 0);
+    const top = spec.images[sel];
+    box.innerHTML = `${vizHead(spec)}
+      <div class="viz-sb-quick viz-ic-pick">${spec.pick.map((p) => `<button class="viz-chip${p === sel ? " on" : ""}" data-p="${esc(p)}">${esc(p)}</button>`).join("")}</div>
+      <div class="viz-ic-stack">
+        ${chain.map((n, k) => {
+          const im = spec.images[n];
+          return `<div class="viz-ic-layer k${im.kindKey || ""}${k === 0 ? " top" : ""}">
+            <div class="viz-ic-head"><code>${esc(n)}</code><span>${esc(im.kind)}</span><b>+${im.mb} МБ</b></div>
+            <div class="viz-ic-adds">${inline(im.adds)}</div>
+            ${im.from && im.from !== "scratch" ? `<div class="viz-ic-from">FROM ${esc(im.from)} ↓</div>` : `<div class="viz-ic-from">FROM scratch — дальше ничего нет</div>`}</div>`;
+        }).join("")}
+        <div class="viz-ic-kernel">⚙ Ядро Linux — <b>не в образе</b>: его даёт хост, на котором запущен контейнер</div>
+      </div>
+      <div class="viz-ic-total">Образ <code>${esc(sel)}</code> ≈ <b>${total} МБ</b>, ${chain.length} ${plural(chain.length, "уровень", "уровня", "уровней")} FROM</div>
+      <div class="viz-note">${inline(top.note || "")}</div>`;
+    box.querySelectorAll("[data-p]").forEach((b) => (b.onclick = () => { sel = b.dataset.p; show(); }));
+  };
+  show();
+}
+
 const KINDS = {
   memory: memoryViz, git: gitViz, slice: sliceViz, fs: fsViz, perm: permViz,
   fixtures: fixturesViz, pipeline: pipelineViz, http: httpViz, trace: traceViz,
   pipe: pipeViz, redirect: redirectViz, select: selectViz, params: paramsViz, json: jsonViz,
   schema: schemaViz, matrix: matrixViz, trigger: triggerViz, cron: cronViz, itertools: itertoolsViz,
   buildcache: buildcacheViz, container: containerViz, dockerhost: dockerhostViz, promote: promoteViz,
-  vmstack: vmstackViz,
+  vmstack: vmstackViz, imagechain: imagechainViz,
 };
