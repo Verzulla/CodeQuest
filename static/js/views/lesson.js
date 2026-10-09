@@ -712,7 +712,14 @@ export function runSession(view, opts) {
 // Ручка под полем: тянешь — меняется высота поля; размер запоминается для следующих заданий.
 function bindGrip(grip, box, key) {
   if (!grip || !box) return;
-  const apply = (h) => { box.style.height = `${h}px`; box.style.maxHeight = "none"; box.style.minHeight = "100px"; };
+  // На телефоне поле растёт вместе с кодом, поэтому ручка задаёт не высоту, а минимальную высоту:
+  // иначе запомненная высота превращала поле в маленькое окошко с прокруткой внутри страницы.
+  const touch = matchMedia("(pointer: coarse)").matches;
+  const apply = (h) => {
+    box.style.maxHeight = "none";
+    if (touch) { box.style.height = ""; box.style.minHeight = `${h}px`; }
+    else { box.style.height = `${h}px`; box.style.minHeight = "100px"; }
+  };
   try { const h = Number(localStorage.getItem(key)); if (h >= 100) apply(h); } catch { /* ок */ }
   grip.addEventListener("pointerdown", (e) => {
     e.preventDefault();

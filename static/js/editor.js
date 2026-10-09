@@ -21,6 +21,10 @@ export function createEditor(host, initial = "", { onSubmit, onChange } = {}) {
     ta.style.height = "";
     ta.style.width = `${Math.max(pre.scrollWidth, area.clientWidth)}px`;
     ta.style.height = `${Math.max(pre.scrollHeight, area.clientHeight)}px`;
+    // Номера строк — ровно по высоте области кода (прокручиваются вместе с ней, см. scroll ниже).
+    // Иначе колонка номеров растягивает редактор на все строки, а код виден лишь в верхнем окошке.
+    gutter.style.height = `${area.offsetHeight}px`;
+    gutter.scrollTop = area.scrollTop;
   };
 
   // Прокрутить .area так, чтобы курсор был виден (шрифт моноширинный — позицию считаем сами).
@@ -50,7 +54,7 @@ export function createEditor(host, initial = "", { onSubmit, onChange } = {}) {
     fit();
     onChange?.(ta.value);
   };
-  area.addEventListener("scroll", () => { gutter.style.transform = `translateY(${-area.scrollTop}px)`; });
+  area.addEventListener("scroll", () => { gutter.scrollTop = area.scrollTop; });
   // Браузер иногда всё же прокручивает саму textarea (например, к курсору) — возвращаем.
   ta.addEventListener("scroll", () => { if (ta.scrollLeft || ta.scrollTop) { ta.scrollLeft = 0; ta.scrollTop = 0; } });
   // Курсор двигается стрелками, касанием или кнопками ← → панели символов.
