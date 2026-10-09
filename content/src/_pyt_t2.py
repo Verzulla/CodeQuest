@@ -142,6 +142,10 @@ def db():
 - Фикстура с широким scope не может зависеть от фикстуры с узким (session от function) — pytest выдаст ошибку.
 - Осторожно с изменяемыми объектами в session-фикстурах: если тест их меняет, это увидят следующие тесты.
 
+```viz
+{"type": "fixtures", "title": "Когда pytest создаёт и убирает фикстуры", "fixtures": [{"name": "token", "scope": "session"}, {"name": "db", "scope": "module"}, {"name": "browser", "scope": "function"}], "tests": [{"name": "test_login", "module": "test_auth.py", "uses": ["token", "browser"]}, {"name": "test_logout", "module": "test_auth.py", "uses": ["token", "browser"]}, {"name": "test_orders", "module": "test_db.py", "uses": ["token", "db"]}, {"name": "test_refund", "module": "test_db.py", "uses": ["db"]}]}
+```
+
 ## autouse
 
 ```py

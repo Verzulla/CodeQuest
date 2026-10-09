@@ -264,6 +264,10 @@ data.get("meta", {}).get("total", 0)   # необязательное
 - Вложенные ресурсы: `GET /users/7/orders` — заказы пользователя 7.
 - Имена ресурсов — существительные во множественном числе; действия выражаются методом, а не словом в пути (`POST /users`, а не `/createUser`).
 
+```viz
+{"type": "http", "title": "Отправь запрос к учебному API", "items": [{"id": 1, "name": "Аня"}, {"id": 2, "name": "Боря"}], "presets": ["GET /users", "GET /users/1", "GET /users/99", "POST /users", "PATCH /users/1", "DELETE /users/2", "DELETE /users"]}
+```
+
 ## CRUD-тест
 
 Классическая проверка жизненного цикла ресурса:

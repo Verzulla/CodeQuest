@@ -18,7 +18,8 @@ SRC = Path(__file__).parent
 OUT = SRC.parent
 
 
-VIZ_TYPES = {"memory", "git"}
+VIZ_TYPES = {"memory", "git", "slice", "fs", "perm", "fixtures", "pipeline", "http", "trace"}
+VIZ_NEED_STEPS = {"memory", "git", "trace"}   # остальные — песочницы без заранее заданных шагов
 
 
 def check_viz(where: str, text: str) -> None:
@@ -30,7 +31,7 @@ def check_viz(where: str, text: str) -> None:
             raise SystemExit(f"{where}: схема viz — не JSON: {e}")
         if spec.get("type") not in VIZ_TYPES:
             raise SystemExit(f"{where}: схема viz неизвестного типа {spec.get('type')!r}")
-        if not spec.get("steps"):
+        if spec["type"] in VIZ_NEED_STEPS and not spec.get("steps"):
             raise SystemExit(f"{where}: в схеме viz нет шагов")
 
 
