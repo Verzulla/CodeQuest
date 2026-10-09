@@ -156,8 +156,9 @@ export function md(src, { runnable = false } = {}) {
       const rows = [];
       i++;
       while (i + 1 < lines.length && lines[i + 1].trim().startsWith("|")) rows.push(tableRow(lines[++i]));
-      html += `<div class="md-table"><table><thead><tr>${head.map((c) => `<th>${inline(c)}</th>`).join("")}</tr></thead>`
-        + `<tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+      // data-l — подпись колонки: на телефоне строки таблицы из 3+ колонок становятся карточками
+      html += `<div class="md-table${head.length >= 3 ? " cards" : ""}"><table><thead><tr>${head.map((c) => `<th>${inline(c)}</th>`).join("")}</tr></thead>`
+        + `<tbody>${rows.map((r) => `<tr>${r.map((c, k) => `<td data-l="${esc(head[k] || "")}">${inline(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
       continue;
     }
     const h = line.match(/^(#{1,3})\s+(.*)/);

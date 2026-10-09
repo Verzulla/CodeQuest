@@ -2079,7 +2079,8 @@ function imagechainViz(box, spec) {
           const im = spec.images[n];
           return `<div class="viz-ic-layer k${im.kindKey || ""}${k === 0 ? " top" : ""}">
             <div class="viz-ic-head"><code>${esc(n)}</code><span>${esc(im.kind)}</span><b>+${im.mb} МБ</b></div>
-            <div class="viz-ic-adds">${inline(im.adds)}</div>
+            ${im.what ? `<div class="viz-ic-what">${inline(im.what)}</div>` : ""}
+            <div class="viz-ic-adds"><span>добавляет:</span> ${inline(im.adds)}</div>
             ${im.from && im.from !== "scratch" ? `<div class="viz-ic-from">FROM ${esc(im.from)} ↓</div>` : `<div class="viz-ic-from">FROM scratch — дальше ничего нет</div>`}</div>`;
         }).join("")}
         <div class="viz-ic-kernel">⚙ Ядро Linux — <b>не в образе</b>: его даёт хост, на котором запущен контейнер</div>
