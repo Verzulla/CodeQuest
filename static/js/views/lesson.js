@@ -329,6 +329,8 @@ export function runSession(view, opts) {
     const item = items[i];
     const ex = item.ex;
     const isCode = ex.type === "code";
+    // ошиблись в коде и остались на задании («Исправить»): верное решение простит ошибку (game.record_answer)
+    let fixNow = false;
     const isCmd = ex.type === "command";
     const kindLabel = isCode ? "Напиши код" : isCmd ? "Терминал" : "Что выведет программа?";
     const viewSolved = item.solved && !item.redo;   // решённое задание: показываем решение, проверка выключена
@@ -473,7 +475,7 @@ export function runSession(view, opts) {
       const answer = getAnswer();
       let r;
       try {
-        r = await api(`/exercises/${ex.id}/check`, { method: "POST", body: { answer, mode } });
+        r = await api(`/exercises/${ex.id}/check`, { method: "POST", body: { answer, mode, fix: fixNow } });
       } catch (e) {
         if (e.status === 409) return noHearts();
         btn.disabled = false;
@@ -494,20 +496,25 @@ export function runSession(view, opts) {
           s.solvedNow++;
           if (!item.failed && !item.peeked) s.firstTry++;
         }
+        const fixed = r.events.find((e) => e.type === "fixed_now");
+        if (fixed && !fixed.in_review) { item.failed = false; item.fixedNow = true; }   // не ждёт в работе над ошибками
+        fixNow = false;
         item.solved = true;
         item.redo = false;
         item.answer = answer;
         clearTimeout(draftTimer); draftPending = null;   // сервер сам очистил черновик
         if (isCode) editor.textarea.readOnly = true; else answerEl.readOnly = true;
         footer.className = "footer good";
-        const firstTry = !item.failed && !item.peeked && !(item.redo);
+        const firstTry = !item.failed && !item.fixedNow && !item.peeked && !(item.redo);
         footer.innerHTML = `<div class="inner">${owl("happy", "hop", "")}<div class="verdict">
-          <div>${praise()}<div class="detail">${gained ? `+${gained} XP` : "Решено"}${firstTry && gained ? " · с первой попытки" : ""}</div></div></div>
+          <div>${praise()}<div class="detail">${gained ? `+${gained} XP` : "Решено"}${firstTry && gained ? " · с первой попытки" : ""}${fixed && !fixed.in_review ? " · исправлено сразу — в работу над ошибками не попадёт" : ""}</div></div></div>
           <div class="spacer"></div><button class="btn main" id="cont">${nextTodo(i) === -1 ? (opts.mode === "lesson" ? endLabel() : "Готово") : "Продолжить"}</button></div>`;
         $("#cont", view).onclick = proceed;
       } else {
         sound("bad");
         if (mode !== "practice" || training) { s.mistakes++; item.failed = true; }
+        if (mode === "lesson" && isCode) fixNow = true;
+        const outOfHearts = mode === "lesson" && store.state.hearts_enabled && store.state.hearts <= 0;
         $("#sol", view).hidden = false;
         view.querySelector(".lesson-body").classList.add("shake");
         const detail = isCode
@@ -523,7 +530,10 @@ export function runSession(view, opts) {
             : isCode ? `${lessonFlow || (later !== -1 && later !== i) ? `<button class="btn ghost" id="later">Позже</button>` : ""}<button class="btn red main" id="retry">Исправить</button>`
             : `<button class="btn red main" id="cont">Понятно</button>`}</div>`;
         $("#retry", view)?.addEventListener("click", () => { idleFooter(); (isCode ? editor : answerEl).focus(); });
-        $("#later", view)?.addEventListener("click", () => (lessonFlow ? advanceFrom(i) : goTo(later)));
+        $("#later", view)?.addEventListener("click", () => {
+          if (outOfHearts) return noHearts();   // исправить сразу можно и без сердечек, а дальше — нет
+          lessonFlow ? advanceFrom(i) : goTo(later);
+        });
         $("#cancel-redo", view)?.addEventListener("click", () => { item.redo = false; showExercise(i); });
         // «что выведет»: правильный ответ уже показан — вернёмся к заданию позже, по кругу
         $("#cont", view)?.addEventListener("click", () => {
@@ -532,9 +542,7 @@ export function runSession(view, opts) {
           if (j === i || j === -1) { answerEl.value = ""; item.answer = ""; saveDraft(item, ""); idleFooter(); answerEl.focus(); }
           else goTo(j);
         });
-        if (mode === "lesson" && store.state.hearts_enabled && store.state.hearts <= 0) {
-          setTimeout(noHearts, 700);
-        }
+        if (outOfHearts && !fixNow) setTimeout(noHearts, 700);
       }
       refreshTop();
       ($("#cont", view) || $("#retry", view))?.focus();
@@ -648,7 +656,7 @@ export function runSession(view, opts) {
     flushDraft();
     // Точность урока — доля заданий, решённых без единой ошибки (с учётом прошлых заходов);
     // в повторении и тренировке — по ответам этой сессии.
-    const acc = opts.mode === "lesson" ? Math.round((100 * items.filter((it) => it.solved && !it.failed).length) / n)
+    const acc = opts.mode === "lesson" ? Math.round((100 * items.filter((it) => it.solved && !it.failed && !it.fixedNow).length) / n)
       : s.solvedNow ? Math.round((100 * s.firstTry) / s.solvedNow) : 100;
     const rewards = s.events.filter((e) => ["trophy", "achievement", "level_up", "perfect"].includes(e.type));
     const quizWrong = quiz.filter((q, k) => quizAnswers[k] !== null && quizAnswers[k] !== q.answer).length;

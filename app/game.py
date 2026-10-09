@@ -3,6 +3,7 @@
 Все функции принимают открытое соединение и id пользователя (uid) и работают
 внутри транзакции вызывающего кода. Время берётся через now() — тесты подменяют его.
 """
+import json
 import sqlite3
 from datetime import date, datetime, timedelta
 
@@ -229,8 +230,26 @@ class NoHearts(Exception):
     pass
 
 
-def record_answer(conn, uid: int, ex: sqlite3.Row, correct: bool, answer: str, mode: str) -> list:
-    """mode:
+def _pending_fix(st: sqlite3.Row) -> dict | None:
+    try:
+        return json.loads(st["pending_fix"]) if st["pending_fix"] else None
+    except ValueError:
+        return None
+
+
+def _set_pending_fix(conn, uid: int, value: dict | None) -> None:
+    conn.execute("UPDATE user_state SET pending_fix = ? WHERE user_id = ?",
+                 (json.dumps(value) if value else None, uid))
+
+
+def record_answer(conn, uid: int, ex: sqlite3.Row, correct: bool, answer: str, mode: str,
+                  fix: bool = False) -> list:
+    """fix — в уроке после ошибки в задании с кодом сразу нажали «Исправить» (не уходя с задания).
+    Если задание решено так, ошибки этого захода прощаются: потраченные на них сердечки возвращаются,
+    а задание не попадает в работу над ошибками. Что исправляем, сервер помнит сам (user_state.pending_fix):
+    ответ на любое другое задание или попытка без fix (вернулся позже) — и прощать уже нечего.
+
+    mode:
     'lesson'   — обычное прохождение: ошибка стоит сердечко и попадает в повторение;
     'review'   — работа над ошибками: сердечки не тратятся; исправленное задание возвращает
                  столько сердечек, сколько на нём было потеряно (со временем они не восстанавливаются);
@@ -246,7 +265,13 @@ def record_answer(conn, uid: int, ex: sqlite3.Row, correct: bool, answer: str, m
         return events
     st = _state(conn, uid)
     hearts_on = bool(st["hearts_enabled"])
-    if mode == "lesson" and hearts_on and st["hearts"] <= 0:
+    pending = _pending_fix(st)
+    fixing = (fix and mode == "lesson" and ex["type"] == "code"
+              and pending is not None and pending.get("slug") == ex["slug"])
+    if pending and not fixing:
+        _set_pending_fix(conn, uid, None)
+    # сердечки кончились на этом задании — исправить его сразу всё равно можно
+    if mode == "lesson" and hearts_on and st["hearts"] <= 0 and not fixing:
         raise NoHearts()
 
     key = (uid, ex["slug"])
@@ -285,6 +310,21 @@ def record_answer(conn, uid: int, ex: sqlite3.Row, correct: bool, answer: str, m
         else:
             add_xp(conn, uid, XP_PRACTICE, events, "practice")
 
+        if fixing:
+            _set_pending_fix(conn, uid, None)
+            lost = pending.get("hearts", 0)
+            back = min(lost, MAX_HEARTS - st["hearts"]) if hearts_on else 0
+            # было в работе над ошибками ещё до этого захода — там и остаётся
+            in_review = 1 if pending.get("was_review") else 0
+            conn.execute(
+                "UPDATE exercise_progress SET hearts_lost = MAX(0, hearts_lost - ?), in_review = ? "
+                "WHERE user_id = ? AND exercise_slug = ?",
+                (lost, in_review, *key),
+            )
+            if back > 0:
+                conn.execute("UPDATE user_state SET hearts = hearts + ? WHERE user_id = ?", (back, uid))
+                events.append({"type": "heart_restored", "amount": back, "fixed_now": True})
+            events.append({"type": "fixed_now", "in_review": bool(in_review)})
         if mode == "review" and prog["in_review"]:
             conn.execute(
                 "UPDATE exercise_progress SET in_review = 0, hearts_lost = 0 "
@@ -309,13 +349,21 @@ def record_answer(conn, uid: int, ex: sqlite3.Row, correct: bool, answer: str, m
         )
         _day_add(conn, uid, "mistakes", 1)
         _set_counter(conn, uid, "clean_run", 0)
-        if mode == "lesson" and hearts_on:
-            conn.execute("UPDATE user_state SET hearts = MAX(0, hearts - 1) WHERE user_id = ?",
-                         (uid,))
+        spent = 0
+        if mode == "lesson" and hearts_on and st["hearts"] > 0:
+            spent = 1
+            conn.execute("UPDATE user_state SET hearts = hearts - 1 WHERE user_id = ?", (uid,))
             # запоминаем, сколько сердечек стоило задание: исправив его в повторении, их вернёшь
             conn.execute("UPDATE exercise_progress SET hearts_lost = hearts_lost + 1 "
                          "WHERE user_id = ? AND exercise_slug = ?", key)
             events.append({"type": "heart_lost"})
+        if mode == "lesson" and ex["type"] == "code":
+            # можно исправить сразу: запоминаем, что прощать, если следующая попытка — «Исправить»
+            _set_pending_fix(conn, uid, {
+                "slug": ex["slug"],
+                "hearts": (pending["hearts"] if fixing else 0) + spent,
+                "was_review": pending["was_review"] if fixing else bool(prog["in_review"]),
+            })
 
     events += check_achievements(conn, uid)
     return events

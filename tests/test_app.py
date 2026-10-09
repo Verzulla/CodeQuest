@@ -199,6 +199,75 @@ def test_hearts_lost_and_blocked(client):
     assert {"type": "heart_restored", "amount": 5} in r["events"]
 
 
+def _exercises(kind, n=2):
+    from app.db import transaction
+    with transaction() as conn:
+        rows = conn.execute("SELECT id, solution, expected_output FROM exercises WHERE type = ? ORDER BY id LIMIT ?",
+                            (kind, n)).fetchall()
+    return [(r["id"], r["solution"] if kind == "code" else r["expected_output"]) for r in rows]
+
+
+def _check(client, ex_id, answer, **kw):
+    r = client.post(f"/api/exercises/{ex_id}/check", json={"answer": answer, **kw})
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+def test_fix_right_away_forgives_mistakes(client):
+    (a, sol), = _exercises("code", 1)
+    assert _check(client, a, "x = 1")["state"]["hearts"] == 4
+    assert _check(client, a, "x = 2", fix=True)["state"]["hearts"] == 3
+    r = _check(client, a, sol, fix=True)
+    assert r["correct"] and r["state"]["hearts"] == 5 and r["state"]["review_count"] == 0
+    assert {"type": "fixed_now", "in_review": False} in r["events"]
+    assert any(e["type"] == "heart_restored" and e["amount"] == 2 for e in r["events"])
+    assert client.get("/api/review").json()["kind"] != "mistakes"
+
+
+def test_fix_later_is_not_forgiven(client):
+    (a, sol_a), (b, _) = _exercises("code")
+    _check(client, a, "x = 1")
+    _check(client, b, "x = 1")            # ушёл на другое задание — исправлять «сразу» уже поздно
+    r = _check(client, a, sol_a, fix=True)
+    assert r["correct"] and r["state"]["hearts"] == 3 and r["state"]["review_count"] == 2
+    assert not any(e["type"] in ("fixed_now", "heart_restored") for e in r["events"])
+    (c, sol_c), = _exercises("code", 3)[2:]
+    _check(client, c, "x = 1")
+    r = _check(client, c, sol_c)           # без fix — вернулся к заданию позже
+    assert r["state"]["hearts"] == 2 and r["state"]["review_count"] == 3
+
+
+def test_fix_right_away_works_without_hearts(client):
+    (a, sol), = _exercises("code", 1)
+    _check(client, a, "x = 1")
+    for _ in range(4):
+        _check(client, a, "x = 1", fix=True)
+    assert client.get("/api/state").json()["hearts"] == 0
+    assert _check(client, a, "x = 1", fix=True)["state"]["hearts"] == 0, "исправлять сразу можно и без сердечек"
+    assert client.post(f"/api/exercises/{a}/check", json={"answer": "x = 1"}).status_code == 409
+    # попытка без fix сбросила «исправление сразу»; начинаем заново нельзя — сердечек нет
+    (b, sol_b), = _exercises("code", 2)[1:]
+    assert client.post(f"/api/exercises/{b}/check", json={"answer": sol_b, "fix": True}).status_code == 409
+
+
+def test_fix_right_away_restores_only_this_round(client):
+    (a, sol_a), (b, _) = _exercises("code")
+    _check(client, a, "x = 1")            # 4, a — в работе над ошибками
+    _check(client, b, "x = 1")            # 3
+    _check(client, a, "x = 2")            # 2: вернулся к a позже и снова ошибся
+    r = _check(client, a, sol_a, fix=True)
+    assert r["state"]["hearts"] == 3, "прощается только ошибка этого захода"
+    assert {"type": "fixed_now", "in_review": True} in r["events"]
+    assert r["state"]["review_count"] == 2, "задание с прошлой ошибкой остаётся в работе над ошибками"
+
+
+def test_fix_flag_ignored_for_output_tasks(client):
+    (o, ans), = _exercises("output", 1)
+    _check(client, o, "nope")
+    r = _check(client, o, ans, fix=True)   # правильный ответ уже показан — прощать нечего
+    assert r["state"]["hearts"] == 4 and r["state"]["review_count"] == 1
+
+
 def test_hearts_do_not_regenerate_and_fix_returns_what_was_lost(client, clock):
     exs = client.get(f"/api/lessons/{first_lessons(client)[0]['id']}").json()["exercises"]
     a, b = exs[0]["id"], exs[1]["id"]

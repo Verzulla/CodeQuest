@@ -105,7 +105,8 @@ CREATE TABLE IF NOT EXISTS user_state (
     daily_goal         INTEGER NOT NULL DEFAULT 30,
     theme              TEXT NOT NULL DEFAULT 'dark',
     path_view          TEXT NOT NULL DEFAULT 'zigzag',  -- дорожка уроков: 'zigzag' или 'list'
-    last_lesson_slug   TEXT                           -- для плашки «Продолжить»
+    last_lesson_slug   TEXT,                          -- для плашки «Продолжить»
+    pending_fix        TEXT                           -- JSON: ошибка, которую можно исправить сразу
 );
 
 -- Слаги (а не id) — чтобы прогресс переживал переимпорт контента.
@@ -208,6 +209,7 @@ MIGRATIONS = [
     ("daily_activity", "frozen", "INTEGER NOT NULL DEFAULT 0"),      # день, спасённый заморозкой
     ("users", "avatar", "TEXT NOT NULL DEFAULT ''"),                  # аватарка
     ("exercises", "explain", "TEXT NOT NULL DEFAULT ''"),             # ручной разбор решения (JSON)
+    ("user_state", "pending_fix", "TEXT"),   # ошибка, которую можно исправить сразу (game.record_answer)
 ]
 
 

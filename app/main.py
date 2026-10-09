@@ -364,6 +364,7 @@ def run_code(body: RunIn, user: User):
 class CheckIn(BaseModel):
     answer: str = Field(max_length=20_000)
     mode: Literal["lesson", "review", "practice", "warmup"] = "lesson"
+    fix: bool = False   # сразу исправляет только что допущенную ошибку (кнопка «Исправить»)
 
 
 @app.post("/api/exercises/{ex_id}/check")
@@ -382,7 +383,7 @@ def check(ex_id: int, body: CheckIn, user: User):
         correct = runner.output_matches(body.answer, ex["expected_output"])
     with transaction() as conn:
         try:
-            events = game.record_answer(conn, user["id"], ex, correct, body.answer, body.mode)
+            events = game.record_answer(conn, user["id"], ex, correct, body.answer, body.mode, body.fix)
         except game.NoHearts:
             raise HTTPException(409, "Сердечки закончились")
         return {
