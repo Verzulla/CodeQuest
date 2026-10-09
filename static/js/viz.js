@@ -1764,9 +1764,308 @@ function itertoolsViz(box, spec) {
   show();
 }
 
+// переключатели схемы (их stepper кладёт вниз) — сразу под заголовок
+function toTop(box, sel) {
+  const el = box.querySelector(sel), title = box.querySelector(".viz-title");
+  if (el) title ? title.after(el) : box.prepend(el);
+}
+
+// ---------- Docker: кэш слоёв при сборке ----------
+// {"type": "buildcache", "good": [{"cmd": "FROM python:3.12-slim", "sec": 0}, {"cmd": "COPY requirements.txt .", "uses": ["requirements.txt"], "sec": 1}, …],
+//  "bad": […], "files": ["tests/test_api.py", "requirements.txt", "README.md"], "changed": ["tests/test_api.py"], "ignore": "README.md"}
+// uses: ["*"] — инструкция копирует весь контекст сборки (COPY . .).
+
+function buildcacheViz(box, spec) {
+  let order = "good", ignored = false, timers = [];
+  const changed = new Set(spec.changed || []);
+  box.innerHTML = `${vizHead(spec)}
+    <div class="viz-bc-opt"><span>Порядок в Dockerfile:</span>
+      <button class="viz-chip" data-o="good">сначала зависимости, потом код</button>
+      <button class="viz-chip" data-o="bad">сначала код, потом зависимости</button></div>
+    <div class="viz-bc-opt"><span>Что ты поменял (нажимай):</span>${spec.files.map((f) => `<button class="viz-par-val" data-f="${esc(f)}">${esc(f)}</button>`).join("")}</div>
+    ${spec.ignore ? `<label class="viz-sch-opt"><input type="checkbox" class="viz-bc-ign"> добавить <code>${esc(spec.ignore)}</code> в <code>.dockerignore</code></label>` : ""}
+    <div class="viz-bc-layers"></div>
+    <div class="viz-bc-total"></div>
+    <div class="viz-note"></div>`;
+  const show = () => {
+    timers.forEach(clearTimeout);
+    timers = [];
+    const steps = spec[order];
+    const ctx = spec.files.filter((f) => !(ignored && f === spec.ignore));
+    const touched = (s) => (s.uses || []).filter((u) => (u === "*" ? ctx.some((f) => changed.has(f)) : changed.has(u)));
+    const first = steps.findIndex((s) => touched(s).length);
+    const rebuilt = (k) => first >= 0 && k >= first;
+    const total = steps.reduce((a, s, k) => a + (rebuilt(k) ? s.sec || 0 : 0), 0);
+    const full = steps.reduce((a, s) => a + (s.sec || 0), 0);
+    box.querySelectorAll("[data-o]").forEach((b) => b.classList.toggle("on", b.dataset.o === order));
+    box.querySelectorAll("[data-f]").forEach((b) => b.classList.toggle("on", changed.has(b.dataset.f)));
+    const lay = box.querySelector(".viz-bc-layers");
+    lay.innerHTML = steps.map((s, k) => `${k === first ? `<div class="viz-bc-break">▼ здесь кэш сломался — дальше всё собирается заново</div>` : ""}
+      <div class="viz-bc-row wait" data-k="${k}"><i>${k + 1}</i><code>${esc(s.cmd)}</code><b></b></div>`).join("");
+    // строки «собираются» по очереди, как в выводе docker build
+    steps.forEach((s, k) => timers.push(setTimeout(() => {
+      const row = lay.querySelector(`[data-k="${k}"]`);
+      if (!row) return;
+      const why = touched(s);
+      row.className = `viz-bc-row ${rebuilt(k) ? "build" : "cache"}`;
+      row.querySelector("b").innerHTML = rebuilt(k)
+        ? `⟳ заново${s.sec ? ` · ${s.sec} с` : ""}${k === first ? `<small>${why.includes("*") ? `копирует всю папку проекта, а в ней ${[...changed].filter((f) => ctx.includes(f)).map(esc).join(", ")}` : `использует ${why.map(esc).join(", ")}`}</small>` : ""}`
+        : `✓ из кэша`;
+    }, 140 * (k + 1))));
+    timers.push(setTimeout(() => {
+      box.querySelector(".viz-bc-total").innerHTML = `Сборка: <b>${total} с</b> <span>(без кэша было бы ${full} с)</span>`;
+    }, 140 * (steps.length + 1)));
+    box.querySelector(".viz-bc-total").innerHTML = `<span>собираем…</span>`;
+    const names = [...changed].filter((f) => ctx.includes(f));
+    const heavy = steps.find((s) => (s.sec || 0) >= 10);
+    const heavyK = steps.indexOf(heavy);
+    let note;
+    if (!changed.size) note = "Ничего не поменяли — все слои взяты из кэша, сборка почти мгновенная. Нажми на файл вверху.";
+    else if (first < 0) note = `\`${spec.ignore}\` исключён через \`.dockerignore\` — Docker его даже не видит, поэтому кэш цел.`;
+    else {
+      note = `Ты поменял ${names.map((f) => `\`${f}\``).join(", ")}. Первый слой, который его использует, — **${first + 1}** (\`${steps[first].cmd}\`). Он и **все слои ниже** собираются заново, всё выше — из кэша.`;
+      if (heavy && heavyK > first) note += ` Поэтому заново идёт и \`${heavy.cmd}\` — это ещё ${heavy.sec} с.`;
+      if (heavy && heavyK < first) note += ` \`${heavy.cmd}\` стоит выше изменения и взят из кэша — сэкономлено ${heavy.sec} с.`;
+      if (order === "bad" && heavyK > first) note += " Код скопирован **раньше** зависимостей, и любая правка теста заново запускает их установку. Переключи порядок вверху.";
+      if (spec.ignore && changed.has(spec.ignore) && !ignored) note += ` \`${spec.ignore}\` тоже попадает в \`COPY . .\` — добавь его в \`.dockerignore\`.`;
+    }
+    box.querySelector(".viz-note").innerHTML = inline(note);
+  };
+  box.querySelectorAll("[data-o]").forEach((b) => (b.onclick = () => { order = b.dataset.o; show(); }));
+  box.querySelectorAll("[data-f]").forEach((b) => (b.onclick = () => { const f = b.dataset.f; changed.has(f) ? changed.delete(f) : changed.add(f); show(); }));
+  const ign = box.querySelector(".viz-bc-ign");
+  if (ign) ign.onchange = () => { ignored = ign.checked; show(); };
+  show();
+}
+
+// ---------- Docker: контейнер = слои образа + слой для записи ----------
+// {"type": "container", "image": "my-tests", "layers": [{"cmd": "FROM python:3.12-slim", "files": {"/etc/os-release": "Debian 12"}}, …],
+//  "steps": [{"op": "run", "volume": ["./reports", "/tests/reports"]}, {"op": "write", "path": "…", "content": "…", "cmd": "…"},
+//            {"op": "delete", "path": "…"}, {"op": "rm"}], "note" в любом шаге}
+
+function containerViz(box, spec) {
+  const inImage = (p) => spec.layers.some((l) => p in l.files);
+  const states = [{ alive: false, rw: {}, vol: null, host: {}, cmd: "", fresh: "", note: spec.intro || "" }];
+  for (const s of spec.steps) {
+    const p = states.at(-1);
+    const st = { ...p, rw: { ...p.rw }, host: { ...p.host }, fresh: s.path || "", note: s.note || "" };
+    const inVol = (path) => st.vol && path.startsWith(st.vol[1] + "/");
+    const hostPath = (path) => st.vol[0] + path.slice(st.vol[1].length);
+    if (s.op === "run") {
+      Object.assign(st, { alive: true, rw: {}, vol: s.volume || null, fresh: "" });
+      st.cmd = s.cmd || `docker run --rm${s.volume ? ` -v ${s.volume[0]}:${s.volume[1]}` : ""} ${spec.image}`;
+    } else if (s.op === "write") {
+      if (inVol(s.path)) { st.host[hostPath(s.path)] = s.content; st.fresh = hostPath(s.path); }
+      else st.rw[s.path] = { content: s.content, copy: inImage(s.path) };
+      st.cmd = s.cmd || `echo … > ${s.path}`;
+    } else if (s.op === "delete") {
+      if (inVol(s.path)) delete st.host[hostPath(s.path)];
+      else if (inImage(s.path)) st.rw[s.path] = null;
+      else delete st.rw[s.path];
+      st.cmd = s.cmd || `rm ${s.path}`;
+    } else if (s.op === "rm") {
+      Object.assign(st, { alive: false, rw: {}, vol: null, fresh: "" });
+      st.cmd = s.cmd || "контейнер завершился, --rm удалил его";
+    }
+    states.push(st);
+  }
+  const usesHost = spec.steps.some((s) => s.volume);
+  // схема высокая: пояснение — сразу под заголовком, чтобы не листать к нему
+  queueMicrotask(() => { const n = box.querySelector(".viz-note"), st = box.querySelector(".viz-stage"); if (n && st) st.before(n); });
+  stepper(box, {
+    title: spec.title,
+    states,
+    render(stage, st) {
+      // что видит процесс: снизу вверх по слоям образа, потом слой записи, потом том
+      const seen = {};
+      spec.layers.forEach((l, k) => Object.keys(l.files).forEach((p) => (seen[p] = { from: `образ, слой ${k + 1}`, cls: "img" })));
+      for (const [p, v] of Object.entries(st.rw)) v === null ? delete seen[p] : (seen[p] = { from: v.copy ? "запись (копия из образа)" : "слой записи", cls: "rw" });
+      if (st.vol) for (const [hp] of Object.entries(st.host)) if (hp.startsWith(st.vol[0] + "/")) seen[st.vol[1] + hp.slice(st.vol[0].length)] = { from: "том → хост", cls: "vol" };
+      const fileRow = (p, text, cls = "") => `<div class="viz-ct-file ${cls}${p === st.fresh ? " fresh" : ""}"><code>${esc(p)}</code>${text ? `<span>${esc(text)}</span>` : ""}</div>`;
+      const rw = Object.entries(st.rw);
+      stage.innerHTML = `
+        ${st.cmd ? `<div class="viz-cmd"><span>$</span>${esc(st.cmd)}</div>` : ""}
+        <div class="viz-ct-box ${st.alive ? "alive" : "gone"}">
+          <div class="viz-ct-h">${st.alive ? "▶ Контейнер работает" : "Контейнера нет"}</div>
+          ${st.alive ? `<div class="viz-ct-layer rw"><div class="viz-ct-lh">✎ Слой для записи <small>свой у этого контейнера</small></div>
+            ${rw.length ? rw.map(([p, v]) => (v === null ? fileRow(p, "пометка «удалён»", "wh") : fileRow(p, v.copy ? "копия файла из образа, изменена" : "новый файл"))).join("") : `<div class="viz-empty">пусто</div>`}</div>` : ""}
+          ${st.alive && st.vol ? `<div class="viz-ct-layer vol"><div class="viz-ct-lh">⇄ Том <small>${esc(st.vol[1])} = папка хоста ${esc(st.vol[0])}</small></div></div>` : ""}
+        </div>
+        <div class="viz-ct-box img">
+          <div class="viz-ct-h">🔒 Образ ${esc(spec.image)} <small>только чтение — не меняется</small></div>
+          ${spec.layers.map((l, k) => ({ l, k })).reverse().map(({ l, k }) => `<div class="viz-ct-layer img"><div class="viz-ct-lh">слой ${k + 1} <code>${esc(l.cmd)}</code></div>
+            <div class="viz-ct-inline">${Object.keys(l.files).map((p) => fileRow(p, "")).join("")}</div></div>`).join("")}
+        </div>
+        ${st.alive ? `<div class="viz-ct-box seen"><div class="viz-ct-h">👁 Что видит процесс в контейнере</div>
+          ${Object.keys(seen).sort().map((p) => fileRow(p, seen[p].from, seen[p].cls)).join("")}</div>` : ""}
+        ${usesHost && (st.vol || Object.keys(st.host).length) ? `<div class="viz-ct-box host"><div class="viz-ct-h">🖥 Хост: папка ${esc(spec.steps.find((s) => s.volume).volume[0])}</div>
+          ${Object.keys(st.host).length ? Object.entries(st.host).map(([p]) => fileRow(p, "лежит на хосте")).join("") : `<div class="viz-empty">пусто</div>`}</div>` : ""}`;
+    },
+  });
+}
+
+// ---------- Docker в Docker: сокет хоста или DinD ----------
+// {"type": "dockerhost", "mode": "socket" | "dind"} — сценарии зашиты здесь.
+
+const DH_SCENES = {
+  socket: {
+    client: "демону <b>хоста</b> через /var/run/docker.sock",
+    steps: [
+      { host: ["ci-job"], note: "CI-job — обычный контейнер на хосте. В него проброшен сокет `/var/run/docker.sock`, поэтому клиент `docker` внутри job-а разговаривает с **демоном хоста**. Нажимай «Шаг»." },
+      { cmd: "docker ps", out: "NAMES\nci-job", hit: "host", note: "Внутри job-а видны контейнеры **хоста** — даже сам job. Демон один и тот же." },
+      { cmd: "docker run -d --name db postgres:16", hit: "host", host: ["ci-job", "db"], fresh: "db", note: "Демон хоста создал `db` **рядом** с job-ом, а не внутри него. Это соседи на одном хосте." },
+      { cmd: "curl localhost:5432", out: "curl: (7) Failed to connect to localhost port 5432", note: "`localhost` в job-е — это сам job. До соседа `db` так не достучаться: нужен его адрес в общей сети." },
+      { cmd: "docker run -v /builds/app/reports:/reports tests", hit: "host", host: ["ci-job", "db", "tests"], fresh: "tests",
+        fs: "На хосте нет папки /builds/app/reports — Docker создал пустую",
+        note: "Путь в `-v` читает **демон хоста**. Папка `/builds/app/reports` есть внутри job-а, но не на хосте — отчёты окажутся в пустой папке на хосте, а job их не увидит." },
+      { cmd: "docker run -v /:/host alpine ls /host/root", out: ".ssh  secrets.env", hit: "host", host: ["ci-job", "db", "tests", "alpine"], fresh: "alpine",
+        warn: "Через сокет любой код в job-е монтирует весь диск хоста. Доступ к сокету = root на хосте.",
+        note: "Это главный риск: пробрасывай сокет только доверенным образам." },
+    ],
+  },
+  dind: {
+    client: "демону <b>в контейнере dind</b> через DOCKER_HOST=tcp://docker:2376",
+    steps: [
+      { host: ["ci-job", "dind"], dind: [], note: "Рядом с job-ом — контейнер `dind` (`--privileged`) со **своим** демоном Docker. Переменная `DOCKER_HOST` направляет клиент job-а туда. Нажимай «Шаг»." },
+      { cmd: "docker ps", out: "NAMES", hit: "dind", note: "Список пустой: у демона в dind свои контейнеры. Контейнеров хоста отсюда не видно." },
+      { cmd: "docker images", out: "REPOSITORY   TAG   IMAGE ID", hit: "dind", note: "И кэш образов пустой: каждый job начинает с нуля, всё скачивается заново. Поэтому в DinD настраивают `--cache-from`." },
+      { cmd: "docker run -d --name db postgres:16", out: "Unable to find image 'postgres:16' locally\n16: Pulling from library/postgres", hit: "dind", dind: ["db"], fresh: "db",
+        note: "`db` создан **внутри** dind — вложенный контейнер, изолированный от хоста." },
+      { host: ["ci-job"], dind: null, cmd: "job завершился", note: "Job закончился — контейнер `dind` удалён вместе со всеми своими контейнерами и кэшем. Хост остался чистым." },
+    ],
+  },
+};
+
+function dockerhostViz(box, spec) {
+  let mode = spec.mode || "socket";
+  const build = () => {
+    const sc = DH_SCENES[mode];
+    const states = [];
+    for (const s of sc.steps) {
+      const p = states.at(-1) || { host: [], dind: null };
+      states.push({ ...s, host: s.host || p.host, dind: s.dind !== undefined ? s.dind : p.dind });
+    }
+    stepper(box, {
+      title: spec.title,
+      states,
+      extra: `<div class="viz-dh-modes">${[["socket", "Сокет хоста"], ["dind", "DinD"]].map(([m, t]) => `<button class="viz-chip${m === mode ? " on" : ""}" data-m="${m}">${t}</button>`).join("")}</div>`,
+      render(stage, st) {
+        const card = (name, inner = "") => {
+          const me = name === "ci-job";
+          return `<div class="viz-dh-ct${name === st.fresh ? " fresh" : ""}${me ? " me" : ""}${name === "dind" ? " dind" : ""}"><b>${esc(name)}</b>
+            ${me ? `<div class="viz-dh-client${st.cmd && st.hit ? " hit" : ""}">клиент <code>docker</code> → ${sc.client}</div>` : ""}${inner}</div>`;
+        };
+        const dindInner = st.dind ? `<small>--privileged</small><div class="viz-dh-daemon${st.hit === "dind" ? " hit" : ""}">⚙ свой демон Docker</div>
+          <div class="viz-dh-cts inner">${st.dind.length ? st.dind.map((n) => card(n)).join("") : `<div class="viz-empty">контейнеров нет</div>`}</div>` : "";
+        stage.innerHTML = `
+          ${st.cmd ? `<div class="viz-term"><div><span>ci-job $</span> ${esc(st.cmd)}</div>${st.out ? `<pre>${esc(st.out)}</pre>` : ""}</div>` : ""}
+          <div class="viz-dh-host"><div class="viz-dh-h">🖥 Хост — машина CI</div>
+            <div class="viz-dh-daemon${st.hit === "host" ? " hit" : ""}">⚙ демон Docker хоста</div>
+            <div class="viz-dh-cts">${st.host.map((n) => card(n, n === "dind" ? dindInner : "")).join("")}</div>
+            ${st.fs ? `<div class="viz-dh-fs">📁 ${esc(st.fs)}</div>` : ""}
+          </div>
+          ${st.warn ? `<div class="viz-dh-warn">⚠ ${esc(st.warn)}</div>` : ""}`;
+      },
+    });
+    toTop(box, ".viz-dh-modes");
+    box.querySelectorAll("[data-m]").forEach((b) => (b.onclick = () => { mode = b.dataset.m; build(); }));
+  };
+  build();
+}
+
+// ---------- CI: собрать один раз и продвинуть тот же образ ----------
+// {"type": "promote", "sha": "3f2a1b9"} — галочки «тесты упали» и «пересобрать в job-е тестов».
+
+function promoteViz(box, spec) {
+  const sha = spec.sha || "3f2a1b9";
+  const opt = { fail: false, rebuild: false };
+  const D = { A: ["sha256:a1b2…", "c0"], B: ["sha256:f7e8…", "c4"], O: ["sha256:0c9d…", "c3"] };
+  const dg = (k) => `<span class="viz-num ${D[k][1]}">${D[k][0]}</span>`;
+  const build = () => {
+    const tested = opt.rebuild ? "B" : "A";
+    const s0 = { reg: { stable: "O" }, jobs: {}, cmd: "", note: "В реестре лежит вчерашний `stable`. Одинаковый цвет дайджеста = один и тот же образ. Включай галочки внизу и нажимай «Шаг»." };
+    const states = [s0];
+    const push = (patch) => { const p = states.at(-1); states.push({ ...p, ...patch, reg: { ...p.reg, ...(patch.reg || {}) }, jobs: { ...p.jobs, ...(patch.jobs || {}) } }); };
+    push({ cmd: `docker build -t ghcr.io/acme/tests:${sha} . && docker push …`, jobs: { build: "ok" }, built: "A", reg: { [sha]: "A" },
+      note: `Job **build** собрал образ (дайджест ${D.A[0]}) и запушил его с тегом коммита \`${sha}\`.` });
+    push(opt.rebuild
+      ? { cmd: "docker build -t tests .   # заново, внутри job-а тестов", jobs: { test: "run" }, tested: "B",
+          note: `Job **тестов собрал образ заново** — и получился другой дайджест (${D.B[0]}): за это время вышли новые версии пакетов, обновился базовый образ.` }
+      : { cmd: `docker pull ghcr.io/acme/tests:${sha}`, jobs: { test: "run" }, tested: "A",
+          note: `Job **тестов** скачал \`${sha}\` — тот же дайджест ${D.A[0]}, что собрал build.` });
+    push(opt.fail
+      ? { cmd: `docker run --rm ghcr.io/acme/tests:${sha}`, out: "2 failed, 46 passed", jobs: { test: "fail" }, note: "Тесты **красные** — пайплайн остановился." }
+      : { cmd: `docker run --rm ghcr.io/acme/tests:${sha}`, out: "48 passed", jobs: { test: "ok" }, note: "Тесты **зелёные**." });
+    if (opt.fail) {
+      push({ cmd: "", out: "", jobs: { promote: "skip", stand: "skip" }, note: "Промоутинга нет: `stable` по-прежнему вчерашний. Непроверенный образ на стенд не попадёт — так и задумано." });
+    } else {
+      push({ cmd: `docker buildx imagetools create -t ghcr.io/acme/tests:stable ghcr.io/acme/tests:${sha}`, out: "", jobs: { promote: "ok" }, reg: { stable: "A" },
+        note: `**Промоутинг**: тег \`stable\` теперь указывает на ${D.A[0]} — тот же образ, что собрал build. Ничего не пересобирали, только новая метка.` });
+      push({ cmd: "docker pull ghcr.io/acme/tests:stable", out: "", jobs: { stand: tested === "A" ? "ok" : "warn" }, stand: "A",
+        note: tested === "A" ? "Стенд получил **ровно тот образ, который прошёл тесты**: цвета совпадают."
+          : `Стенд получил ${D.A[0]}, а тестировался ${D.B[0]} — **выкатили не то, что проверяли**. Поэтому образ собирают один раз.` });
+    }
+    stepper(box, {
+      title: spec.title,
+      states,
+      extra: `<div class="viz-pr-opts">
+        <label class="viz-sch-opt"><input type="checkbox" data-k="fail"${opt.fail ? " checked" : ""}> тесты упадут</label>
+        <label class="viz-sch-opt"><input type="checkbox" data-k="rebuild"${opt.rebuild ? " checked" : ""}> пересобирать образ в job-е тестов (так делать не надо)</label></div>`,
+      render(stage, st) {
+        const icon = { ok: "✓", fail: "✗", run: "…", skip: "⏭", warn: "⚠" };
+        const jobs = [["build", "build"], ["test", "тесты"], ["promote", "промоутинг"], ["stand", "стенд"]];
+        stage.innerHTML = `
+          <div class="viz-pr-jobs">${jobs.map(([k, t]) => `<div class="viz-pr-job ${st.jobs[k] || "wait"}"><b>${icon[st.jobs[k]] || "·"} ${t}</b>${
+            k === "build" && st.built ? dg(st.built) : k === "test" && st.tested ? dg(st.tested) : k === "stand" && st.stand ? dg(st.stand) : ""}</div>`).join("")}</div>
+          ${st.cmd ? `<div class="viz-term"><div><span>$</span> ${esc(st.cmd)}</div>${st.out ? `<pre>${esc(st.out)}</pre>` : ""}</div>` : ""}
+          <div class="viz-pr-reg"><div class="viz-pr-h">📦 Реестр ghcr.io/acme/tests</div>
+            ${Object.entries(st.reg).map(([tag, d]) => `<div class="viz-pr-row"><code>:${esc(tag)}</code><span>→</span>${dg(d)}</div>`).join("")}</div>`;
+      },
+    });
+    toTop(box, ".viz-pr-opts");
+    box.querySelectorAll(".viz-pr-opts [data-k]").forEach((cb) => (cb.onchange = () => { opt[cb.dataset.k] = cb.checked; build(); }));
+  };
+  build();
+}
+
+// ---------- виртуальные машины и контейнеры: что дублируется ----------
+// {"type": "vmstack", "os_mb": 1024, "app_mb": 200, "apps": ["api", "db", "tests"], "n": 2}
+
+function vmstackViz(box, spec) {
+  const names = spec.apps || ["api", "db", "tests", "ui", "queue", "cache"];
+  const os = spec.os_mb || 1024, app = spec.app_mb || 200;
+  let n = spec.n || 2;
+  const gb = (mb) => (mb / 1024).toFixed(1).replace(".", ",");
+  const show = () => {
+    const apps = names.slice(0, n);
+    const vmMem = n * (os + app), ctMem = n * app;
+    box.innerHTML = `${vizHead(spec)}
+      <div class="viz-vm-ctl"><button class="viz-btn" data-d="-1"${n <= 1 ? " disabled" : ""}>− убрать</button>
+        <span>приложений: <b>${n}</b></span><button class="viz-btn main" data-d="1"${n >= names.length ? " disabled" : ""}>+ добавить</button></div>
+      <div class="viz-vm-cols">
+        <div class="viz-vm-col vm"><div class="viz-vm-h">Виртуальные машины</div>
+          <div class="viz-vm-apps">${apps.map((a) => `<div class="viz-vm-unit"><b>${esc(a)}</b><i>библиотеки</i><em>гостевая ОС + своё ядро</em></div>`).join("")}</div>
+          <div class="viz-vm-base hyp">гипервизор (VirtualBox, VMware, KVM)</div>
+          <div class="viz-vm-base">ОС хоста и железо</div>
+          <div class="viz-vm-stat"><span>память ≈ <b>${gb(vmMem)} ГБ</b></span><span>старт ≈ <b>десятки секунд</b></span><span>образ ≈ <b>гигабайты</b></span></div></div>
+        <div class="viz-vm-col ct"><div class="viz-vm-h">Контейнеры</div>
+          <div class="viz-vm-apps">${apps.map((a) => `<div class="viz-vm-unit"><b>${esc(a)}</b><i>библиотеки</i></div>`).join("")}</div>
+          <div class="viz-vm-base eng">Docker Engine</div>
+          <div class="viz-vm-base kern">ОС хоста — <b>одно ядро на всех</b> — и железо</div>
+          <div class="viz-vm-stat"><span>память ≈ <b>${gb(ctMem)} ГБ</b></span><span>старт ≈ <b>1 секунда</b></span><span>образ ≈ <b>десятки–сотни МБ</b></span></div></div>
+      </div>
+      <div class="viz-note"></div>`;
+    box.querySelector(".viz-note").innerHTML = inline(`${n} ${plural(n, "приложение", "приложения", "приложений")}: каждая ВМ тащит **свою копию ОС с ядром** (≈ ${gb(os)} ГБ на каждую — ${n} ${plural(n, "копия", "копии", "копий")}), а контейнеры **делят одно ядро хоста** и хранят только своё приложение с библиотеками. Добавляй приложения и смотри, как растёт разница: ${gb(vmMem)} ГБ против ${gb(ctMem)} ГБ.`);
+    box.querySelectorAll("[data-d]").forEach((b) => (b.onclick = () => { n = Math.min(names.length, Math.max(1, n + Number(b.dataset.d))); show(); }));
+  };
+  show();
+}
+
 const KINDS = {
   memory: memoryViz, git: gitViz, slice: sliceViz, fs: fsViz, perm: permViz,
   fixtures: fixturesViz, pipeline: pipelineViz, http: httpViz, trace: traceViz,
   pipe: pipeViz, redirect: redirectViz, select: selectViz, params: paramsViz, json: jsonViz,
   schema: schemaViz, matrix: matrixViz, trigger: triggerViz, cron: cronViz, itertools: itertoolsViz,
+  buildcache: buildcacheViz, container: containerViz, dockerhost: dockerhostViz, promote: promoteViz,
+  vmstack: vmstackViz,
 };

@@ -18,7 +18,7 @@ def anyorder(prefix, flags, tail):
     return f"re:{re.escape(prefix)} {look}{rest}"
 
 
-m1 = module(f"{P}-m1", "Контейнеры", "🐳", "Образы и контейнеры, запуск с портами, переменными и томами, диагностика, реестры и теги",
+m1 = module(f"{P}-m1", "Контейнеры", "🐳", "Образы и контейнеры, Docker и виртуальная машина, запуск с портами, переменными и томами, диагностика, реестры и теги",
 
 lesson(f"{O}-m1-l1", "Образы и контейнеры",
     out(f"{O}-m1-l1-e1", "Что выведет программа? Разбираем ссылку на образ.", """
@@ -157,6 +157,153 @@ lesson(f"{O}-m1-l1", "Образы и контейнеры",
     cmd(f"{O}-m1-l1-e8", "`docker ps` показывает только запущенные контейнеры. Покажи **все**, включая остановленные.",
         ["docker ps -a", "docker ps --all", "docker container ls -a", "docker container ls --all"],
         hint="Флаг `-a`."),
+),
+
+lesson(f"{P}-vm", "Docker и виртуальная машина",
+    out(f"{P}-vm-e1", "Что выведет программа? Разные образы — разные «системы», но ядро у всех контейнеров одно — ядро хоста.", """
+            host_kernel = "6.8.0-45-generic"
+            images = {"python:3.12-slim": "Debian 12", "alpine:3.20": "Alpine 3.20"}
+
+            for image, distro in images.items():
+                print(image, "|", distro, "| ядро", host_kernel)
+            print(len({host_kernel for _ in images}))
+            """),
+    cod(f"{P}-vm-e2", t("""
+            Напиши функцию `max_instances(host_mb, app_mb, kind, os_mb=1024)`: сколько копий приложения поместится на сервер по памяти.
+
+            - Получает: `host_mb` — память сервера в МБ; `app_mb` — сколько нужно одному приложению; `kind` — `"vm"` или `"container"`; `os_mb` — память под гостевую ОС одной ВМ.
+            - Возвращает: целое число копий:
+              - для `"vm"` каждая копия занимает `app_mb + os_mb` (своя ОС в каждой ВМ);
+              - для `"container"` — только `app_mb` (ядро общее).
+
+            Пример:
+            ```
+            max_instances(16384, 200, "vm")          # → 13   (16384 // 1224)
+            max_instances(16384, 200, "container")   # → 81   (16384 // 200)
+            ```
+            """),
+            """
+            def max_instances(host_mb, app_mb, kind, os_mb=1024):
+                pass
+            """,
+            """
+            def test_vm():
+                assert max_instances(16384, 200, "vm") == 13, f"Получено {max_instances(16384, 200, 'vm')}"
+
+            def test_container():
+                assert max_instances(16384, 200, "container") == 81
+
+            def test_custom_os():
+                assert max_instances(8192, 512, "vm", os_mb=2048) == 3, "Учитывай os_mb"
+            """,
+            """
+            def max_instances(host_mb, app_mb, kind, os_mb=1024):
+                per_copy = app_mb + os_mb if kind == "vm" else app_mb
+                return host_mb // per_copy
+            """,
+            hint="Сначала посчитай память на одну копию, потом целочисленное деление `//`."),
+    cod(f"{P}-vm-e3", t("""
+            Напиши функцию `choose_env(need)`: где поднять окружение для тестов — в ВМ или в контейнере.
+
+            - Получает: `need` — словарь требований. Возможные ключи:
+              - `"os"` — нужная ОС: `"linux"`, `"windows"`, `"macos"` (нет ключа — `"linux"`);
+              - `"kernel"` — `True`, если тестируется что-то в ядре (драйвер, модуль);
+              - `"untrusted"` — `True`, если запускается недоверенный код.
+            - Возвращает: `"vm"`, если ОС не Linux, **или** нужно ядро, **или** код недоверенный. Иначе — `"container"`.
+
+            Примеры:
+            ```
+            choose_env({})                         # → "container"
+            choose_env({"os": "windows"})          # → "vm"
+            choose_env({"kernel": True})           # → "vm"
+            choose_env({"os": "linux", "untrusted": False})   # → "container"
+            ```
+            """),
+            """
+            def choose_env(need):
+                pass
+            """,
+            """
+            def test_default():
+                assert choose_env({}) == "container", "Обычный Linux-сервис — контейнер"
+                assert choose_env({"os": "linux", "untrusted": False}) == "container"
+
+            def test_other_os():
+                assert choose_env({"os": "windows"}) == "vm", "Другая ОС — только ВМ"
+                assert choose_env({"os": "macos"}) == "vm"
+
+            def test_kernel_and_untrusted():
+                assert choose_env({"kernel": True}) == "vm", "Своё ядро — ВМ"
+                assert choose_env({"untrusted": True}) == "vm", "Недоверенный код — сильная изоляция"
+            """,
+            """
+            def choose_env(need):
+                if need.get("os", "linux") != "linux" or need.get("kernel") or need.get("untrusted"):
+                    return "vm"
+                return "container"
+            """,
+            hint="`need.get(\"os\", \"linux\")` — значение по умолчанию, если ключа нет."),
+    cod(f"{P}-vm-e4", t("""
+            Напиши функцию `how_runs(host_os, image_os)`: как запустится контейнер на этой машине.
+
+            - Получает: `host_os` — ОС компьютера (`"linux"`, `"macos"`, `"windows"`); `image_os` — для какой ОС образ (`"linux"` или `"windows"`).
+            - Возвращает строку:
+              - `"напрямую"` — ОС совпадают (Linux-образ на Linux, Windows-образ на Windows): нужное ядро уже есть;
+              - `"через Linux-ВМ"` — Linux-образ на macOS или Windows: Docker Desktop запускает скрытую Linux-ВМ;
+              - `"нельзя"` — Windows-образ на Linux или macOS.
+
+            Примеры:
+            ```
+            how_runs("linux", "linux")      # → "напрямую"
+            how_runs("macos", "linux")      # → "через Linux-ВМ"
+            how_runs("linux", "windows")    # → "нельзя"
+            ```
+            """),
+            """
+            def how_runs(host_os, image_os):
+                pass
+            """,
+            """
+            def test_native():
+                assert how_runs("linux", "linux") == "напрямую"
+                assert how_runs("windows", "windows") == "напрямую", "Windows-контейнеры на Windows работают сами"
+
+            def test_vm():
+                assert how_runs("macos", "linux") == "через Linux-ВМ"
+                assert how_runs("windows", "linux") == "через Linux-ВМ"
+
+            def test_impossible():
+                assert how_runs("linux", "windows") == "нельзя"
+                assert how_runs("macos", "windows") == "нельзя"
+            """,
+            """
+            def how_runs(host_os, image_os):
+                if host_os == image_os:
+                    return "напрямую"
+                if image_os == "linux":
+                    return "через Linux-ВМ"
+                return "нельзя"
+            """,
+            hint="Совпали ОС — напрямую; иначе Linux-образ можно через ВМ, а Windows-образ — нельзя."),
+    out(f"{P}-vm-e5", "Что выведет программа? Стенд из 4 сервисов: каждый в своей ВМ или в контейнерах. Сервисы стартуют параллельно.", """
+            services = ["app", "db", "redis", "tests"]
+            vm = {"start_s": 40, "mem_mb": 1224}
+            container = {"start_s": 2, "mem_mb": 200}
+
+            for name, kind in [("ВМ", vm), ("контейнеры", container)]:
+                total_mem = kind["mem_mb"] * len(services)
+                print(name, kind["start_s"], "с", total_mem, "МБ")
+            """),
+    cmd(f"{P}-vm-e6", "Проверь, что у контейнера нет своего ядра: запусти одноразовый контейнер `alpine` и выведи в нём версию ядра.",
+        ["docker run --rm alpine uname -r", "re:docker (container )?run --rm alpine(:\\S+)? uname -r"],
+        hint="`uname -r` печатает версию ядра."),
+    cmd(f"{P}-vm-e7", "Посмотри, какой дистрибутив внутри образа `python:3.12-slim`: в одноразовом контейнере выведи файл `/etc/os-release`.",
+        ["docker run --rm python:3.12-slim cat /etc/os-release", "docker container run --rm python:3.12-slim cat /etc/os-release"],
+        hint="`docker run --rm образ cat /etc/os-release`."),
+    cmd(f"{P}-vm-e8", "Ограничь контейнер `my-tests` 512 мегабайтами памяти (это работа cgroups) и удали его после работы.",
+        ["docker run --rm -m 512m my-tests", anyorder("docker run", ["--rm", "-m 512m"], "my-tests"),
+         anyorder("docker run", ["--rm", "--memory 512m"], "my-tests"), anyorder("docker run", ["--rm", "--memory=512m"], "my-tests")],
+        hint="Флаг `-m 512m` (или `--memory 512m`)."),
 ),
 
 lesson(f"{P}-run", "Запуск: порты, переменные, тома",
