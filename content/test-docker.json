@@ -5,7 +5,7 @@
       "title": "Docker для тестировщика",
       "icon": "🐳",
       "color": "#2496ed",
-      "description": "Образы и контейнеры, порты, переменные и тома, диагностика и реестры; Dockerfile, слои и кэш, автотесты в контейнере, размер и безопасность; Docker Compose и тестовый стенд",
+      "description": "Образы и контейнеры, порты, переменные и тома, диагностика и реестры; Dockerfile, слои и кэш, автотесты в контейнере, размер и безопасность; Docker Compose и тестовый стенд; Docker Hub, свой образ, Docker в Docker и Docker в CI",
       "group": "Тестирование",
       "modules": [
         {
@@ -1583,6 +1583,533 @@
                   ],
                   "answer": 1,
                   "explain": "Самые частые причины."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slug": "dkr-m4",
+          "title": "Docker на практике",
+          "icon": "🚢",
+          "description": "Docker Hub, образ изнутри и свой образ для автотестов, Docker в Docker, Docker в CI-пайплайне",
+          "lessons": [
+            {
+              "slug": "dkr-hub",
+              "title": "Docker Hub и выбор образа",
+              "theory": "```bash\ndocker pull python:3.12-slim                 # = docker.io/library/python:3.12-slim\ndocker search --filter is-official=true python\ndocker run --platform linux/amd64 ...        # чужая платформа\necho \"$DOCKERHUB_TOKEN\" | docker login -u anna --password-stdin\ndocker tag my-tests anna/my-tests:1.0\ndocker push anna/my-tests:1.0\n```\n\n- Официальные — `library/`, значки Official Image и Verified Publisher.\n- `-slim` — для тестов; `alpine` — musl, сборка пакетов может сломаться.\n- `toomanyrequests` — лимит скачиваний: логинься, кэшируй, держи зеркало.\n- В публичном образе — никаких секретов.",
+              "exercises": [
+                {
+                  "slug": "dkr-hub-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Как Docker дописывает короткие имена образов.",
+                  "code": "def full_name(ref):\n    if \"/\" not in ref:\n        ref = \"library/\" + ref\n    first = ref.split(\"/\")[0]\n    if \".\" not in first and \":\" not in first and first != \"localhost\":\n        ref = \"docker.io/\" + ref\n    if \":\" not in ref.split(\"/\")[-1]:\n        ref += \":latest\"\n    return ref\n\nfor ref in [\"python:3.12-slim\", \"anna/my-tests\", \"ghcr.io/acme/tests:1.0\"]:\n    print(full_name(ref))\n",
+                  "expected_output": "docker.io/library/python:3.12-slim\ndocker.io/anna/my-tests:latest\nghcr.io/acme/tests:1.0",
+                  "hint": "",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Docker дописывает короткое имя: `library/` для официальных, `docker.io/` если реестр не указан, `:latest` если нет тега.\", \"trace\": [[\"print(full_name(ref))\", \"python:3.12-slim: нет / → library/…, реестра нет → docker.io/…\", \"docker.io/library/python:3.12-slim\"], [\"print(full_name(ref))\", \"anna/my-tests: anna — не реестр; тега нет → :latest\", \"docker.io/anna/my-tests:latest\"], [\"print(full_name(ref))\", \"ghcr.io/acme/tests:1.0: в ghcr.io есть точка — это реестр, тег есть\", \"ghcr.io/acme/tests:1.0\"]], \"mistake\": \"Думать, что `ghcr.io/...` тоже пойдёт в Docker Hub: точка в первой части — признак другого реестра.\"}"
+                },
+                {
+                  "slug": "dkr-hub-e2",
+                  "type": "code",
+                  "prompt": "Напиши функцию `split_tag(tag)`, которая делит тег образа на версию и вариант.\n\n- Получает: `tag` — тег, например `\"3.12-slim-bookworm\"`.\n- Возвращает: кортеж `(версия, вариант)`:\n  - версия — всё до **первого** дефиса;\n  - вариант — всё после него; если дефиса нет — пустая строка `\"\"`.\n\nПримеры:\n```\nsplit_tag(\"3.12-slim-bookworm\")   # → (\"3.12\", \"slim-bookworm\")\nsplit_tag(\"3.12-alpine\")          # → (\"3.12\", \"alpine\")\nsplit_tag(\"3.12\")                 # → (\"3.12\", \"\")\nsplit_tag(\"latest\")               # → (\"latest\", \"\")\n```",
+                  "starter_code": "def split_tag(tag):\n    pass\n",
+                  "tests": "def test_variants():\n    assert split_tag(\"3.12-slim-bookworm\") == (\"3.12\", \"slim-bookworm\"), f\"Получено {split_tag('3.12-slim-bookworm')}\"\n    assert split_tag(\"3.12-alpine\") == (\"3.12\", \"alpine\")\n\ndef test_plain():\n    assert split_tag(\"3.12\") == (\"3.12\", \"\"), \"Без дефиса вариант — пустая строка\"\n    assert split_tag(\"latest\") == (\"latest\", \"\")\n",
+                  "solution": "def split_tag(tag):\n    version, _, variant = tag.partition(\"-\")\n    return version, variant\n",
+                  "hint": "`partition(\"-\")` делит по первому дефису и всегда возвращает три части.",
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Версия — до первого дефиса, вариант — всё остальное.\", \"lines\": [[\"version, _, variant = tag.partition(\\\"-\\\")\", \"Три части: до дефиса, сам дефис, после.\"], [\"return version, variant\", \"Нет дефиса — variant пустой.\"]], \"mistake\": \"`split(\\\"-\\\")` разобьёт `slim-bookworm` на два куска, и вариант потеряется.\"}"
+                },
+                {
+                  "slug": "dkr-hub-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `pick_base(tags, version)`: выбрать базовый образ Python для автотестов.\n\n- Получает: `tags` — список доступных тегов образа `python`; `version` — нужная версия, например `\"3.12\"`.\n- Возвращает: тег по приоритету:\n  1. `\"<версия>-slim\"`, если он есть;\n  2. иначе просто `\"<версия>\"`, если он есть;\n  3. иначе `None`.\n\nТег `alpine` не выбираем никогда: в нём другая библиотека C, и часть пакетов не соберётся.\n\nПример:\n```\ntags = [\"3.12\", \"3.12-slim\", \"3.12-alpine\", \"3.11-slim\"]\npick_base(tags, \"3.12\")      # → \"3.12-slim\"\npick_base([\"3.13\", \"3.13-alpine\"], \"3.13\")   # → \"3.13\"\npick_base([\"3.12-alpine\"], \"3.12\")           # → None\n```",
+                  "starter_code": "def pick_base(tags, version):\n    pass\n",
+                  "tests": "def test_slim_first():\n    assert pick_base([\"3.12\", \"3.12-slim\", \"3.12-alpine\", \"3.11-slim\"], \"3.12\") == \"3.12-slim\"\n\ndef test_plain():\n    assert pick_base([\"3.13\", \"3.13-alpine\"], \"3.13\") == \"3.13\", \"Нет slim — берём обычный\"\n\ndef test_no_alpine():\n    assert pick_base([\"3.12-alpine\"], \"3.12\") is None, \"alpine не берём\"\n\ndef test_other_version():\n    assert pick_base([\"3.11-slim\"], \"3.12\") is None, \"Нужна именно эта версия\"\n",
+                  "solution": "def pick_base(tags, version):\n    for tag in (f\"{version}-slim\", version):\n        if tag in tags:\n            return tag\n    return None\n",
+                  "hint": "Перебери кандидатов по порядку: сначала `f\"{version}-slim\"`, потом `version`.",
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Кандидаты в порядке приоритета: сначала slim, потом обычный; alpine в списке просто нет.\", \"lines\": [[\"for tag in (f\\\"{version}-slim\\\", version):\", \"Порядок перебора = приоритет.\"], [\"if tag in tags:\\n            return tag\", \"Первый найденный — ответ.\"], [\"return None\", \"Ничего подходящего.\"]], \"mistake\": \"Выбирать самый маленький образ — попадёшь на alpine с проблемами сборки пакетов.\"}"
+                },
+                {
+                  "slug": "dkr-hub-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `hub_url(ref)` — ссылка на страницу образа в Docker Hub.\n\n- Получает: `ref` — имя образа, возможно с тегом.\n- Возвращает:\n  - официальный образ (в имени нет `/`, например `\"postgres:16\"`) → `\"https://hub.docker.com/_/postgres\"`;\n  - образ пользователя (`\"anna/my-tests:1.0\"`) → `\"https://hub.docker.com/r/anna/my-tests\"`;\n  - образ из другого реестра — первая часть до `/` содержит точку или двоеточие (`\"ghcr.io/acme/tests\"`, `\"localhost:5000/app\"`) → `None`.\n\nТег (всё после `:` в **последней** части имени) в ссылку не входит.",
+                  "starter_code": "def hub_url(ref):\n    pass\n",
+                  "tests": "def test_official():\n    assert hub_url(\"postgres:16\") == \"https://hub.docker.com/_/postgres\"\n    assert hub_url(\"python\") == \"https://hub.docker.com/_/python\"\n\ndef test_user():\n    assert hub_url(\"anna/my-tests:1.0\") == \"https://hub.docker.com/r/anna/my-tests\"\n\ndef test_other_registry():\n    assert hub_url(\"ghcr.io/acme/tests:1.0\") is None, \"ghcr.io — не Docker Hub\"\n    assert hub_url(\"localhost:5000/app\") is None, \"localhost:5000 — свой реестр\"\n",
+                  "solution": "def hub_url(ref):\n    parts = ref.split(\"/\")\n    if len(parts) > 1 and (\".\" in parts[0] or \":\" in parts[0]):\n        return None\n    parts[-1] = parts[-1].split(\":\")[0]\n    if len(parts) == 1:\n        return f\"https://hub.docker.com/_/{parts[0]}\"\n    return \"https://hub.docker.com/r/\" + \"/\".join(parts)\n",
+                  "hint": "Сначала проверь первую часть на точку или двоеточие, потом отрежь тег у последней части.",
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Сначала отсекаем чужие реестры, потом убираем тег и строим ссылку: `_/имя` для официальных, `r/владелец/имя` для остальных.\", \"lines\": [[\"if len(parts) > 1 and (\\\".\\\" in parts[0] or \\\":\\\" in parts[0]):\", \"ghcr.io, localhost:5000 — не Docker Hub.\"], [\"parts[-1] = parts[-1].split(\\\":\\\")[0]\", \"Тег — только в последней части.\"], [\"return f\\\"https://hub.docker.com/_/{parts[0]}\\\"\", \"Официальный образ.\"]], \"mistake\": \"Резать тег по первому `:` во всей строке — сломается `localhost:5000/app`.\"}"
+                },
+                {
+                  "slug": "dkr-hub-e5",
+                  "type": "command",
+                  "prompt": "Найди в Docker Hub образы `python`, но покажи **только официальные**.",
+                  "code": "",
+                  "expected_output": "docker search --filter is-official=true python\ndocker search python --filter is-official=true\ndocker search --filter=is-official=true python\ndocker search -f is-official=true python",
+                  "solution": "docker search --filter is-official=true python",
+                  "hint": "`docker search` с фильтром `--filter is-official=true`.",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Фильтр `is-official=true` оставляет только Docker Official Images.\", \"lines\": [[\"docker search --filter is-official=true python\", \"Поиск в Docker Hub по слову python.\"]], \"mistake\": \"Брать первый попавшийся образ из поиска — он может быть от кого угодно.\"}"
+                },
+                {
+                  "slug": "dkr-hub-e6",
+                  "type": "command",
+                  "prompt": "Войди в Docker Hub как пользователь `anna`. Токен лежит в переменной `DOCKERHUB_TOKEN` — передай его через стандартный ввод, а не аргументом.",
+                  "code": "",
+                  "expected_output": "echo \"$DOCKERHUB_TOKEN\" | docker login -u anna --password-stdin\nre:(echo|printf %s|printf \"%s\") \"?\\$\\{?DOCKERHUB_TOKEN\\}?\"? \\| docker login (-u anna --password-stdin|--password-stdin -u anna|--username anna --password-stdin|--password-stdin --username anna|-u anna --password-stdin docker\\.io)$",
+                  "solution": "echo \"$DOCKERHUB_TOKEN\" | docker login -u anna --password-stdin",
+                  "hint": "`echo \"$DOCKERHUB_TOKEN\" | docker login -u имя --password-stdin`.",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Токен передают через стандартный ввод — он не попадёт в историю команд и список процессов.\", \"lines\": [[\"echo \\\"$DOCKERHUB_TOKEN\\\"\", \"Токен из переменной (в CI — из секрета).\"], [\"| docker login -u anna --password-stdin\", \"Логин читает пароль из ввода.\"]], \"mistake\": \"`docker login -p $DOCKERHUB_TOKEN` — токен виден в `ps` и истории, Docker сам предупреждает об этом.\"}"
+                },
+                {
+                  "slug": "dkr-hub-e7",
+                  "type": "command",
+                  "prompt": "Локальный образ называется `my-tests`. Дай ему второе имя для Docker Hub: пользователь `anna`, репозиторий `my-tests`, тег `1.0`.",
+                  "code": "",
+                  "expected_output": "docker tag my-tests anna/my-tests:1.0\ndocker tag my-tests:latest anna/my-tests:1.0\ndocker image tag my-tests anna/my-tests:1.0",
+                  "solution": "docker tag my-tests anna/my-tests:1.0",
+                  "hint": "`docker tag старое-имя пользователь/репозиторий:тег`.",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`docker tag` добавляет образу второе имя — с префиксом пользователя Docker Hub.\", \"lines\": [[\"docker tag my-tests anna/my-tests:1.0\", \"Старое имя → новое имя:тег.\"]], \"mistake\": \"Пушить `my-tests` без префикса — Docker попробует отправить в `library/`, куда у тебя нет прав.\"}"
+                },
+                {
+                  "slug": "dkr-hub-e8",
+                  "type": "command",
+                  "prompt": "Метка готова (см. вывод). Отправь образ в Docker Hub.",
+                  "code": "$ docker image ls\nREPOSITORY       TAG       IMAGE ID       SIZE\nanna/my-tests    1.0       4c1d2e3f5a6b   182MB\nmy-tests         latest    4c1d2e3f5a6b   182MB\n",
+                  "expected_output": "docker push anna/my-tests:1.0\ndocker image push anna/my-tests:1.0",
+                  "solution": "docker push anna/my-tests:1.0",
+                  "hint": "`docker push` и полное имя с тегом.",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Push отправляет образ по его полному имени: пользователь/репозиторий:тег.\", \"lines\": [[\"docker push anna/my-tests:1.0\", \"Слои, которых нет в реестре, загрузятся.\"]], \"mistake\": \"Забыть `docker login` — получишь `denied: requested access to the resource is denied`.\"}"
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nПочти каждый Dockerfile начинается с `FROM чужой-образ`, а почти каждый стенд — с `image: postgres:16`. Эти образы скачиваются с **Docker Hub** — главного публичного реестра. Тестировщику нужно уметь найти там нужный образ, выбрать правильный тег, отличить надёжный образ от случайного и выложить свой — чтобы коллеги и CI запускали автотесты одной командой.\n\n## Что такое Docker Hub\n\n- **Docker Hub** (hub.docker.com) — реестр по умолчанию: если в имени образа не указан реестр, Docker идёт туда. `postgres:16` = `docker.io/library/postgres:16`.\n- Образы лежат в **репозиториях**. У репозитория есть владелец (пользователь или организация) и набор **тегов**.\n- `library/` — пространство **официальных образов**: `python`, `postgres`, `nginx`, `redis`. Их префикс можно не писать.\n- Образ пользователя или компании: `anna/my-tests`, `selenium/standalone-chrome`. Здесь префикс — обязательная часть имени.\n\n```bash\ndocker pull python:3.12-slim          # = docker.io/library/python:3.12-slim\ndocker pull anna/my-tests:1.0         # = docker.io/anna/my-tests:1.0\ndocker pull ghcr.io/acme/tests:1.0    # другой реестр — Docker Hub ни при чём\n```\n\n## Каким образам доверять\n\nНа странице образа в Hub есть значки:\n\n- **Docker Official Image** — официальные образы: их собирают по открытым Dockerfile, регулярно обновляют и проверяют на уязвимости. Первый выбор для базового образа.\n- **Verified Publisher** — образ от проверенной компании (например, от разработчиков самого продукта).\n- **Sponsored OSS** — открытый проект, который поддерживает Docker.\n\nОбраз без значков от неизвестного автора может содержать что угодно, в том числе майнер или кражу секретов. В CI, где у job-а есть токены, это особенно опасно. Смотри на значок, число скачиваний, дату обновления и ссылку на исходный Dockerfile.\n\n```bash\ndocker search --filter is-official=true python   # поиск только среди официальных\n```\n\n## Варианты тегов\n\nУ популярных образов много тегов на одну версию. На примере `python`:\n\n| Тег | Что внутри | Размер |\n|---|---|---|\n| `3.12` | полный Debian с компиляторами и утилитами | ~1 ГБ |\n| `3.12-slim` | урезанный Debian, только нужное для Python | ~130 МБ |\n| `3.12-alpine` | Alpine Linux (musl вместо glibc) | ~50 МБ |\n| `3.12-slim-bookworm` | slim на конкретной версии Debian (bookworm) | ~130 МБ |\n\n- Для автотестов обычно берут **`-slim`**: маленький и совместимый со всеми pip-пакетами.\n- **`alpine`** самый маленький, но использует другую стандартную библиотеку C (musl). Часть пакетов с C-кодом не найдёт готовой сборки и начнёт компилироваться, а то и не соберётся. Экономия места оборачивается долгой сборкой и странными ошибками.\n- Тег с именем ОС (`-bookworm`) фиксирует ещё и версию системы: обновление Debian не сломает сборку внезапно.\n- Для UI-тестов есть готовые образы с браузерами — например, официальный образ Playwright от Microsoft `mcr.microsoft.com/playwright/python:v1.48.0-noble`. Он лежит в реестре Microsoft (`mcr.microsoft.com`), а не в Docker Hub.\n\n## Один тег — несколько платформ\n\nОдин и тот же тег `python:3.12-slim` содержит сборки под разные процессоры: `linux/amd64` (обычные серверы и CI), `linux/arm64` (Mac на Apple Silicon). Docker сам скачивает подходящую. Если нужна чужая платформа — например, воспроизвести ошибку CI на Mac — укажи её явно:\n\n```bash\ndocker run --rm --platform linux/amd64 python:3.12-slim python -c \"import platform; print(platform.machine())\"\n```\n\n## Лимиты на скачивание\n\nDocker Hub ограничивает число скачиваний образов: у анонимных запросов лимит в час с одного IP небольшой, у вошедших пользователей — заметно больше (точные цифры Docker периодически меняет — смотри docs.docker.com). В CI много job-ов ходят с одного IP, и лимит кончается быстро. Симптом — ошибка:\n\n```bash\ntoomanyrequests: You have reached your pull rate limit.\n```\n\nЧто делают:\n\n- в CI **логинятся** в Docker Hub перед скачиванием (токеном, см. ниже);\n- кэшируют образы или держат копии в своём реестре (зеркало, ghcr.io, корпоративный Nexus или Harbor);\n- не скачивают одно и то же в каждом шаге.\n\n## Свой образ в Docker Hub\n\n1. Зарегистрироваться на hub.docker.com — имя пользователя станет префиксом образов (`anna/...`).\n2. Создать **токен доступа**: Account settings → Personal access tokens. Пароль от аккаунта в CI не используют — токен можно ограничить правами (только чтение) и отозвать.\n3. Войти и отправить образ:\n\n```bash\necho \"$DOCKERHUB_TOKEN\" | docker login -u anna --password-stdin\ndocker tag my-tests anna/my-tests:1.0      # второе имя с префиксом пользователя\ndocker push anna/my-tests:1.0\n```\n\n- `--password-stdin` читает токен из ввода: он не попадёт в историю команд и в список процессов.\n- Публичный репозиторий может скачать кто угодно — **никаких секретов в образе** (паролей, `.env`, ключей). Приватных репозиториев на бесплатном плане мало.\n- После `push` образ доступен на любой машине: `docker pull anna/my-tests:1.0`.\n\n## Итог\n\n- Docker Hub — реестр по умолчанию; `library/` — официальные образы.\n- Доверяй значкам Official Image и Verified Publisher, смотри на исходный Dockerfile.\n- Для тестов — `-slim`; `alpine` маленький, но с подвохами; тег с ОС фиксирует систему.\n- Один тег — несколько платформ; `--platform` выбирает нужную.\n- Лимиты скачиваний: в CI логинься и кэшируй.\n- Свой образ: токен → `docker login --password-stdin` → `tag пользователь/имя:тег` → `push`.",
+              "quiz": [
+                {
+                  "q": "Какое полное имя у образа `redis:7`?",
+                  "options": [
+                    "redis:7",
+                    "docker.io/redis/redis:7",
+                    "docker.io/library/redis:7",
+                    "hub.docker.com/redis:7"
+                  ],
+                  "answer": 2,
+                  "explain": "Реестр по умолчанию — docker.io, официальные образы — в library/."
+                },
+                {
+                  "q": "Почему для автотестов чаще берут `python:3.12-slim`, а не `python:3.12-alpine`?",
+                  "options": [
+                    "alpine не поддерживает Python 3.12",
+                    "В alpine другая библиотека C (musl): часть пакетов не найдёт готовой сборки и будет компилироваться или упадёт",
+                    "slim меньше alpine",
+                    "alpine платный"
+                  ],
+                  "answer": 1,
+                  "explain": "slim немного больше, зато совместим со всеми pip-пакетами."
+                },
+                {
+                  "q": "В CI скачивание образов падает с `toomanyrequests`. Что помогает?",
+                  "options": [
+                    "Использовать тег latest",
+                    "Войти в Docker Hub токеном и кэшировать или зеркалировать образы",
+                    "Добавить --no-cache",
+                    "Перезапустить job"
+                  ],
+                  "answer": 1,
+                  "explain": "У вошедших лимит выше, а кэш и зеркало убирают лишние скачивания."
+                }
+              ]
+            },
+            {
+              "slug": "dkr-image",
+              "title": "Образ изнутри и свой образ",
+              "theory": "```dockerfile\nFROM python:3.12-slim\nENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1\nWORKDIR /tests\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nRUN useradd --create-home tester\nUSER tester\nENTRYPOINT [\"pytest\"]\nCMD [\"-v\"]\n```\n```bash\ndocker image inspect --format '{{.Config.Cmd}}' my-tests\ndocker run --rm my-tests -m smoke                 # аргументы заменяют CMD\ndocker run --rm --entrypoint bash -it my-tests    # отладка\ndocker save -o my-tests.tar my-tests ; docker load -i my-tests.tar\n```",
+              "exercises": [
+                {
+                  "slug": "dkr-image-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Второй образ собран на той же базе — сколько придётся скачать?",
+                  "code": "have = {\"base1\": 74, \"base2\": 3, \"py\": 41}       # слои первого образа на диске, МБ\nsecond = {\"base1\": 74, \"base2\": 3, \"py\": 41, \"deps\": 28, \"tests\": 1}\n\nnew = {k: v for k, v in second.items() if k not in have}\nprint(len(new), sum(new.values()))\n",
+                  "expected_output": "2 29",
+                  "hint": "",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Слои общие: скачиваются только те, которых ещё нет на диске.\", \"trace\": [[\"new = {k: v for k, v in second.items() if k not in have}\", \"base1, base2, py уже есть\", \"\"], [\"\", \"new = {'deps': 28, 'tests': 1}\", \"\"], [\"print(len(new), sum(new.values()))\", \"2 слоя, 28 + 1\", \"2 29\"]], \"mistake\": \"Считать, что каждый образ скачивается целиком: общая база берётся с диска.\"}"
+                },
+                {
+                  "slug": "dkr-image-e2",
+                  "type": "code",
+                  "prompt": "Напиши функцию `merged_view(layers)` — что видит контейнер, если сложить слои образа.\n\n- Получает: `layers` — список слоёв **снизу вверх**. Каждый слой — словарь `{путь: содержимое}`; значение `None` означает «файл удалён в этом слое».\n- Возвращает: словарь файлов, которые видны в контейнере. Верхний слой перекрывает нижний; удалённых файлов в результате нет.\n\nПример:\n```\nlayers = [\n    {\"/etc/os\": \"debian\", \"/app/old.py\": \"v1\"},\n    {\"/app/old.py\": None, \"/app/test_api.py\": \"tests\"},\n    {\"/etc/os\": \"debian 12\"},\n]\nmerged_view(layers)\n# → {\"/etc/os\": \"debian 12\", \"/app/test_api.py\": \"tests\"}\n```",
+                  "starter_code": "def merged_view(layers):\n    pass\n",
+                  "tests": "LAYERS = [\n    {\"/etc/os\": \"debian\", \"/app/old.py\": \"v1\"},\n    {\"/app/old.py\": None, \"/app/test_api.py\": \"tests\"},\n    {\"/etc/os\": \"debian 12\"},\n]\n\ndef test_merge():\n    assert merged_view(LAYERS) == {\"/etc/os\": \"debian 12\", \"/app/test_api.py\": \"tests\"}, f\"Получено {merged_view(LAYERS)}\"\n\ndef test_recreated():\n    layers = [{\"/a\": \"1\"}, {\"/a\": None}, {\"/a\": \"3\"}]\n    assert merged_view(layers) == {\"/a\": \"3\"}, \"Файл удалили и создали снова — он есть\"\n\ndef test_input_untouched():\n    layers = [{\"/a\": \"1\"}, {\"/a\": None}]\n    merged_view(layers)\n    assert layers == [{\"/a\": \"1\"}, {\"/a\": None}], \"Слои образа только для чтения — не меняй их\"\n",
+                  "solution": "def merged_view(layers):\n    files = {}\n    for layer in layers:\n        for path, content in layer.items():\n            if content is None:\n                files.pop(path, None)\n            else:\n                files[path] = content\n    return files\n",
+                  "hint": "Иди по слоям снизу вверх и обновляй один общий словарь; `None` — `pop(path, None)`.",
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Слои применяются снизу вверх к одному словарю: новое значение перезаписывает, `None` удаляет.\", \"lines\": [[\"for layer in layers:\", \"Снизу вверх.\"], [\"files.pop(path, None)\", \"Пометка «удалён»: убираем, если было.\"], [\"files[path] = content\", \"Верхний слой перекрывает нижний.\"]], \"mistake\": \"Изменять сами слои (`layer.pop`) — слои образа только для чтения, и второй вызов даст другой результат.\"}"
+                },
+                {
+                  "slug": "dkr-image-e3",
+                  "type": "code",
+                  "prompt": "Напиши Dockerfile образа для автотестов — строкой в переменной `DOCKERFILE`.\n\nТребования:\n1. Первая инструкция — `FROM python:3.12-slim`.\n2. `ENV PYTHONUNBUFFERED=1` — вывод без буфера (можно вместе с другими переменными в одной строке `ENV`).\n3. `WORKDIR /tests`.\n4. Кэш слоёв: `COPY requirements.txt .` → `RUN pip install --no-cache-dir -r requirements.txt` → `COPY . .`.\n5. Создать пользователя (`RUN useradd ...`) и переключиться на него инструкцией `USER` — **после** установки зависимостей. Пользователь не `root`.\n6. `ENTRYPOINT [\"pytest\"]` — в exec-форме (JSON-список).\n7. Последняя инструкция — `CMD` с аргументами по умолчанию, например `CMD [\"-v\"]`.",
+                  "starter_code": "DOCKERFILE = \"\"\"\nFROM python:3.12-slim\n\"\"\"\n",
+                  "tests": "def _instructions(text):\n    result = []\n    for line in text.splitlines():\n        line = line.strip()\n        if not line or line.startswith(\"#\"):\n            continue\n        instr, _, args = line.partition(\" \")\n        result.append((instr.upper(), args.strip()))\n    return result\n\nimport json\n\ndef _find(ins, name, start=\"\"):\n    return next((k for k, (i, a) in enumerate(ins) if i == name and a.startswith(start)), None)\n\ndef test_from_env_workdir():\n    ins = _instructions(DOCKERFILE)\n    assert ins and ins[0] == (\"FROM\", \"python:3.12-slim\"), \"Первая инструкция — FROM python:3.12-slim\"\n    assert any(i == \"ENV\" and \"PYTHONUNBUFFERED=1\" in a for i, a in ins), \"Нужен ENV PYTHONUNBUFFERED=1\"\n    assert (\"WORKDIR\", \"/tests\") in ins, \"Нужен WORKDIR /tests\"\n\ndef test_cache_order():\n    ins = _instructions(DOCKERFILE)\n    req, code = _find(ins, \"COPY\", \"requirements.txt\"), _find(ins, \"COPY\", \". \")\n    pip = next((k for k, (i, a) in enumerate(ins) if i == \"RUN\" and \"pip install\" in a), None)\n    assert None not in (req, pip, code), \"Нужны COPY requirements.txt, RUN pip install и COPY . .\"\n    assert \"--no-cache-dir\" in ins[pip][1], \"pip install с --no-cache-dir\"\n    assert req < pip < code, \"Порядок: COPY requirements.txt → pip install → COPY . .\"\n\ndef test_user():\n    ins = _instructions(DOCKERFILE)\n    pip = next(k for k, (i, a) in enumerate(ins) if i == \"RUN\" and \"pip install\" in a)\n    user = _find(ins, \"USER\")\n    assert any(i == \"RUN\" and \"useradd\" in a for i, a in ins), \"Создай пользователя: RUN useradd ...\"\n    assert user is not None and ins[user][1] not in (\"root\", \"0\"), \"Нужен USER — не root\"\n    assert user > pip, \"USER — после установки зависимостей\"\n\ndef test_entrypoint_cmd():\n    ins = _instructions(DOCKERFILE)\n    ep = _find(ins, \"ENTRYPOINT\")\n    assert ep is not None and json.loads(ins[ep][1]) == [\"pytest\"], 'Нужен ENTRYPOINT [\"pytest\"] в exec-форме'\n    assert ins[-1][0] == \"CMD\" and ins[-1][1].startswith(\"[\"), 'Последняя — CMD в exec-форме, например CMD [\"-v\"]'\n",
+                  "solution": "DOCKERFILE = \"\"\"\nFROM python:3.12-slim\nENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1\nWORKDIR /tests\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nRUN useradd --create-home tester\nUSER tester\nENTRYPOINT [\"pytest\"]\nCMD [\"-v\"]\n\"\"\"\n",
+                  "hint": "Порядок: FROM, ENV, WORKDIR, COPY requirements.txt, RUN pip, COPY . ., RUN useradd, USER, ENTRYPOINT, CMD.",
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Хороший образ тестов: маленькая база, вывод без буфера, кэш зависимостей, не root, pytest как ENTRYPOINT.\", \"lines\": [[\"ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1\", \"Логи сразу, без .pyc.\"], [\"RUN pip install --no-cache-dir -r requirements.txt\", \"Без кэша pip внутри образа.\"], [\"RUN useradd --create-home tester\\nUSER tester\", \"Дальше всё — от обычного пользователя.\"], [\"ENTRYPOINT [\\\"pytest\\\"]\\nCMD [\\\"-v\\\"]\", \"Контейнер = pytest; аргументы по умолчанию.\"]], \"mistake\": \"Поставить `USER tester` до `pip install` — установка в системный Python упадёт без прав.\"}"
+                },
+                {
+                  "slug": "dkr-image-e4",
+                  "type": "code",
+                  "prompt": "Напиши функцию `run_command(entrypoint, cmd, args=None, override=None)` — какую команду выполнит контейнер.\n\n- Получает:\n  - `entrypoint`, `cmd` — списки из образа (`ENTRYPOINT` и `CMD`);\n  - `args` — аргументы после имени образа в `docker run` (список или `None`);\n  - `override` — значение флага `--entrypoint` (строка или `None`).\n- Возвращает: список — итоговую команду.\n\nПравила Docker:\n- если задан `override`, он заменяет `ENTRYPOINT`, а `CMD` образа **сбрасывается**: результат — `[override] + (args or [])`;\n- иначе — `entrypoint + args`, если `args` переданы (не пустые), и `entrypoint + cmd`, если нет.\n\nПримеры:\n```\nrun_command([\"pytest\"], [\"-v\"])                      # → [\"pytest\", \"-v\"]\nrun_command([\"pytest\"], [\"-v\"], [\"-m\", \"smoke\"])     # → [\"pytest\", \"-m\", \"smoke\"]\nrun_command([\"pytest\"], [\"-v\"], override=\"bash\")     # → [\"bash\"]\nrun_command([\"pytest\"], [\"-v\"], [\"-c\", \"ls\"], \"sh\")  # → [\"sh\", \"-c\", \"ls\"]\n```",
+                  "starter_code": "def run_command(entrypoint, cmd, args=None, override=None):\n    pass\n",
+                  "tests": "def test_default():\n    assert run_command([\"pytest\"], [\"-v\"]) == [\"pytest\", \"-v\"]\n\ndef test_args_replace_cmd():\n    assert run_command([\"pytest\"], [\"-v\"], [\"-m\", \"smoke\"]) == [\"pytest\", \"-m\", \"smoke\"], \"Аргументы заменяют CMD\"\n\ndef test_override_resets_cmd():\n    assert run_command([\"pytest\"], [\"-v\"], override=\"bash\") == [\"bash\"], \"--entrypoint сбрасывает CMD образа\"\n    assert run_command([\"pytest\"], [\"-v\"], [\"-c\", \"ls\"], \"sh\") == [\"sh\", \"-c\", \"ls\"]\n",
+                  "solution": "def run_command(entrypoint, cmd, args=None, override=None):\n    if override is not None:\n        return [override] + (args or [])\n    return entrypoint + (args if args else cmd)\n",
+                  "hint": "Сначала проверь `override`; потом `entrypoint + (args if args else cmd)`.",
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`--entrypoint` заменяет ENTRYPOINT и сбрасывает CMD; обычные аргументы заменяют только CMD.\", \"lines\": [[\"if override is not None:\\n        return [override] + (args or [])\", \"CMD образа уже не участвует.\"], [\"return entrypoint + (args if args else cmd)\", \"Аргументы или CMD по умолчанию.\"]], \"mistake\": \"Оставлять CMD после `--entrypoint`: `docker run --entrypoint bash img` не превращается в `bash -v`.\"}"
+                },
+                {
+                  "slug": "dkr-image-e5",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Часть вывода `docker image inspect` — что запустится по умолчанию и от чьего имени.",
+                  "code": "config = {\n    \"Env\": [\"PATH=/usr/local/bin:/usr/bin\", \"PYTHONUNBUFFERED=1\"],\n    \"WorkingDir\": \"/tests\",\n    \"User\": \"tester\",\n    \"Entrypoint\": [\"pytest\"],\n    \"Cmd\": [\"-v\"],\n}\nenv = dict(item.split(\"=\", 1) for item in config[\"Env\"])\nprint(\" \".join(config[\"Entrypoint\"] + config[\"Cmd\"]))\nprint(config[\"User\"] or \"root\", env[\"PYTHONUNBUFFERED\"])\n",
+                  "expected_output": "pytest -v\ntester 1",
+                  "hint": "",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Из `inspect` видно, что запустится по умолчанию и от чьего имени.\", \"trace\": [[\"env = dict(item.split(\\\"=\\\", 1) for item in config[\\\"Env\\\"])\", \"{'PATH': …, 'PYTHONUNBUFFERED': '1'}\", \"\"], [\"print(\\\" \\\".join(config[\\\"Entrypoint\\\"] + config[\\\"Cmd\\\"]))\", \"['pytest'] + ['-v']\", \"pytest -v\"], [\"print(config[\\\"User\\\"] or \\\"root\\\", env[\\\"PYTHONUNBUFFERED\\\"])\", \"User = tester\", \"tester 1\"]], \"mistake\": \"`split(\\\"=\\\")` без лимита сломается на значении, где тоже есть `=`.\"}"
+                },
+                {
+                  "slug": "dkr-image-e6",
+                  "type": "command",
+                  "prompt": "Покажи полную информацию об образе `my-tests`: конфигурацию (ENTRYPOINT, CMD, ENV, USER) и список слоёв в JSON.",
+                  "code": "",
+                  "expected_output": "docker image inspect my-tests\ndocker inspect my-tests",
+                  "solution": "docker image inspect my-tests",
+                  "hint": "`docker image inspect образ`.",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`docker image inspect` показывает конфигурацию и слои образа в JSON.\", \"lines\": [[\"docker image inspect my-tests\", \"Можно сузить: `--format '{{.Config.Cmd}}'`.\"]], \"mistake\": \"`docker inspect` без уточнения сработает тоже, но если есть контейнер с таким же именем, покажет его.\"}"
+                },
+                {
+                  "slug": "dkr-image-e7",
+                  "type": "command",
+                  "prompt": "В образе `my-tests` — `ENTRYPOINT [\"pytest\"]`. Запусти контейнер так, чтобы прогнались только тесты с маркером `smoke`, а контейнер удалился после работы.",
+                  "code": "",
+                  "expected_output": "docker run --rm my-tests -m smoke\ndocker container run --rm my-tests -m smoke",
+                  "solution": "docker run --rm my-tests -m smoke",
+                  "hint": "Аргументы после имени образа дописываются к ENTRYPOINT: `docker run --rm образ -m smoke`.",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"При `ENTRYPOINT [\\\"pytest\\\"]` всё после имени образа — аргументы pytest.\", \"lines\": [[\"docker run --rm my-tests -m smoke\", \"Выполнится `pytest -m smoke`.\"]], \"mistake\": \"`docker run --rm my-tests pytest -m smoke` — получится `pytest pytest -m smoke`.\"}"
+                },
+                {
+                  "slug": "dkr-image-e8",
+                  "type": "command",
+                  "prompt": "На стенде нет доступа к реестру. Сохрани образ `my-tests:1.0` в файл `my-tests.tar`, чтобы перенести его вручную.",
+                  "code": "",
+                  "expected_output": "docker save -o my-tests.tar my-tests:1.0\ndocker save my-tests:1.0 -o my-tests.tar\ndocker save --output my-tests.tar my-tests:1.0\ndocker save my-tests:1.0 > my-tests.tar\ndocker image save -o my-tests.tar my-tests:1.0",
+                  "solution": "docker save -o my-tests.tar my-tests:1.0",
+                  "hint": "`docker save -o файл.tar образ`; на другой машине — `docker load -i файл.tar`.",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`docker save` упаковывает образ со всеми слоями в tar; `docker load` распаковывает на другой машине.\", \"lines\": [[\"docker save\", \"Образ со слоями и настройками → архив.\"], [\"-o my-tests.tar\", \"Куда сохранить. На стенде — `docker load -i my-tests.tar`.\"]], \"mistake\": \"Путать с `docker export` — тот сохраняет файловую систему контейнера без слоёв и настроек образа.\"}"
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nМы уже писали Dockerfile по частям. Теперь соберём картину целиком: из чего физически состоит образ, почему контейнер «забывает» изменения и как с нуля написать хороший образ для своих автотестов — такой, который запускается одной командой, принимает параметры и не работает от root.\n\n## Образ изнутри\n\nОбраз — это не один файл, а набор частей:\n\n- **Слои** — архивы изменений файловой системы, только для чтения. Каждая инструкция `RUN`, `COPY`, `ADD` даёт слой.\n- **Конфигурация** — то, что не файлы: `ENV`, `WORKDIR`, `USER`, `ENTRYPOINT`, `CMD`, открытые порты, метки.\n- **Манифест** — список слоёв и ссылка на конфигурацию. Его хеш — **дайджест** образа (`sha256:…`). Изменился хоть байт — изменился дайджест.\n\nСлои **общие** между образами: если два образа начинаются с `FROM python:3.12-slim`, базовые слои скачаются и займут место на диске один раз.\n\n```bash\ndocker image ls                                  # образы, их размер и ID\ndocker history my-tests                          # слои и какая инструкция их создала\ndocker image inspect my-tests                    # конфигурация и слои в JSON\ndocker image inspect --format '{{.Config.Entrypoint}} {{.Config.Cmd}}' my-tests\n```\n\n## Контейнер = образ + слой для записи\n\nКогда контейнер запускается, Docker кладёт поверх слоёв образа ещё один — тонкий **слой для записи**. Все изменения (новые файлы, отчёты, логи) попадают туда. Чтение идёт сверху вниз: файл берётся из самого верхнего слоя, где он есть. Удаление файла из нижнего слоя — это пометка «удалён» в верхнем; сам нижний слой не меняется.\n\nОтсюда два важных следствия:\n\n- **Удалили контейнер — потеряли всё, что он записал.** Отчёты тестов надо выносить наружу через том (`-v ./reports:/app/reports`).\n- **Образ не меняется от запуска.** Хоть сто прогонов — каждый начнёт с одинакового чистого состояния. Именно это и нужно тестам.\n\nЕсть команда `docker commit` — сохранить изменённый контейнер как образ. Для работы она не годится: никто не узнает, что внутри поменяли руками, и повторить это нельзя. Образ всегда описывают Dockerfile-ом.\n\n## Свой образ для автотестов: шаг за шагом\n\nПроект:\n\n```bash\ntests-project/\n├── Dockerfile\n├── .dockerignore\n├── requirements.txt\n├── pytest.ini\n└── tests/\n    └── test_api.py\n```\n\nDockerfile:\n\n```dockerfile\nFROM python:3.12-slim\n\nENV PYTHONDONTWRITEBYTECODE=1 \\\n    PYTHONUNBUFFERED=1\n\nWORKDIR /tests\n\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\n\nCOPY . .\n\nRUN useradd --create-home tester\nUSER tester\n\nENTRYPOINT [\"pytest\"]\nCMD [\"-v\"]\n```\n\nРазбор решений:\n\n- `FROM python:3.12-slim` — официальный образ, маленький и совместимый.\n- `PYTHONDONTWRITEBYTECODE=1` — не создавать `.pyc`; `PYTHONUNBUFFERED=1` — печатать вывод сразу, без буфера, иначе логи в CI приходят пачками или теряются при падении.\n- Зависимости — **до** кода (кэш слоёв, урок «Dockerfile и слои»). `--no-cache-dir` — не хранить в образе кэш pip.\n- `useradd` + `USER tester` — тесты работают **не от root**. Если в коде или зависимости найдётся уязвимость, у процесса будет меньше прав.\n- `ENTRYPOINT [\"pytest\"]` — контейнер **и есть** pytest. `CMD [\"-v\"]` — аргументы по умолчанию, их заменяет то, что передали в `docker run`.\n\n## Сборка, запуск, параметры\n\n```bash\ndocker build -t my-tests:1.0 .\ndocker run --rm my-tests:1.0                              # pytest -v\ndocker run --rm my-tests:1.0 -m smoke                     # pytest -m smoke\ndocker run --rm -e BASE_URL=https://stage.example.com my-tests:1.0\ndocker run --rm -v \"$PWD/reports:/tests/reports\" my-tests:1.0 --junitxml=reports/junit.xml\ndocker run --rm --entrypoint bash -it my-tests:1.0        # зайти внутрь и осмотреться\n```\n\n- Аргументы после имени образа заменяют `CMD` и дописываются к `ENTRYPOINT`.\n- `--entrypoint` подменяет сам `ENTRYPOINT` — и **сбрасывает** `CMD` образа. Удобно для отладки: открыть оболочку вместо тестов.\n- Адрес стенда, браузер, токены — через `-e`, а не внутри образа: один образ гоняют на разных стендах.\n\n## Метки и перенос без реестра\n\n```dockerfile\nLABEL org.opencontainers.image.source=\"https://github.com/acme/shop-tests\"\n```\n\nМетка `org.opencontainers.image.source` связывает образ с репозиторием: GitHub по ней показывает пакет на странице репозитория.\n\nЕсли реестра нет (закрытый контур, стенд без интернета), образ переносят файлом:\n\n```bash\ndocker save -o my-tests.tar my-tests:1.0       # образ → архив\ndocker load -i my-tests.tar                    # архив → образ на другой машине\n```\n\n## Итог\n\n- Образ = слои (только чтение) + конфигурация + манифест; дайджест — отпечаток содержимого.\n- Контейнер пишет в свой верхний слой; удалили контейнер — потеряли записанное. Отчёты — через том.\n- Образ описывают Dockerfile-ом, а не `docker commit`.\n- Хороший образ тестов: `-slim`, `PYTHONUNBUFFERED=1`, зависимости до кода, `--no-cache-dir`, не root, `ENTRYPOINT [\"pytest\"]` + `CMD`.\n- Аргументы `docker run` заменяют `CMD`; `--entrypoint` заменяет `ENTRYPOINT` и сбрасывает `CMD`.\n- `docker save` / `docker load` — перенос без реестра.",
+              "quiz": [
+                {
+                  "q": "Тест в контейнере записал файл `/tests/reports/junit.xml`, контейнер запущен с `--rm` без томов. Где файл после прогона?",
+                  "options": [
+                    "В образе",
+                    "Нигде: он был в слое для записи удалённого контейнера",
+                    "В папке reports на хосте",
+                    "В кэше Docker"
+                  ],
+                  "answer": 1,
+                  "explain": "Отчёты выносят наружу через том -v."
+                },
+                {
+                  "q": "В образе `ENTRYPOINT [\"pytest\"]` и `CMD [\"-v\"]`. Что выполнит `docker run --rm img -m smoke`?",
+                  "options": [
+                    "pytest -v -m smoke",
+                    "pytest -m smoke",
+                    "-m smoke",
+                    "pytest -v"
+                  ],
+                  "answer": 1,
+                  "explain": "Аргументы run заменяют CMD и дописываются к ENTRYPOINT."
+                },
+                {
+                  "q": "Зачем в образе тестов `USER tester`?",
+                  "options": [
+                    "Чтобы pytest работал быстрее",
+                    "Чтобы процесс не имел прав root внутри контейнера",
+                    "Чтобы работал кэш слоёв",
+                    "Без него образ не соберётся"
+                  ],
+                  "answer": 1,
+                  "explain": "Меньше прав — меньше ущерб, если что-то пойдёт не так."
+                }
+              ]
+            },
+            {
+              "slug": "dkr-dind",
+              "title": "Docker в Docker",
+              "theory": "```bash\n# сокет хоста: контейнеры-соседи, root-доступ к хосту\ndocker run --rm -v /var/run/docker.sock:/var/run/docker.sock docker:27 docker ps\n# настоящий DinD: свой демон, нужен --privileged\ndocker run -d --privileged --name dind docker:27-dind\n```\n```yaml\n# GitLab CI\nimage: docker:27\nservices: [docker:27-dind]\nvariables:\n  DOCKER_HOST: tcp://docker:2376      # 2376 — TLS, 2375 — без\n  DOCKER_TLS_CERTDIR: \"/certs\"\n```\n```py\nwith PostgresContainer(\"postgres:16\") as pg:    # testcontainers\n    url = pg.get_connection_url()\n```",
+              "exercises": [
+                {
+                  "slug": "dkr-dind-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? CI-job работает в контейнере с проброшенным docker.sock и запускает `docker run -v /builds/app/reports:/reports ...`. Чей путь проверит демон?",
+                  "code": "job_dirs = {\"/builds/app\", \"/builds/app/reports\"}      # папки внутри контейнера CI-job\nhost_dirs = {\"/home/runner\", \"/var/lib/docker\"}         # папки на хосте\n\nmount = \"/builds/app/reports\"\ndaemon_sees = mount in host_dirs     # путь из -v читает демон — а он на хосте\nprint(mount in job_dirs, daemon_sees)\nprint(\"отчёты на месте\" if daemon_sees else \"Docker создаст пустую папку на хосте\")\n",
+                  "expected_output": "True False\nDocker создаст пустую папку на хосте",
+                  "hint": "",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"При пробросе сокета путь в `-v` читает демон хоста, а не контейнер, из которого запустили команду.\", \"trace\": [[\"print(mount in job_dirs, daemon_sees)\", \"папка есть в job-е, но не на хосте\", \"True False\"], [\"print(\\\"отчёты на месте\\\" if daemon_sees else \\\"Docker создаст пустую папку на хосте\\\")\", \"daemon_sees = False\", \"Docker создаст пустую папку на хосте\"]], \"mistake\": \"Удивляться пустым отчётам: тесты писали в папку на хосте, которую никто не смотрит.\"}"
+                },
+                {
+                  "slug": "dkr-dind-e2",
+                  "type": "code",
+                  "prompt": "Напиши функцию `docker_access(command)`: как контейнер получит доступ к Docker.\n\n- Получает: `command` — строку команды `docker run ...`.\n- Возвращает:\n  - `\"socket\"`, если в команде есть проброс сокета `-v /var/run/docker.sock:/var/run/docker.sock`;\n  - `\"dind\"`, если есть флаг `--privileged` и образ (слово, которое начинается с `docker:`) заканчивается на `dind`;\n  - `\"none\"` — иначе.\n\nПримеры:\n```\ndocker_access(\"docker run --rm -v /var/run/docker.sock:/var/run/docker.sock docker:27 docker ps\")  # → \"socket\"\ndocker_access(\"docker run -d --privileged --name dind docker:27-dind\")                            # → \"dind\"\ndocker_access(\"docker run -d docker:27-dind\")                                                     # → \"none\"\n```",
+                  "starter_code": "def docker_access(command):\n    pass\n",
+                  "tests": "def test_socket():\n    assert docker_access(\"docker run --rm -v /var/run/docker.sock:/var/run/docker.sock docker:27 docker ps\") == \"socket\"\n\ndef test_dind():\n    assert docker_access(\"docker run -d --privileged --name dind docker:27-dind\") == \"dind\"\n\ndef test_dind_needs_privileged():\n    assert docker_access(\"docker run -d docker:27-dind\") == \"none\", \"Без --privileged DinD не заработает\"\n\ndef test_plain():\n    assert docker_access(\"docker run --rm --privileged python:3.12-slim\") == \"none\"\n",
+                  "solution": "def docker_access(command):\n    words = command.split()\n    if \"/var/run/docker.sock:/var/run/docker.sock\" in words:\n        return \"socket\"\n    image = next((w for w in words if w.startswith(\"docker:\")), \"\")\n    if \"--privileged\" in words and image.endswith(\"dind\"):\n        return \"dind\"\n    return \"none\"\n",
+                  "hint": "Разбей строку на слова: `command.split()`; образ — слово, которое начинается с `docker:`.",
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Сокет хоста узнаём по тому, где смонтирован docker.sock; DinD — по образу `docker:*dind` и флагу `--privileged`.\", \"lines\": [[\"if \\\"/var/run/docker.sock:/var/run/docker.sock\\\" in words:\", \"Проброс сокета.\"], [\"image = next((w for w in words if w.startswith(\\\"docker:\\\")), \\\"\\\")\", \"Образ docker:…\"], [\"if \\\"--privileged\\\" in words and image.endswith(\\\"dind\\\"):\", \"Без прав DinD не стартует.\"]], \"mistake\": \"Считать DinD любой контейнер `docker:dind` — без `--privileged` демон внутри не запустится.\"}"
+                },
+                {
+                  "slug": "dkr-dind-e3",
+                  "type": "code",
+                  "prompt": "Напиши функцию `risky_services(services)` — ревью docker-compose на опасные настройки.\n\n- Получает: `services` — словарь сервисов из compose: `{имя: настройки}`. В настройках могут быть ключи `volumes` (список строк `\"откуда:куда\"`) и `privileged` (bool).\n- Возвращает: **отсортированный** по имени список пар `(имя, причина)`:\n  - `\"docker.sock\"` — если хотя бы один том начинается с `/var/run/docker.sock`;\n  - `\"privileged\"` — если `privileged` равен `True`.\n\n  У одного сервиса могут быть обе причины — тогда две пары (сначала `docker.sock`).\n\nПример:\n```\nservices = {\n    \"tests\": {\"volumes\": [\"./reports:/tests/reports\"]},\n    \"runner\": {\"volumes\": [\"/var/run/docker.sock:/var/run/docker.sock\"]},\n    \"dind\": {\"privileged\": True},\n}\nrisky_services(services)   # → [(\"dind\", \"privileged\"), (\"runner\", \"docker.sock\")]\n```",
+                  "starter_code": "def risky_services(services):\n    pass\n",
+                  "tests": "def test_review():\n    services = {\n        \"tests\": {\"volumes\": [\"./reports:/tests/reports\"]},\n        \"runner\": {\"volumes\": [\"/var/run/docker.sock:/var/run/docker.sock\"]},\n        \"dind\": {\"privileged\": True},\n    }\n    assert risky_services(services) == [(\"dind\", \"privileged\"), (\"runner\", \"docker.sock\")], f\"Получено {risky_services(services)}\"\n\ndef test_both():\n    services = {\"bad\": {\"privileged\": True, \"volumes\": [\"/var/run/docker.sock:/var/run/docker.sock:ro\"]}}\n    assert risky_services(services) == [(\"bad\", \"docker.sock\"), (\"bad\", \"privileged\")]\n\ndef test_clean():\n    assert risky_services({\"db\": {\"image\": \"postgres:16\"}, \"app\": {\"privileged\": False}}) == []\n",
+                  "solution": "def risky_services(services):\n    found = []\n    for name in sorted(services):\n        cfg = services[name]\n        if any(v.startswith(\"/var/run/docker.sock\") for v in cfg.get(\"volumes\", [])):\n            found.append((name, \"docker.sock\"))\n        if cfg.get(\"privileged\") is True:\n            found.append((name, \"privileged\"))\n    return found\n",
+                  "hint": "Перебирай `sorted(services)`; `cfg.get(\"volumes\", [])` — пустой список, если ключа нет.",
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Ревью compose: docker.sock в томах и `privileged: true` — две самые опасные настройки.\", \"lines\": [[\"for name in sorted(services):\", \"Сразу в нужном порядке.\"], [\"if any(v.startswith(\\\"/var/run/docker.sock\\\") for v in cfg.get(\\\"volumes\\\", [])):\", \"Сокет, в том числе с `:ro`.\"], [\"if cfg.get(\\\"privileged\\\") is True:\", \"Флаг привилегий.\"]], \"mistake\": \"Думать, что `:ro` на сокете спасает: через сокет только читать нельзя — API демона всё равно доступен.\"}"
+                },
+                {
+                  "slug": "dkr-dind-e4",
+                  "type": "code",
+                  "prompt": "Напиши job GitLab CI, который собирает образ через DinD, — строкой YAML в переменной `GITLAB_CI`.\n\nJob называется `build-image`, у него:\n- `image: docker:27` — образ с клиентом docker;\n- `services` со списком из одного элемента `docker:27-dind`;\n- `variables`: `DOCKER_HOST: tcp://docker:2376` и `DOCKER_TLS_CERTDIR: \"/certs\"`;\n- `script` — список команд, среди них сборка `docker build -t \"$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\" .` и отправка `docker push \"$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\"` — именно в таком порядке.\n\nПроверки разберут YAML и посмотрят на структуру.",
+                  "starter_code": "GITLAB_CI = \"\"\"\nbuild-image:\n  image: docker:27\n\"\"\"\n",
+                  "tests": "import yaml\n\n\ndef load(text):\n    data = yaml.safe_load(text) or {}\n    if True in data:\n        data[\"on\"] = data.pop(True)\n    return data\n\n\ndef job():\n    data = load(GITLAB_CI)\n    assert \"build-image\" in data, \"Нужен job build-image\"\n    return data[\"build-image\"]\n\ndef test_image_and_service():\n    j = job()\n    assert j.get(\"image\") == \"docker:27\", \"image: docker:27\"\n    assert j.get(\"services\") == [\"docker:27-dind\"], \"services: [docker:27-dind]\"\n\ndef test_variables():\n    v = job().get(\"variables\", {})\n    assert v.get(\"DOCKER_HOST\") == \"tcp://docker:2376\", \"DOCKER_HOST: tcp://docker:2376\"\n    assert v.get(\"DOCKER_TLS_CERTDIR\") == \"/certs\", 'DOCKER_TLS_CERTDIR: \"/certs\"'\n\ndef test_script():\n    script = job().get(\"script\", [])\n    build = next((k for k, s in enumerate(script) if s.startswith(\"docker build\") and \"$CI_COMMIT_SHA\" in s), None)\n    push = next((k for k, s in enumerate(script) if s.startswith(\"docker push\") and \"$CI_COMMIT_SHA\" in s), None)\n    assert build is not None, \"Нужен docker build с тегом $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\"\n    assert push is not None, \"Нужен docker push того же тега\"\n    assert build < push, \"Сначала build, потом push\"\n",
+                  "solution": "GITLAB_CI = \"\"\"\nbuild-image:\n  image: docker:27\n  services:\n    - docker:27-dind\n  variables:\n    DOCKER_HOST: tcp://docker:2376\n    DOCKER_TLS_CERTDIR: \"/certs\"\n  script:\n    - echo \"$CI_REGISTRY_PASSWORD\" | docker login -u \"$CI_REGISTRY_USER\" --password-stdin \"$CI_REGISTRY\"\n    - docker build -t \"$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\" .\n    - docker push \"$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\"\n\"\"\"\n",
+                  "hint": "Ключи job-а: image, services (список), variables (словарь), script (список строк).",
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Job с клиентом docker, сервис с демоном рядом, переменные — где демон и куда положить TLS-сертификаты.\", \"lines\": [[\"image: docker:27\", \"Клиент docker.\"], [\"services:\\n    - docker:27-dind\", \"Демон по имени `docker`.\"], [\"DOCKER_HOST: tcp://docker:2376\", \"Порт с TLS.\"], [\"DOCKER_TLS_CERTDIR: \\\"/certs\\\"\", \"Общая папка для сертификатов.\"]], \"mistake\": \"Забыть `DOCKER_HOST` — клиент ищет локальный сокет и пишет `Cannot connect to the Docker daemon`.\"}"
+                },
+                {
+                  "slug": "dkr-dind-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `parse_docker_host(value)` — разобрать значение переменной `DOCKER_HOST`.\n\n- Получает: `value` — строку или `None` (переменная не задана).\n- Возвращает словарь:\n  - `None` или пустая строка → `{\"kind\": \"unix\", \"path\": \"/var/run/docker.sock\"}` (сокет по умолчанию);\n  - `\"unix:///путь\"` → `{\"kind\": \"unix\", \"path\": \"/путь\"}`;\n  - `\"tcp://хост:порт\"` → `{\"kind\": \"tcp\", \"host\": хост, \"port\": порт (int), \"tls\": порт == 2376}`.\n\nПримеры:\n```\nparse_docker_host(None)                    # → {\"kind\": \"unix\", \"path\": \"/var/run/docker.sock\"}\nparse_docker_host(\"tcp://docker:2376\")     # → {\"kind\": \"tcp\", \"host\": \"docker\", \"port\": 2376, \"tls\": True}\nparse_docker_host(\"tcp://dind:2375\")       # → {\"kind\": \"tcp\", \"host\": \"dind\", \"port\": 2375, \"tls\": False}\n```",
+                  "starter_code": "def parse_docker_host(value):\n    pass\n",
+                  "tests": "def test_default():\n    assert parse_docker_host(None) == {\"kind\": \"unix\", \"path\": \"/var/run/docker.sock\"}\n    assert parse_docker_host(\"\") == {\"kind\": \"unix\", \"path\": \"/var/run/docker.sock\"}\n\ndef test_unix():\n    assert parse_docker_host(\"unix:///run/user/1000/docker.sock\") == {\"kind\": \"unix\", \"path\": \"/run/user/1000/docker.sock\"}\n\ndef test_tcp():\n    assert parse_docker_host(\"tcp://docker:2376\") == {\"kind\": \"tcp\", \"host\": \"docker\", \"port\": 2376, \"tls\": True}\n    assert parse_docker_host(\"tcp://dind:2375\") == {\"kind\": \"tcp\", \"host\": \"dind\", \"port\": 2375, \"tls\": False}\n",
+                  "solution": "def parse_docker_host(value):\n    if not value:\n        return {\"kind\": \"unix\", \"path\": \"/var/run/docker.sock\"}\n    if value.startswith(\"unix://\"):\n        return {\"kind\": \"unix\", \"path\": value[len(\"unix://\"):]}\n    host, _, port = value[len(\"tcp://\"):].rpartition(\":\")\n    return {\"kind\": \"tcp\", \"host\": host, \"port\": int(port), \"tls\": int(port) == 2376}\n",
+                  "hint": "`unix://` — 7 символов, после них путь; для tcp раздели `хост:порт` через `rpartition(\":\")`.",
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Три формы: не задано — локальный сокет, `unix://путь`, `tcp://хост:порт` (2376 — TLS).\", \"lines\": [[\"if not value:\", \"None и пустая строка — по умолчанию.\"], [\"return {\\\"kind\\\": \\\"unix\\\", \\\"path\\\": value[len(\\\"unix://\\\"):]}\", \"Путь — всё после схемы.\"], [\"host, _, port = value[len(\\\"tcp://\\\"):].rpartition(\\\":\\\")\", \"Порт — после последнего двоеточия.\"]], \"mistake\": \"Оставить порт строкой — `\\\"2376\\\" == 2376` даёт False, и tls всегда будет False.\"}"
+                },
+                {
+                  "slug": "dkr-dind-e6",
+                  "type": "command",
+                  "prompt": "Запусти одноразовый контейнер из образа `docker:27` с проброшенным сокетом Docker хоста и выполни в нём `docker ps`.",
+                  "code": "",
+                  "expected_output": "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock docker:27 docker ps\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-v\\ /var/run/docker\\.sock:/var/run/docker\\.sock(?: |$))(?:\\S+ )*docker:27\\ docker\\ ps\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-\\-volume\\ /var/run/docker\\.sock:/var/run/docker\\.sock(?: |$))(?:\\S+ )*docker:27\\ docker\\ ps",
+                  "solution": "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock docker:27 docker ps",
+                  "hint": "Флаги `--rm` и `-v /var/run/docker.sock:/var/run/docker.sock`, потом образ и команда.",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Проброс сокета даёт клиенту в контейнере доступ к демону хоста.\", \"lines\": [[\"-v /var/run/docker.sock:/var/run/docker.sock\", \"Сокет хоста внутрь.\"], [\"docker:27 docker ps\", \"Покажет контейнеры хоста.\"]], \"mistake\": \"Ожидать увидеть пустой список: это тот же демон, контейнеры — общие.\"}"
+                },
+                {
+                  "slug": "dkr-dind-e7",
+                  "type": "command",
+                  "prompt": "Запусти в фоне настоящий DinD: контейнер с именем `dind` из образа `docker:27-dind` со всеми нужными ему правами.",
+                  "code": "",
+                  "expected_output": "docker run -d --privileged --name dind docker:27-dind\nre:docker\\ run (?=(?:.* )?\\-d(?: |$))(?=(?:.* )?\\-\\-privileged(?: |$))(?=(?:.* )?\\-\\-name\\ dind(?: |$))(?:\\S+ )*docker:27\\-dind\nre:docker\\ run (?=(?:.* )?\\-\\-detach(?: |$))(?=(?:.* )?\\-\\-privileged(?: |$))(?=(?:.* )?\\-\\-name\\ dind(?: |$))(?:\\S+ )*docker:27\\-dind",
+                  "solution": "docker run -d --privileged --name dind docker:27-dind",
+                  "hint": "Флаги `-d`, `--privileged`, `--name dind`, затем образ.",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Настоящему DinD нужен `--privileged`, иначе свой демон внутри не стартует.\", \"lines\": [[\"docker run -d --privileged --name dind docker:27-dind\", \"Фоновый контейнер с собственным dockerd.\"]], \"mistake\": \"Запускать DinD без `--privileged` — контейнер сразу упадёт с ошибками монтирования.\"}"
+                },
+                {
+                  "slug": "dkr-dind-e8",
+                  "type": "command",
+                  "prompt": "Какая переменная окружения говорит клиенту `docker`, к какому демону подключаться? Введи её имя.",
+                  "code": "",
+                  "expected_output": "DOCKER_HOST\nre:(?i)\\$?docker_host",
+                  "solution": "DOCKER_HOST",
+                  "hint": "Её задают в GitLab: `tcp://docker:2376`.",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`DOCKER_HOST` указывает клиенту адрес демона.\", \"lines\": [[\"DOCKER_HOST\", \"Например, `tcp://docker:2376` в GitLab CI; не задана — сокет `/var/run/docker.sock`.\"]], \"mistake\": \"Путать с `DOCKER_TLS_CERTDIR` — та говорит, где сертификаты, а не где демон.\"}"
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nИногда Docker нужен **внутри** контейнера:\n\n- CI-job работает в контейнере, а ему нужно собрать и запушить образ (`docker build`, `docker push`).\n- Тесты сами поднимают базу или брокер на время прогона — библиотека **Testcontainers** запускает контейнеры прямо из кода теста.\n- Тесты проверяют сам инструмент, который управляет контейнерами.\n\nЭто называют «Docker в Docker». Способов два, и у каждого свои ловушки.\n\n## Как устроен docker\n\n`docker` — только **клиент**. Он отправляет команды **демону** `dockerd`, а контейнеры создаёт и запускает именно демон. Клиент находит демона:\n\n- по умолчанию — через сокет `/var/run/docker.sock`;\n- или по адресу из переменной **`DOCKER_HOST`**: `unix:///var/run/docker.sock`, `tcp://docker:2376`.\n\nЗначит, чтобы `docker` работал внутри контейнера, нужен клиент и доступ к **какому-то** демону.\n\n## Способ 1: пробросить сокет хоста\n\n```bash\ndocker run --rm -v /var/run/docker.sock:/var/run/docker.sock docker:27 docker ps\n```\n\n- Клиент в контейнере говорит с демоном **хоста**. `docker ps` внутри покажет контейнеры хоста, в том числе самого себя.\n- Новые контейнеры — **соседи** на хосте, а не вложенные. Это быстро, и кэш образов общий.\n- Ловушка с путями: в `docker run -v ./reports:/reports` путь читает **демон хоста**. Папки, которая есть только внутри контейнера CI, на хосте нет — Docker создаст пустую, и отчёты «пропадут».\n- Ловушка с сетью: соседний контейнер не доступен по `localhost` контейнера с тестами — у них разные сети.\n- **Риск:** доступ к сокету = root на хосте. Любой код в контейнере может запустить `docker run -v /:/host --privileged ...` и делать с машиной что угодно. Пробрасывай сокет только доверенным образам.\n\n## Способ 2: настоящий DinD\n\nОтдельный демон Docker в своём контейнере — образ `docker:dind`:\n\n```bash\ndocker run -d --privileged --name dind docker:27-dind\n```\n\n- Внутри — свой `dockerd` со своими образами и контейнерами, изолированный от хоста.\n- Ему нужен флаг **`--privileged`**: контейнер получает почти все права хоста. Безопаснее сокета не в разы, просто иначе.\n- Кэш образов **пустой** при каждом запуске — сборки медленнее, если не настроить кэш через реестр.\n- Демон стартует несколько секунд: клиенту нужно подождать его, иначе — `Cannot connect to the Docker daemon`.\n\n## DinD в GitLab CI\n\nКлассическая схема: job в образе с клиентом `docker`, рядом — сервис `docker:dind`, связь по TLS:\n\n```yaml\nbuild-image:\n  image: docker:27\n  services:\n    - docker:27-dind\n  variables:\n    DOCKER_HOST: tcp://docker:2376\n    DOCKER_TLS_CERTDIR: \"/certs\"\n  script:\n    - echo \"$CI_REGISTRY_PASSWORD\" | docker login -u \"$CI_REGISTRY_USER\" --password-stdin \"$CI_REGISTRY\"\n    - docker build -t \"$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\" .\n    - docker push \"$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\"\n```\n\n- `services: docker:27-dind` — демон рядом с job-ом, доступен по имени `docker`.\n- `DOCKER_HOST: tcp://docker:2376` — клиенту: «демон там». Порт `2376` — с TLS, `2375` — без шифрования (так делать не стоит).\n- `DOCKER_TLS_CERTDIR` — куда положить сертификаты; клиент и демон обменяются ими сами.\n- GitLab Runner должен быть настроен с `privileged = true` — это делают администраторы.\n\nВ **GitHub Actions** всё проще: обычный job работает на виртуальной машине, где Docker уже установлен. `docker build` и `docker run` работают сразу, DinD не нужен.\n\n## Testcontainers: контейнеры из кода тестов\n\n```py\nfrom testcontainers.postgres import PostgresContainer\n\n\ndef test_users_table():\n    with PostgresContainer(\"postgres:16\") as pg:\n        url = pg.get_connection_url()\n        # подключаемся к свежей базе, создаём таблицы, проверяем\n```\n\n- Библиотека через Docker поднимает контейнер, ждёт готовности, отдаёт адрес и удаляет контейнер после блока `with`.\n- Каждый прогон — с чистой базой, без общего стенда.\n- Нужен доступ к Docker: локально он есть, в CI — VM GitHub Actions, сокет или DinD.\n\n## Как выбрать\n\n| | Сокет хоста | DinD |\n|---|---|---|\n| Скорость и кэш | быстро, кэш общий | медленнее, кэш пустой |\n| Изоляция | контейнеры — соседи на хосте | свой демон |\n| Права | доступ к сокету = root на хосте | `--privileged` |\n| Пути в `-v` | пути хоста | пути внутри DinD |\n\nЕсли нужно только **собрать** образ без доступа к демону, есть инструменты без Docker: Buildah, BuildKit в rootless-режиме (раньше часто использовали Kaniko).\n\n## Итог\n\n- `docker` — клиент; работу делает демон. Где демон — `/var/run/docker.sock` или `DOCKER_HOST`.\n- Сокет хоста: быстро, контейнеры-соседи, пути и сеть хоста, но это root-доступ.\n- DinD: `docker:dind` + `--privileged`, изоляция, пустой кэш, ждать запуска демона.\n- GitLab: `services: docker:dind`, `DOCKER_HOST: tcp://docker:2376`, `DOCKER_TLS_CERTDIR`.\n- GitHub Actions: Docker уже есть на VM.\n- Testcontainers поднимает зависимости прямо из тестов.",
+              "quiz": [
+                {
+                  "q": "Контейнер запущен с `-v /var/run/docker.sock:/var/run/docker.sock`. Что покажет `docker ps` внутри него?",
+                  "options": [
+                    "Пустой список",
+                    "Контейнеры хоста, включая этот",
+                    "Только вложенные контейнеры",
+                    "Ошибку"
+                  ],
+                  "answer": 1,
+                  "explain": "Клиент говорит с демоном хоста."
+                },
+                {
+                  "q": "Чем опасен проброс docker.sock в контейнер?",
+                  "options": [
+                    "Ничем",
+                    "Это фактически root-доступ к хосту",
+                    "Он замедляет сборку",
+                    "Он удаляет кэш"
+                  ],
+                  "answer": 1,
+                  "explain": "Через демон можно запустить привилегированный контейнер с файловой системой хоста."
+                },
+                {
+                  "q": "В GitLab job с `services: docker:27-dind` клиент пишет `Cannot connect to the Docker daemon`. Чего не хватает?",
+                  "options": [
+                    "`DOCKER_HOST: tcp://docker:2376` (и TLS-настройки), либо демон ещё не запустился",
+                    "Флага --rm",
+                    "Тега latest",
+                    "docker login"
+                  ],
+                  "answer": 0,
+                  "explain": "Клиент должен знать, где демон, и дождаться его."
+                }
+              ]
+            },
+            {
+              "slug": "dkr-ci",
+              "title": "Docker в CI на практике",
+              "theory": "```yaml\n# GitHub Actions\npermissions: {packages: write}\n- uses: docker/build-push-action@v6\n  with: {push: true, tags: \"ghcr.io/acme/tests:${{ github.sha }}\", cache-from: type=gha, cache-to: \"type=gha,mode=max\"}\n- run: docker run --rm -v \"$PWD/reports:/tests/reports\" ghcr.io/acme/tests:${{ github.sha }}\n- uses: actions/upload-artifact@v4\n  if: always()\n# GitLab\napi-tests:\n  image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\n  script: [pytest --junitxml=report.xml]\n  artifacts: {when: always, reports: {junit: report.xml}}\n```\n\n- Собрать один раз, тег — хеш коммита, промоутинг — тот же дайджест.\n- Нет кэша → сборка с нуля; нет тома → нет отчётов.",
+              "exercises": [
+                {
+                  "slug": "dkr-ci-e1",
+                  "type": "output",
+                  "prompt": "Что выведет программа? Какими тегами CI пометит образ после push в ветку.",
+                  "code": "image = \"ghcr.io/acme/shop-tests\"\nsha = \"3f2a1b9c8d7e6f5a4b3c\"\nbranch = \"feature/login-form\"\n\ntags = [sha[:7], branch.replace(\"/\", \"-\")]\nfor tag in tags:\n    print(f\"{image}:{tag}\")\n",
+                  "expected_output": "ghcr.io/acme/shop-tests:3f2a1b9\nghcr.io/acme/shop-tests:feature-login-form",
+                  "hint": "",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Тег по коммиту — первые 7 символов хеша; тег по ветке — имя без `/`.\", \"trace\": [[\"tags = [sha[:7], branch.replace(\\\"/\\\", \\\"-\\\")]\", \"['3f2a1b9', 'feature-login-form']\", \"\"], [\"print(f\\\"{image}:{tag}\\\")\", \"первый тег\", \"ghcr.io/acme/shop-tests:3f2a1b9\"], [\"print(f\\\"{image}:{tag}\\\")\", \"второй тег\", \"ghcr.io/acme/shop-tests:feature-login-form\"]], \"mistake\": \"Оставить `/` из имени ветки — Docker не примет такой тег.\"}"
+                },
+                {
+                  "slug": "dkr-ci-e2",
+                  "type": "code",
+                  "prompt": "Напиши функцию `image_tags(sha, branch, git_tag=None)` — список тегов образа для CI.\n\n- Получает: `sha` — полный хеш коммита; `branch` — имя ветки; `git_tag` — git-тег релиза вида `\"v1.4.2\"` или `None`.\n- Возвращает список тегов по порядку:\n  1. первые 7 символов `sha`;\n  2. имя ветки, где `/` заменён на `-`;\n  3. если есть `git_tag`: версия без `v` (`\"1.4.2\"`), затем `MAJOR.MINOR` (`\"1.4\"`), затем `\"latest\"`.\n\nПример:\n```\nimage_tags(\"3f2a1b9c8d7e\", \"feature/login\")\n# → [\"3f2a1b9\", \"feature-login\"]\nimage_tags(\"9e8d7c6b5a49\", \"main\", \"v1.4.2\")\n# → [\"9e8d7c6\", \"main\", \"1.4.2\", \"1.4\", \"latest\"]\n```",
+                  "starter_code": "def image_tags(sha, branch, git_tag=None):\n    pass\n",
+                  "tests": "def test_branch():\n    assert image_tags(\"3f2a1b9c8d7e\", \"feature/login\") == [\"3f2a1b9\", \"feature-login\"], f\"Получено {image_tags('3f2a1b9c8d7e', 'feature/login')}\"\n\ndef test_release():\n    assert image_tags(\"9e8d7c6b5a49\", \"main\", \"v1.4.2\") == [\"9e8d7c6\", \"main\", \"1.4.2\", \"1.4\", \"latest\"]\n\ndef test_no_slash():\n    assert all(\"/\" not in t for t in image_tags(\"a\" * 40, \"release/2.0/hotfix\")), \"В теге не может быть /\"\n",
+                  "solution": "def image_tags(sha, branch, git_tag=None):\n    tags = [sha[:7], branch.replace(\"/\", \"-\")]\n    if git_tag:\n        version = git_tag.removeprefix(\"v\")\n        major_minor = \".\".join(version.split(\".\")[:2])\n        tags += [version, major_minor, \"latest\"]\n    return tags\n",
+                  "hint": "`git_tag.removeprefix(\"v\")`, а `MAJOR.MINOR` — первые две части `split(\".\")`.",
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Тег коммита и тег ветки всегда; для релиза — ещё версия, MAJOR.MINOR и latest.\", \"lines\": [[\"tags = [sha[:7], branch.replace(\\\"/\\\", \\\"-\\\")]\", \"Базовые теги.\"], [\"version = git_tag.removeprefix(\\\"v\\\")\", \"v1.4.2 → 1.4.2.\"], [\"major_minor = \\\".\\\".join(version.split(\\\".\\\")[:2])\", \"1.4.2 → 1.4.\"]], \"mistake\": \"`git_tag.strip(\\\"v\\\")` — уберёт `v` с обоих концов; `removeprefix` надёжнее.\"}"
+                },
+                {
+                  "slug": "dkr-ci-e3",
+                  "type": "code",
+                  "prompt": "Напиши workflow GitHub Actions «собрать образ → прогнать тесты в нём» — строкой YAML в переменной `WORKFLOW`.\n\nТребования:\n- job `build`:\n  - `permissions` с `packages: write`;\n  - шаг с `uses: docker/build-push-action@v6` (версия — любая), у которого в `with` есть `push: true` и `tags`, содержащий `${{ github.sha }}`.\n- job `api-tests`:\n  - `needs: build` (строкой или списком);\n  - шаг `run`, в котором есть `docker run` и тот же образ с `${{ github.sha }}`;\n  - шаг `uses: actions/upload-artifact@v4` с условием `if: always()`.\n\nКроме этого, в workflow нужен ключ `on` (например, `on: [push]`), а у job-ов — `runs-on`. Логин в реестр и checkout можно добавить, проверки их не требуют.",
+                  "starter_code": "WORKFLOW = \"\"\"\non: [push]\njobs:\n  build:\n    runs-on: ubuntu-latest\n\"\"\"\n",
+                  "tests": "import yaml\n\n\ndef load(text):\n    data = yaml.safe_load(text) or {}\n    if True in data:\n        data[\"on\"] = data.pop(True)\n    return data\n\n\ndef jobs():\n    data = load(WORKFLOW)\n    assert \"on\" in data, \"Нужен ключ on\"\n    return data.get(\"jobs\", {})\n\ndef test_build():\n    b = jobs().get(\"build\")\n    assert b, \"Нужен job build\"\n    assert b.get(\"permissions\", {}).get(\"packages\") == \"write\", \"permissions: packages: write\"\n    step = next((s for s in b.get(\"steps\", []) if str(s.get(\"uses\", \"\")).startswith(\"docker/build-push-action\")), None)\n    assert step, \"Нужен шаг docker/build-push-action\"\n    w = step.get(\"with\", {})\n    assert w.get(\"push\") is True, \"with: push: true\"\n    assert \"${{ github.sha }}\" in str(w.get(\"tags\", \"\")), \"tags с ${{ github.sha }}\"\n\ndef test_tests_job():\n    t = jobs().get(\"api-tests\")\n    assert t, \"Нужен job api-tests\"\n    needs = t.get(\"needs\")\n    assert needs == \"build\" or needs == [\"build\"], \"api-tests: needs: build\"\n    runs = [s.get(\"run\", \"\") for s in t.get(\"steps\", [])]\n    assert any(\"docker run\" in r and \"${{ github.sha }}\" in r for r in runs), \"Шаг run с docker run образа ${{ github.sha }}\"\n\ndef test_artifact():\n    t = jobs().get(\"api-tests\", {})\n    up = next((s for s in t.get(\"steps\", []) if str(s.get(\"uses\", \"\")).startswith(\"actions/upload-artifact\")), None)\n    assert up, \"Нужен шаг actions/upload-artifact\"\n    assert \"always()\" in str(up.get(\"if\", \"\")), \"if: always() — отчёт и при падении\"\n",
+                  "solution": "WORKFLOW = \"\"\"\non: [push]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n      packages: write\n    steps:\n      - uses: actions/checkout@v4\n      - uses: docker/login-action@v3\n        with:\n          registry: ghcr.io\n          username: ${{ github.actor }}\n          password: ${{ secrets.GITHUB_TOKEN }}\n      - uses: docker/build-push-action@v6\n        with:\n          push: true\n          tags: ghcr.io/acme/shop-tests:${{ github.sha }}\n  api-tests:\n    needs: build\n    runs-on: ubuntu-latest\n    steps:\n      - uses: docker/login-action@v3\n        with:\n          registry: ghcr.io\n          username: ${{ github.actor }}\n          password: ${{ secrets.GITHUB_TOKEN }}\n      - run: docker run --rm -v \"$PWD/reports:/tests/reports\" ghcr.io/acme/shop-tests:${{ github.sha }} --junitxml=reports/junit.xml\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: api-report\n          path: reports/\n\"\"\"\n",
+                  "hint": "Два job-а; у build — permissions и build-push-action, у api-tests — needs, docker run и upload-artifact с if: always().",
+                  "xp": 30,
+                  "explain": "{\"idea\": \"Build собирает и пушит образ с тегом коммита; api-tests после него запускает тесты в этом же образе и сохраняет отчёт всегда.\", \"lines\": [[\"permissions:\\n      packages: write\", \"GITHUB_TOKEN может пушить в ghcr.io.\"], [\"push: true\\n      tags: ghcr.io/acme/shop-tests:${{ github.sha }}\", \"Тег — хеш коммита.\"], [\"needs: build\", \"Тесты ждут образ.\"], [\"if: always()\", \"Отчёт и при красных тестах.\"]], \"mistake\": \"Собирать образ заново в api-tests — тестируется уже не тот образ, что ушёл в реестр.\"}"
+                },
+                {
+                  "slug": "dkr-ci-e4",
+                  "type": "code",
+                  "prompt": "Напиши `.gitlab-ci.yml` из двух этапов — строкой YAML в переменной `GITLAB_CI`.\n\nТребования:\n- `stages: [build, test]`;\n- job `build` со `stage: build`, в его `script` есть `docker push` с `$CI_COMMIT_SHA`;\n- job `api-tests` со `stage: test`:\n  - `image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA` — тесты идут прямо в собранном образе;\n  - в `script` есть команда с `pytest` и `--junitxml=report.xml`;\n  - `artifacts`: `when: always` и `reports: junit: report.xml`.",
+                  "starter_code": "GITLAB_CI = \"\"\"\nstages: [build, test]\n\"\"\"\n",
+                  "tests": "import yaml\n\n\ndef load(text):\n    data = yaml.safe_load(text) or {}\n    if True in data:\n        data[\"on\"] = data.pop(True)\n    return data\n\n\ndef test_stages():\n    assert load(GITLAB_CI).get(\"stages\") == [\"build\", \"test\"], \"stages: [build, test]\"\n\ndef test_build():\n    b = load(GITLAB_CI).get(\"build\", {})\n    assert b.get(\"stage\") == \"build\", \"У build — stage: build\"\n    assert any(s.startswith(\"docker push\") and \"$CI_COMMIT_SHA\" in s for s in b.get(\"script\", [])), \"В build нужен docker push образа с $CI_COMMIT_SHA\"\n\ndef test_tests():\n    t = load(GITLAB_CI).get(\"api-tests\", {})\n    assert t.get(\"stage\") == \"test\", \"У api-tests — stage: test\"\n    assert t.get(\"image\") == \"$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\", \"image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\"\n    assert any(\"pytest\" in s and \"--junitxml=report.xml\" in s for s in t.get(\"script\", [])), \"pytest --junitxml=report.xml\"\n\ndef test_artifacts():\n    a = load(GITLAB_CI).get(\"api-tests\", {}).get(\"artifacts\", {})\n    assert a.get(\"when\") == \"always\", \"artifacts: when: always\"\n    assert a.get(\"reports\", {}).get(\"junit\") == \"report.xml\", \"artifacts: reports: junit: report.xml\"\n",
+                  "solution": "GITLAB_CI = \"\"\"\nstages: [build, test]\n\nbuild:\n  stage: build\n  image: docker:27\n  services: [docker:27-dind]\n  variables:\n    DOCKER_HOST: tcp://docker:2376\n    DOCKER_TLS_CERTDIR: \"/certs\"\n  script:\n    - echo \"$CI_REGISTRY_PASSWORD\" | docker login -u \"$CI_REGISTRY_USER\" --password-stdin \"$CI_REGISTRY\"\n    - docker build -t \"$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\" .\n    - docker push \"$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\"\n\napi-tests:\n  stage: test\n  image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\n  script:\n    - pytest --junitxml=report.xml\n  artifacts:\n    when: always\n    reports:\n      junit: report.xml\n\"\"\"\n",
+                  "hint": "Job-ы — ключи верхнего уровня рядом со `stages`; у api-tests `image` — только что собранный образ.",
+                  "xp": 25,
+                  "explain": "{\"idea\": \"В GitLab тестовый job просто указывает собранный образ в `image:` — script выполняется в нём.\", \"lines\": [[\"stages: [build, test]\", \"Порядок этапов.\"], [\"image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\", \"Образ этого коммита.\"], [\"when: always\\n    reports:\\n      junit: report.xml\", \"Результаты в merge request — и при падении.\"]], \"mistake\": \"Забыть `when: always` — при упавших тестах отчёт не сохранится именно тогда, когда он нужен.\"}"
+                },
+                {
+                  "slug": "dkr-ci-e5",
+                  "type": "code",
+                  "prompt": "Напиши функцию `promote(registry, sha, new_tag)` — промоутинг образа после зелёных тестов.\n\n- Получает:\n  - `registry` — словарь «тег → дайджест», например `{\"3f2a1b9\": \"sha256:aa…\"}`;\n  - `sha` — тег, который прошёл тесты; `new_tag` — новый тег (`\"stable\"`, `\"1.4.2\"`).\n- Возвращает: **новый** словарь, где `new_tag` указывает на **тот же дайджест**, что и `sha`. Исходный словарь не меняй.\n- Если тега `sha` нет — выбрось `KeyError`: продвигать нечего.\n\nПример:\n```\nreg = {\"3f2a1b9\": \"sha256:aa11\", \"stable\": \"sha256:0ld0\"}\npromote(reg, \"3f2a1b9\", \"stable\")\n# → {\"3f2a1b9\": \"sha256:aa11\", \"stable\": \"sha256:aa11\"}\n```",
+                  "starter_code": "def promote(registry, sha, new_tag):\n    pass\n",
+                  "tests": "import pytest\n\ndef test_promote():\n    reg = {\"3f2a1b9\": \"sha256:aa11\", \"stable\": \"sha256:0ld0\"}\n    assert promote(reg, \"3f2a1b9\", \"stable\") == {\"3f2a1b9\": \"sha256:aa11\", \"stable\": \"sha256:aa11\"}\n\ndef test_original_untouched():\n    reg = {\"3f2a1b9\": \"sha256:aa11\"}\n    promote(reg, \"3f2a1b9\", \"1.4.2\")\n    assert reg == {\"3f2a1b9\": \"sha256:aa11\"}, \"Исходный словарь не должен меняться\"\n\ndef test_missing():\n    with pytest.raises(KeyError):\n        promote({\"stable\": \"sha256:0ld0\"}, \"deadbee\", \"stable\")\n",
+                  "solution": "def promote(registry, sha, new_tag):\n    digest = registry[sha]\n    return {**registry, new_tag: digest}\n",
+                  "hint": "`registry[sha]` сам выбросит KeyError; новый словарь — `{**registry, new_tag: digest}`.",
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Промоутинг — новый тег на тот же дайджест; ничего не пересобирается.\", \"lines\": [[\"digest = registry[sha]\", \"Нет тега — KeyError сам.\"], [\"return {**registry, new_tag: digest}\", \"Копия с новым тегом.\"]], \"mistake\": \"`registry[new_tag] = …` — изменит исходный словарь.\"}"
+                },
+                {
+                  "slug": "dkr-ci-e6",
+                  "type": "command",
+                  "prompt": "В шаге CI запусти тесты из образа `ghcr.io/acme/tests:$GITHUB_SHA`: контейнер удалить после работы, папку `reports` из текущей директории (`$PWD`) смонтировать в `/tests/reports`.",
+                  "code": "",
+                  "expected_output": "docker run --rm -v \"$PWD/reports:/tests/reports\" ghcr.io/acme/tests:$GITHUB_SHA\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-v\\ \"\\$PWD/reports:/tests/reports\"(?: |$))(?:\\S+ )*ghcr\\.io/acme/tests:\\$GITHUB_SHA\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-v\\ \\$PWD/reports:/tests/reports(?: |$))(?:\\S+ )*ghcr\\.io/acme/tests:\\$GITHUB_SHA\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-v\\ \"\\$\\(pwd\\)/reports:/tests/reports\"(?: |$))(?:\\S+ )*ghcr\\.io/acme/tests:\\$GITHUB_SHA\nre:docker\\ run (?=(?:.* )?\\-\\-rm(?: |$))(?=(?:.* )?\\-v\\ \\$\\(pwd\\)/reports:/tests/reports(?: |$))(?:\\S+ )*ghcr\\.io/acme/tests:\\$GITHUB_SHA",
+                  "solution": "docker run --rm -v \"$PWD/reports:/tests/reports\" ghcr.io/acme/tests:$GITHUB_SHA",
+                  "hint": "`docker run --rm -v \"$PWD/reports:/tests/reports\" образ`.",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Том выносит отчёты из контейнера на машину CI, `--rm` убирает контейнер.\", \"lines\": [[\"-v \\\"$PWD/reports:/tests/reports\\\"\", \"Папка CI ↔ папка в контейнере.\"], [\"ghcr.io/acme/tests:$GITHUB_SHA\", \"Образ этого коммита.\"]], \"mistake\": \"Относительный путь `-v reports:/tests/reports` — Docker поймёт его как имя тома, а не папку.\"}"
+                },
+                {
+                  "slug": "dkr-ci-e7",
+                  "type": "command",
+                  "prompt": "У DinD кэш пустой. Собери образ `ghcr.io/acme/tests:$GITHUB_SHA` из текущей папки, взяв кэш слоёв из `ghcr.io/acme/tests:latest`.",
+                  "code": "",
+                  "expected_output": "docker build --cache-from ghcr.io/acme/tests:latest -t ghcr.io/acme/tests:$GITHUB_SHA .\nre:docker\\ build (?=(?:.* )?\\-\\-cache\\-from\\ ghcr\\.io/acme/tests:latest(?: |$))(?=(?:.* )?\\-t\\ ghcr\\.io/acme/tests:\\$GITHUB_SHA(?: |$))(?:\\S+ )*\\.\nre:docker\\ build (?=(?:.* )?\\-\\-cache\\-from=ghcr\\.io/acme/tests:latest(?: |$))(?=(?:.* )?\\-t\\ ghcr\\.io/acme/tests:\\$GITHUB_SHA(?: |$))(?:\\S+ )*\\.\nre:docker\\ build (?=(?:.* )?\\-\\-cache\\-from\\ ghcr\\.io/acme/tests:latest(?: |$))(?=(?:.* )?\\-\\-tag\\ ghcr\\.io/acme/tests:\\$GITHUB_SHA(?: |$))(?:\\S+ )*\\.",
+                  "solution": "docker build --cache-from ghcr.io/acme/tests:latest -t ghcr.io/acme/tests:$GITHUB_SHA .",
+                  "hint": "Флаг `--cache-from образ`, тег через `-t`, в конце — точка.",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`--cache-from` берёт готовые слои из образа в реестре — DinD не начинает с нуля.\", \"lines\": [[\"--cache-from ghcr.io/acme/tests:latest\", \"Источник кэша.\"], [\"-t ghcr.io/acme/tests:$GITHUB_SHA .\", \"Новый тег и контекст.\"]], \"mistake\": \"Не скачать или не собрать образ-источник с inline-кэшем (`BUILDKIT_INLINE_CACHE=1`) — кэш не подхватится.\"}"
+                },
+                {
+                  "slug": "dkr-ci-e8",
+                  "type": "command",
+                  "prompt": "Тесты прошли на образе с дайджестом из вывода. Скачай на стенд **именно его** — по дайджесту, а не по тегу.",
+                  "code": "$ docker push ghcr.io/acme/tests:3f2a1b9\n3f2a1b9: digest: sha256:9f86d081884c7d65 size: 1784\n",
+                  "expected_output": "docker pull ghcr.io/acme/tests@sha256:9f86d081884c7d65\ndocker image pull ghcr.io/acme/tests@sha256:9f86d081884c7d65",
+                  "solution": "docker pull ghcr.io/acme/tests@sha256:9f86d081884c7d65",
+                  "hint": "Имя образа, затем `@` и дайджест: `образ@sha256:…`.",
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Дайджест неизменен: `образ@sha256:…` — ровно то содержимое, которое прошло тесты.\", \"lines\": [[\"docker pull ghcr.io/acme/tests@sha256:9f86d081884c7d65\", \"По отпечатку, а не по тегу.\"]], \"mistake\": \"`docker pull ghcr.io/acme/tests:latest` — тег могли перезаписать после тестов.\"}"
+                }
+              ],
+              "theory_full": "## Зачем это нужно\n\nСвязываем всё вместе: как на практике Docker живёт в CI-пайплайне автотестов. Цель — тесты в CI идут в **том же** окружении, что и у тебя локально, а образ, который прошёл тесты, — тот же самый, что дальше уходит на стенды.\n\n## Главный принцип: собрать один раз\n\n```bash\nbuild  →  push (тег = коммит)  →  test в этом образе  →  промоутинг того же образа\n```\n\n- Образ собирают **один раз** и помечают хешем коммита: `ghcr.io/acme/shop-tests:3f2a1b9`. Видно, из какого кода он собран.\n- Все следующие job-ы **скачивают** этот образ, а не собирают заново. Иначе тестируется одно, а выкатывается другое.\n- Прошли тесты — тому же образу добавляют тег (`stable`, `1.4.2`). Это **промоутинг**: новый тег указывает на тот же дайджест, ничего не пересобирается.\n\n## Теги в CI\n\n| Тег | Зачем |\n|---|---|\n| `3f2a1b9` (короткий хеш коммита) | точная ссылка на код; основной тег |\n| `main`, `feature-login` (ветка, `/` → `-`) | последний образ ветки |\n| `1.4.2`, `1.4`, `latest` | релиз из git-тега `v1.4.2` |\n\n`/` в имени ветки в теге нельзя — его заменяют на `-`. В CI ссылаются на хеш коммита, а `latest` — только для людей.\n\n## GitHub Actions: собрать, запушить, прогнать\n\n```yaml\njobs:\n  build:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n      packages: write\n    steps:\n      - uses: actions/checkout@v4\n      - uses: docker/login-action@v3\n        with:\n          registry: ghcr.io\n          username: ${{ github.actor }}\n          password: ${{ secrets.GITHUB_TOKEN }}\n      - uses: docker/setup-buildx-action@v3\n      - uses: docker/build-push-action@v6\n        with:\n          push: true\n          tags: ghcr.io/acme/shop-tests:${{ github.sha }}\n          cache-from: type=gha\n          cache-to: type=gha,mode=max\n\n  api-tests:\n    needs: build\n    runs-on: ubuntu-latest\n    steps:\n      - uses: docker/login-action@v3\n        with:\n          registry: ghcr.io\n          username: ${{ github.actor }}\n          password: ${{ secrets.GITHUB_TOKEN }}\n      - run: mkdir -p reports\n      - run: >\n          docker run --rm\n          -e BASE_URL=${{ vars.STAGE_URL }}\n          -v \"$PWD/reports:/tests/reports\"\n          ghcr.io/acme/shop-tests:${{ github.sha }}\n          --junitxml=reports/junit.xml\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: api-report\n          path: reports/\n```\n\n- `permissions: packages: write` — встроенному `GITHUB_TOKEN` разрешено пушить в ghcr.io. Отдельный секрет не нужен.\n- `build-push-action` собирает и пушит одним шагом. `cache-from/cache-to: type=gha` хранит кэш слоёв между запусками — без него каждая сборка начинается с нуля (новая VM).\n- `docker run` возвращает **код выхода pytest**: тесты упали — шаг красный, job красный.\n- Отчёт пишется в том `reports/`, а `upload-artifact` с `if: always()` сохраняет его **и при падении**.\n\n## GitLab CI: тесты прямо в собранном образе\n\n```yaml\nstages: [build, test]\n\nbuild:\n  stage: build\n  image: docker:27\n  services: [docker:27-dind]\n  variables:\n    DOCKER_HOST: tcp://docker:2376\n    DOCKER_TLS_CERTDIR: \"/certs\"\n  script:\n    - echo \"$CI_REGISTRY_PASSWORD\" | docker login -u \"$CI_REGISTRY_USER\" --password-stdin \"$CI_REGISTRY\"\n    - docker pull \"$CI_REGISTRY_IMAGE:latest\" || true\n    - docker build --cache-from \"$CI_REGISTRY_IMAGE:latest\" --build-arg BUILDKIT_INLINE_CACHE=1\n        -t \"$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\" -t \"$CI_REGISTRY_IMAGE:latest\" .\n    - docker push \"$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\"\n    - docker push \"$CI_REGISTRY_IMAGE:latest\"\n\napi-tests:\n  stage: test\n  image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA\n  script:\n    - pytest --junitxml=report.xml\n  artifacts:\n    when: always\n    reports:\n      junit: report.xml\n```\n\n- В GitLab job и так работает в контейнере: `image:` — это образ, в котором выполняется `script`. Указываем только что собранный образ — и тесты идут в нём.\n- `CI_REGISTRY_IMAGE`, `CI_COMMIT_SHA`, `CI_REGISTRY_USER`, `CI_REGISTRY_PASSWORD` — готовые переменные GitLab.\n- `--cache-from` + `BUILDKIT_INLINE_CACHE=1` — взять кэш слоёв из прошлого образа в реестре: у DinD свой кэш пустой.\n- `artifacts: reports: junit` — GitLab покажет упавшие тесты прямо в merge request.\n\n## Стенд рядом с тестами\n\nЕсли тестам нужны база и приложение, их поднимают в том же job-е через Compose (урок «Тестовый стенд в Compose») и обязательно убирают за собой:\n\n```yaml\n- run: docker compose up --build --exit-code-from tests\n- run: docker compose down -v\n  if: always()\n```\n\n## Частые проблемы\n\n- **Отчётов нет** — забыли том или `if: always()` у загрузки артефакта.\n- **`Permission denied` в папке отчётов** — в контейнере другой пользователь, чем владелец папки на хосте. Запуск с `--user \"$(id -u):$(id -g)\"` или права на папку.\n- **Сборка каждый раз с нуля** — не настроен кэш (`type=gha` или `--cache-from`).\n- **`toomanyrequests`** — лимит Docker Hub: логин или свой реестр.\n- **Тест прошёл в CI, на стенде другое поведение** — образ пересобрали между этапами. Ссылайся на хеш коммита или дайджест: `docker pull ghcr.io/acme/shop-tests@sha256:…`.\n\n## Итог\n\n- Собрать один раз → тег хешем коммита → тесты в этом образе → промоутинг тем же дайджестом.\n- GitHub: `login-action` + `build-push-action` с кэшем `type=gha`; тесты — `docker run` с томом для отчётов; артефакты с `if: always()`.\n- GitLab: сборка в DinD с `--cache-from`; тестовый job с `image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA`.\n- Код выхода контейнера = результат тестов; стенд — Compose с уборкой.",
+              "quiz": [
+                {
+                  "q": "Почему job с тестами скачивает образ из реестра, а не собирает его заново?",
+                  "options": [
+                    "Так быстрее скачать, чем собрать",
+                    "Чтобы тестировался ровно тот образ, который пойдёт дальше",
+                    "Собрать в CI нельзя",
+                    "Из-за лимитов Docker Hub"
+                  ],
+                  "answer": 1,
+                  "explain": "Пересборка может дать другой образ: новые версии пакетов, другая база."
+                },
+                {
+                  "q": "Тесты в `docker run` упали. Что увидит CI?",
+                  "options": [
+                    "Шаг зелёный — контейнер же отработал",
+                    "Шаг красный: docker run возвращает код выхода pytest",
+                    "Предупреждение",
+                    "Зависит от тега"
+                  ],
+                  "answer": 1,
+                  "explain": "Код выхода процесса в контейнере становится кодом docker run."
+                },
+                {
+                  "q": "Что такое промоутинг образа?",
+                  "options": [
+                    "Пересборка с тегом release",
+                    "Новый тег для того же образа (того же дайджеста) после прохождения тестов",
+                    "Удаление старых тегов",
+                    "Публикация в Docker Hub"
+                  ],
+                  "answer": 1,
+                  "explain": "Ничего не пересобирается — меняется только метка."
                 }
               ]
             }

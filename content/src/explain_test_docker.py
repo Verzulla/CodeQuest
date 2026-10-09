@@ -642,4 +642,231 @@ f"{P}-practice-e8": x(
     idea="Полная уборка: тома и «сироты».",
     lines=[("docker compose down", "Контейнеры и сеть."), ("-v --remove-orphans", "Тома и лишние контейнеры.")],
     mistake="Оставлять тома в CI — следующий прогон начнётся со старыми данными."),
+
+# ===== Модуль 4. Docker на практике =====
+
+f"{P}-hub-e1": x(
+    idea="Docker дописывает короткое имя: `library/` для официальных, `docker.io/` если реестр не указан, `:latest` если нет тега.",
+    trace=[
+        ("print(full_name(ref))", "python:3.12-slim: нет / → library/…, реестра нет → docker.io/…", "docker.io/library/python:3.12-slim"),
+        ("print(full_name(ref))", "anna/my-tests: anna — не реестр; тега нет → :latest", "docker.io/anna/my-tests:latest"),
+        ("print(full_name(ref))", "ghcr.io/acme/tests:1.0: в ghcr.io есть точка — это реестр, тег есть", "ghcr.io/acme/tests:1.0"),
+    ],
+    mistake="Думать, что `ghcr.io/...` тоже пойдёт в Docker Hub: точка в первой части — признак другого реестра."),
+
+f"{P}-hub-e2": x(
+    idea="Версия — до первого дефиса, вариант — всё остальное.",
+    lines=[('version, _, variant = tag.partition("-")', "Три части: до дефиса, сам дефис, после."), ("return version, variant", "Нет дефиса — variant пустой.")],
+    mistake="`split(\"-\")` разобьёт `slim-bookworm` на два куска, и вариант потеряется."),
+
+f"{P}-hub-e3": x(
+    idea="Кандидаты в порядке приоритета: сначала slim, потом обычный; alpine в списке просто нет.",
+    lines=[('for tag in (f"{version}-slim", version):', "Порядок перебора = приоритет."), ("if tag in tags:\n            return tag", "Первый найденный — ответ."), ("return None", "Ничего подходящего.")],
+    mistake="Выбирать самый маленький образ — попадёшь на alpine с проблемами сборки пакетов."),
+
+f"{P}-hub-e4": x(
+    idea="Сначала отсекаем чужие реестры, потом убираем тег и строим ссылку: `_/имя` для официальных, `r/владелец/имя` для остальных.",
+    lines=[
+        ('if len(parts) > 1 and ("." in parts[0] or ":" in parts[0]):', "ghcr.io, localhost:5000 — не Docker Hub."),
+        ('parts[-1] = parts[-1].split(":")[0]', "Тег — только в последней части."),
+        ('return f"https://hub.docker.com/_/{parts[0]}"', "Официальный образ."),
+    ],
+    mistake="Резать тег по первому `:` во всей строке — сломается `localhost:5000/app`."),
+
+f"{P}-hub-e5": x(
+    idea="Фильтр `is-official=true` оставляет только Docker Official Images.",
+    lines=[("docker search --filter is-official=true python", "Поиск в Docker Hub по слову python.")],
+    mistake="Брать первый попавшийся образ из поиска — он может быть от кого угодно."),
+
+f"{P}-hub-e6": x(
+    idea="Токен передают через стандартный ввод — он не попадёт в историю команд и список процессов.",
+    lines=[('echo "$DOCKERHUB_TOKEN"', "Токен из переменной (в CI — из секрета)."), ("| docker login -u anna --password-stdin", "Логин читает пароль из ввода.")],
+    mistake="`docker login -p $DOCKERHUB_TOKEN` — токен виден в `ps` и истории, Docker сам предупреждает об этом."),
+
+f"{P}-hub-e7": x(
+    idea="`docker tag` добавляет образу второе имя — с префиксом пользователя Docker Hub.",
+    lines=[("docker tag my-tests anna/my-tests:1.0", "Старое имя → новое имя:тег.")],
+    mistake="Пушить `my-tests` без префикса — Docker попробует отправить в `library/`, куда у тебя нет прав."),
+
+f"{P}-hub-e8": x(
+    idea="Push отправляет образ по его полному имени: пользователь/репозиторий:тег.",
+    lines=[("docker push anna/my-tests:1.0", "Слои, которых нет в реестре, загрузятся.")],
+    mistake="Забыть `docker login` — получишь `denied: requested access to the resource is denied`."),
+
+f"{P}-image-e1": x(
+    idea="Слои общие: скачиваются только те, которых ещё нет на диске.",
+    trace=[
+        ("new = {k: v for k, v in second.items() if k not in have}", "base1, base2, py уже есть", ""),
+        ("", "new = {'deps': 28, 'tests': 1}", ""),
+        ("print(len(new), sum(new.values()))", "2 слоя, 28 + 1", "2 29"),
+    ],
+    mistake="Считать, что каждый образ скачивается целиком: общая база берётся с диска."),
+
+f"{P}-image-e2": x(
+    idea="Слои применяются снизу вверх к одному словарю: новое значение перезаписывает, `None` удаляет.",
+    lines=[
+        ("for layer in layers:", "Снизу вверх."),
+        ("files.pop(path, None)", "Пометка «удалён»: убираем, если было."),
+        ("files[path] = content", "Верхний слой перекрывает нижний."),
+    ],
+    mistake="Изменять сами слои (`layer.pop`) — слои образа только для чтения, и второй вызов даст другой результат."),
+
+f"{P}-image-e3": x(
+    idea="Хороший образ тестов: маленькая база, вывод без буфера, кэш зависимостей, не root, pytest как ENTRYPOINT.",
+    lines=[
+        ("ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1", "Логи сразу, без .pyc."),
+        ("RUN pip install --no-cache-dir -r requirements.txt", "Без кэша pip внутри образа."),
+        ("RUN useradd --create-home tester\nUSER tester", "Дальше всё — от обычного пользователя."),
+        ('ENTRYPOINT ["pytest"]\nCMD ["-v"]', "Контейнер = pytest; аргументы по умолчанию."),
+    ],
+    mistake="Поставить `USER tester` до `pip install` — установка в системный Python упадёт без прав."),
+
+f"{P}-image-e4": x(
+    idea="`--entrypoint` заменяет ENTRYPOINT и сбрасывает CMD; обычные аргументы заменяют только CMD.",
+    lines=[
+        ("if override is not None:\n        return [override] + (args or [])", "CMD образа уже не участвует."),
+        ("return entrypoint + (args if args else cmd)", "Аргументы или CMD по умолчанию."),
+    ],
+    mistake="Оставлять CMD после `--entrypoint`: `docker run --entrypoint bash img` не превращается в `bash -v`."),
+
+f"{P}-image-e5": x(
+    idea="Из `inspect` видно, что запустится по умолчанию и от чьего имени.",
+    trace=[
+        ('env = dict(item.split("=", 1) for item in config["Env"])', "{'PATH': …, 'PYTHONUNBUFFERED': '1'}", ""),
+        ('print(" ".join(config["Entrypoint"] + config["Cmd"]))', "['pytest'] + ['-v']", "pytest -v"),
+        ('print(config["User"] or "root", env["PYTHONUNBUFFERED"])', "User = tester", "tester 1"),
+    ],
+    mistake="`split(\"=\")` без лимита сломается на значении, где тоже есть `=`."),
+
+f"{P}-image-e6": x(
+    idea="`docker image inspect` показывает конфигурацию и слои образа в JSON.",
+    lines=[("docker image inspect my-tests", "Можно сузить: `--format '{{.Config.Cmd}}'`.")],
+    mistake="`docker inspect` без уточнения сработает тоже, но если есть контейнер с таким же именем, покажет его."),
+
+f"{P}-image-e7": x(
+    idea="При `ENTRYPOINT [\"pytest\"]` всё после имени образа — аргументы pytest.",
+    lines=[("docker run --rm my-tests -m smoke", "Выполнится `pytest -m smoke`.")],
+    mistake="`docker run --rm my-tests pytest -m smoke` — получится `pytest pytest -m smoke`."),
+
+f"{P}-image-e8": x(
+    idea="`docker save` упаковывает образ со всеми слоями в tar; `docker load` распаковывает на другой машине.",
+    lines=[("docker save", "Образ со слоями и настройками → архив."), ("-o my-tests.tar", "Куда сохранить. На стенде — `docker load -i my-tests.tar`.")],
+    mistake="Путать с `docker export` — тот сохраняет файловую систему контейнера без слоёв и настроек образа."),
+
+f"{P}-dind-e1": x(
+    idea="При пробросе сокета путь в `-v` читает демон хоста, а не контейнер, из которого запустили команду.",
+    trace=[
+        ("print(mount in job_dirs, daemon_sees)", "папка есть в job-е, но не на хосте", "True False"),
+        ('print("отчёты на месте" if daemon_sees else "Docker создаст пустую папку на хосте")', "daemon_sees = False", "Docker создаст пустую папку на хосте"),
+    ],
+    mistake="Удивляться пустым отчётам: тесты писали в папку на хосте, которую никто не смотрит."),
+
+f"{P}-dind-e2": x(
+    idea="Сокет хоста узнаём по тому, где смонтирован docker.sock; DinD — по образу `docker:*dind` и флагу `--privileged`.",
+    lines=[
+        ('if "/var/run/docker.sock:/var/run/docker.sock" in words:', "Проброс сокета."),
+        ('image = next((w for w in words if w.startswith("docker:")), "")', "Образ docker:…"),
+        ('if "--privileged" in words and image.endswith("dind"):', "Без прав DinD не стартует."),
+    ],
+    mistake="Считать DinD любой контейнер `docker:dind` — без `--privileged` демон внутри не запустится."),
+
+f"{P}-dind-e3": x(
+    idea="Ревью compose: docker.sock в томах и `privileged: true` — две самые опасные настройки.",
+    lines=[
+        ("for name in sorted(services):", "Сразу в нужном порядке."),
+        ('if any(v.startswith("/var/run/docker.sock") for v in cfg.get("volumes", [])):', "Сокет, в том числе с `:ro`."),
+        ('if cfg.get("privileged") is True:', "Флаг привилегий."),
+    ],
+    mistake="Думать, что `:ro` на сокете спасает: через сокет только читать нельзя — API демона всё равно доступен."),
+
+f"{P}-dind-e4": x(
+    idea="Job с клиентом docker, сервис с демоном рядом, переменные — где демон и куда положить TLS-сертификаты.",
+    lines=[
+        ("image: docker:27", "Клиент docker."),
+        ("services:\n    - docker:27-dind", "Демон по имени `docker`."),
+        ("DOCKER_HOST: tcp://docker:2376", "Порт с TLS."),
+        ('DOCKER_TLS_CERTDIR: "/certs"', "Общая папка для сертификатов."),
+    ],
+    mistake="Забыть `DOCKER_HOST` — клиент ищет локальный сокет и пишет `Cannot connect to the Docker daemon`."),
+
+f"{P}-dind-e5": x(
+    idea="Три формы: не задано — локальный сокет, `unix://путь`, `tcp://хост:порт` (2376 — TLS).",
+    lines=[
+        ("if not value:", "None и пустая строка — по умолчанию."),
+        ('return {"kind": "unix", "path": value[len("unix://"):]}', "Путь — всё после схемы."),
+        ('host, _, port = value[len("tcp://"):].rpartition(":")', "Порт — после последнего двоеточия."),
+    ],
+    mistake="Оставить порт строкой — `\"2376\" == 2376` даёт False, и tls всегда будет False."),
+
+f"{P}-dind-e6": x(
+    idea="Проброс сокета даёт клиенту в контейнере доступ к демону хоста.",
+    lines=[("-v /var/run/docker.sock:/var/run/docker.sock", "Сокет хоста внутрь."), ("docker:27 docker ps", "Покажет контейнеры хоста.")],
+    mistake="Ожидать увидеть пустой список: это тот же демон, контейнеры — общие."),
+
+f"{P}-dind-e7": x(
+    idea="Настоящему DinD нужен `--privileged`, иначе свой демон внутри не стартует.",
+    lines=[("docker run -d --privileged --name dind docker:27-dind", "Фоновый контейнер с собственным dockerd.")],
+    mistake="Запускать DinD без `--privileged` — контейнер сразу упадёт с ошибками монтирования."),
+
+f"{P}-dind-e8": x(
+    idea="`DOCKER_HOST` указывает клиенту адрес демона.",
+    lines=[("DOCKER_HOST", "Например, `tcp://docker:2376` в GitLab CI; не задана — сокет `/var/run/docker.sock`.")],
+    mistake="Путать с `DOCKER_TLS_CERTDIR` — та говорит, где сертификаты, а не где демон."),
+
+f"{P}-ci-e1": x(
+    idea="Тег по коммиту — первые 7 символов хеша; тег по ветке — имя без `/`.",
+    trace=[
+        ('tags = [sha[:7], branch.replace("/", "-")]', "['3f2a1b9', 'feature-login-form']", ""),
+        ('print(f"{image}:{tag}")', "первый тег", "ghcr.io/acme/shop-tests:3f2a1b9"),
+        ('print(f"{image}:{tag}")', "второй тег", "ghcr.io/acme/shop-tests:feature-login-form"),
+    ],
+    mistake="Оставить `/` из имени ветки — Docker не примет такой тег."),
+
+f"{P}-ci-e2": x(
+    idea="Тег коммита и тег ветки всегда; для релиза — ещё версия, MAJOR.MINOR и latest.",
+    lines=[
+        ('tags = [sha[:7], branch.replace("/", "-")]', "Базовые теги."),
+        ('version = git_tag.removeprefix("v")', "v1.4.2 → 1.4.2."),
+        ('major_minor = ".".join(version.split(".")[:2])', "1.4.2 → 1.4."),
+    ],
+    mistake="`git_tag.strip(\"v\")` — уберёт `v` с обоих концов; `removeprefix` надёжнее."),
+
+f"{P}-ci-e3": x(
+    idea="Build собирает и пушит образ с тегом коммита; api-tests после него запускает тесты в этом же образе и сохраняет отчёт всегда.",
+    lines=[
+        ("permissions:\n      packages: write", "GITHUB_TOKEN может пушить в ghcr.io."),
+        ("push: true\n      tags: ghcr.io/acme/shop-tests:${{ github.sha }}", "Тег — хеш коммита."),
+        ("needs: build", "Тесты ждут образ."),
+        ("if: always()", "Отчёт и при красных тестах."),
+    ],
+    mistake="Собирать образ заново в api-tests — тестируется уже не тот образ, что ушёл в реестр."),
+
+f"{P}-ci-e4": x(
+    idea="В GitLab тестовый job просто указывает собранный образ в `image:` — script выполняется в нём.",
+    lines=[
+        ("stages: [build, test]", "Порядок этапов."),
+        ("image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA", "Образ этого коммита."),
+        ("when: always\n    reports:\n      junit: report.xml", "Результаты в merge request — и при падении."),
+    ],
+    mistake="Забыть `when: always` — при упавших тестах отчёт не сохранится именно тогда, когда он нужен."),
+
+f"{P}-ci-e5": x(
+    idea="Промоутинг — новый тег на тот же дайджест; ничего не пересобирается.",
+    lines=[("digest = registry[sha]", "Нет тега — KeyError сам."), ("return {**registry, new_tag: digest}", "Копия с новым тегом.")],
+    mistake="`registry[new_tag] = …` — изменит исходный словарь."),
+
+f"{P}-ci-e6": x(
+    idea="Том выносит отчёты из контейнера на машину CI, `--rm` убирает контейнер.",
+    lines=[('-v "$PWD/reports:/tests/reports"', "Папка CI ↔ папка в контейнере."), ("ghcr.io/acme/tests:$GITHUB_SHA", "Образ этого коммита.")],
+    mistake="Относительный путь `-v reports:/tests/reports` — Docker поймёт его как имя тома, а не папку."),
+
+f"{P}-ci-e7": x(
+    idea="`--cache-from` берёт готовые слои из образа в реестре — DinD не начинает с нуля.",
+    lines=[("--cache-from ghcr.io/acme/tests:latest", "Источник кэша."), ("-t ghcr.io/acme/tests:$GITHUB_SHA .", "Новый тег и контекст.")],
+    mistake="Не скачать или не собрать образ-источник с inline-кэшем (`BUILDKIT_INLINE_CACHE=1`) — кэш не подхватится."),
+
+f"{P}-ci-e8": x(
+    idea="Дайджест неизменен: `образ@sha256:…` — ровно то содержимое, которое прошло тесты.",
+    lines=[("docker pull ghcr.io/acme/tests@sha256:9f86d081884c7d65", "По отпечатку, а не по тегу.")],
+    mistake="`docker pull ghcr.io/acme/tests:latest` — тег могли перезаписать после тестов."),
 }

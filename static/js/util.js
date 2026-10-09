@@ -111,6 +111,18 @@ function codeBlock(lang, code, runnable) {
     <div class="rb-code">${pre}</div><div class="rb-out"></div></div>`;
 }
 
+// Строка таблицы «| a | b |» → ячейки; `|` внутри `кода` не делит ячейку.
+function tableRow(line) {
+  const cells = [];
+  let cur = "", code = false;
+  for (const ch of line.trim().replace(/^\||\|$/g, "")) {
+    if (ch === "`") code = !code;
+    if (ch === "|" && !code) { cells.push(cur.trim()); cur = ""; } else cur += ch;
+  }
+  cells.push(cur.trim());
+  return cells;
+}
+
 export function md(src, { runnable = false } = {}) {
   const lines = String(src || "").replace(/\r\n/g, "\n").split("\n");
   let html = "", para = [];
@@ -135,6 +147,17 @@ export function md(src, { runnable = false } = {}) {
       const buf = [];
       while (++i < lines.length && !lines[i].startsWith("```")) buf.push(lines[i]);
       html += codeBlock(lang, buf.join("\n"), runnable);
+      continue;
+    }
+    // таблица: строка «| … |», за ней разделитель «|---|---|»
+    if (line.trim().startsWith("|") && /^\s*\|?[\s:|-]+\|?\s*$/.test(lines[i + 1] || "") && (lines[i + 1] || "").includes("-")) {
+      flushPara(); flushList();
+      const head = tableRow(line);
+      const rows = [];
+      i++;
+      while (i + 1 < lines.length && lines[i + 1].trim().startsWith("|")) rows.push(tableRow(lines[++i]));
+      html += `<div class="md-table"><table><thead><tr>${head.map((c) => `<th>${inline(c)}</th>`).join("")}</tr></thead>`
+        + `<tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
       continue;
     }
     const h = line.match(/^(#{1,3})\s+(.*)/);
