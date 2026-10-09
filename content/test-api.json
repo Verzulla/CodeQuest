@@ -26,7 +26,8 @@
                   "code": "for code in [201, 404, 503]:\n    print(code, code // 100)\n",
                   "expected_output": "201 2\n404 4\n503 5",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Класс ответа — первая цифра кода: целочисленное деление на 100.\", \"lines\": [[\"print(code, code // 100)\", \"201 → 2, 404 → 4, 503 → 5.\"]], \"mistake\": \"`code / 100` — получится 2.01.\"}"
                 },
                 {
                   "slug": "api-m1-l1-e2",
@@ -35,7 +36,8 @@
                   "code": "from urllib.parse import urlparse, parse_qs\n\nurl = urlparse(\"https://api.shop.ru/v1/orders?status=new&page=2\")\nprint(url.netloc)\nprint(url.path)\nprint(parse_qs(url.query))\n",
                   "expected_output": "api.shop.ru\n/v1/orders\n{'status': ['new'], 'page': ['2']}",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`urlparse` делит адрес на части, `parse_qs` разбирает параметры — значения всегда списки.\", \"lines\": [[\"print(url.netloc)\", \"Хост.\"], [\"print(url.path)\", \"Путь без параметров.\"], [\"print(parse_qs(url.query))\", \"Параметр может повторяться — поэтому списки.\"]], \"mistake\": \"Ожидать `{'status': 'new'}` — `parse_qs` даёт списки.\"}"
                 },
                 {
                   "slug": "api-m1-l1-e3",
@@ -45,7 +47,8 @@
                   "tests": "def test_classes():\n    got = [status_class(c) for c in (200, 204, 301, 404, 422, 500, 503)]\n    assert got == [\"success\", \"success\", \"redirect\", \"client_error\", \"client_error\", \"server_error\", \"server_error\"], f\"Получено {got}\"\n",
                   "solution": "def status_class(code):\n    return {2: \"success\", 3: \"redirect\", 4: \"client_error\", 5: \"server_error\"}[code // 100]\n",
                   "hint": "`code // 100` даёт первую цифру.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Первая цифра — ключ словаря классов.\", \"lines\": [[\"return {2: \\\"success\\\", 3: \\\"redirect\\\", 4: \\\"client_error\\\", 5: \\\"server_error\\\"}[code // 100]\", \"Словарь вместо цепочки if.\"]], \"mistake\": \"`str(code)[0]` — получится строка, а ключи — числа.\"}"
                 },
                 {
                   "slug": "api-m1-l1-e4",
@@ -55,7 +58,8 @@
                   "tests": "def test_values():\n    assert all(is_idempotent(m) for m in [\"GET\", \"put\", \"Delete\", \"HEAD\"]), \"GET, PUT, DELETE, HEAD — идемпотентны\"\n    assert not is_idempotent(\"POST\") and not is_idempotent(\"patch\"), \"POST и PATCH — нет\"\n",
                   "solution": "def is_idempotent(method):\n    return method.upper() in {\"GET\", \"HEAD\", \"OPTIONS\", \"PUT\", \"DELETE\"}\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Идемпотентные методы: повтор не меняет результат. POST и PATCH — нет.\", \"lines\": [[\"return method.upper() in {\\\"GET\\\", \\\"HEAD\\\", \\\"OPTIONS\\\", \\\"PUT\\\", \\\"DELETE\\\"}\", \"Регистр приводим к верхнему.\"]], \"mistake\": \"Считать PUT неидемпотентным — повторная замена даёт то же состояние.\"}"
                 },
                 {
                   "slug": "api-m1-l1-e5",
@@ -65,7 +69,8 @@
                   "tests": "def test_url():\n    assert build_url(\"https://api.ru\", \"/users\", {\"page\": 2, \"limit\": 10}) == \"https://api.ru/users?page=2&limit=10\", \\\n        f\"Получено {build_url('https://api.ru', '/users', {'page': 2, 'limit': 10})}\"\n\ndef test_no_params():\n    assert build_url(\"https://api.ru\", \"/health\", {}) == \"https://api.ru/health\", \"Без параметров знака ? быть не должно\"\n\ndef test_encoding():\n    assert build_url(\"https://api.ru\", \"/s\", {\"q\": \"a b\"}) == \"https://api.ru/s?q=a+b\", \"Пробел должен кодироваться\"\n",
                   "solution": "from urllib.parse import urlencode\n\ndef build_url(base, path, params):\n    url = base + path\n    return f\"{url}?{urlencode(params)}\" if params else url\n",
                   "hint": "`urlencode({\"a\": 1, \"b\": 2})` → `\"a=1&b=2\"`. Не забудь случай без параметров.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`urlencode` правильно склеивает и экранирует параметры.\", \"lines\": [[\"url = base + path\", \"Адрес.\"], [\"return f\\\"{url}?{urlencode(params)}\\\" if params else url\", \"Без параметров — без `?`.\"]], \"mistake\": \"Склеивать `k=v` вручную — пробелы и `&` в значениях сломают адрес.\"}"
                 },
                 {
                   "slug": "api-m1-l1-e6",
@@ -75,7 +80,8 @@
                   "tests": "def test_5xx():\n    assert is_bug(\"GET\", 500) and is_bug(\"POST\", 502), \"5xx — всегда баг\"\n\ndef test_post_200():\n    assert is_bug(\"POST\", 200) is True, \"POST должен возвращать 201 Created\"\n\ndef test_ok():\n    assert not is_bug(\"GET\", 200) and not is_bug(\"POST\", 201) and not is_bug(\"GET\", 404), \"Это не баги\"\n",
                   "solution": "def is_bug(method, status):\n    return status >= 500 or (method == \"POST\" and status == 200)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Два признака бага: сервер упал (5xx) или создание вернуло 200 вместо 201.\", \"lines\": [[\"return status >= 500 or (method == \\\"POST\\\" and status == 200)\", \"Хватит одного.\"]], \"mistake\": \"Считать багом любой 4xx — это часто правильная реакция на плохой запрос.\"}"
                 },
                 {
                   "slug": "api-m1-l1-e7",
@@ -85,7 +91,8 @@
                   "expected_output": "POST /v1/orders",
                   "solution": "POST /v1/orders",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Первая строка запроса: метод, цель (путь с параметрами), версия.\", \"lines\": [[\"POST /v1/orders?debug=1 HTTP/1.1\", \"Путь — до `?`.\"]], \"mistake\": \"Включить `?debug=1` в путь.\"}"
                 },
                 {
                   "slug": "api-m1-l1-e8",
@@ -95,7 +102,8 @@
                   "tests": "def test_values():\n    assert parse_request_line(\"GET /users?page=2&sort=name HTTP/1.1\") == {\"method\": \"GET\", \"path\": \"/users\", \"query\": {\"page\": \"2\", \"sort\": \"name\"}}\n    assert parse_request_line(\"DELETE /users/7 HTTP/1.1\") == {\"method\": \"DELETE\", \"path\": \"/users/7\", \"query\": {}}\n",
                   "solution": "from urllib.parse import urlsplit, parse_qsl\n\n\ndef parse_request_line(line):\n    method, target, _version = line.split()\n    parts = urlsplit(target)\n    return {\"method\": method, \"path\": parts.path, \"query\": dict(parse_qsl(parts.query))}\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Строку делим на три части, цель разбираем `urlsplit`, параметры — `parse_qsl` в словарь.\", \"lines\": [[\"method, target, _version = line.split()\", \"Три слова.\"], [\"parts = urlsplit(target)\", \"Путь и строка запроса.\"], [\"return {\\\"method\\\": method, \\\"path\\\": parts.path, \\\"query\\\": dict(parse_qsl(parts.query))}\", \"`parse_qsl` — пары, значения строками.\"]], \"mistake\": \"`parse_qs` — значения окажутся списками.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПочти любое приложение — это фронтенд, который общается с сервером через **API**. Тестировать API быстрее и надёжнее, чем кликать по интерфейсу: запрос выполняется за миллисекунды, ответ легко проверить, а баги находятся раньше, чем появится экран. Основа всего — протокол **HTTP**.\n\n## Запрос\n\n```bash\nPOST /v1/orders?debug=1 HTTP/1.1\nHost: api.shop.ru\nContent-Type: application/json\nAuthorization: Bearer eyJhbGciOi...\n\n{\"item\": 42, \"count\": 2}\n```\n\nИз чего состоит запрос:\n\n- **Метод** — что сделать: `GET` (получить), `POST` (создать), `PUT`/`PATCH` (изменить), `DELETE` (удалить).\n- **Путь** `/v1/orders` и **строка запроса** `?debug=1` — параметры после `?`, пары `ключ=значение` через `&`.\n- **Заголовки** — метаданные: формат тела, авторизация, язык.\n- **Тело** — данные, чаще всего в JSON. У `GET` тела обычно нет.\n\n## Ответ\n\n```bash\nHTTP/1.1 201 Created\nContent-Type: application/json\nX-Request-Id: 7f3a...\n\n{\"id\": 1001, \"item\": 42, \"count\": 2, \"status\": \"new\"}\n```\n\n- **Статус-код** — итог: `2xx` — успех, `3xx` — перенаправление, `4xx` — ошибка клиента (неверный запрос), `5xx` — ошибка сервера.\n- Заголовки и тело ответа.\n\n## URL по частям\n\n```python\nfrom urllib.parse import urlsplit, parse_qsl\n\nparts = urlsplit(\"https://api.shop.ru/v1/orders?status=new&page=2\")\nprint(parts.scheme, parts.netloc, parts.path)\nprint(dict(parse_qsl(parts.query)))\n```\n\n- `scheme` — протокол, `netloc` — хост (и порт), `path` — путь, `query` — строка параметров.\n- `parse_qsl` превращает строку параметров в пары; значения — всегда строки.\n- Вывод: `https api.shop.ru /v1/orders`, `{'status': 'new', 'page': '2'}`.\n\n## Идемпотентность\n\n- Метод **идемпотентен**, если повтор запроса не меняет результат: `GET`, `PUT`, `DELETE`. Два одинаковых `DELETE /users/7` оставят систему в том же состоянии.\n- `POST` не идемпотентен: два запроса создадут два заказа. Поэтому тестировщик проверяет «двойной клик» на оплате.\n\n## Итог\n\n- Запрос: метод, путь, параметры, заголовки, тело. Ответ: статус, заголовки, тело.\n- 2xx успех, 4xx ошибка клиента, 5xx ошибка сервера.\n- `urllib.parse` — разбор URL.\n- GET/PUT/DELETE идемпотентны, POST — нет.",
@@ -147,7 +155,8 @@
                   "code": "from http import HTTPStatus\n\nfor code in [200, 201, 204, 301, 400, 401, 403, 404, 409, 422, 500, 503]:\n    print(code, HTTPStatus(code).phrase)\n",
                   "expected_output": "200 OK\n201 Created\n204 No Content\n301 Moved Permanently\n400 Bad Request\n401 Unauthorized\n403 Forbidden\n404 Not Found\n409 Conflict\n422 Unprocessable Entity\n500 Internal Server Error\n503 Service Unavailable",
                   "hint": "HTTPStatus — стандартный справочник статусов.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`HTTPStatus(code).phrase` — стандартная фраза кода. Полезно запомнить основные.\", \"lines\": [[\"print(code, HTTPStatus(code).phrase)\", \"Код и его название.\"]], \"mistake\": \"Путать 401 (не авторизован) и 403 (нет прав).\"}"
                 },
                 {
                   "slug": "api-methods-e2",
@@ -156,7 +165,8 @@
                   "code": "import requests\n\nh = requests.structures.CaseInsensitiveDict({\"Content-Type\": \"application/json\"})\nprint(h[\"content-type\"], \"CONTENT-TYPE\" in h)\n",
                   "expected_output": "application/json True",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Имена HTTP-заголовков нечувствительны к регистру — `requests` хранит их в `CaseInsensitiveDict`.\", \"lines\": [[\"print(h[\\\"content-type\\\"], \\\"CONTENT-TYPE\\\" in h)\", \"Любой регистр работает.\"]], \"mistake\": \"Ожидать `KeyError` для строчного имени.\"}"
                 },
                 {
                   "slug": "api-methods-e3",
@@ -166,7 +176,8 @@
                   "expected_output": "201",
                   "solution": "201",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Успешное создание — 201 Created.\", \"lines\": [[\"201\", \"Created.\"]], \"mistake\": \"200 — тоже «успех», но для создания правильнее 201.\"}"
                 },
                 {
                   "slug": "api-methods-e4",
@@ -176,7 +187,8 @@
                   "expected_output": "401",
                   "solution": "401",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"401 — не представился (нет или неверный токен).\", \"lines\": [[\"401\", \"Unauthorized.\"]], \"mistake\": \"403 — представился, но прав нет.\"}"
                 },
                 {
                   "slug": "api-methods-e5",
@@ -186,7 +198,8 @@
                   "expected_output": "403",
                   "solution": "403",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"403 — авторизован, но действие запрещено.\", \"lines\": [[\"403\", \"Forbidden.\"]], \"mistake\": \"401 — это про отсутствие авторизации.\"}"
                 },
                 {
                   "slug": "api-methods-e6",
@@ -196,7 +209,8 @@
                   "expected_output": "Authorization",
                   "solution": "Authorization",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Токен передают в заголовке `Authorization`, обычно `Bearer <токен>`.\", \"lines\": [[\"Authorization\", \"Заголовок авторизации.\"]], \"mistake\": \"`Token` или `Auth` — нестандартные имена.\"}"
                 },
                 {
                   "slug": "api-methods-e7",
@@ -206,7 +220,8 @@
                   "tests": "def test_values():\n    assert check_headers({\"content-type\": \"application/json; charset=utf-8\", \"x-request-id\": \"abc\"}) == []\n    assert check_headers({\"Content-Type\": \"text/html\", \"Server\": \"Debug-Server\", \"X-Request-Id\": \"1\"}) == [\"не JSON\", \"отладочный сервер\"]\n    assert check_headers({}) == [\"не JSON\", \"нет X-Request-Id\"]\n",
                   "solution": "def check_headers(headers):\n    h = {k.lower(): v for k, v in headers.items()}\n    problems = []\n    if not h.get(\"content-type\", \"\").startswith(\"application/json\"):\n        problems.append(\"не JSON\")\n    if \"debug\" in h.get(\"server\", \"\").lower():\n        problems.append(\"отладочный сервер\")\n    if \"x-request-id\" not in h:\n        problems.append(\"нет X-Request-Id\")\n    return problems\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Имена заголовков приводим к нижнему регистру — и сравниваем уже их.\", \"lines\": [[\"h = {k.lower(): v for k, v in headers.items()}\", \"Регистр не важен.\"], [\"if not h.get(\\\"content-type\\\", \\\"\\\").startswith(\\\"application/json\\\"):\", \"Нет заголовка — пустая строка.\"], [\"if \\\"debug\\\" in h.get(\\\"server\\\", \\\"\\\").lower():\", \"Отладочный сервер.\"], [\"if \\\"x-request-id\\\" not in h:\", \"Нет id запроса.\"]], \"mistake\": \"`== \\\"application/json\\\"` — не пройдёт `application/json; charset=utf-8`.\"}"
                 },
                 {
                   "slug": "api-methods-e8",
@@ -216,7 +231,8 @@
                   "tests": "def test_values():\n    assert [expected_status(m, True) for m in [\"GET\", \"POST\", \"PUT\", \"PATCH\", \"DELETE\"]] == [200, 201, 200, 200, 204]\n    assert [expected_status(m, False) for m in [\"GET\", \"POST\", \"DELETE\"]] == [404, 422, 404]\n",
                   "solution": "def expected_status(method, action_ok):\n    if not action_ok:\n        return 422 if method == \"POST\" else 404\n    return {\"POST\": 201, \"DELETE\": 204}.get(method, 200)\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Сначала неуспешный случай, потом таблица кодов с запасным 200.\", \"lines\": [[\"return 422 if method == \\\"POST\\\" else 404\", \"Ошибка: невалидные данные или нет ресурса.\"], [\"return {\\\"POST\\\": 201, \\\"DELETE\\\": 204}.get(method, 200)\", \"Остальные — 200.\"]], \"mistake\": \"Ждать 200 от DELETE — по REST обычно 204 без тела.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nСтатус-код и заголовки — первое, что проверяет API-тест. Неправильный код (200 вместо 404, 500 вместо 422) — это баг, даже если тело выглядит нормально: фронтенд и другие сервисы принимают решения именно по коду.\n\n## Главные статусы\n\n```python\nfrom http import HTTPStatus\n\nfor code in [200, 201, 204, 400, 401, 403, 404, 409, 422, 500, 503]:\n    print(code, HTTPStatus(code).phrase)\n```\n\n- `200 OK` — успех; `201 Created` — ресурс создан (POST); `204 No Content` — успех без тела (DELETE).\n- `400 Bad Request` — запрос неверно сформирован; `422 Unprocessable Entity` — данные не прошли проверку.\n- `401 Unauthorized` — нет или неверный токен (**не** авторизован); `403 Forbidden` — авторизован, но нет прав.\n- `404 Not Found` — ресурса нет; `409 Conflict` — конфликт (email уже занят).\n- `500 Internal Server Error` — сервер упал (всегда баг); `503 Service Unavailable` — сервис недоступен.\n- `HTTPStatus` — стандартный справочник кодов в Python.\n\n## Заголовки\n\n- `Content-Type: application/json` — формат тела (у запроса и ответа).\n- `Accept: application/json` — какой формат клиент хочет получить.\n- `Authorization: Bearer <токен>` — авторизация.\n- `X-Request-Id` — идентификатор запроса: с ним разработчик найдёт запрос в логах сервера. Прикладывай к баг-репорту.\n- Имена заголовков **нечувствительны к регистру**: `content-type` = `Content-Type`.\n\n```python\nimport requests\n\nh = requests.structures.CaseInsensitiveDict({\"Content-Type\": \"application/json\"})\nprint(h[\"content-type\"])\n```\n\n- `response.headers` в requests — такой словарь.\n- Вывод: `application/json`.\n\n## Что ожидать от REST API\n\n- `GET` существующего — 200, несуществующего — 404.\n- `POST` валидных данных — 201, невалидных — 422 (или 400).\n- `DELETE` — 204; повторный `DELETE` — 404 (или снова 204).\n- Любой `5xx` на корректный запрос — баг.\n\n## Итог\n\n- 200/201/204 — успех; 400/422 — неверные данные; 401 — не вошёл; 403 — нет прав; 404 — нет ресурса; 5xx — баг сервера.\n- Заголовки: Content-Type, Accept, Authorization, X-Request-Id; регистр имён не важен.",
@@ -268,7 +284,8 @@
                   "code": "import json\ndata = json.loads('{\"ok\": true, \"items\": [1, 2], \"next\": null}')\nprint(data[\"ok\"], data[\"next\"], len(data[\"items\"]))\nprint(type(data).__name__)\n",
                   "expected_output": "True None 2\ndict",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"JSON → Python: `true` → `True`, `null` → `None`, объект → dict.\", \"lines\": [[\"print(data[\\\"ok\\\"], data[\\\"next\\\"], len(data[\\\"items\\\"]))\", \"Типы Python.\"], [\"print(type(data).__name__)\", \"Словарь.\"]], \"mistake\": \"Ожидать `true` и `null` в выводе.\"}"
                 },
                 {
                   "slug": "api-m1-l2-e2",
@@ -277,7 +294,8 @@
                   "code": "resp = {\"data\": {\"users\": [{\"name\": \"Аня\", \"roles\": [\"qa\", \"admin\"]}, {\"name\": \"Боря\", \"roles\": []}]}}\nprint(resp[\"data\"][\"users\"][0][\"roles\"][-1])\nprint([u[\"name\"] for u in resp[\"data\"][\"users\"] if u[\"roles\"]])\n",
                   "expected_output": "admin\n['Аня']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Вложенные данные читают цепочкой ключей и индексов.\", \"lines\": [[\"print(resp[\\\"data\\\"][\\\"users\\\"][0][\\\"roles\\\"][-1])\", \"Первый пользователь, последняя роль.\"], [\"print([u[\\\"name\\\"] for u in resp[\\\"data\\\"][\\\"users\\\"] if u[\\\"roles\\\"]])\", \"Пустой список ролей — ложь.\"]], \"mistake\": \"Ожидать Боря во втором списке — у него ролей нет.\"}"
                 },
                 {
                   "slug": "api-m1-l2-e3",
@@ -287,7 +305,8 @@
                   "tests": "def test_name():\n    assert get_name('{\"user\": {\"name\": \"Аня\", \"id\": 7}}') == \"Аня\", \"Нужно распарсить JSON и достать user.name\"\n",
                   "solution": "import json\n\ndef get_name(body):\n    return json.loads(body)[\"user\"][\"name\"]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Тело ответа — строка; `json.loads` превращает её в словарь.\", \"lines\": [[\"return json.loads(body)[\\\"user\\\"][\\\"name\\\"]\", \"Разбор и доступ к полю.\"]], \"mistake\": \"`body[\\\"user\\\"]` — у строки нет ключей.\"}"
                 },
                 {
                   "slug": "api-m1-l2-e4",
@@ -297,7 +316,8 @@
                   "tests": "def test_missing():\n    assert missing_fields({\"id\": 1, \"name\": \"A\"}, [\"id\", \"name\", \"email\", \"age\"]) == [\"email\", \"age\"], \"Не хватает email и age\"\n\ndef test_all_present():\n    assert missing_fields({\"id\": 1}, [\"id\"]) == [], \"Все поля есть → []\"\n",
                   "solution": "def missing_fields(data, required):\n    return [f for f in required if f not in data]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Проверяем каждое обязательное поле по ключам ответа.\", \"lines\": [[\"return [f for f in required if f not in data]\", \"Порядок — как в required.\"]], \"mistake\": \"Проверять значения на истинность — поле со значением 0 окажется «отсутствующим».\"}"
                 },
                 {
                   "slug": "api-m1-l2-e5",
@@ -307,7 +327,8 @@
                   "tests": "def test_valid():\n    assert validate_user({\"id\": 1, \"email\": \"a@b.ru\", \"age\": 30}) == [], \"Валидный пользователь — без ошибок\"\n\ndef test_all_bad():\n    assert validate_user({\"id\": \"1\", \"email\": \"abc\", \"age\": -3}) == [\"id: must be int\", \"email: invalid\", \"age: must be >= 0\"], \\\n        f\"Получено {validate_user({'id': '1', 'email': 'abc', 'age': -3})}\"\n\ndef test_missing():\n    assert validate_user({}) == [\"id: must be int\", \"email: invalid\", \"age: must be >= 0\"], \"Пустой объект — три ошибки\"\n",
                   "solution": "def validate_user(data):\n    errors = []\n    if not isinstance(data.get(\"id\"), int):\n        errors.append(\"id: must be int\")\n    email = data.get(\"email\")\n    if not isinstance(email, str) or \"@\" not in email:\n        errors.append(\"email: invalid\")\n    age = data.get(\"age\")\n    if not isinstance(age, int) or age < 0:\n        errors.append(\"age: must be >= 0\")\n    return errors\n",
                   "hint": "`data.get(\"id\")` не упадёт, если поля нет, а вернёт None. Проверка типа — `isinstance(x, int)`.",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Каждая проверка добавляет не больше одной ошибки; `get` — без падения на отсутствующих полях.\", \"lines\": [[\"if not isinstance(data.get(\\\"id\\\"), int):\", \"Тип id.\"], [\"if not isinstance(email, str) or \\\"@\\\" not in email:\", \"Сначала тип, потом `@`.\"], [\"if not isinstance(age, int) or age < 0:\", \"Отрицательный возраст.\"]], \"mistake\": \"`\\\"@\\\" in email` без проверки типа — упадёт на `None`.\"}"
                 },
                 {
                   "slug": "api-m1-l2-e6",
@@ -317,7 +338,8 @@
                   "tests": "def test_found():\n    users = [{\"id\": 1, \"name\": \"A\"}, {\"id\": 5, \"name\": \"B\"}]\n    assert find_user(users, 5) == {\"id\": 5, \"name\": \"B\"}, \"Пользователь с id=5 — B\"\n\ndef test_not_found():\n    assert find_user([{\"id\": 1}], 42) is None, \"Нет такого id → None\"\n",
                   "solution": "def find_user(users, user_id):\n    return next((u for u in users if u[\"id\"] == user_id), None)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`next` с генератором — первый подходящий или значение по умолчанию.\", \"lines\": [[\"return next((u for u in users if u[\\\"id\\\"] == user_id), None)\", \"Нет — `None`.\"]], \"mistake\": \"`[u for ...][0]` — `IndexError`, если пользователя нет.\"}"
                 },
                 {
                   "slug": "api-m1-l2-e7",
@@ -326,7 +348,8 @@
                   "code": "body = {\"data\": {\"user\": {\"name\": \"Аня\", \"address\": None}}}\nprint(body.get(\"data\", {}).get(\"user\", {}).get(\"name\"))\nprint((body[\"data\"][\"user\"].get(\"address\") or {}).get(\"city\", \"нет\"))\nprint(body.get(\"meta\", {}).get(\"total\", 0))\n",
                   "expected_output": "Аня\nнет\n0",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`.get(ключ, {})` по цепочке не падает; `or {}` заменяет `None`.\", \"lines\": [[\"print(body.get(\\\"data\\\", {}).get(\\\"user\\\", {}).get(\\\"name\\\"))\", \"Есть — имя.\"], [\"print((body[\\\"data\\\"][\\\"user\\\"].get(\\\"address\\\") or {}).get(\\\"city\\\", \\\"нет\\\"))\", \"`None or {}` → `{}`.\"], [\"print(body.get(\\\"meta\\\", {}).get(\\\"total\\\", 0))\", \"Нет meta — 0.\"]], \"mistake\": \"`.get(\\\"address\\\", {})` — ключ есть, вернётся `None`, и `.get` на нём упадёт.\"}"
                 },
                 {
                   "slug": "api-m1-l2-e8",
@@ -336,7 +359,8 @@
                   "tests": "BODY = {\"data\": {\"users\": [{\"name\": \"Аня\", \"roles\": [\"qa\"]}], \"total\": 1}}\n\ndef test_values():\n    assert get_path(BODY, \"data.users.0.name\") == \"Аня\" and get_path(BODY, \"data.users.0.roles.0\") == \"qa\"\n    assert get_path(BODY, \"data.total\") == 1 and get_path(BODY, \"data.users.5.name\", \"нет\") == \"нет\"\n    assert get_path(BODY, \"meta.page\") is None and get_path(BODY, \"data.users.x\") is None\n",
                   "solution": "def get_path(data, path, default=None):\n    current = data\n    for part in path.split(\".\"):\n        if isinstance(current, list) and part.isdigit() and int(part) < len(current):\n            current = current[int(part)]\n        elif isinstance(current, dict) and part in current:\n            current = current[part]\n        else:\n            return default\n    return current\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Идём по частям пути: число — индекс списка, иначе — ключ словаря; не нашли — default.\", \"lines\": [[\"for part in path.split(\\\".\\\"):\", \"Части пути.\"], [\"if isinstance(current, list) and part.isdigit() and int(part) < len(current):\", \"Индекс в пределах.\"], [\"elif isinstance(current, dict) and part in current:\", \"Ключ есть.\"], [\"return default\", \"Иначе — запасное значение.\"]], \"mistake\": \"Ловить все исключения `try/except` — скроются и настоящие ошибки.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nТело ответа почти всегда в **JSON**. API-тест проверяет не только статус, но и данные: есть ли обязательные поля, правильные ли типы, совпадают ли значения. Для этого JSON превращают в словари и списки Python.\n\n## Из JSON в Python\n\n```python\nimport json\n\nbody = '{\"ok\": true, \"items\": [1, 2], \"next\": null, \"user\": {\"name\": \"Аня\"}}'\ndata = json.loads(body)\nprint(data[\"ok\"], data[\"next\"], len(data[\"items\"]), data[\"user\"][\"name\"])\n```\n\n- `json.loads(строка)` → словарь. `true`/`false` → `True`/`False`, `null` → `None`.\n- В requests это делает `response.json()`.\n- Вывод: `True None 2 Аня`.\n\n## Безопасный доступ\n\n```python\nbody = {\"data\": {\"user\": {\"name\": \"Аня\", \"address\": None}}}\nprint(body.get(\"data\", {}).get(\"user\", {}).get(\"name\"))\nprint((body[\"data\"][\"user\"].get(\"address\") or {}).get(\"city\", \"нет\"))\n```\n\n- `dict.get(ключ, по_умолчанию)` не падает с `KeyError`. Но в тесте отсутствие поля — это как раз то, что нужно поймать, поэтому проверяй явно: `assert \"email\" in user`.\n- `or {}` — подстраховка, если значение `None`.\n- Вывод: `Аня`, `нет`.\n\n## Что проверять в ответе\n\n```python\nuser = {\"id\": 1, \"name\": \"Аня\", \"email\": \"anna@x.ru\", \"roles\": [\"qa\"]}\nrequired = [\"id\", \"name\", \"email\"]\nmissing = [f for f in required if f not in user]\nprint(missing)\nprint(isinstance(user[\"id\"], int), isinstance(user[\"roles\"], list))\n```\n\n- Наличие обязательных полей.\n- Типы: `id` — число, а не строка `\"1\"`; `roles` — список.\n- Значения: то, что отправили, то и вернулось.\n- Отсутствие лишнего: пароли, внутренние поля.\n- Вывод: `[]`, `True True`.\n\n## Удобнее — модели\n\nПисать такие проверки руками долго. В модуле 3 разберём **Pydantic** и **JSON Schema** — описание структуры один раз и проверка одной строкой.\n\n## Итог\n\n- `json.loads` / `response.json()`: true→True, null→None.\n- `.get()` для необязательного, явные `assert` для обязательного.\n- Проверяй поля, типы, значения, отсутствие лишнего.",
@@ -389,7 +413,8 @@
                   "expected_output": "GET /users/7",
                   "solution": "GET /users/7",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"REST: ресурс во множественном числе, id — в пути, чтение — GET.\", \"lines\": [[\"GET /users/7\", \"Один пользователь.\"]], \"mistake\": \"`GET /getUser?id=7` — не REST-стиль.\"}"
                 },
                 {
                   "slug": "api-rest-e2",
@@ -399,7 +424,8 @@
                   "expected_output": "DELETE /orders/15",
                   "solution": "DELETE /orders/15",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Удаление — DELETE на адрес ресурса.\", \"lines\": [[\"DELETE /orders/15\", \"Заказ 15.\"]], \"mistake\": \"`POST /orders/15/delete` — действие в пути.\"}"
                 },
                 {
                   "slug": "api-rest-e3",
@@ -409,7 +435,8 @@
                   "expected_output": "PATCH",
                   "solution": "PATCH",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"PATCH — частичное изменение, PUT — замена целиком.\", \"lines\": [[\"PATCH\", \"Только email.\"]], \"mistake\": \"PUT — потребует прислать весь объект.\"}"
                 },
                 {
                   "slug": "api-rest-e4",
@@ -419,7 +446,8 @@
                   "expected_output": "5",
                   "solution": "5",
                   "hint": "Округление вверх.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Страниц = округление вверх от total / per_page.\", \"lines\": [[\"{\\\"items\\\": [...], \\\"page\\\": 1, \\\"per_page\\\": 20, \\\"total\\\": 93}\", \"93 / 20 = 4.65 → 5.\"]], \"mistake\": \"Ответить 4 — последняя неполная страница тоже страница.\"}"
                 },
                 {
                   "slug": "api-rest-e5",
@@ -429,7 +457,8 @@
                   "tests": "def test_values():\n    assert crud_plan(\"users\") == [\n        (\"POST\", \"/users\", 201), (\"GET\", \"/users/{id}\", 200), (\"PUT\", \"/users/{id}\", 200),\n        (\"PATCH\", \"/users/{id}\", 200), (\"DELETE\", \"/users/{id}\", 204), (\"GET\", \"/users/{id}\", 404),\n    ], crud_plan(\"users\")\n",
                   "solution": "def crud_plan(resource):\n    base = f\"/{resource}\"\n    item = f\"{base}/{{id}}\"\n    return [\n        (\"POST\", base, 201), (\"GET\", item, 200), (\"PUT\", item, 200),\n        (\"PATCH\", item, 200), (\"DELETE\", item, 204), (\"GET\", item, 404),\n    ]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Полный CRUD-сценарий заканчивается проверкой, что удалённого больше нет (404).\", \"lines\": [[\"item = f\\\"{base}/{{id}}\\\"\", \"`{{` — фигурная скобка в f-строке.\"], [\"(\\\"POST\\\", base, 201), (\\\"GET\\\", item, 200), (\\\"PUT\\\", item, 200),\", \"Создать, прочитать, заменить.\"], [\"(\\\"PATCH\\\", item, 200), (\\\"DELETE\\\", item, 204), (\\\"GET\\\", item, 404),\", \"Частично, удалить, проверить удаление.\"]], \"mistake\": \"Не проверять GET после DELETE — «удалённый» ресурс может остаться.\"}"
                 },
                 {
                   "slug": "api-rest-e6",
@@ -439,7 +468,8 @@
                   "tests": "def test_values():\n    assert [pages_count(t, 20) for t in (0, 1, 20, 21, 93)] == [0, 1, 1, 2, 5]\n    items = list(range(1, 8))\n    assert page_items(items, 1, 3) == [1, 2, 3] and page_items(items, 3, 3) == [7] and page_items(items, 4, 3) == [] and page_items(items, 0, 3) == []\n",
                   "solution": "def pages_count(total, per_page):\n    return (total + per_page - 1) // per_page\n\n\ndef page_items(items, page, per_page):\n    if page < 1:\n        return []\n    start = (page - 1) * per_page\n    return items[start:start + per_page]\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Округление вверх без float: `(total + per_page - 1) // per_page`. Страница — срез.\", \"lines\": [[\"return (total + per_page - 1) // per_page\", \"93, 20 → 5.\"], [\"start = (page - 1) * per_page\", \"Страницы с 1.\"], [\"return items[start:start + per_page]\", \"Вне диапазона — пустой срез.\"]], \"mistake\": \"`total // per_page` — потеряется неполная страница.\"}"
                 },
                 {
                   "slug": "api-rest-e7",
@@ -449,7 +479,8 @@
                   "tests": "def test_values():\n    data = {1: [1, 2], 2: [3, 4], 3: [5]}\n    calls = []\n    def fetch(p):\n        calls.append(p)\n        return {\"items\": data[p], \"page\": p, \"pages\": 3}\n    assert collect_all(fetch) == [1, 2, 3, 4, 5] and calls == [1, 2, 3], calls\n    assert collect_all(lambda p: {\"items\": [], \"page\": 1, \"pages\": 1}) == [], \"Пустой ответ\"\n",
                   "solution": "def collect_all(fetch_page):\n    items = []\n    page = 1\n    while True:\n        resp = fetch_page(page)\n        items.extend(resp[\"items\"])\n        if resp[\"page\"] >= resp[\"pages\"]:\n            return items\n        page += 1\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Запрашиваем страницы, пока текущая не последняя.\", \"lines\": [[\"resp = fetch_page(page)\", \"Очередная страница.\"], [\"items.extend(resp[\\\"items\\\"])\", \"Копим элементы.\"], [\"if resp[\\\"page\\\"] >= resp[\\\"pages\\\"]:\\n            return items\", \"Последняя — выходим.\"]], \"mistake\": \"`append` вместо `extend` — получится список списков.\"}"
                 },
                 {
                   "slug": "api-rest-e8",
@@ -459,7 +490,8 @@
                   "expected_output": "GET /users?status=active&sort=name&page=2\n/users?status=active&sort=name&page=2",
                   "solution": "GET /users?status=active&sort=name&page=2",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Фильтр, сортировка и страница — параметры строки запроса через `&`.\", \"lines\": [[\"GET /users?status=active&sort=name&page=2\", \"Первый — после `?`, остальные — через `&`.\"]], \"mistake\": \"Писать все через `?`.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nБольшинство API построены по принципам **REST**: данные — это ресурсы с адресами, а действия — HTTP-методы. Понимая эти правила, тестировщик заранее знает, какой запрос отправить и какой ответ ожидать, и сразу видит отклонения.\n\n## Ресурсы и методы\n\n- `GET /users` — список; `GET /users/7` — один ресурс.\n- `POST /users` — создать; `PUT /users/7` — заменить целиком; `PATCH /users/7` — изменить часть полей.\n- `DELETE /users/7` — удалить.\n- Вложенные ресурсы: `GET /users/7/orders` — заказы пользователя 7.\n- Имена ресурсов — существительные во множественном числе; действия выражаются методом, а не словом в пути (`POST /users`, а не `/createUser`).\n\n## CRUD-тест\n\nКлассическая проверка жизненного цикла ресурса:\n\n1. `POST /users` → 201, получить `id`.\n2. `GET /users/{id}` → 200, данные совпадают с отправленными.\n3. `PUT` / `PATCH` → 200, изменения видны при следующем `GET`.\n4. `DELETE /users/{id}` → 204.\n5. `GET /users/{id}` → 404.\n\n## Пагинация, фильтры, сортировка\n\n```bash\nGET /users?status=active&sort=name&page=2&per_page=20\n{\"items\": [...], \"page\": 2, \"per_page\": 20, \"total\": 93}\n```\n\n- Большие списки отдаются страницами. Страниц: `ceil(total / per_page)`.\n\n```python\ntotal, per_page = 93, 20\nprint((total + per_page - 1) // per_page)\n```\n\n- Целочисленное деление с округлением вверх без `math.ceil`.\n- Вывод: `5`.\n- Что проверять: первая и последняя страница, страница за пределами (пустой список или 404), `per_page` на границе, фильтр действительно фильтрует, сортировка устойчива.\n\n## Итог\n\n- Ресурсы — существительные; действия — методы.\n- CRUD-сценарий: создать → прочитать → изменить → удалить → 404.\n- Пагинация: `page`, `per_page`, `total`; фильтры и сортировка — параметрами.",
@@ -519,7 +551,8 @@
                   "code": "import requests\nimport responses\n\nwith responses.RequestsMock() as mock:\n    mock.get(\"https://api.test/users/1\", json={\"id\": 1, \"name\": \"Аня\"}, status=200)\n    r = requests.get(\"https://api.test/users/1\")\n    print(r.status_code, r.ok)\n    print(r.json()[\"name\"], r.headers[\"Content-Type\"])\n",
                   "expected_output": "200 True\nАня application/json",
                   "hint": "responses перехватывает запросы requests и отдаёт заданный ответ — без сети.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`responses` подменяет сервер: запрос не уходит в сеть, а получает заданный ответ.\", \"lines\": [[\"mock.get(\\\"https://api.test/users/1\\\", json={\\\"id\\\": 1, \\\"name\\\": \\\"Аня\\\"}, status=200)\", \"Заготовленный ответ.\"], [\"print(r.status_code, r.ok)\", \"`ok` — True для кодов меньше 400.\"], [\"print(r.json()[\\\"name\\\"], r.headers[\\\"Content-Type\\\"])\", \"`json=` выставил Content-Type.\"]], \"mistake\": \"Думать, что тест обращается к настоящему серверу.\"}"
                 },
                 {
                   "slug": "api-requests-e2",
@@ -528,7 +561,8 @@
                   "code": "import json\nimport requests\nimport responses\n\nwith responses.RequestsMock() as mock:\n    mock.post(\"https://api.test/users\", json={\"id\": 2}, status=201)\n    r = requests.post(\"https://api.test/users\", params={\"notify\": \"false\"},\n                      json={\"name\": \"Боря\"}, headers={\"Authorization\": \"Bearer t1\"})\n    sent = mock.calls[0].request\n    print(r.status_code, sent.url)\n    print(json.loads(sent.body), sent.headers[\"Authorization\"])\n",
                   "expected_output": "201 https://api.test/users?notify=false\n{'name': 'Боря'} Bearer t1",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`params` — в адрес, `json` — в тело, `headers` — заголовки. `mock.calls` хранит отправленное.\", \"lines\": [[\"sent = mock.calls[0].request\", \"Что реально ушло.\"], [\"print(r.status_code, sent.url)\", \"Параметры добавились в URL.\"], [\"print(json.loads(sent.body), sent.headers[\\\"Authorization\\\"])\", \"Тело и заголовок.\"]], \"mistake\": \"Ожидать `notify=false` в теле — это параметр адреса.\"}"
                 },
                 {
                   "slug": "api-requests-e3",
@@ -537,7 +571,8 @@
                   "code": "import requests\nimport responses\n\nwith responses.RequestsMock() as mock:\n    mock.get(\"https://api.test/secret\", status=403)\n    r = requests.get(\"https://api.test/secret\")\n    try:\n        r.raise_for_status()\n    except requests.HTTPError as e:\n        print(\"ошибка:\", e.response.status_code)\n",
                   "expected_output": "ошибка: 403",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`raise_for_status` бросает `HTTPError` для 4xx/5xx; ответ доступен в `e.response`.\", \"lines\": [[\"r.raise_for_status()\", \"403 — исключение.\"], [\"print(\\\"ошибка:\\\", e.response.status_code)\", \"Код из исключения.\"]], \"mistake\": \"Думать, что `requests.get` сам падает на 403 — нет, только после `raise_for_status`.\"}"
                 },
                 {
                   "slug": "api-requests-e4",
@@ -547,7 +582,8 @@
                   "tests": "import responses\n\n@responses.activate\ndef test_values():\n    responses.get(\"https://api.test/users/1\", json={\"id\": 1, \"name\": \"Аня\"})\n    responses.get(\"https://api.test/users/9\", status=404, json={\"error\": \"not found\"})\n    assert get_user(\"https://api.test\", 1) == {\"id\": 1, \"name\": \"Аня\"}\n    try:\n        get_user(\"https://api.test\", 9)\n    except LookupError as e:\n        assert str(e) == \"user 9: 404\", str(e)\n        return\n    assert False, \"Нужен LookupError\"\n",
                   "solution": "import requests\n\n\ndef get_user(base_url, user_id):\n    response = requests.get(f\"{base_url}/users/{user_id}\", timeout=5)\n    if response.status_code != 200:\n        raise LookupError(f\"user {user_id}: {response.status_code}\")\n    return response.json()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Таймаут обязателен; не 200 — своя понятная ошибка.\", \"lines\": [[\"response = requests.get(f\\\"{base_url}/users/{user_id}\\\", timeout=5)\", \"Запрос с таймаутом.\"], [\"raise LookupError(f\\\"user {user_id}: {response.status_code}\\\")\", \"Ошибка с кодом.\"], [\"return response.json()\", \"Тело.\"]], \"mistake\": \"Без timeout — тест повиснет, если сервер не ответит.\"}"
                 },
                 {
                   "slug": "api-requests-e5",
@@ -557,7 +593,8 @@
                   "tests": "import json\nimport responses\n\n@responses.activate\ndef test_values():\n    responses.post(\"https://api.test/users\", json={\"id\": 5, \"name\": \"Вика\"}, status=201)\n    assert create_user(\"https://api.test\", \"Вика\", \"t-1\") == (201, {\"id\": 5, \"name\": \"Вика\"})\n    req = responses.calls[0].request\n    assert json.loads(req.body) == {\"name\": \"Вика\"} and req.headers[\"Authorization\"] == \"Bearer t-1\", req.headers\n",
                   "solution": "import requests\n\n\ndef create_user(base_url, name, token):\n    response = requests.post(\n        f\"{base_url}/users\",\n        json={\"name\": name},\n        headers={\"Authorization\": f\"Bearer {token}\"},\n        timeout=5,\n    )\n    return response.status_code, response.json()\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`json=` сериализует тело и ставит Content-Type; токен — в заголовке.\", \"lines\": [[\"json={\\\"name\\\": name},\", \"Тело.\"], [\"headers={\\\"Authorization\\\": f\\\"Bearer {token}\\\"},\", \"Авторизация.\"], [\"return response.status_code, response.json()\", \"Кортеж.\"]], \"mistake\": \"`data={...}` — отправится форма, а не JSON.\"}"
                 },
                 {
                   "slug": "api-requests-e6",
@@ -567,7 +604,8 @@
                   "tests": "import responses\nfrom responses import matchers\n\n@responses.activate\ndef test_values():\n    responses.get(\"https://api.test/search\", json={\"items\": [\"a\", \"b\"]},\n                  match=[matchers.query_param_matcher({\"q\": \"чай с мятой\", \"page\": \"2\"})])\n    assert search(\"https://api.test\", \"чай с мятой\", page=2) == [\"a\", \"b\"]\n",
                   "solution": "import requests\n\n\ndef search(base_url, query, page=1):\n    response = requests.get(f\"{base_url}/search\", params={\"q\": query, \"page\": page}, timeout=5)\n    return response.json()[\"items\"]\n",
                   "hint": "params= сам закодирует пробелы и кириллицу.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`params=` собирает и экранирует строку запроса.\", \"lines\": [[\"response = requests.get(f\\\"{base_url}/search\\\", params={\\\"q\\\": query, \\\"page\\\": page}, timeout=5)\", \"Параметры словарём.\"]], \"mistake\": \"Склеивать `?q=` вручную — запрос с пробелом или `&` сломается.\"}"
                 },
                 {
                   "slug": "api-requests-e7",
@@ -577,7 +615,8 @@
                   "tests": "import requests\nimport responses\n\n@responses.activate\ndef test_values():\n    responses.get(\"https://a.test/health\", status=200)\n    responses.get(\"https://b.test/health\", status=503)\n    responses.get(\"https://c.test/health\", body=requests.ConnectionError(\"нет соединения\"))\n    responses.get(\"https://d.test/health\", body=requests.Timeout(\"долго\"))\n    assert [health(f\"https://{h}.test/health\") for h in \"abcd\"] == [\"up\", \"down\", \"down\", \"down\"]\n",
                   "solution": "import requests\n\n\ndef health(url):\n    try:\n        response = requests.get(url, timeout=2)\n    except (requests.ConnectionError, requests.Timeout):\n        return \"down\"\n    return \"up\" if response.status_code == 200 else \"down\"\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Недоступный сервер — исключение; ловим только сетевые ошибки.\", \"lines\": [[\"response = requests.get(url, timeout=2)\", \"Попытка.\"], [\"except (requests.ConnectionError, requests.Timeout):\\n        return \\\"down\\\"\", \"Сервер не ответил.\"], [\"return \\\"up\\\" if response.status_code == 200 else \\\"down\\\"\", \"Код ответа.\"]], \"mistake\": \"`except Exception` — спрячет ошибки в самом коде.\"}"
                 },
                 {
                   "slug": "api-requests-e8",
@@ -587,7 +626,8 @@
                   "expected_output": "timeout",
                   "solution": "timeout",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Без `timeout` запрос может ждать бесконечно.\", \"lines\": [[\"timeout\", \"Секунды ожидания.\"]], \"mistake\": \"Надеяться на таймаут по умолчанию — у requests его нет.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n**requests** — самая популярная библиотека Python для HTTP. На ней пишут API-автотесты, скрипты подготовки данных, клиенты сервисов. Её интерфейс простой: метод, адрес, параметры — и объект ответа.\n\n## Запрос и ответ\n\n```py\nimport requests\n\nr = requests.get(\"https://api.test/users/1\", timeout=5)\nr.status_code          # 200\nr.ok                   # True, если код < 400\nr.json()               # тело как словарь\nr.text                 # тело строкой\nr.headers[\"Content-Type\"]\nr.elapsed              # сколько занял запрос\n```\n\n- Методы: `requests.get`, `post`, `put`, `patch`, `delete`.\n- `timeout` — **обязательно**: без него зависший сервер повесит тест навсегда.\n\n## Параметры, тело, заголовки\n\n```py\nr = requests.post(\n    \"https://api.test/users\",\n    params={\"notify\": \"false\"},                  # ?notify=false\n    json={\"name\": \"Боря\"},                       # тело JSON + Content-Type\n    headers={\"Authorization\": \"Bearer t1\"},\n    timeout=5,\n)\n```\n\n- `params` — строка запроса; requests сам закодирует пробелы и кириллицу. Не склеивай URL руками.\n- `json=` — сериализует словарь и ставит `Content-Type: application/json`. `data=` — форма.\n- `headers` — заголовки.\n\n## Ошибки\n\n```py\nr.raise_for_status()      # HTTPError, если 4xx или 5xx\n```\n\n- `requests.ConnectionError` — сервер недоступен, `requests.Timeout` — не ответил вовремя, `requests.HTTPError` — из `raise_for_status()`. Все наследуют `requests.RequestException`.\n\n## Без сети: responses\n\nВ этой песочнице (и в юнит-тестах вообще) реальных запросов нет. Библиотека **responses** перехватывает запросы `requests` и отдаёт заданные ответы:\n\n```python\nimport requests\nimport responses\n\nwith responses.RequestsMock() as mock:\n    mock.get(\"https://api.test/users/1\", json={\"id\": 1, \"name\": \"Аня\"}, status=200)\n    r = requests.get(\"https://api.test/users/1\", timeout=5)\n    print(r.status_code, r.json()[\"name\"])\n    print(mock.calls[0].request.url)\n```\n\n- `mock.get/post/...(url, json=…, status=…, headers=…)` — зарегистрировать ответ.\n- `mock.calls` — все сделанные запросы: можно проверить URL, тело, заголовки.\n- Запрос на незарегистрированный адрес → ошибка `ConnectionError`: так видно, что код ходит не туда.\n- Вывод: `200 Аня`, `https://api.test/users/1`.\n\n## Итог\n\n- `requests.get/post(url, params=, json=, headers=, timeout=)`.\n- `r.status_code`, `r.ok`, `r.json()`, `r.headers`, `r.elapsed`, `r.raise_for_status()`.\n- Исключения: ConnectionError, Timeout, HTTPError.\n- `responses` — подмена ответов без сети; `calls` — что отправили.",
@@ -640,7 +680,8 @@
                   "tests": "class Resp:\n    def __init__(self, status_code, data=None):\n        self.status_code = status_code\n        self._data = data\n\n    def json(self):\n        return self._data\n\n\nclass Client:\n    \"\"\"Имитация API. broken — какой баг «сломать» в ответах.\"\"\"\n    def __init__(self, broken=None):\n        self.broken = broken\n        self.users = {1: {\"id\": 1, \"name\": \"Аня\", \"email\": \"anna@mail.ru\"}}\n\n    def get(self, path):\n        if self.broken == \"500\":\n            return Resp(500, {\"error\": \"internal\"})\n        uid = int(path.rstrip(\"/\").split(\"/\")[-1])\n        if uid not in self.users:\n            return Resp(200 if self.broken == \"no404\" else 404, {\"error\": \"not found\"})\n        user = dict(self.users[uid])\n        if self.broken == \"wrong_id\":\n            user[\"id\"] = 999\n        if self.broken == \"no_email\":\n            del user[\"email\"]\n        return Resp(200, user)\n\n    def post(self, path, json=None):\n        if self.broken == \"500\":\n            return Resp(500, {\"error\": \"internal\"})\n        new = {\"id\": len(self.users) + 1, **(json or {})}\n        if self.broken == \"lost_name\":\n            new[\"name\"] = None\n        self.users[new[\"id\"]] = new\n        return Resp(200 if self.broken == \"status200\" else 201, new)\n\n\ndef must_fail(test_func, client, why):\n    try:\n        test_func(client)\n    except AssertionError:\n        return\n    assert False, f\"Твой тест не поймал баг: {why}\"\n\ndef test_zz_passes_on_good_api():\n    test_get_user(Client())\n\ndef test_zz_catches_500():\n    must_fail(test_get_user, Client(\"500\"), \"сервер вернул 500\")\n\ndef test_zz_catches_wrong_id():\n    must_fail(test_get_user, Client(\"wrong_id\"), \"в ответе id=999 вместо 1\")\n",
                   "solution": "def test_get_user(client):\n    resp = client.get(\"/users/1\")\n    assert resp.status_code == 200\n    assert resp.json()[\"id\"] == 1\n",
                   "hint": "Две строки: `assert resp.status_code == 200` и `assert resp.json()[\"id\"] == 1`.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Две базовые проверки ответа: код и содержимое.\", \"lines\": [[\"assert resp.status_code == 200\", \"Код.\"], [\"assert resp.json()[\\\"id\\\"] == 1\", \"Тело.\"]], \"mistake\": \"Проверить только код — сервер может вернуть 200 с чужими данными.\"}"
                 },
                 {
                   "slug": "api-m2-l1-e2",
@@ -650,7 +691,8 @@
                   "tests": "class Resp:\n    def __init__(self, status_code, data=None):\n        self.status_code = status_code\n        self._data = data\n\n    def json(self):\n        return self._data\n\n\nclass Client:\n    \"\"\"Имитация API. broken — какой баг «сломать» в ответах.\"\"\"\n    def __init__(self, broken=None):\n        self.broken = broken\n        self.users = {1: {\"id\": 1, \"name\": \"Аня\", \"email\": \"anna@mail.ru\"}}\n\n    def get(self, path):\n        if self.broken == \"500\":\n            return Resp(500, {\"error\": \"internal\"})\n        uid = int(path.rstrip(\"/\").split(\"/\")[-1])\n        if uid not in self.users:\n            return Resp(200 if self.broken == \"no404\" else 404, {\"error\": \"not found\"})\n        user = dict(self.users[uid])\n        if self.broken == \"wrong_id\":\n            user[\"id\"] = 999\n        if self.broken == \"no_email\":\n            del user[\"email\"]\n        return Resp(200, user)\n\n    def post(self, path, json=None):\n        if self.broken == \"500\":\n            return Resp(500, {\"error\": \"internal\"})\n        new = {\"id\": len(self.users) + 1, **(json or {})}\n        if self.broken == \"lost_name\":\n            new[\"name\"] = None\n        self.users[new[\"id\"]] = new\n        return Resp(200 if self.broken == \"status200\" else 201, new)\n\n\ndef must_fail(test_func, client, why):\n    try:\n        test_func(client)\n    except AssertionError:\n        return\n    assert False, f\"Твой тест не поймал баг: {why}\"\n\ndef test_zz_passes_on_good_api():\n    test_user_has_email(Client())\n\ndef test_zz_catches_missing_email():\n    must_fail(test_user_has_email, Client(\"no_email\"), \"в ответе нет поля email\")\n",
                   "solution": "def test_user_has_email(client):\n    data = client.get(\"/users/1\").json()\n    assert \"email\" in data\n    assert \"@\" in data[\"email\"]\n",
                   "hint": "`assert \"email\" in data` проверяет наличие ключа.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Сначала наличие ключа, потом его содержимое — так ошибка будет понятной.\", \"lines\": [[\"data = client.get(\\\"/users/1\\\").json()\", \"Тело.\"], [\"assert \\\"email\\\" in data\", \"Ключ есть.\"], [\"assert \\\"@\\\" in data[\\\"email\\\"]\", \"Похоже на почту.\"]], \"mistake\": \"Сразу `data[\\\"email\\\"]` — при отсутствии ключа упадёт с KeyError.\"}"
                 },
                 {
                   "slug": "api-m2-l1-e3",
@@ -660,7 +702,8 @@
                   "tests": "class Resp:\n    def __init__(self, status_code, data=None):\n        self.status_code = status_code\n        self._data = data\n\n    def json(self):\n        return self._data\n\n\nclass Client:\n    \"\"\"Имитация API. broken — какой баг «сломать» в ответах.\"\"\"\n    def __init__(self, broken=None):\n        self.broken = broken\n        self.users = {1: {\"id\": 1, \"name\": \"Аня\", \"email\": \"anna@mail.ru\"}}\n\n    def get(self, path):\n        if self.broken == \"500\":\n            return Resp(500, {\"error\": \"internal\"})\n        uid = int(path.rstrip(\"/\").split(\"/\")[-1])\n        if uid not in self.users:\n            return Resp(200 if self.broken == \"no404\" else 404, {\"error\": \"not found\"})\n        user = dict(self.users[uid])\n        if self.broken == \"wrong_id\":\n            user[\"id\"] = 999\n        if self.broken == \"no_email\":\n            del user[\"email\"]\n        return Resp(200, user)\n\n    def post(self, path, json=None):\n        if self.broken == \"500\":\n            return Resp(500, {\"error\": \"internal\"})\n        new = {\"id\": len(self.users) + 1, **(json or {})}\n        if self.broken == \"lost_name\":\n            new[\"name\"] = None\n        self.users[new[\"id\"]] = new\n        return Resp(200 if self.broken == \"status200\" else 201, new)\n\n\ndef must_fail(test_func, client, why):\n    try:\n        test_func(client)\n    except AssertionError:\n        return\n    assert False, f\"Твой тест не поймал баг: {why}\"\n\ndef test_zz_passes_on_good_api():\n    test_unknown_user_404(Client())\n\ndef test_zz_catches_200():\n    must_fail(test_unknown_user_404, Client(\"no404\"), \"API вернул 200 для несуществующего пользователя\")\n\ndef test_zz_catches_500():\n    must_fail(test_unknown_user_404, Client(\"500\"), \"API вернул 500\")\n",
                   "solution": "def test_unknown_user_404(client):\n    resp = client.get(\"/users/999\")\n    assert resp.status_code == 404\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Негативный тест: неправильный запрос — правильная ошибка.\", \"lines\": [[\"resp = client.get(\\\"/users/999\\\")\", \"Несуществующий.\"], [\"assert resp.status_code == 404\", \"Not Found.\"]], \"mistake\": \"Ожидать 500 — это баг сервера, а не правильный ответ.\"}"
                 },
                 {
                   "slug": "api-m2-l1-e4",
@@ -670,7 +713,8 @@
                   "tests": "class Resp:\n    def __init__(self, status_code, data=None):\n        self.status_code = status_code\n        self._data = data\n\n    def json(self):\n        return self._data\n\n\nclass Client:\n    \"\"\"Имитация API. broken — какой баг «сломать» в ответах.\"\"\"\n    def __init__(self, broken=None):\n        self.broken = broken\n        self.users = {1: {\"id\": 1, \"name\": \"Аня\", \"email\": \"anna@mail.ru\"}}\n\n    def get(self, path):\n        if self.broken == \"500\":\n            return Resp(500, {\"error\": \"internal\"})\n        uid = int(path.rstrip(\"/\").split(\"/\")[-1])\n        if uid not in self.users:\n            return Resp(200 if self.broken == \"no404\" else 404, {\"error\": \"not found\"})\n        user = dict(self.users[uid])\n        if self.broken == \"wrong_id\":\n            user[\"id\"] = 999\n        if self.broken == \"no_email\":\n            del user[\"email\"]\n        return Resp(200, user)\n\n    def post(self, path, json=None):\n        if self.broken == \"500\":\n            return Resp(500, {\"error\": \"internal\"})\n        new = {\"id\": len(self.users) + 1, **(json or {})}\n        if self.broken == \"lost_name\":\n            new[\"name\"] = None\n        self.users[new[\"id\"]] = new\n        return Resp(200 if self.broken == \"status200\" else 201, new)\n\n\ndef must_fail(test_func, client, why):\n    try:\n        test_func(client)\n    except AssertionError:\n        return\n    assert False, f\"Твой тест не поймал баг: {why}\"\n\ndef test_zz_passes_on_good_api():\n    test_create_user(Client())\n\ndef test_zz_catches_wrong_status():\n    must_fail(test_create_user, Client(\"status200\"), \"POST вернул 200 вместо 201\")\n\ndef test_zz_catches_lost_name():\n    must_fail(test_create_user, Client(\"lost_name\"), \"API потерял имя\")\n",
                   "solution": "def test_create_user(client):\n    resp = client.post(\"/users\", json={\"name\": \"Боря\"})\n    assert resp.status_code == 201\n    data = resp.json()\n    assert \"id\" in data\n    assert data[\"name\"] == \"Боря\"\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Создание: 201, в ответе есть id и переданные данные.\", \"lines\": [[\"assert resp.status_code == 201\", \"Created.\"], [\"assert \\\"id\\\" in data\", \"Сервер выдал id.\"], [\"assert data[\\\"name\\\"] == \\\"Боря\\\"\", \"Данные сохранились.\"]], \"mistake\": \"Проверять 200 — тест пропустит неправильный код.\"}"
                 },
                 {
                   "slug": "api-m2-l1-e5",
@@ -680,7 +724,8 @@
                   "tests": "class Resp:\n    def __init__(self, status_code, data=None):\n        self.status_code = status_code\n        self._data = data\n\n    def json(self):\n        return self._data\n\n\nclass Client:\n    \"\"\"Имитация API. broken — какой баг «сломать» в ответах.\"\"\"\n    def __init__(self, broken=None):\n        self.broken = broken\n        self.users = {1: {\"id\": 1, \"name\": \"Аня\", \"email\": \"anna@mail.ru\"}}\n\n    def get(self, path):\n        if self.broken == \"500\":\n            return Resp(500, {\"error\": \"internal\"})\n        uid = int(path.rstrip(\"/\").split(\"/\")[-1])\n        if uid not in self.users:\n            return Resp(200 if self.broken == \"no404\" else 404, {\"error\": \"not found\"})\n        user = dict(self.users[uid])\n        if self.broken == \"wrong_id\":\n            user[\"id\"] = 999\n        if self.broken == \"no_email\":\n            del user[\"email\"]\n        return Resp(200, user)\n\n    def post(self, path, json=None):\n        if self.broken == \"500\":\n            return Resp(500, {\"error\": \"internal\"})\n        new = {\"id\": len(self.users) + 1, **(json or {})}\n        if self.broken == \"lost_name\":\n            new[\"name\"] = None\n        self.users[new[\"id\"]] = new\n        return Resp(200 if self.broken == \"status200\" else 201, new)\n\n\ndef must_fail(test_func, client, why):\n    try:\n        test_func(client)\n    except AssertionError:\n        return\n    assert False, f\"Твой тест не поймал баг: {why}\"\n\ndef test_zz_passes_on_good_api():\n    test_created_user_can_be_fetched(Client())\n\ndef test_zz_catches_lost_name():\n    must_fail(test_created_user_can_be_fetched, Client(\"lost_name\"), \"имя не сохранилось\")\n",
                   "solution": "def test_created_user_can_be_fetched(client):\n    created = client.post(\"/users\", json={\"name\": \"Вика\"}).json()\n    fetched = client.get(f\"/users/{created['id']}\").json()\n    assert fetched[\"name\"] == \"Вика\"\n",
                   "hint": "Сохрани ответ POST в переменную, id возьми из `.json()[\"id\"]`, подставь в URL f-строкой.",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Сквозная проверка: созданное действительно сохраняется и читается.\", \"lines\": [[\"created = client.post(\\\"/users\\\", json={\\\"name\\\": \\\"Вика\\\"}).json()\", \"Создаём.\"], [\"fetched = client.get(f\\\"/users/{created['id']}\\\").json()\", \"Читаем по выданному id.\"], [\"assert fetched[\\\"name\\\"] == \\\"Вика\\\"\", \"Совпадает.\"]], \"mistake\": \"Проверять только ответ POST — сервер мог не сохранить данные.\"}"
                 },
                 {
                   "slug": "api-m2-l1-e6",
@@ -690,7 +735,8 @@
                   "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_get_user\") == \"passed\", res\n\ndef test_catches_bug():\n    import requests as rq\n    def wrong(user_id):\n        r = rq.get(f\"https://api.test/users/{user_id}\", timeout=5)\n        return {**r.json(), \"name\": \"Боря\"}\n    code, res = run_pytest(patch={\"get_user\": wrong})\n    assert code == 1, \"Тест должен проверять тело ответа\"\n",
                   "solution": "import pytest\nimport requests\nimport responses\n\n\ndef get_user(user_id):\n    r = requests.get(f\"https://api.test/users/{user_id}\", timeout=5)\n    r.raise_for_status()\n    return r.json()\n\n\n@responses.activate\ndef test_get_user():\n    responses.get(\"https://api.test/users/1\", json={\"id\": 1, \"name\": \"Аня\"})\n    assert get_user(1) == {\"id\": 1, \"name\": \"Аня\"}\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"`@responses.activate` включает подмену на время теста.\", \"lines\": [[\"@responses.activate\", \"Сеть подменена.\"], [\"responses.get(\\\"https://api.test/users/1\\\", json={\\\"id\\\": 1, \\\"name\\\": \\\"Аня\\\"})\", \"Ответ сервера.\"], [\"assert get_user(1) == {\\\"id\\\": 1, \\\"name\\\": \\\"Аня\\\"}\", \"Функция вернула тело.\"]], \"mistake\": \"Забыть декоратор — запрос уйдёт в настоящую сеть.\"}"
                 },
                 {
                   "slug": "api-m2-l1-e7",
@@ -700,7 +746,8 @@
                   "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_user_not_found\") == \"passed\", res\n\ndef test_catches_bug():\n    import requests as rq\n    def swallow(user_id):\n        r = rq.get(f\"https://api.test/users/{user_id}\", timeout=5)\n        return None if r.status_code == 404 else r.json()\n    code, res = run_pytest(patch={\"get_user\": swallow})\n    assert code == 1, \"Тест должен падать, если ошибка проглочена\"\n",
                   "solution": "import pytest\nimport requests\nimport responses\n\n\ndef get_user(user_id):\n    r = requests.get(f\"https://api.test/users/{user_id}\", timeout=5)\n    r.raise_for_status()\n    return r.json()\n\n\n@responses.activate\ndef test_user_not_found():\n    responses.get(\"https://api.test/users/99\", status=404, json={\"error\": \"not found\"})\n    with pytest.raises(requests.HTTPError):\n        get_user(99)\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Подменяем ответ 404 и проверяем, что функция выбросит ошибку.\", \"lines\": [[\"responses.get(\\\"https://api.test/users/99\\\", status=404, json={\\\"error\\\": \\\"not found\\\"})\", \"Сервер «не нашёл».\"], [\"with pytest.raises(requests.HTTPError):\", \"`raise_for_status` внутри функции.\"]], \"mistake\": \"Ждать `None` — функция бросает исключение.\"}"
                 },
                 {
                   "slug": "api-m2-l1-e8",
@@ -710,7 +757,8 @@
                   "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_create_sends_json\") == \"passed\", res\n\ndef test_catches_bug():\n    import requests as rq\n    def wrong(name):\n        return rq.post(\"https://api.test/users\", json={\"username\": name}, timeout=5).status_code\n    code, res = run_pytest(patch={\"create_user\": wrong})\n    assert code == 1, \"Тест должен проверять тело запроса\"\n",
                   "solution": "import json\nimport pytest\nimport requests\nimport responses\n\n\ndef create_user(name):\n    r = requests.post(\"https://api.test/users\", json={\"name\": name}, timeout=5)\n    return r.status_code\n\n\n@responses.activate\ndef test_create_sends_json():\n    responses.post(\"https://api.test/users\", json={\"id\": 1}, status=201)\n    assert create_user(\"Аня\") == 201\n    assert json.loads(responses.calls[0].request.body) == {\"name\": \"Аня\"}\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"`responses.calls` хранит отправленные запросы — проверяем, что клиент отправил правильное тело.\", \"lines\": [[\"assert create_user(\\\"Аня\\\") == 201\", \"Ответ.\"], [\"assert json.loads(responses.calls[0].request.body) == {\\\"name\\\": \\\"Аня\\\"}\", \"Тело запроса.\"]], \"mistake\": \"Сравнивать `body` со строкой — порядок и пробелы в JSON могут отличаться.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nАвтотест API — это pytest-тест, который отправляет запрос и проверяет ответ. Он запускается в CI после каждого изменения и за секунды говорит, не сломался ли контракт. Хороший набор включает позитивные и негативные проверки.\n\n## Структура теста\n\n```py\ndef test_get_user(client):\n    # Arrange — подготовка (данные, клиент)\n    # Act — запрос\n    resp = client.get(\"/users/1\")\n    # Assert — проверки\n    assert resp.status_code == 200\n    body = resp.json()\n    assert body[\"id\"] == 1\n    assert \"email\" in body\n```\n\n- Сначала статус: если он не тот, дальше проверять бессмысленно.\n- Затем тело: ключевые поля и значения.\n\n## Позитивные и негативные\n\n```py\ndef test_unknown_user_404(client):\n    resp = client.get(\"/users/999\")\n    assert resp.status_code == 404\n\n\ndef test_create_user(client):\n    resp = client.post(\"/users\", json={\"name\": \"Боря\"})\n    assert resp.status_code == 201\n    assert resp.json()[\"name\"] == \"Боря\"\n```\n\n- Негативный тест проверяет реакцию на неправильное: несуществующий ресурс, невалидные данные, отсутствие прав.\n- Сквозной тест: создать → получить → проверить, что данные сохранились.\n\n## Настоящий pytest с подменой сервера\n\n```py\nimport pytest\nimport requests\nimport responses\n\n\n@responses.activate\ndef test_get_user():\n    responses.get(\"https://api.test/users/1\", json={\"id\": 1, \"name\": \"Аня\"})\n    assert get_user(1) == {\"id\": 1, \"name\": \"Аня\"}\n\n\n@responses.activate\ndef test_user_not_found():\n    responses.get(\"https://api.test/users/99\", status=404)\n    with pytest.raises(requests.HTTPError):\n        get_user(99)\n```\n\n- `@responses.activate` — включить подмену на время теста.\n- Так тестируют собственный код, который ходит в API (клиенты, скрипты), без реального сервера.\n- Против настоящего стенда те же тесты работают без `responses` — с реальным `base_url`.\n\n## Проверка отправленного\n\n```py\nimport json\n\n\n@responses.activate\ndef test_create_sends_json():\n    responses.post(\"https://api.test/users\", json={\"id\": 1}, status=201)\n    create_user(\"Аня\")\n    assert json.loads(responses.calls[0].request.body) == {\"name\": \"Аня\"}\n```\n\n- `responses.calls` — какие запросы ушли: URL, метод, заголовки, тело.\n\n## Итог\n\n- Тест: запрос → статус → тело; AAA.\n- Позитивные, негативные и сквозные сценарии.\n- `@responses.activate` + `responses.get/post(...)` — сервер-подделка; `responses.calls` — что отправлено.",
@@ -762,7 +810,8 @@
                   "code": "import requests\nimport responses\n\nwith responses.RequestsMock() as mock:\n    mock.get(\"https://api.test/me\", json={\"name\": \"Аня\"})\n    mock.get(\"https://api.test/orders\", json=[])\n    s = requests.Session()\n    s.headers.update({\"Authorization\": \"Bearer t1\"})\n    s.get(\"https://api.test/me\")\n    s.get(\"https://api.test/orders\")\n    print([c.request.headers[\"Authorization\"] for c in mock.calls])\n",
                   "expected_output": "['Bearer t1', 'Bearer t1']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Заголовки сессии добавляются ко всем её запросам.\", \"lines\": [[\"s.headers.update({\\\"Authorization\\\": \\\"Bearer t1\\\"})\", \"Один раз.\"], [\"print([c.request.headers[\\\"Authorization\\\"] for c in mock.calls])\", \"У обоих запросов.\"]], \"mistake\": \"Передавать токен в каждом вызове вручную.\"}"
                 },
                 {
                   "slug": "api-client-e2",
@@ -772,7 +821,8 @@
                   "tests": "import responses\n\n@responses.activate\ndef test_values():\n    responses.get(\"https://api.test/me\", json={\"name\": \"Аня\"})\n    responses.post(\"https://api.test/orders\", json={\"id\": 1}, status=201)\n    c = ApiClient(\"https://api.test\", token=\"t1\")\n    assert c.get(\"/me\").json() == {\"name\": \"Аня\"} and c.post(\"/orders\", json={\"item\": 1}).status_code == 201\n    assert all(call.request.headers.get(\"Authorization\") == \"Bearer t1\" for call in responses.calls), \"Токен в каждом запросе\"\n    assert \"Authorization\" not in ApiClient(\"https://api.test\").session.headers, \"Без токена — без заголовка\"\n",
                   "solution": "import requests\n\n\nclass ApiClient:\n    def __init__(self, base_url, token=None):\n        self.base_url = base_url.rstrip(\"/\")\n        self.session = requests.Session()\n        if token:\n            self.session.headers[\"Authorization\"] = f\"Bearer {token}\"\n\n    def request(self, method, path, **kwargs):\n        kwargs.setdefault(\"timeout\", 10)\n        return self.session.request(method, self.base_url + path, **kwargs)\n\n    def get(self, path, **kwargs):\n        return self.request(\"GET\", path, **kwargs)\n\n    def post(self, path, **kwargs):\n        return self.request(\"POST\", path, **kwargs)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Клиент хранит базовый адрес и сессию; общий метод `request` добавляет таймаут.\", \"lines\": [[\"self.base_url = base_url.rstrip(\\\"/\\\")\", \"Без двойного `//`.\"], [\"self.session.headers[\\\"Authorization\\\"] = f\\\"Bearer {token}\\\"\", \"Токен — в сессию.\"], [\"kwargs.setdefault(\\\"timeout\\\", 10)\", \"Таймаут, если не задан.\"], [\"return self.request(\\\"GET\\\", path, **kwargs)\", \"get и post — через общий метод.\"]], \"mistake\": \"`kwargs[\\\"timeout\\\"] = 10` — затрёт переданный таймаут.\"}"
                 },
                 {
                   "slug": "api-client-e3",
@@ -782,7 +832,8 @@
                   "tests": "import json\nimport responses\n\n@responses.activate\ndef test_values():\n    responses.get(\"https://api.test/users/1\", json={\"id\": 1})\n    responses.post(\"https://api.test/users\", json={\"id\": 2}, status=201)\n    responses.delete(\"https://api.test/users/2\", status=204)\n    users = UsersApi(ApiClient(\"https://api.test\"))\n    assert users.get(1).json() == {\"id\": 1} and users.create(\"Боря\").status_code == 201 and users.delete(2).status_code == 204\n    assert json.loads(responses.calls[1].request.body) == {\"name\": \"Боря\", \"role\": \"qa\"}, responses.calls[1].request.body\n",
                   "solution": "import requests\n\n\nclass ApiClient:\n    def __init__(self, base_url):\n        self.base_url = base_url\n        self.session = requests.Session()\n\n    def request(self, method, path, **kwargs):\n        kwargs.setdefault(\"timeout\", 10)\n        return self.session.request(method, self.base_url + path, **kwargs)\n\n\nclass UsersApi:\n    def __init__(self, client):\n        self.client = client\n\n    def get(self, user_id):\n        return self.client.request(\"GET\", f\"/users/{user_id}\")\n\n    def create(self, name, role=\"qa\"):\n        return self.client.request(\"POST\", \"/users\", json={\"name\": name, \"role\": role})\n\n    def delete(self, user_id):\n        return self.client.request(\"DELETE\", f\"/users/{user_id}\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Обёртка над эндпоинтами: тест читается как `users.create(\\\"anna\\\")`, а пути живут в одном месте.\", \"lines\": [[\"return self.client.request(\\\"GET\\\", f\\\"/users/{user_id}\\\")\", \"Чтение.\"], [\"return self.client.request(\\\"POST\\\", \\\"/users\\\", json={\\\"name\\\": name, \\\"role\\\": role})\", \"Создание.\"], [\"return self.client.request(\\\"DELETE\\\", f\\\"/users/{user_id}\\\")\", \"Удаление.\"]], \"mistake\": \"Писать URL прямо в тестах — при смене пути правок десятки.\"}"
                 },
                 {
                   "slug": "api-client-e4",
@@ -792,7 +843,8 @@
                   "tests": "import responses\n\n@responses.activate\ndef test_values():\n    responses.post(\"https://api.test/auth/login\", json={\"access_token\": \"abc\"}, status=200)\n    s = login(\"https://api.test\", \"anna\", \"secret\")\n    assert s.headers[\"Authorization\"] == \"Bearer abc\", s.headers\n\n@responses.activate\ndef test_wrong():\n    responses.post(\"https://api.test/auth/login\", json={\"detail\": \"bad\"}, status=401)\n    try:\n        login(\"https://api.test\", \"anna\", \"x\")\n    except PermissionError as e:\n        assert str(e) == \"неверный логин или пароль\", str(e)\n        return\n    assert False, \"Нужен PermissionError\"\n",
                   "solution": "import requests\n\n\ndef login(base_url, user, password):\n    response = requests.post(f\"{base_url}/auth/login\", json={\"username\": user, \"password\": password}, timeout=10)\n    if response.status_code == 401:\n        raise PermissionError(\"неверный логин или пароль\")\n    response.raise_for_status()\n    session = requests.Session()\n    session.headers[\"Authorization\"] = f\"Bearer {response.json()['access_token']}\"\n    return session\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Логин: получить токен и вернуть сессию, которая дальше авторизована.\", \"lines\": [[\"if response.status_code == 401:\\n        raise PermissionError(\\\"неверный логин или пароль\\\")\", \"Понятная ошибка.\"], [\"response.raise_for_status()\", \"Прочие ошибки.\"], [\"session.headers[\\\"Authorization\\\"] = f\\\"Bearer {response.json()['access_token']}\\\"\", \"Токен в сессию.\"]], \"mistake\": \"Не проверить статус — KeyError на `access_token` вместо понятной ошибки.\"}"
                 },
                 {
                   "slug": "api-client-e5",
@@ -802,7 +854,8 @@
                   "tests": "import re\nimport responses\n\n@responses.activate\ndef test_values():\n    responses.get(\"https://api.test/health\", json={\"ok\": True})\n    c = LoggingClient(\"https://api.test\")\n    assert c.get(\"/health\").status_code == 200\n    assert len(c.log) == 1 and re.fullmatch(r\"GET https://api\\.test/health -> 200 \\(\\d+ ms\\)\", c.log[0]), c.log\n",
                   "solution": "import requests\n\n\nclass LoggingClient:\n    def __init__(self, base_url):\n        self.base_url = base_url\n        self.log = []\n\n    def get(self, path):\n        url = self.base_url + path\n        response = requests.get(url, timeout=10)\n        ms = int(response.elapsed.total_seconds() * 1000)\n        self.log.append(f\"GET {url} -> {response.status_code} ({ms} ms)\")\n        return response\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`response.elapsed` — время ответа (`timedelta`); переводим в миллисекунды.\", \"lines\": [[\"ms = int(response.elapsed.total_seconds() * 1000)\", \"Секунды → миллисекунды.\"], [\"self.log.append(f\\\"GET {url} -> {response.status_code} ({ms} ms)\\\")\", \"Строка лога.\"]], \"mistake\": \"`response.elapsed.seconds` — только целые секунды, миллисекунды пропадут.\"}"
                 },
                 {
                   "slug": "api-client-e6",
@@ -812,7 +865,8 @@
                   "expected_output": "requests.Session",
                   "solution": "requests.Session",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`Session` держит соединение и общие заголовки, cookies.\", \"lines\": [[\"requests.Session\", \"Переиспользуемая сессия.\"]], \"mistake\": \"`requests.Client` — это из httpx.\"}"
                 },
                 {
                   "slug": "api-client-e7",
@@ -822,7 +876,8 @@
                   "expected_output": "response.elapsed",
                   "solution": "response.elapsed",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`elapsed` — время от отправки запроса до получения заголовков ответа.\", \"lines\": [[\"response.elapsed\", \"`timedelta`.\"]], \"mistake\": \"`response.time` — такого поля нет.\"}"
                 },
                 {
                   "slug": "api-client-e8",
@@ -832,7 +887,8 @@
                   "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_me\") == \"passed\", res\n    src = open(\"solution.py\", encoding=\"utf-8\").read()\n    assert \"@pytest.fixture\" in src and \"RequestsMock\" in src, \"Нужна фикстура client и responses.RequestsMock\"\n",
                   "solution": "import pytest\nimport requests\nimport responses\n\n\nclass ApiClient:\n    def __init__(self, base_url):\n        self.base_url = base_url\n        self.session = requests.Session()\n\n    def get(self, path):\n        return self.session.get(self.base_url + path, timeout=10)\n\n\n@pytest.fixture\ndef client():\n    return ApiClient(\"https://api.test\")\n\n\ndef test_me(client):\n    with responses.RequestsMock() as mock:\n        mock.get(\"https://api.test/me\", json={\"name\": \"Аня\"})\n        assert client.get(\"/me\").json()[\"name\"] == \"Аня\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Фикстура отдаёт клиента, а подмена сервера живёт внутри теста.\", \"lines\": [[\"return ApiClient(\\\"https://api.test\\\")\", \"Один клиент на тест.\"], [\"with responses.RequestsMock() as mock:\", \"Подмена только в этом блоке.\"], [\"assert client.get(\\\"/me\\\").json()[\\\"name\\\"] == \\\"Аня\\\"\", \"Клиент собрал правильный адрес.\"]], \"mistake\": \"Создавать клиента в каждом тесте вручную.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nКогда тестов сотни, нельзя в каждом писать `requests.get(\"https://…/users/…\", headers=…)`. Базовый адрес меняется между стендами, токен — у каждого пользователя. Поэтому в проектах пишут **API-клиент**: класс, который знает адрес, авторизацию и эндпоинты, логирует запросы для отчёта. Тесты становятся короткими и читаемыми.\n\n## Session\n\n```py\ns = requests.Session()\ns.headers.update({\"Authorization\": \"Bearer t1\"})\ns.get(\"https://api.test/me\")        # заголовок уйдёт автоматически\ns.get(\"https://api.test/orders\")\n```\n\n- `Session` хранит общие заголовки и cookies и переиспользует TCP-соединение — быстрее.\n\n## Базовый клиент\n\n```py\nclass ApiClient:\n    def __init__(self, base_url, token=None):\n        self.base_url = base_url.rstrip(\"/\")\n        self.session = requests.Session()\n        if token:\n            self.session.headers[\"Authorization\"] = f\"Bearer {token}\"\n\n    def request(self, method, path, **kwargs):\n        kwargs.setdefault(\"timeout\", 10)\n        return self.session.request(method, self.base_url + path, **kwargs)\n\n    def get(self, path, **kwargs):\n        return self.request(\"GET\", path, **kwargs)\n```\n\n- `**kwargs` пробрасывает любые параметры requests (`json`, `params`, `headers`).\n- `setdefault(\"timeout\", 10)` — таймаут по умолчанию, если не задан явно.\n\n## Эндпоинты поверх клиента\n\n```py\nclass UsersApi:\n    def __init__(self, client):\n        self.client = client\n\n    def get(self, user_id):\n        return self.client.request(\"GET\", f\"/users/{user_id}\")\n\n    def create(self, name, role=\"qa\"):\n        return self.client.request(\"POST\", \"/users\", json={\"name\": name, \"role\": role})\n```\n\n- Тест: `users.create(\"Аня\")` вместо сырого запроса. Изменится путь — правится одно место.\n\n## Авторизация и фикстуры\n\n```py\n@pytest.fixture(scope=\"session\")\ndef client(base_url):\n    token = login(base_url, \"qa\", os.environ[\"QA_PASSWORD\"])\n    return ApiClient(base_url, token=token)\n```\n\n- Логин один раз за прогон; пароль — из переменной окружения.\n- Для отчёта клиент логирует метод, URL, статус и время (`response.elapsed`) и прикладывает их к Allure.\n\n## Итог\n\n- `requests.Session` — общие заголовки и соединение.\n- `ApiClient`: base_url, токен, `request(method, path, **kwargs)` с таймаутом.\n- Классы эндпоинтов поверх клиента; клиент — через session-фикстуру.",
@@ -884,7 +940,8 @@
                   "code": "from unittest.mock import Mock\n\napi = Mock()\napi.get.return_value = {\"status\": \"ok\"}\nprint(api.get(\"/health\"))\nprint(api.get.call_count)\napi.get(\"/users\")\nprint(api.get.call_count)\n",
                   "expected_output": "{'status': 'ok'}\n1\n2",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`Mock` записывает вызовы и возвращает `return_value`.\", \"lines\": [[\"api.get.return_value = {\\\"status\\\": \\\"ok\\\"}\", \"Что вернёт вызов.\"], [\"print(api.get.call_count)\", \"Сколько раз вызывали.\"], [\"api.get(\\\"/users\\\")\", \"Второй вызов.\"]], \"mistake\": \"Ожидать, что разные аргументы дадут разные ответы — ответ один на все.\"}"
                 },
                 {
                   "slug": "api-m2-l2-e2",
@@ -893,7 +950,8 @@
                   "code": "from unittest.mock import Mock\n\nm = Mock(side_effect=[1, 2, ValueError(\"стоп\")])\nprint(m(), m())\ntry:\n    m()\nexcept ValueError as e:\n    print(\"ошибка:\", e)\n",
                   "expected_output": "1 2\nошибка: стоп",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`side_effect` со списком: каждый вызов берёт следующий элемент; исключение — выбрасывается.\", \"lines\": [[\"m = Mock(side_effect=[1, 2, ValueError(\\\"стоп\\\")])\", \"Три вызова.\"], [\"print(m(), m())\", \"1 и 2.\"], [\"m()\", \"Третий — ошибка.\"]], \"mistake\": \"Ожидать, что ValueError вернётся как значение.\"}"
                 },
                 {
                   "slug": "api-m2-l2-e3",
@@ -903,7 +961,8 @@
                   "tests": "def test_all_ok():\n    assert run_cases(abs, [(-1, 1), (2, 2)]) == [], \"Всё верно → пустой список\"\n\ndef test_failures():\n    double = lambda x: x * 2\n    got = run_cases(double, [(1, 2), (3, 7), (0, 0)])\n    assert got == [\"func(3) = 6, expected 7\"], f\"Получено {got}\"\n",
                   "solution": "def run_cases(func, cases):\n    failures = []\n    for arg, expected in cases:\n        got = func(arg)\n        if got != expected:\n            failures.append(f\"func({arg}) = {got}, expected {expected}\")\n    return failures\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Прогоняем все случаи и копим описания несовпадений.\", \"lines\": [[\"for arg, expected in cases:\", \"Пары.\"], [\"got = func(arg)\", \"Фактический результат.\"], [\"failures.append(f\\\"func({arg}) = {got}, expected {expected}\\\")\", \"Описание ошибки.\"]], \"mistake\": \"Остановиться на первом несовпадении — остальные не будут видны.\"}"
                 },
                 {
                   "slug": "api-m2-l2-e4",
@@ -913,7 +972,8 @@
                   "tests": "from unittest.mock import Mock\n\ndef test_sends_email():\n    mailer = Mock()\n    assert register(\"a@b.ru\", mailer) is True, \"register должна вернуть True\"\n    mailer.send.assert_called_once_with(\"a@b.ru\", \"Добро пожаловать!\")\n\ndef test_invalid_email():\n    mailer = Mock()\n    try:\n        register(\"плохой\", mailer)\n    except ValueError:\n        pass\n    else:\n        assert False, \"Для email без @ нужен ValueError\"\n    assert mailer.send.call_count == 0, \"Письмо при ошибке отправляться не должно\"\n",
                   "solution": "def register(email, mailer):\n    if \"@\" not in email:\n        raise ValueError(\"invalid email\")\n    mailer.send(email, \"Добро пожаловать!\")\n    return True\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Зависимость (почта) передаётся параметром — в тесте её подменяют `Mock`, чтобы проверить вызов.\", \"lines\": [[\"if \\\"@\\\" not in email:\\n        raise ValueError(\\\"invalid email\\\")\", \"Плохой адрес — письма нет.\"], [\"mailer.send(email, \\\"Добро пожаловать!\\\")\", \"Вызов, который проверит тест.\"]], \"mistake\": \"Отправить письмо до проверки адреса.\"}"
                 },
                 {
                   "slug": "api-m2-l2-e5",
@@ -923,7 +983,8 @@
                   "tests": "from unittest.mock import Mock\n\ndef r(code):\n    resp = Mock()\n    resp.status_code = code\n    return resp\n\ndef test_retry_then_ok():\n    client = Mock()\n    client.get.side_effect = [r(503), r(502), r(200)]\n    assert get_with_retry(client, \"/x\").status_code == 200, \"После двух 5xx третья попытка вернула 200\"\n    assert client.get.call_count == 3, \"Должно быть 3 запроса\"\n\ndef test_no_retry_on_4xx():\n    client = Mock()\n    client.get.side_effect = [r(404)]\n    assert get_with_retry(client, \"/x\").status_code == 404, \"На 4xx повторять не нужно\"\n    assert client.get.call_count == 1, \"Только 1 запрос\"\n\ndef test_gives_up():\n    client = Mock()\n    client.get.side_effect = [r(500)] * 5\n    assert get_with_retry(client, \"/x\", attempts=2).status_code == 500, \"Сдаёмся после attempts попыток\"\n    assert client.get.call_count == 2, \"Ровно attempts запросов\"\n",
                   "solution": "def get_with_retry(client, path, attempts=3):\n    for _ in range(attempts):\n        resp = client.get(path)\n        if resp.status_code < 500:\n            return resp\n    return resp\n",
                   "hint": "Цикл `for _ in range(attempts)`: сделал запрос — если статус < 500, сразу `return`.",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Повторяем только при 5xx; 4xx — ошибка клиента, повтор не поможет.\", \"lines\": [[\"for _ in range(attempts):\", \"До N попыток.\"], [\"if resp.status_code < 500:\\n            return resp\", \"Не серверная ошибка — сразу ответ.\"], [\"return resp\", \"Попытки кончились — последний ответ.\"]], \"mistake\": \"Повторять на 404 — бессмысленные запросы.\"}"
                 },
                 {
                   "slug": "api-m2-l2-e6",
@@ -932,7 +993,8 @@
                   "code": "import requests\nimport responses\n\nwith responses.RequestsMock() as mock:\n    mock.get(\"https://api.test/job\", json={\"status\": \"pending\"})\n    mock.get(\"https://api.test/job\", json={\"status\": \"done\"})\n    print([requests.get(\"https://api.test/job\").json()[\"status\"] for _ in range(3)])\n",
                   "expected_output": "['pending', 'done', 'done']",
                   "hint": "Одинаковые URL отдаются по очереди; последний ответ повторяется.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Несколько ответов на один URL отдаются по очереди; последний повторяется.\", \"lines\": [[\"mock.get(\\\"https://api.test/job\\\", json={\\\"status\\\": \\\"pending\\\"})\", \"Первый.\"], [\"mock.get(\\\"https://api.test/job\\\", json={\\\"status\\\": \\\"done\\\"})\", \"Второй и дальше.\"]], \"mistake\": \"Ожидать ошибку на третьем запросе.\"}"
                 },
                 {
                   "slug": "api-m2-l2-e7",
@@ -942,7 +1004,8 @@
                   "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert len(res) == 3 and all(v == \"passed\" for v in res.values()), res\n\ndef test_catches_bug():\n    import requests as rq\n    code, res = run_pytest(patch={\"is_available\": lambda url: rq.get(url, timeout=5).status_code < 600})\n    assert code == 1, \"Тест должен ловить неправильную проверку статуса\"\n",
                   "solution": "import pytest\nimport requests\nimport responses\n\n\ndef is_available(url):\n    return requests.get(url, timeout=5).status_code == 200\n\n\n@pytest.mark.parametrize(\"code, expected\", [(200, True), (503, False), (500, False)])\n@responses.activate\ndef test_status(code, expected):\n    responses.get(\"https://api.test/health\", status=code)\n    assert is_available(\"https://api.test/health\") == expected\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Параметризация и подмена вместе: каждый случай подменяет свой статус.\", \"lines\": [[\"@pytest.mark.parametrize(\\\"code, expected\\\", [(200, True), (503, False), (500, False)])\", \"Случаи.\"], [\"@responses.activate\", \"Подмена на каждый случай.\"], [\"responses.get(\\\"https://api.test/health\\\", status=code)\", \"Ответ с нужным кодом.\"]], \"mistake\": \"Забыть `@responses.activate` — запрос уйдёт в настоящую сеть.\"}"
                 },
                 {
                   "slug": "api-m2-l2-e8",
@@ -952,7 +1015,8 @@
                   "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_retry_until_ok\") == \"passed\", res\n\ndef test_catches_bugs():\n    import requests as rq\n    def no_retry(url, attempts=3):\n        r = rq.get(url, timeout=5)\n        return r.json() if r.status_code < 500 else None\n    def too_many(url, attempts=3):\n        result = None\n        for _ in range(4):\n            r = rq.get(url, timeout=5)\n            if r.status_code < 500:\n                result = r.json()\n        return result\n    for bug in (no_retry, too_many):\n        code, res = run_pytest(patch={\"fetch_with_retry\": bug})\n        assert code == 1, f\"Тест пропустил ошибку ({bug.__name__})\"\n",
                   "solution": "import pytest\nimport requests\nimport responses\n\n\ndef fetch_with_retry(url, attempts=3):\n    for _ in range(attempts):\n        r = requests.get(url, timeout=5)\n        if r.status_code < 500:\n            return r.json()\n    r.raise_for_status()\n\n\n@responses.activate\ndef test_retry_until_ok():\n    responses.get(\"https://api.test/data\", status=503)\n    responses.get(\"https://api.test/data\", status=502)\n    responses.get(\"https://api.test/data\", json={\"ok\": True}, status=200)\n    assert fetch_with_retry(\"https://api.test/data\") == {\"ok\": True}\n    assert len(responses.calls) == 3\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
                   "hint": "",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Три ответа подряд моделируют «сервер ожил на третьей попытке».\", \"lines\": [[\"responses.get(\\\"https://api.test/data\\\", status=503)\", \"1.\"], [\"responses.get(\\\"https://api.test/data\\\", json={\\\"ok\\\": True}, status=200)\", \"3 — успех.\"], [\"assert len(responses.calls) == 3\", \"Ровно три запроса.\"]], \"mistake\": \"Не проверить число вызовов — лишние повторы останутся незамеченными.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nКод часто зависит от внешних сервисов: почты, платёжного шлюза, другого API. Вызывать их в тестах нельзя (дорого, медленно, нестабильно). **Моки** подменяют зависимость объектом, который отвечает как нужно и запоминает, как его вызвали. Параметризация прогоняет один тест на многих данных.\n\n## unittest.mock.Mock\n\n```python\nfrom unittest.mock import Mock\n\napi = Mock()\napi.get.return_value = {\"status\": \"ok\"}\nprint(api.get(\"/health\"))\napi.get.assert_called_once_with(\"/health\")\nprint(api.get.call_count)\n```\n\n- У `Mock` любой атрибут — тоже мок; `return_value` — что вернуть.\n- `assert_called_once_with(...)` — проверить вызов; `call_count`, `call_args` — сколько раз и с чем.\n- Вывод: `{'status': 'ok'}`, `1`.\n\n## side_effect\n\n```python\nfrom unittest.mock import Mock\n\nm = Mock(side_effect=[1, 2, ValueError(\"стоп\")])\nprint(m(), m())\ntry:\n    m()\nexcept ValueError as e:\n    print(e)\n```\n\n- Список — последовательные ответы; исключение в списке будет выброшено. Удобно моделировать «два сбоя, потом успех».\n- Вывод: `1 2`, `стоп`.\n\n## Последовательные ответы в responses\n\n```python\nimport requests\nimport responses\n\nwith responses.RequestsMock() as mock:\n    mock.get(\"https://api.test/job\", json={\"status\": \"pending\"})\n    mock.get(\"https://api.test/job\", json={\"status\": \"done\"})\n    print([requests.get(\"https://api.test/job\").json()[\"status\"] for _ in range(3)])\n```\n\n- Ответы на один URL отдаются по порядку регистрации; последний повторяется.\n- Вывод: `['pending', 'done', 'done']`.\n\n## Параметризация API-тестов\n\n```py\n@pytest.mark.parametrize(\"code, expected\", [(200, True), (503, False), (500, False)])\n@responses.activate\ndef test_status(code, expected):\n    responses.get(\"https://api.test/health\", status=code)\n    assert is_available(\"https://api.test/health\") == expected\n```\n\n- Один тест — много статусов, ролей, невалидных тел.\n\n## Итог\n\n- `Mock`: `return_value`, `side_effect`, `assert_called_once_with`, `call_count`.\n- `responses`: несколько ответов на один URL — по очереди.\n- `parametrize` — одна проверка на многих данных.",
@@ -1012,7 +1076,8 @@
                   "code": "from pydantic import BaseModel\n\nclass User(BaseModel):\n    id: int\n    name: str\n    active: bool = True\n\nu = User.model_validate({\"id\": \"7\", \"name\": \"Аня\"})\nprint(u.id, type(u.id).__name__, u.active)\nprint(u.model_dump())\n",
                   "expected_output": "7 int True\n{'id': 7, 'name': 'Аня', 'active': True}",
                   "hint": "Pydantic приводит совместимые типы: строка '7' → число 7.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"Pydantic приводит типы: строка «7» стала числом; значения по умолчанию подставляются.\", \"lines\": [[\"u = User.model_validate({\\\"id\\\": \\\"7\\\", \\\"name\\\": \\\"Аня\\\"})\", \"Проверка и приведение.\"], [\"print(u.id, type(u.id).__name__, u.active)\", \"int, active по умолчанию.\"], [\"print(u.model_dump())\", \"Обратно в словарь.\"]], \"mistake\": \"Ожидать строку `'7'` — режим по умолчанию нестрогий.\"}"
                 },
                 {
                   "slug": "api-pydantic-e2",
@@ -1021,7 +1086,8 @@
                   "code": "from pydantic import BaseModel, ValidationError\n\nclass User(BaseModel):\n    id: int\n    name: str\n\ntry:\n    User.model_validate({\"id\": \"abc\"})\nexcept ValidationError as e:\n    print(e.error_count())\n    for err in e.errors():\n        print(err[\"loc\"], err[\"type\"])\n",
                   "expected_output": "2\n('id',) int_parsing\n('name',) missing",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`ValidationError` собирает все ошибки сразу; у каждой есть путь и тип.\", \"lines\": [[\"User.model_validate({\\\"id\\\": \\\"abc\\\"})\", \"Две проблемы.\"], [\"print(e.error_count())\", \"2.\"], [\"print(err[\\\"loc\\\"], err[\\\"type\\\"])\", \"Поле и тип ошибки.\"]], \"mistake\": \"Ожидать только первую ошибку.\"}"
                 },
                 {
                   "slug": "api-pydantic-e3",
@@ -1031,7 +1097,8 @@
                   "tests": "def test_values():\n    p = parse_product({\"id\": 1, \"title\": \"чай\", \"price\": \"99.5\"})\n    assert isinstance(p, Product) and p.price == 99.5 and p.tags == [], p\n    assert Product(id=2, title=\"кофе\", price=100).tags is not Product(id=3, title=\"x\", price=1).tags, \"У каждого свой список\"\n",
                   "solution": "from pydantic import BaseModel\n\n\nclass Product(BaseModel):\n    id: int\n    title: str\n    price: float\n    tags: list[str] = []\n\n\ndef parse_product(data):\n    return Product.model_validate(data)\n",
                   "hint": "Pydantic копирует изменяемые значения по умолчанию — [] здесь безопасен.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Модель описывает форму данных аннотациями типов.\", \"lines\": [[\"tags: list[str] = []\", \"Необязательное поле.\"], [\"return Product.model_validate(data)\", \"Объект из словаря.\"]], \"mistake\": \"Бояться `= []` — Pydantic копирует значение по умолчанию для каждого объекта.\"}"
                 },
                 {
                   "slug": "api-pydantic-e4",
@@ -1041,7 +1108,8 @@
                   "tests": "def test_values():\n    assert validation_errors(User, {\"id\": 1, \"name\": \"Аня\", \"address\": {\"city\": \"Москва\", \"zip\": 101000}}) == []\n    assert validation_errors(User, {\"id\": \"x\", \"address\": {\"zip\": \"abc\"}}) == [\"address.city\", \"address.zip\", \"id\", \"name\"]\n",
                   "solution": "from pydantic import BaseModel, ValidationError\n\n\nclass Address(BaseModel):\n    city: str\n    zip: int\n\n\nclass User(BaseModel):\n    id: int\n    name: str\n    address: Address\n\n\ndef validation_errors(model, data):\n    try:\n        model.model_validate(data)\n    except ValidationError as e:\n        return sorted(\".\".join(str(p) for p in err[\"loc\"]) for err in e.errors())\n    return []\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`err[\\\"loc\\\"]` — кортеж пути; склеиваем его через точку.\", \"lines\": [[\"model.model_validate(data)\", \"Проверка.\"], [\"return sorted(\\\".\\\".join(str(p) for p in err[\\\"loc\\\"]) for err in e.errors())\", \"Пути ошибок.\"], [\"return []\", \"Ошибок нет.\"]], \"mistake\": \"`\\\".\\\".join(err[\\\"loc\\\"])` — индексы списков в пути — числа.\"}"
                 },
                 {
                   "slug": "api-pydantic-e5",
@@ -1051,7 +1119,8 @@
                   "tests": "def test_values():\n    assert is_valid_order({\"id\": 1, \"status\": \"new\", \"total\": 100})\n    assert not is_valid_order({\"id\": 1, \"status\": \"new\", \"total\": 100, \"debug\": True}), \"Лишнее поле — ошибка\"\n    assert not is_valid_order({\"id\": 1, \"status\": \"new\"}), \"Нет обязательного поля\"\n",
                   "solution": "from pydantic import BaseModel, ConfigDict, ValidationError\n\n\nclass Order(BaseModel):\n    model_config = ConfigDict(extra=\"forbid\")\n\n    id: int\n    status: str\n    total: float\n\n\ndef is_valid_order(data):\n    try:\n        Order.model_validate(data)\n    except ValidationError:\n        return False\n    return True\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`extra=\\\"forbid\\\"` — лишние поля в ответе считаются ошибкой.\", \"lines\": [[\"model_config = ConfigDict(extra=\\\"forbid\\\")\", \"Строгая модель.\"], [\"except ValidationError:\\n        return False\", \"Не прошёл.\"]], \"mistake\": \"По умолчанию лишние поля игнорируются — утечка данных в ответе пройдёт незамеченной.\"}"
                 },
                 {
                   "slug": "api-pydantic-e6",
@@ -1061,7 +1130,8 @@
                   "tests": "def test_values():\n    assert request_body(NewUser(name=\"Аня\", email=\"a@x.ru\")) == {\"name\": \"Аня\", \"email\": \"a@x.ru\"}\n    assert request_body(NewUser(name=\"Боря\", email=\"b@x.ru\", age=30)) == {\"name\": \"Боря\", \"email\": \"b@x.ru\", \"age\": 30}\n",
                   "solution": "from pydantic import BaseModel\n\n\nclass NewUser(BaseModel):\n    name: str\n    email: str\n    age: int | None = None\n\n\ndef request_body(user):\n    return user.model_dump(exclude_none=True)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`exclude_none=True` — не отправлять поля без значения.\", \"lines\": [[\"age: int | None = None\", \"Необязательное поле.\"], [\"return user.model_dump(exclude_none=True)\", \"Без `None`.\"]], \"mistake\": \"Отправить `\\\"age\\\": null` — сервер может трактовать это как «стереть».\"}"
                 },
                 {
                   "slug": "api-pydantic-e7",
@@ -1071,7 +1141,8 @@
                   "expected_output": "Model.model_validate",
                   "solution": "Model.model_validate",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"В Pydantic v2 — `model_validate`.\", \"lines\": [[\"Model.model_validate\", \"Словарь → объект с проверкой.\"]], \"mistake\": \"`parse_obj` — это v1.\"}"
                 },
                 {
                   "slug": "api-pydantic-e8",
@@ -1081,7 +1152,8 @@
                   "expected_output": "obj.model_dump()",
                   "solution": "obj.model_dump()",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"В v2 — `model_dump()`.\", \"lines\": [[\"obj.model_dump()\", \"Объект → словарь.\"]], \"mistake\": \"`.dict()` — устаревший метод v1.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nПроверять каждое поле ответа отдельным `assert` долго и легко что-то пропустить. **Pydantic** позволяет один раз описать структуру данных классом — **моделью** — и проверять ответ одной строкой: все поля, типы, вложенность. Если что-то не так, ошибка точно скажет, какое поле и почему. Pydantic — стандарт де-факто в современных API-тестах на Python (и в FastAPI).\n\n## Модель\n\n```python\nfrom pydantic import BaseModel\n\n\nclass User(BaseModel):\n    id: int\n    name: str\n    active: bool = True\n\n\nu = User.model_validate({\"id\": \"7\", \"name\": \"Аня\"})\nprint(u.id, type(u.id).__name__, u.active)\nprint(u.model_dump())\n```\n\n- Класс наследует `BaseModel`; поля описываются аннотациями типов. Поле со значением по умолчанию — необязательное.\n- `Model.model_validate(словарь)` — создать объект с проверкой. `User(id=7, name=\"Аня\")` — то же через аргументы.\n- Pydantic **приводит** совместимые значения: строка `\"7\"` станет числом `7`. Несовместимые (`\"abc\"` для `int`) — ошибка.\n- `obj.model_dump()` — обратно в словарь; `model_dump_json()` — в JSON-строку.\n- Вывод: `7 int True`, `{'id': 7, 'name': 'Аня', 'active': True}`.\n\n## Ошибки валидации\n\n```python\nfrom pydantic import BaseModel, ValidationError\n\n\nclass User(BaseModel):\n    id: int\n    name: str\n\n\ntry:\n    User.model_validate({\"id\": \"abc\"})\nexcept ValidationError as e:\n    print(e.error_count())\n    for err in e.errors():\n        print(err[\"loc\"], err[\"type\"])\n```\n\n- `ValidationError` собирает **все** ошибки сразу, а не только первую.\n- `e.errors()` — список словарей: `loc` — путь к полю, `type` — вид ошибки, `msg` — описание.\n- Вывод: `2`, `('id',) int_parsing`, `('name',) missing`.\n\n## Строгость\n\n```py\nfrom pydantic import ConfigDict\n\n\nclass Order(BaseModel):\n    model_config = ConfigDict(extra=\"forbid\")\n    id: int\n    status: str\n```\n\n- По умолчанию лишние поля игнорируются. `extra=\"forbid\"` делает их ошибкой: тест заметит утечку внутренних полей в ответе.\n- `strict=True` в конфиге запретит приведение типов (`\"7\"` для `int` станет ошибкой) — для строгих контрактов.\n\n## В тесте\n\n```py\ndef test_user_contract(client):\n    resp = client.get(\"/users/1\")\n    assert resp.status_code == 200\n    user = User.model_validate(resp.json())   # упадёт с понятной ошибкой\n    assert user.name == \"Аня\"\n```\n\n## Итог\n\n- `class M(BaseModel)` + аннотации; значение по умолчанию → необязательное поле.\n- `M.model_validate(dict)` — проверка; `obj.model_dump()` — словарь.\n- `ValidationError.errors()` — все ошибки с путями.\n- `extra=\"forbid\"` — запрет лишних полей; `strict` — без приведения типов.",
@@ -1133,7 +1205,8 @@
                   "code": "from pydantic import BaseModel, Field, ValidationError\n\nclass Item(BaseModel):\n    title: str = Field(min_length=2, max_length=20)\n    qty: int = Field(gt=0, le=100)\n\nfor data in [{\"title\": \"чай\", \"qty\": 3}, {\"title\": \"x\", \"qty\": 0}]:\n    try:\n        print(Item(**data))\n    except ValidationError as e:\n        print([err[\"type\"] for err in e.errors()])\n",
                   "expected_output": "title='чай' qty=3\n['string_too_short', 'greater_than']",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`Field` задаёт ограничения: длину строки, границы числа.\", \"lines\": [[\"title: str = Field(min_length=2, max_length=20)\", \"Длина.\"], [\"qty: int = Field(gt=0, le=100)\", \"gt — строго больше, le — не больше.\"], [\"print([err[\\\"type\\\"] for err in e.errors()])\", \"Обе ошибки второго случая.\"]], \"mistake\": \"Думать, что `gt=0` пропустит 0.\"}"
                 },
                 {
                   "slug": "api-pydantic-adv-e2",
@@ -1142,7 +1215,8 @@
                   "code": "from pydantic import BaseModel, Field\n\nclass User(BaseModel):\n    user_id: int = Field(alias=\"userId\")\n    first_name: str = Field(alias=\"firstName\")\n\nu = User.model_validate({\"userId\": 5, \"firstName\": \"Аня\"})\nprint(u.user_id, u.first_name)\nprint(u.model_dump(by_alias=True))\n",
                   "expected_output": "5 Аня\n{'userId': 5, 'firstName': 'Аня'}",
                   "hint": "API часто отдаёт camelCase, а в Python принято snake_case.",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`alias` — имя поля в JSON; в Python используем своё имя.\", \"lines\": [[\"user_id: int = Field(alias=\\\"userId\\\")\", \"В API — camelCase.\"], [\"print(u.user_id, u.first_name)\", \"В коде — snake_case.\"], [\"print(u.model_dump(by_alias=True))\", \"Обратно с именами API.\"]], \"mistake\": \"Ждать `userId` в `model_dump()` без `by_alias`.\"}"
                 },
                 {
                   "slug": "api-pydantic-adv-e3",
@@ -1152,7 +1226,8 @@
                   "tests": "from pydantic import ValidationError\n\ndef ok(data):\n    try:\n        Registration.model_validate(data)\n        return True\n    except ValidationError:\n        return False\n\ndef test_values():\n    assert ok({\"username\": \"anna\", \"age\": 18, \"email\": \"a@x.ru\"}) and ok({\"username\": \"bob\", \"age\": 120, \"email\": \"b@mail.com\"})\n    bad = [\n        {\"username\": \"an\", \"age\": 30, \"email\": \"a@x.ru\"},\n        {\"username\": \"anna\", \"age\": 17, \"email\": \"a@x.ru\"},\n        {\"username\": \"anna\", \"age\": 121, \"email\": \"a@x.ru\"},\n        {\"username\": \"anna\", \"age\": 30, \"email\": \"не почта\"},\n        {\"username\": \"a\" * 21, \"age\": 30, \"email\": \"a@x.ru\"},\n    ]\n    assert not any(ok(b) for b in bad), [b for b in bad if ok(b)]\n",
                   "solution": "from pydantic import BaseModel, Field\n\n\nclass Registration(BaseModel):\n    username: str = Field(min_length=3, max_length=20)\n    age: int = Field(ge=18, le=120)\n    email: str = Field(pattern=r\"^[^@]+@[^@]+\\.[a-z]+$\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Ограничения через `Field`: длина, диапазон, регулярное выражение.\", \"lines\": [[\"username: str = Field(min_length=3, max_length=20)\", \"Длина имени.\"], [\"age: int = Field(ge=18, le=120)\", \"Включительно.\"], [\"email: str = Field(pattern=r\\\"^[^@]+@[^@]+\\\\.[a-z]+$\\\")\", \"Шаблон почты.\"]], \"mistake\": \"`gt=18` — 18 лет не пройдёт.\"}"
                 },
                 {
                   "slug": "api-pydantic-adv-e4",
@@ -1162,7 +1237,8 @@
                   "tests": "from pydantic import ValidationError\n\ndef test_values():\n    s = Status(code=404, text=\"  Not Found \")\n    assert s.code == 404 and s.text == \"not found\", s\n    try:\n        Status(code=42, text=\"x\")\n    except ValidationError as e:\n        assert \"неизвестный HTTP-код\" in str(e), str(e)\n        return\n    assert False, \"Нужна ошибка для кода 42\"\n",
                   "solution": "from pydantic import BaseModel, field_validator\n\n\nclass Status(BaseModel):\n    code: int\n    text: str\n\n    @field_validator(\"code\")\n    @classmethod\n    def known_code(cls, value):\n        if not 100 <= value <= 599:\n            raise ValueError(\"неизвестный HTTP-код\")\n        return value\n\n    @field_validator(\"text\")\n    @classmethod\n    def normalize(cls, value):\n        return value.strip().lower()\n",
                   "hint": "@field_validator('имя') + @classmethod; вернуть (возможно изменённое) значение.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`@field_validator` — своя проверка или преобразование поля; возвращает итоговое значение.\", \"lines\": [[\"@field_validator(\\\"code\\\")\", \"Для поля code.\"], [\"raise ValueError(\\\"неизвестный HTTP-код\\\")\", \"Станет ошибкой валидации.\"], [\"return value.strip().lower()\", \"Нормализация текста.\"]], \"mistake\": \"Забыть `return value` — поле станет `None`.\"}"
                 },
                 {
                   "slug": "api-pydantic-adv-e5",
@@ -1172,7 +1248,8 @@
                   "tests": "def test_values():\n    o = Order.model_validate({\"id\": 1, \"items\": [{\"name\": \"чай\", \"price\": 100}, {\"name\": \"кофе\", \"price\": \"250.5\"}]})\n    assert o.total() == 350.5 and isinstance(o.items[0], Item) and o.coupon is None, o\n",
                   "solution": "from pydantic import BaseModel\n\n\nclass Item(BaseModel):\n    name: str\n    price: float\n\n\nclass Order(BaseModel):\n    id: int\n    items: list[Item]\n    coupon: str | None = None\n\n    def total(self):\n        return sum(item.price for item in self.items)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Вложенные модели разбираются автоматически — список словарей станет списком `Item`.\", \"lines\": [[\"items: list[Item]\", \"Список моделей.\"], [\"coupon: str | None = None\", \"Необязательное поле.\"], [\"return sum(item.price for item in self.items)\", \"Методы — как у обычного класса.\"]], \"mistake\": \"`item[\\\"price\\\"]` — это объекты, а не словари.\"}"
                 },
                 {
                   "slug": "api-pydantic-adv-e6",
@@ -1182,7 +1259,8 @@
                   "tests": "def test_values():\n    tasks = [{\"title\": \"a\", \"status\": \"new\"}, {\"title\": \"b\", \"status\": \"closed\"}, {\"title\": \"c\", \"status\": \"Done\"}, {\"title\": \"d\", \"status\": \"closed\"}]\n    assert bad_statuses(tasks) == [\"Done\", \"closed\"], bad_statuses(tasks)\n    assert Task(title=\"x\", status=\"done\").status == \"done\"\n",
                   "solution": "from typing import Literal\nfrom pydantic import BaseModel, ValidationError\n\n\nclass Task(BaseModel):\n    title: str\n    status: Literal[\"new\", \"in_progress\", \"done\"]\n\n\ndef bad_statuses(tasks):\n    bad = set()\n    for data in tasks:\n        try:\n            Task.model_validate(data)\n        except ValidationError:\n            bad.add(data.get(\"status\"))\n    return sorted(bad)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`Literal` разрешает только перечисленные значения.\", \"lines\": [[\"status: Literal[\\\"new\\\", \\\"in_progress\\\", \\\"done\\\"]\", \"Допустимые статусы.\"], [\"bad.add(data.get(\\\"status\\\"))\", \"Запоминаем неверный.\"], [\"return sorted(bad)\", \"Уникальные по алфавиту.\"]], \"mistake\": \"Сравнивать со списком вручную — модель уже умеет.\"}"
                 },
                 {
                   "slug": "api-pydantic-adv-e7",
@@ -1192,7 +1270,8 @@
                   "tests": "from datetime import datetime\n\ndef test_values():\n    p = Profile.model_validate({\"userId\": 1, \"createdAt\": \"2024-03-08T12:00:00Z\"})\n    assert p.user_id == 1 and p.created_at.year == 2024 and p.created_at.tzinfo is not None and p.is_admin is False, p\n    q = Profile(user_id=2, created_at=datetime(2024, 1, 1))\n    assert q.model_dump(by_alias=True)[\"userId\"] == 2, q.model_dump(by_alias=True)\n",
                   "solution": "from datetime import datetime\nfrom pydantic import BaseModel, ConfigDict, Field\n\n\nclass Profile(BaseModel):\n    model_config = ConfigDict(populate_by_name=True)\n\n    user_id: int = Field(alias=\"userId\")\n    created_at: datetime = Field(alias=\"createdAt\")\n    is_admin: bool = Field(default=False, alias=\"isAdmin\")\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`populate_by_name` — можно создать и по псевдониму, и по имени поля; `datetime` разберёт ISO-строку.\", \"lines\": [[\"model_config = ConfigDict(populate_by_name=True)\", \"Оба способа.\"], [\"created_at: datetime = Field(alias=\\\"createdAt\\\")\", \"Строка → datetime.\"], [\"is_admin: bool = Field(default=False, alias=\\\"isAdmin\\\")\", \"Значение по умолчанию и псевдоним.\"]], \"mistake\": \"`Field(False, alias=…)` — работает, но `default=` понятнее.\"}"
                 },
                 {
                   "slug": "api-pydantic-adv-e8",
@@ -1202,7 +1281,8 @@
                   "expected_output": "by_alias=True",
                   "solution": "by_alias=True",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"`by_alias=True` выводит ключи как в API.\", \"lines\": [[\"by_alias=True\", \"camelCase на выходе.\"]], \"mistake\": \"`alias=True` — неверное имя параметра.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nТипа поля мало: цена должна быть положительной, email — похожим на email, статус — одним из допустимых, а API отдаёт `camelCase` вместо привычного `snake_case`. Pydantic умеет всё это описать декларативно.\n\n## Ограничения: Field\n\n```python\nfrom pydantic import BaseModel, Field, ValidationError\n\n\nclass Item(BaseModel):\n    title: str = Field(min_length=2, max_length=20)\n    qty: int = Field(gt=0, le=100)\n\n\nfor data in [{\"title\": \"чай\", \"qty\": 3}, {\"title\": \"x\", \"qty\": 0}]:\n    try:\n        print(Item(**data))\n    except ValidationError as e:\n        print([err[\"type\"] for err in e.errors()])\n```\n\n- Числа: `gt`, `ge`, `lt`, `le` (больше, больше или равно, меньше, меньше или равно).\n- Строки и списки: `min_length`, `max_length`; строки: `pattern=r\"...\"` (регулярное выражение).\n- Вывод: `title='чай' qty=3`, `['string_too_short', 'greater_than']`.\n\n## Перечисления и Optional\n\n```py\nfrom typing import Literal\n\n\nclass Task(BaseModel):\n    status: Literal[\"new\", \"in_progress\", \"done\"]\n    assignee: str | None = None\n```\n\n- `Literal[...]` — только эти значения.\n- `X | None = None` — поле может отсутствовать или быть `null`.\n\n## Свой валидатор\n\n```py\nfrom pydantic import field_validator\n\n\nclass Status(BaseModel):\n    code: int\n\n    @field_validator(\"code\")\n    @classmethod\n    def known_code(cls, value):\n        if not 100 <= value <= 599:\n            raise ValueError(\"неизвестный HTTP-код\")\n        return value\n```\n\n- Валидатор получает уже приведённое значение; выброшенный `ValueError` станет ошибкой валидации. Вернуть нужно значение (можно изменённое — например, `strip().lower()`).\n\n## Вложенные модели\n\n```py\nclass Item(BaseModel):\n    name: str\n    price: float\n\n\nclass Order(BaseModel):\n    id: int\n    items: list[Item]\n\n    def total(self):\n        return sum(i.price for i in self.items)\n```\n\n- Поле-модель и списки моделей проверяются рекурсивно; путь к ошибке будет вроде `items.1.price`.\n- В модель можно добавлять методы.\n\n## Псевдонимы\n\n```python\nfrom pydantic import BaseModel, Field\n\n\nclass User(BaseModel):\n    user_id: int = Field(alias=\"userId\")\n    first_name: str = Field(alias=\"firstName\")\n\n\nu = User.model_validate({\"userId\": 5, \"firstName\": \"Аня\"})\nprint(u.user_id, u.model_dump(by_alias=True))\n```\n\n- `alias` — имя поля в JSON. `model_dump(by_alias=True)` — вывести как в API.\n- `ConfigDict(populate_by_name=True)` — разрешить создавать и по имени поля.\n- `datetime` поле принимает ISO-строки: `\"2024-03-08T12:00:00Z\"`.\n- Вывод: `5 {'userId': 5, 'firstName': 'Аня'}`.\n\n## Итог\n\n- `Field(gt=, ge=, lt=, le=, min_length=, max_length=, pattern=)`.\n- `Literal[...]`, `X | None = None`.\n- `@field_validator(\"поле\")` + `@classmethod`.\n- Вложенные модели, `list[Model]`; `alias` + `by_alias=True`.",
@@ -1254,7 +1334,8 @@
                   "code": "from jsonschema import validate, ValidationError\n\nschema = {\n    \"type\": \"object\",\n    \"required\": [\"id\", \"name\"],\n    \"properties\": {\"id\": {\"type\": \"integer\"}, \"name\": {\"type\": \"string\"}},\n}\nvalidate({\"id\": 1, \"name\": \"Аня\"}, schema)\nprint(\"ok\")\ntry:\n    validate({\"id\": \"1\"}, schema)\nexcept ValidationError as e:\n    print(e.message)\n",
                   "expected_output": "ok\n'name' is a required property",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`validate` молчит при успехе и бросает `ValidationError` при первой ошибке.\", \"lines\": [[\"validate({\\\"id\\\": 1, \\\"name\\\": \\\"Аня\\\"}, schema)\", \"Валидно.\"], [\"validate({\\\"id\\\": \\\"1\\\"}, schema)\", \"Первая найденная ошибка — нет name.\"]], \"mistake\": \"Ожидать ошибку про тип id — сообщается одна ошибка.\"}"
                 },
                 {
                   "slug": "api-schema-e2",
@@ -1263,7 +1344,8 @@
                   "code": "from jsonschema import Draft202012Validator\n\nschema = {\"type\": \"object\", \"required\": [\"id\"], \"properties\": {\"id\": {\"type\": \"integer\"}, \"tags\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}}\nv = Draft202012Validator(schema)\nerrors = sorted(v.iter_errors({\"tags\": [\"a\", 2]}), key=lambda e: list(e.path))\nfor e in errors:\n    print(list(e.path), e.validator)\n",
                   "expected_output": "[] required\n['tags', 1] type",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`iter_errors` выдаёт все ошибки; `path` — где, `validator` — какое правило нарушено.\", \"lines\": [[\"errors = sorted(v.iter_errors({\\\"tags\\\": [\\\"a\\\", 2]}), key=lambda e: list(e.path))\", \"Все ошибки по порядку пути.\"], [\"print(list(e.path), e.validator)\", \"Нет id (корень) и не строка в tags[1].\"]], \"mistake\": \"`validate` — покажет только одну.\"}"
                 },
                 {
                   "slug": "api-schema-e3",
@@ -1273,7 +1355,8 @@
                   "tests": "def test_values():\n    assert is_valid({\"id\": 1, \"email\": \"a@x.ru\"}) and is_valid({\"id\": 2, \"email\": \"b@x.ru\", \"role\": \"qa\"})\n    bad = [{\"id\": 0, \"email\": \"a@x.ru\"}, {\"id\": 1}, {\"id\": 1, \"email\": \"нет\"}, {\"id\": 1, \"email\": \"a@x.ru\", \"role\": \"boss\"},\n           {\"id\": 1, \"email\": \"a@x.ru\", \"debug\": True}, {\"id\": \"1\", \"email\": \"a@x.ru\"}]\n    assert not any(is_valid(b) for b in bad), [b for b in bad if is_valid(b)]\n",
                   "solution": "from jsonschema import validate, ValidationError\n\nUSER_SCHEMA = {\n    \"type\": \"object\",\n    \"required\": [\"id\", \"email\"],\n    \"additionalProperties\": False,\n    \"properties\": {\n        \"id\": {\"type\": \"integer\", \"minimum\": 1},\n        \"email\": {\"type\": \"string\", \"pattern\": \"@\"},\n        \"role\": {\"enum\": [\"admin\", \"qa\", \"guest\"]},\n    },\n}\n\n\ndef is_valid(data):\n    try:\n        validate(data, USER_SCHEMA)\n    except ValidationError:\n        return False\n    return True\n",
                   "hint": "additionalProperties: false — запрет лишних полей; enum — список значений.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Схема описывает типы, обязательные поля, ограничения и запрет лишнего.\", \"lines\": [[\"\\\"required\\\": [\\\"id\\\", \\\"email\\\"],\", \"Обязательные.\"], [\"\\\"additionalProperties\\\": False,\", \"Лишние поля — ошибка.\"], [\"\\\"role\\\": {\\\"enum\\\": [\\\"admin\\\", \\\"qa\\\", \\\"guest\\\"]},\", \"Одно из значений.\"]], \"mistake\": \"Забыть `additionalProperties` — лишние поля пройдут.\"}"
                 },
                 {
                   "slug": "api-schema-e4",
@@ -1283,7 +1366,8 @@
                   "tests": "def test_values():\n    assert schema_errors({\"items\": [{\"id\": 1}], \"total\": 1}) == []\n    assert schema_errors({\"items\": [{\"id\": 1}, {\"name\": \"x\"}, {\"id\": \"3\"}], \"total\": -1}) == [\"items/1: required\", \"items/2/id: type\", \"total: minimum\"], schema_errors({\"items\": [{\"id\": 1}, {\"name\": \"x\"}, {\"id\": \"3\"}], \"total\": -1})\n    assert schema_errors({}) == [\"$: required\", \"$: required\"], schema_errors({})\n",
                   "solution": "from jsonschema import Draft202012Validator\n\nLIST_SCHEMA = {\n    \"type\": \"object\",\n    \"required\": [\"items\", \"total\"],\n    \"properties\": {\n        \"items\": {\n            \"type\": \"array\",\n            \"items\": {\"type\": \"object\", \"required\": [\"id\"], \"properties\": {\"id\": {\"type\": \"integer\"}}},\n        },\n        \"total\": {\"type\": \"integer\", \"minimum\": 0},\n    },\n}\n\n\ndef schema_errors(data):\n    result = []\n    for error in Draft202012Validator(LIST_SCHEMA).iter_errors(data):\n        path = \"/\".join(str(p) for p in error.path) or \"$\"\n        result.append(f\"{path}: {error.validator}\")\n    return sorted(result)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Схема для каждого элемента массива — в `items`; путь ошибки склеиваем через `/`.\", \"lines\": [[\"\\\"items\\\": {\\\"type\\\": \\\"object\\\", \\\"required\\\": [\\\"id\\\"], \\\"properties\\\": {\\\"id\\\": {\\\"type\\\": \\\"integer\\\"}}},\", \"Схема элемента.\"], [\"path = \\\"/\\\".join(str(p) for p in error.path) or \\\"$\\\"\", \"Корень — `$`.\"], [\"result.append(f\\\"{path}: {error.validator}\\\")\", \"Сообщение.\"]], \"mistake\": \"`required` внутри `properties` — так не работает, это отдельное ключевое слово.\"}"
                 },
                 {
                   "slug": "api-schema-e5",
@@ -1293,7 +1377,8 @@
                   "tests": "def test_values():\n    s = schema_for(User)\n    assert s[\"type\"] == \"object\" and s[\"properties\"][\"id\"][\"type\"] == \"integer\", s\n    assert required_fields(User) == [\"id\", \"name\"], required_fields(User)\n",
                   "solution": "from pydantic import BaseModel\n\n\nclass User(BaseModel):\n    id: int\n    name: str\n    email: str | None = None\n\n\ndef schema_for(model):\n    return model.model_json_schema()\n\n\ndef required_fields(model):\n    return sorted(schema_for(model).get(\"required\", []))\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Pydantic сам строит JSON Schema по модели.\", \"lines\": [[\"return model.model_json_schema()\", \"Схема модели.\"], [\"return sorted(schema_for(model).get(\\\"required\\\", []))\", \"Поля без значения по умолчанию.\"]], \"mistake\": \"Писать схему вручную, когда модель уже есть.\"}"
                 },
                 {
                   "slug": "api-schema-e6",
@@ -1303,7 +1388,8 @@
                   "expected_output": "required",
                   "solution": "required",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`required` — список обязательных полей объекта.\", \"lines\": [[\"required\", \"Обязательные.\"]], \"mistake\": \"`properties` — описывает поля, но не делает их обязательными.\"}"
                 },
                 {
                   "slug": "api-schema-e7",
@@ -1313,7 +1399,8 @@
                   "expected_output": "items",
                   "solution": "items",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"`items` — схема каждого элемента массива.\", \"lines\": [[\"items\", \"Для элементов.\"]], \"mistake\": \"`properties` — для полей объекта.\"}"
                 },
                 {
                   "slug": "api-schema-e8",
@@ -1323,7 +1410,8 @@
                   "expected_output": "Pydantic\npydantic",
                   "solution": "Pydantic",
                   "hint": "Схемы удобны, когда их выдаёт сам API (OpenAPI) или ими обмениваются разные языки.",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Если модели уже есть, Pydantic проверит ответ и даст удобный объект.\", \"lines\": [[\"Pydantic\", \"Модели и есть контракт.\"]], \"mistake\": \"Дублировать одни и те же поля в моделях и схемах.\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\n**JSON Schema** — язык описания структуры JSON, не привязанный к Python. Схемы часто выдаёт сам API (в спецификации OpenAPI/Swagger), ими обмениваются команды на разных языках. Библиотека `jsonschema` проверяет ответ по такой схеме.\n\n## Схема и проверка\n\n```python\nfrom jsonschema import validate, ValidationError\n\nschema = {\n    \"type\": \"object\",\n    \"required\": [\"id\", \"name\"],\n    \"properties\": {\n        \"id\": {\"type\": \"integer\", \"minimum\": 1},\n        \"name\": {\"type\": \"string\"},\n        \"role\": {\"enum\": [\"admin\", \"qa\", \"guest\"]},\n    },\n    \"additionalProperties\": False,\n}\nvalidate({\"id\": 1, \"name\": \"Аня\"}, schema)\nprint(\"ok\")\ntry:\n    validate({\"id\": 0, \"name\": \"Аня\"}, schema)\nexcept ValidationError as e:\n    print(e.message)\n```\n\nОсновные ключевые слова:\n\n- `type` — `object`, `array`, `string`, `integer`, `number`, `boolean`, `null`.\n- `required` — обязательные поля; `properties` — схемы полей.\n- `additionalProperties: false` — запрет лишних полей.\n- `enum` — список допустимых значений; `minimum`, `maximum`, `minLength`, `pattern`.\n- `items` — схема каждого элемента массива.\n- `validate` выбрасывает первую найденную ошибку.\n- Вывод: `ok`, `0 is less than the minimum of 1`.\n\n## Все ошибки\n\n```python\nfrom jsonschema import Draft202012Validator\n\nschema = {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"id\"]}}\nfor error in Draft202012Validator(schema).iter_errors([{\"id\": 1}, {}, {\"name\": \"x\"}]):\n    print(list(error.path), error.validator)\n```\n\n- `iter_errors` — все ошибки; `error.path` — путь к месту, `error.validator` — какое правило нарушено, `error.message` — текст.\n- Вывод: `[1] required`, `[2] required`.\n\n## Схема из модели Pydantic\n\n```python\nfrom pydantic import BaseModel\n\n\nclass User(BaseModel):\n    id: int\n    name: str\n\n\nprint(User.model_json_schema()[\"required\"])\n```\n\n- `model_json_schema()` генерирует JSON Schema — удобно отдать другой команде или сравнить с OpenAPI.\n- Вывод: `['id', 'name']`.\n\n## Что выбрать\n\n- Тесты на Python со своими моделями — **Pydantic**: удобнее, есть приведение типов и валидаторы.\n- Схемы уже есть в OpenAPI или нужны нескольким языкам — **JSON Schema**.\n\n## Итог\n\n- `type`, `required`, `properties`, `additionalProperties`, `enum`, `items`, `minimum`, `pattern`.\n- `validate(data, schema)` — первая ошибка; `Draft202012Validator(schema).iter_errors(data)` — все.\n- `Model.model_json_schema()` — схема из Pydantic.",
@@ -1376,7 +1464,8 @@
                   "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_get_user_contract\") == \"passed\", res\n    assert \"model_validate\" in open(\"solution.py\", encoding=\"utf-8\").read(), \"Валидируй моделью User\"\n\ndef test_catches_bug():\n    import requests as rq\n    def no_email(user_id):\n        body = rq.get(f\"https://api.test/users/{user_id}\", timeout=5).json()\n        body.pop(\"email\")\n        return body\n    code, res = run_pytest(patch={\"api_get_user\": no_email})\n    assert code == 1, \"Контракт должен ломаться, если поле пропало\"\n",
                   "solution": "import pytest\nimport requests\nimport responses\nfrom pydantic import BaseModel\n\n\nclass User(BaseModel):\n    id: int\n    name: str\n    email: str\n\n\ndef api_get_user(user_id):\n    r = requests.get(f\"https://api.test/users/{user_id}\", timeout=5)\n    r.raise_for_status()\n    return r.json()\n\n\n@responses.activate\ndef test_get_user_contract():\n    responses.get(\"https://api.test/users/1\", json={\"id\": 1, \"name\": \"Аня\", \"email\": \"anna@x.ru\"})\n    user = User.model_validate(api_get_user(1))\n    assert user.name == \"Аня\"\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Контрактный тест: подменили ответ, провалидировали моделью, проверили данные.\", \"lines\": [[\"responses.get(\\\"https://api.test/users/1\\\", json={\\\"id\\\": 1, \\\"name\\\": \\\"Аня\\\", \\\"email\\\": \\\"anna@x.ru\\\"})\", \"Ответ сервера.\"], [\"user = User.model_validate(api_get_user(1))\", \"Форма ответа.\"], [\"assert user.name == \\\"Аня\\\"\", \"Содержимое.\"]], \"mistake\": \"Проверять только поля — изменение типа (id строкой) не заметишь.\"}"
                 },
                 {
                   "slug": "api-practice-e2",
@@ -1386,7 +1475,8 @@
                   "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert len(res) == 4 and all(v == \"passed\" for v in res.values()), res\n",
                   "solution": "import pytest\nimport requests\nimport responses\n\n\ndef create_user(payload):\n    return requests.post(\"https://api.test/users\", json=payload, timeout=5).status_code\n\n\n@pytest.mark.parametrize(\"payload, expected_status\", [\n    ({}, 422),\n    ({\"name\": \"\"}, 422),\n    ({\"name\": \"Аня\", \"age\": -1}, 422),\n    ({\"name\": \"Аня\"}, 201),\n])\ndef test_create_invalid(payload, expected_status):\n    with responses.RequestsMock() as mock:\n        mock.post(\"https://api.test/users\", status=expected_status, json={})\n        assert create_user(payload) == expected_status\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
                   "hint": "",
-                  "xp": 20
+                  "xp": 20,
+                  "explain": "{\"idea\": \"Негативные случаи в параметризации; подмена — внутри теста на каждый случай.\", \"lines\": [[\"({}, 422),\", \"Пустое тело.\"], [\"({\\\"name\\\": \\\"Аня\\\"}, 201),\", \"Контрольный хороший случай.\"], [\"mock.post(\\\"https://api.test/users\\\", status=expected_status, json={})\", \"Ответ под случай.\"]], \"mistake\": \"Не добавить позитивный случай — сломанную подмену не отличить от правильной валидации.\"}"
                 },
                 {
                   "slug": "api-practice-e3",
@@ -1396,7 +1486,8 @@
                   "tests": "import responses\n\n@responses.activate\ndef test_values():\n    responses.get(\"https://api.test/fast\", json={})\n    responses.get(\"https://api.test/fail\", status=500)\n    ok, ms = check_sla(\"https://api.test/fast\", 1000)\n    assert ok and isinstance(ms, int) and ms >= 0, (ok, ms)\n    assert check_sla(\"https://api.test/fail\", 1000)[0] is False\n",
                   "solution": "import requests\n\n\ndef check_sla(url, max_ms):\n    response = requests.get(url, timeout=10)\n    ms = int(response.elapsed.total_seconds() * 1000)\n    return response.status_code == 200 and ms <= max_ms, ms\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"SLA — и успешный статус, и время в пределах лимита.\", \"lines\": [[\"ms = int(response.elapsed.total_seconds() * 1000)\", \"Время ответа.\"], [\"return response.status_code == 200 and ms <= max_ms, ms\", \"Оба условия.\"]], \"mistake\": \"Проверять только время — быстрый ответ 500 «пройдёт».\"}"
                 },
                 {
                   "slug": "api-practice-e4",
@@ -1406,7 +1497,8 @@
                   "tests": "def test_values():\n    exp = {\"id\": 1, \"user\": {\"name\": \"a\", \"email\": \"e\"}, \"tags\": []}\n    act = {\"id\": 1, \"user\": {\"name\": \"a\", \"phone\": \"p\"}, \"debug\": True}\n    assert diff_keys(exp, act) == [\"+debug\", \"+user.phone\", \"-tags\", \"-user.email\"], diff_keys(exp, act)\n    assert diff_keys(exp, exp) == []\n",
                   "solution": "def diff_keys(expected, actual, prefix=\"\"):\n    result = []\n    for key in expected.keys() | actual.keys():\n        path = f\"{prefix}{key}\"\n        if key not in actual:\n            result.append(\"-\" + path)\n        elif key not in expected:\n            result.append(\"+\" + path)\n        elif isinstance(expected[key], dict) and isinstance(actual[key], dict):\n            result.extend(diff_keys(expected[key], actual[key], path + \".\"))\n    return sorted(result)\n",
                   "hint": "",
-                  "xp": 15
+                  "xp": 15,
+                  "explain": "{\"idea\": \"Объединение ключей обоих словарей; вложенные словари сравниваем рекурсивно.\", \"lines\": [[\"for key in expected.keys() | actual.keys():\", \"Все ключи.\"], [\"if key not in actual:\\n            result.append(\\\"-\\\" + path)\", \"Пропало.\"], [\"elif key not in expected:\\n            result.append(\\\"+\\\" + path)\", \"Лишнее.\"], [\"result.extend(diff_keys(expected[key], actual[key], path + \\\".\\\"))\", \"Глубже.\"]], \"mistake\": \"Сравнивать значения — для контракта важна структура.\"}"
                 },
                 {
                   "slug": "api-practice-e5",
@@ -1416,7 +1508,8 @@
                   "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res.get(\"test_crud\") == \"passed\", res\n\ndef test_catches_bug():\n    class NoDelete(sys.modules[\"solution\"].UsersApi):\n        def delete(self, user_id):\n            import requests as rq\n            return rq.get(f\"https://api.test/users/{user_id}\", timeout=5)\n    code, res = run_pytest(patch={\"UsersApi\": NoDelete})\n    assert code == 1, \"Тест должен замечать, что удаление не работает\"\n",
                   "solution": "import pytest\nimport requests\nimport responses\n\nBASE = \"https://api.test\"\n\n\nclass UsersApi:\n    def create(self, name):\n        return requests.post(f\"{BASE}/users\", json={\"name\": name}, timeout=5)\n\n    def get(self, user_id):\n        return requests.get(f\"{BASE}/users/{user_id}\", timeout=5)\n\n    def delete(self, user_id):\n        return requests.delete(f\"{BASE}/users/{user_id}\", timeout=5)\n\n\n@responses.activate\ndef test_crud():\n    responses.post(f\"{BASE}/users\", json={\"id\": 7, \"name\": \"Аня\"}, status=201)\n    responses.get(f\"{BASE}/users/7\", json={\"id\": 7, \"name\": \"Аня\"}, status=200)\n    responses.get(f\"{BASE}/users/7\", status=404)\n    responses.delete(f\"{BASE}/users/7\", status=204)\n    api = UsersApi()\n\n    created = api.create(\"Аня\")\n    assert created.status_code == 201\n    user_id = created.json()[\"id\"]\n\n    assert api.get(user_id).json()[\"name\"] == \"Аня\"\n    assert api.delete(user_id).status_code == 204\n    assert api.get(user_id).status_code == 404\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
                   "hint": "Регистрируй ответы до вызовов; одинаковые URL отдаются по порядку регистрации.",
-                  "xp": 25
+                  "xp": 25,
+                  "explain": "{\"idea\": \"Одинаковые запросы получают ответы по очереди — так моделируется «был, удалили, нет».\", \"lines\": [[\"responses.get(f\\\"{BASE}/users/7\\\", json={\\\"id\\\": 7, \\\"name\\\": \\\"Аня\\\"}, status=200)\", \"Первый GET.\"], [\"responses.get(f\\\"{BASE}/users/7\\\", status=404)\", \"Второй GET.\"], [\"user_id = created.json()[\\\"id\\\"]\", \"id из ответа, а не константа.\"], [\"assert api.get(user_id).status_code == 404\", \"После удаления.\"]], \"mistake\": \"Захардкодить id 7 в тесте — не проверится, что клиент берёт id из ответа.\"}"
                 },
                 {
                   "slug": "api-practice-e6",
@@ -1426,7 +1519,8 @@
                   "expected_output": "httpie\nHTTPie",
                   "solution": "httpie",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"HTTPie — `http GET url` с подсветкой и удобным синтаксисом.\", \"lines\": [[\"httpie\", \"Утилита `http`.\"]], \"mistake\": \"Postman — графическая программа, не командная строка.\"}"
                 },
                 {
                   "slug": "api-practice-e7",
@@ -1436,7 +1530,8 @@
                   "expected_output": "OpenAPI\nopenapi\nSwagger\nOpenAPI Specification",
                   "solution": "OpenAPI",
                   "hint": "",
-                  "xp": 10
+                  "xp": 10,
+                  "explain": "{\"idea\": \"OpenAPI (бывший Swagger) — формат описания REST API.\", \"lines\": [[\"OpenAPI\", \"Стандарт.\"]], \"mistake\": \"Путать спецификацию OpenAPI с инструментом Swagger UI.\"}"
                 },
                 {
                   "slug": "api-practice-e8",
@@ -1446,7 +1541,8 @@
                   "tests": "import importlib, os, sys\nimport pytest\n\n\nclass _Collect:\n    def __init__(self):\n        self.outcomes = {}\n\n    def pytest_runtest_logreport(self, report):\n        name = report.nodeid.split(\"::\", 1)[-1]\n        if report.when == \"call\" or report.outcome != \"passed\":\n            self.outcomes[name] = report.outcome\n\n\ndef run_pytest(*args, patch=None):\n    \"\"\"Запустить pytest на решении. Возвращает (код выхода, {имя теста: passed/failed/skipped}).\"\"\"\n    if os.getcwd() not in sys.path:\n        sys.path.insert(0, os.getcwd())\n    sys.modules.pop(\"solution\", None)\n    if patch:\n        # Модуль импортируется заранее только ради подмены: иначе пусть его импортирует сам\n        # pytest — с уже подключёнными плагинами (декораторы Allure работают только так).\n        module = importlib.import_module(\"solution\")\n        for name, value in patch.items():\n            setattr(module, name, value)\n    collector = _Collect()\n    code = pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\", *args], plugins=[collector])\n    return int(code), collector.outcomes\n\ndef test_written():\n    code, res = run_pytest()\n    assert res == {\"test_orders_contract\": \"passed\", \"test_filter_param\": \"passed\", \"test_server_error\": \"passed\"}, res\n\ndef test_catches_bugs():\n    import requests as rq\n    def no_param(status):\n        r = rq.get(\"https://api.test/orders\", timeout=5)\n        r.raise_for_status()\n        return r.json()\n    def swallow(status):\n        r = rq.get(\"https://api.test/orders\", params={\"status\": status}, timeout=5)\n        return r.json() if r.ok else {\"items\": [], \"total\": 0}\n    def lose_total(status):\n        r = rq.get(\"https://api.test/orders\", params={\"status\": status}, timeout=5)\n        r.raise_for_status()\n        body = r.json()\n        body.pop(\"total\", None)\n        return body\n    for bug in (no_param, swallow, lose_total):\n        code, res = run_pytest(patch={\"get_orders\": bug})\n        assert code == 1, f\"Тесты пропустили ошибку ({bug.__name__})\"\n",
                   "solution": "import pytest\nimport requests\nimport responses\nfrom pydantic import BaseModel\n\n\nclass Order(BaseModel):\n    id: int\n    status: str\n    total: float\n\n\nclass OrdersPage(BaseModel):\n    items: list[Order]\n    total: int\n\n\ndef get_orders(status):\n    r = requests.get(\"https://api.test/orders\", params={\"status\": status}, timeout=5)\n    r.raise_for_status()\n    return r.json()\n\n\nURL = \"https://api.test/orders\"\n\n\n@responses.activate\ndef test_orders_contract():\n    responses.get(URL, json={\"items\": [{\"id\": 1, \"status\": \"new\", \"total\": 100}], \"total\": 1})\n    page = OrdersPage.model_validate(get_orders(\"new\"))\n    assert page.total == 1 and page.items[0].status == \"new\"\n\n\n@responses.activate\ndef test_filter_param():\n    responses.get(URL, json={\"items\": [], \"total\": 0})\n    get_orders(\"paid\")\n    assert responses.calls[0].request.url.endswith(\"?status=paid\")\n\n\n@responses.activate\ndef test_server_error():\n    responses.get(URL, status=500)\n    with pytest.raises(requests.HTTPError):\n        get_orders(\"new\")\n\nif __name__ == \"__main__\":\n    pytest.main([\"-q\", \"-p\", \"no:cacheprovider\", \"solution.py\"])\n",
                   "hint": "",
-                  "xp": 30
+                  "xp": 30,
+                  "explain": "{\"idea\": \"Три теста: контракт, что отправляет клиент, и реакция на ошибку сервера.\", \"lines\": [[\"page = OrdersPage.model_validate(get_orders(\\\"new\\\"))\", \"Контракт.\"], [\"assert responses.calls[0].request.url.endswith(\\\"?status=paid\\\")\", \"Параметр фильтра ушёл.\"], [\"with pytest.raises(requests.HTTPError):\", \"500 — исключение.\"]], \"mistake\": \"Тестировать только «счастливый путь».\"}"
                 }
               ],
               "theory_full": "## Зачем это нужно\n\nСоберём всё в одну картину: как выглядит набор API-тестов в реальном проекте — клиент, фикстуры, модели, позитивные и негативные сценарии, проверка контракта и времени ответа.\n\n## Структура проекта\n\n```bash\napi-tests/\n  pyproject.toml\n  src/api/client.py        # ApiClient, UsersApi, OrdersApi\n  src/api/models.py        # модели Pydantic\n  tests/conftest.py        # фикстуры: base_url, client, созданные данные\n  tests/test_users.py\n  tests/test_orders.py\n```\n\n## Контрактный тест\n\n```py\n@responses.activate\ndef test_get_user_contract():\n    responses.get(f\"{BASE}/users/1\", json={\"id\": 1, \"name\": \"Аня\", \"email\": \"anna@x.ru\"})\n    user = User.model_validate(api_get_user(1))\n    assert user.name == \"Аня\"\n```\n\n- **Контракт** — договорённость о структуре ответа. Контрактный тест падает, если поле пропало, сменило тип или появилось лишнее — до того, как сломается фронтенд.\n\n## Негативные проверки параметризацией\n\n```py\n@pytest.mark.parametrize(\"payload, expected\", [\n    ({}, 422),\n    ({\"name\": \"\"}, 422),\n    ({\"name\": \"Аня\", \"age\": -1}, 422),\n    ({\"name\": \"Аня\"}, 201),\n])\ndef test_create(payload, expected, users):\n    assert users.create(payload).status_code == expected\n```\n\n## CRUD-сценарий\n\n```py\ndef test_crud(users):\n    created = users.create({\"name\": \"Аня\"})\n    assert created.status_code == 201\n    user_id = created.json()[\"id\"]\n    assert users.get(user_id).json()[\"name\"] == \"Аня\"\n    assert users.delete(user_id).status_code == 204\n    assert users.get(user_id).status_code == 404\n```\n\n## Время ответа\n\n```py\ndef test_sla(client):\n    resp = client.get(\"/health\")\n    assert resp.status_code == 200\n    assert resp.elapsed.total_seconds() < 0.5\n```\n\n- Простая проверка производительности. Для нагрузочного тестирования есть отдельные инструменты (Locust, k6).\n\n## Изоляция данных\n\n- Каждый тест создаёт свои данные (уникальные имена, например, с `uuid`) и удаляет их в teardown фикстуры.\n- Не полагайся на данные, созданные другими тестами, — иначе тесты не запустить параллельно.\n\n## Инструменты вокруг\n\n- **OpenAPI / Swagger** — спецификация API: из неё берут эндпоинты и схемы.\n- **HTTPie**, **curl**, **Postman** — ручная проверка и воспроизведение.\n- Allure — шаги с запросами и ответами во вложениях.\n\n## Итог\n\n- Клиент + модели + фикстуры + тесты по файлам.\n- Контракт (Pydantic), негативы (parametrize), CRUD, время ответа.\n- Свои данные в каждом тесте, уборка в teardown.",
