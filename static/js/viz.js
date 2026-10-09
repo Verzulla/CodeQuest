@@ -88,6 +88,10 @@ function memoryViz(box, spec) {
     states.push({ line: step.line || 0, vars, objs, out, note: step.note || "" });
   }
   const codeLines = (spec.code || "").split("\n");
+  // У каждого объекта — постоянный номер и цвет на всю схему. Ссылки внутри объектов показываем
+  // меткой «→2» того же цвета, а не стрелкой: стрелки из ячеек перекрещиваются и путают.
+  const num = {};
+  for (const st of states) for (const id of Object.keys(st.objs)) num[id] ??= Object.keys(num).length + 1;
   const ro = new ResizeObserver(() => drawArrows(box));
   stepper(box, {
     title: spec.title,
@@ -97,7 +101,7 @@ function memoryViz(box, spec) {
         <div class="viz-mem">
           <pre class="viz-code">${codeLines.map((l, n) =>
             `<span class="ln${n + 1 === st.line ? " cur" : n + 1 < st.line ? " done" : ""}">${highlight(l) || " "}</span>`).join("")}</pre>
-          <div class="viz-mem-graph">${memoryGraph(st, prev)}<svg class="viz-arrows"></svg></div>
+          <div class="viz-mem-graph">${memoryGraph(st, prev, num)}<svg class="viz-arrows"></svg></div>
           ${st.out.length ? `<div class="viz-out"><span>Вывод</span><pre>${esc(st.out.join("\n"))}</pre></div>` : ""}
         </div>`;
       const graph = stage.querySelector(".viz-mem-graph");
@@ -110,6 +114,14 @@ function memoryViz(box, spec) {
         if (c.right > g.right) graph.scrollLeft += c.right - g.right + 8;
         else if (c.left < g.left) graph.scrollLeft -= g.left - c.left + 8;
       }
+      // нажатие на метку-ссылку подсвечивает объект, на который она указывает
+      graph.querySelectorAll(".viz-ref").forEach((r) => (r.onclick = () => {
+        const t = graph.querySelector(`.viz-obj[data-id="${CSS.escape(r.dataset.to)}"]`);
+        if (!t) return;
+        t.classList.remove("ping");
+        void t.offsetWidth;
+        t.classList.add("ping");
+      }));
       requestAnimationFrame(() => drawArrows(box));
       drawArrows(box);
     },
@@ -130,7 +142,7 @@ function objKind(o) {
 const isRef = (v) => typeof v === "string" && v.startsWith("@");
 const pyRepr = (v) => (typeof v === "string" ? `'${v}'` : v === null ? "None" : v === true ? "True" : v === false ? "False" : String(v));
 
-function memoryGraph(st, prev) {
+function memoryGraph(st, prev, num) {
   // уровни: объекты, на которые смотрят имена, — 1-й столбец; на которые ссылаются они — 2-й…
   const level = {};
   let frontier = [...new Set(Object.values(st.vars))].filter((id) => id in st.objs);
@@ -150,8 +162,11 @@ function memoryGraph(st, prev) {
     const lv = level[id] || 1;
     (columns[lv - 1] ||= []).push(id);
   }
+  columns.forEach((ids) => ids.sort((a, b) => num[a] - num[b]));
+  const tag = (id) => `c${(num[id] - 1) % 6}`;
   const changed = (id) => !prev || JSON.stringify(prev.objs[id]) !== JSON.stringify(st.objs[id]);
-  const names = Object.entries(st.vars).map(([name, id]) => {
+  // имена стоят в одной строке со своим объектом — стрелка короткая и горизонтальная
+  const nameChips = (id) => Object.entries(st.vars).filter(([, to]) => to === id).map(([name]) => {
     const fresh = !prev || prev.vars[name] !== id;
     return `<div class="viz-var${fresh ? " fresh" : ""}" data-to="${esc(id)}"><span>${esc(name)}</span></div>`;
   }).join("");
@@ -161,16 +176,20 @@ function memoryGraph(st, prev) {
     let body;
     if (o.cells) {
       body = `<div class="viz-cells${o.t === "dict" ? " dict" : ""}">${o.cells.length ? o.cells.map(({ label, value: it }) =>
-        `<div class="viz-cell"><i>${esc(label)}</i>${isRef(it) ? `<b class="viz-ref" data-to="${esc(it.slice(1))}">●</b>` : `<b>${esc(pyRepr(it))}</b>`}</div>`).join("")
+        `<div class="viz-cell"><i>${esc(label)}</i>${isRef(it)
+          ? `<b class="viz-ref ${tag(it.slice(1))}" data-to="${esc(it.slice(1))}" title="ссылка на объект ${num[it.slice(1)]}">→${num[it.slice(1)]}</b>`
+          : `<b>${esc(pyRepr(it))}</b>`}</div>`).join("")
         : `<div class="viz-cell empty"><b>пусто</b></div>`}</div>`;
     } else {
       body = `<div class="viz-scalar">${esc(pyRepr(o.value))}</div>`;
     }
     return `<div class="viz-obj${changed(id) ? " changed" : ""}${garbage ? " garbage" : ""}" data-id="${esc(id)}">
-      <div class="viz-obj-type">${esc(o.t)}${garbage ? " · никто не ссылается" : ""}</div>${body}</div>`;
+      <div class="viz-obj-type"><span class="viz-num ${tag(id)}">${num[id]}</span>${esc(o.t)}${garbage ? " · никто не ссылается" : ""}</div>${body}</div>`;
   };
-  return `<div class="viz-col names">${names || `<div class="viz-empty">имён пока нет</div>`}</div>`
-    + columns.map((ids) => `<div class="viz-col">${ids.map(objBox).join("")}</div>`).join("");
+  if (!Object.keys(st.objs).length) return `<div class="viz-empty">объектов пока нет — нажми «Шаг»</div>`;
+  const [first = [], ...rest] = columns;
+  return `<div class="viz-col viz-first">${first.map((id) => `<div class="viz-names">${nameChips(id)}</div>${objBox(id)}`).join("")}</div>`
+    + rest.map((ids) => `<div class="viz-col">${ids.map(objBox).join("")}</div>`).join("");
 }
 
 function drawArrows(box) {
@@ -185,8 +204,7 @@ function drawArrows(box) {
   const target = (id) => graph.querySelector(`.viz-obj[data-id="${CSS.escape(id)}"]`);
   const line = (from, to, cls) => {
     const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
-    // от имени — с правого края, от ячейки-ссылки — из центра точки
-    const x1 = (cls === "inner" ? a.left + a.width / 2 : a.right) - base.left + graph.scrollLeft;
+    const x1 = a.right - base.left + graph.scrollLeft;
     const y1 = a.top + a.height / 2 - base.top + graph.scrollTop;
     const x2 = b.left - base.left + graph.scrollLeft - 2, y2 = b.top + Math.min(22, b.height / 2) - base.top + graph.scrollTop;
     const dx = Math.max(24, (x2 - x1) / 2);
@@ -199,7 +217,6 @@ function drawArrows(box) {
     svg.appendChild(p);
   };
   graph.querySelectorAll(".viz-var").forEach((v) => { const t = target(v.dataset.to); if (t) line(v, t, v.classList.contains("fresh") ? "fresh" : ""); });
-  graph.querySelectorAll(".viz-ref").forEach((r) => { const t = target(r.dataset.to); if (t) line(r, t, "inner"); });
 }
 
 // ---------- git: граф коммитов ----------
