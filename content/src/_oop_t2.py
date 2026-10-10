@@ -207,6 +207,10 @@ print([cls.__name__ for cls in C.__mro__])
 - `C.__mro__` — кортеж классов в этом порядке. У `C` и `B` нет `who`, он найден в `A`.
 - Вывод: `A`, `['C', 'B', 'A', 'object']`.
 
+```viz
+{"type": "lookup", "title": "MRO: где найдётся метод", "code": "class BaseTest:\n    def setup(self): ...\n    def run(self): ...\n    def report(self): ...\n\nclass SmokeTest(BaseTest):\n    def run(self): ...\n\nt = SmokeTest()", "ask": "Какой метод вызываем у t?", "queries": ["run", "setup", "report", "__str__", "cleanup"], "miss": "AttributeError: 'SmokeTest' object has no attribute '{q}'", "levels": [{"name": "SmokeTest", "sub": "свой класс", "names": {"run": "свой run"}}, {"name": "BaseTest", "sub": "родитель", "names": {"setup": "метод", "run": "метод родителя", "report": "метод"}}, {"name": "object", "sub": "в самом конце MRO", "names": {"__str__": "метод", "__init__": "метод"}}]}
+```
+
 ## Атрибуты класса тоже переопределяются
 
 ```python

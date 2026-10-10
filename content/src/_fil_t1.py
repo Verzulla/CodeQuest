@@ -76,6 +76,10 @@ with open("log.txt", encoding="utf-8") as f:
 - К любому режиму можно добавить `b` (двоичный) или `+` (чтение и запись), например `"rb"`, `"r+"`.
 - Вывод: `новое+ещё`.
 
+```viz
+{"type": "paths", "auto": true, "title": "Режимы open: в файле уже есть строка «старое»", "cases": [{"label": "\"w\"", "setup": "with open('notes.txt', 'w', encoding='utf-8') as f:\n    f.write('старое\\n')", "code": "with open(\"notes.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"новое\\n\")\nprint(open(\"notes.txt\", encoding=\"utf-8\").read(), end=\"\")", "note": "`w` **стирает** файл и пишет заново."}, {"label": "\"a\"", "setup": "with open('notes.txt', 'w', encoding='utf-8') as f:\n    f.write('старое\\n')", "code": "with open(\"notes.txt\", \"a\", encoding=\"utf-8\") as f:\n    f.write(\"новое\\n\")\nprint(open(\"notes.txt\", encoding=\"utf-8\").read(), end=\"\")", "note": "`a` дописывает в конец."}, {"label": "\"r\"", "setup": "with open('notes.txt', 'w', encoding='utf-8') as f:\n    f.write('старое\\n')", "code": "with open(\"notes.txt\", \"r\", encoding=\"utf-8\") as f:\n    print(f.read(), end=\"\")", "note": "`r` — только чтение (режим по умолчанию)."}, {"label": "\"x\"", "setup": "with open('notes.txt', 'w', encoding='utf-8') as f:\n    f.write('старое\\n')", "code": "with open(\"notes.txt\", \"x\", encoding=\"utf-8\") as f:\n    f.write(\"новое\\n\")", "note": "`x` создаёт **только новый** файл — существующий не тронет."}, {"label": "\"r\" нет файла", "setup": "with open('notes.txt', 'w', encoding='utf-8') as f:\n    f.write('старое\\n')", "code": "with open(\"missing.txt\", encoding=\"utf-8\") as f:\n    print(f.read())", "note": "Читать несуществующий файл — ошибка."}]}
+```
+
 ## Прочитать, изменить, записать
 
 ```python
@@ -186,6 +190,10 @@ with open("list.txt", encoding="utf-8") as f:
 - У открытого файла есть **курсор** — позиция, до которой уже прочитано. Каждое чтение сдвигает его. После `readlines()` читать больше нечего — `read()` вернул `''`.
 - `read().splitlines()` — самый удобный способ получить список строк **без** `\n`.
 - Вывод: `'a\n'`, `['b\n', 'c\n']`, `''`, `['a', 'b', 'c']`.
+
+```viz
+{"type": "trace", "auto": true, "title": "Курсор чтения: каждый read продолжает с того места", "code": "import io\nf = io.StringIO(\"первая\\nвторая\\nтретья\\n\")\na = f.readline()\nb = f.readline()\nrest = f.read()\nagain = f.read()\nprint(repr(a), repr(b), repr(rest), repr(again))", "hide": ["f"], "notes": {"2": "`StringIO` — «файл в памяти», ведёт себя как открытый текстовый файл.", "3": "`readline` прочитал первую строку вместе с `\\n`.", "5": "`read` дочитал всё, что осталось после курсора.", "6": "Курсор в конце — читать больше нечего: пустая строка."}}
+```
 
 ## Пустые строки и числа
 

@@ -238,6 +238,10 @@ print(reduce(step, [1, 2, 3]))
 - Функция вызывается `len - 1` раз (без начального значения): `1*10+2 = 12`, `12*10+3 = 123`.
 - Вывод: `acc=1, x=2`, `acc=12, x=3`, `123`.
 
+```viz
+{"type": "trace", "auto": true, "title": "reduce по шагам", "code": "from functools import reduce\n\ndef add(total, x):\n    return total + x\n\nprint(reduce(add, [5, 10, 20], 0))", "notes": {"6": "reduce передаёт в функцию накопленное `total` и очередной `x`, ответ становится новым `total`: 0 → 5 → 15 → 35."}}
+```
+
 ## Накопление сложных значений
 
 ```python

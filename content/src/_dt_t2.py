@@ -44,6 +44,10 @@ print(td.total_seconds() / 3600)
 - `td.total_seconds()` — вся длительность в секундах (дробное число). Чтобы получить часы — дели на 3600.
 - Вывод: `1 day, 5:00:00`, `1 day, 12:00:00`, `2 12600`, `185400.0`, `51.5`.
 
+```viz
+{"type": "paths", "auto": true, "title": "Сдвиги через timedelta: календарь Python считает сам", "cases": [{"label": "days=1", "code": "from datetime import datetime, timedelta\nstart = datetime(2026, 1, 30, 22, 0)\nprint(start + timedelta(days=1))", "note": "Плюс сутки."}, {"label": "days=2", "code": "from datetime import datetime, timedelta\nstart = datetime(2026, 1, 30, 22, 0)\nprint(start + timedelta(days=2))", "note": "Перешли через конец января — 1 февраля."}, {"label": "hours=5", "code": "from datetime import datetime, timedelta\nstart = datetime(2026, 1, 30, 22, 0)\nprint(start + timedelta(hours=5))", "note": "Плюс 5 часов — уже следующий день."}, {"label": "weeks=1", "code": "from datetime import datetime, timedelta\nstart = datetime(2026, 1, 30, 22, 0)\nprint(start + timedelta(weeks=1))", "note": "Неделя = 7 дней."}, {"label": "minutes=-90", "code": "from datetime import datetime, timedelta\nstart = datetime(2026, 1, 30, 22, 0)\nprint(start + timedelta(minutes=-90))", "note": "Отрицательный промежуток — назад во времени."}, {"label": "days=30", "code": "from datetime import datetime, timedelta\nstart = datetime(2026, 1, 30, 22, 0)\nprint(start + timedelta(days=30))", "note": "В феврале 2026 года 28 дней — Python это учёл."}]}
+```
+
 ## Арифметика промежутков
 
 ```python

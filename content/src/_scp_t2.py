@@ -37,6 +37,10 @@ print(outer())
 
 - В `inner` нет своей `x` (L) → ищем в объемлющей `outer` (E) и находим. Вывод: `enclosing`.
 
+```viz
+{"type": "lookup", "title": "LEGB: где Python найдёт имя", "code": "x = \"глобальная\"\n\ndef outer():\n    y = \"из outer\"\n    def inner():\n        z = \"локальная\"\n        print(z, y, x, len)\n    inner()", "ask": "Какое имя ищет inner()?", "queries": ["z", "y", "x", "len", "w"], "levels": [{"name": "L — локальная", "sub": "inner()", "names": {"z": "'локальная'"}}, {"name": "E — объемлющая", "sub": "outer()", "names": {"y": "'из outer'", "inner": "функция"}}, {"name": "G — глобальная", "sub": "модуль", "names": {"x": "'глобальная'", "outer": "функция"}}, {"name": "B — встроенные", "sub": "builtins", "names": {"len": "функция", "print": "функция", "range": "класс"}}]}
+```
+
 ## Каждая область по очереди
 
 ```python
@@ -459,6 +463,10 @@ print(double(10), triple(10))
 - `multiplier(2)` создаёт функцию `mul`, которая помнит `n = 2`, и **возвращает** её (без скобок — саму функцию).
 - `multiplier` завершилась, её локальные должны были исчезнуть — но `n` продолжает жить, потому что на неё ссылается `mul`.
 - Каждый вызов `multiplier` создаёт **своё** `n`. Вывод: `20 30`.
+
+```viz
+{"type": "trace", "auto": true, "title": "Замыкание помнит переменную между вызовами", "code": "def make_counter():\n    count = 0\n    def step():\n        nonlocal count\n        count += 1\n        return count\n    return step\n\nc = make_counter()\nprint(c())\nprint(c())", "notes": {"7": "`make_counter` закончилась, но `count` не исчез: его запомнила функция `step`.", "11": "Второй вызов продолжил с того же `count` — состояние живёт в замыкании."}}
+```
 
 ## Где хранится запомненное
 

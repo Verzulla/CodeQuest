@@ -41,6 +41,10 @@ f(1, 5, 6, 7, c=8, e=9)
 - `c` без умолчания после `*args` — обязательный и только по имени.
 - Вывод: `1 2 () 3 4 {}`, `1 5 (6, 7) 8 4 {'e': 9}`.
 
+```viz
+{"type": "paths", "auto": true, "title": "Как раздаются аргументы: выбери вызов", "cases": [{"label": "f(1, c=3)", "code": "def f(a, b=2, *args, c, **kwargs):\n    print(\"a =\", a, \"| b =\", b, \"| args =\", args, \"| c =\", c, \"| kwargs =\", kwargs)\n\nf(1, c=3)", "note": "`b` взял значение по умолчанию, `args` и `kwargs` пустые."}, {"label": "f(1, 5, c=3)", "code": "def f(a, b=2, *args, c, **kwargs):\n    print(\"a =\", a, \"| b =\", b, \"| args =\", args, \"| c =\", c, \"| kwargs =\", kwargs)\n\nf(1, 5, c=3)", "note": "Второй позиционный — в `b`."}, {"label": "f(1, 5, 6, 7, c=3)", "code": "def f(a, b=2, *args, c, **kwargs):\n    print(\"a =\", a, \"| b =\", b, \"| args =\", args, \"| c =\", c, \"| kwargs =\", kwargs)\n\nf(1, 5, 6, 7, c=3)", "note": "Лишние позиционные собрались в кортеж `args`."}, {"label": "f(1, c=3, d=4, e=5)", "code": "def f(a, b=2, *args, c, **kwargs):\n    print(\"a =\", a, \"| b =\", b, \"| args =\", args, \"| c =\", c, \"| kwargs =\", kwargs)\n\nf(1, c=3, d=4, e=5)", "note": "Лишние именованные — в словарь `kwargs`."}, {"label": "f(1, 2, 3)", "code": "def f(a, b=2, *args, c, **kwargs):\n    print(\"a =\", a, \"| b =\", b, \"| args =\", args, \"| c =\", c, \"| kwargs =\", kwargs)\n\nf(1, 2, 3)", "note": "`c` стоит после `*args` — его можно передать **только по имени**. Здесь его нет — ошибка."}]}
+```
+
 ## Одиночная звёздочка: только по имени
 
 ```python

@@ -38,6 +38,10 @@ T = {
 - `true` / `false` → `True` / `False`;
 - `null` → `None`.
 
+```viz
+{"type": "paths", "auto": true, "title": "dumps: во что превращаются значения Python", "cases": [{"label": "{'ok': True, 'next': None}", "code": "import json\nprint(json.dumps({'ok': True, 'next': None}))", "note": "`True` → `true`, `None` → `null`, кавычки — только двойные."}, {"label": "(1, 2)", "code": "import json\nprint(json.dumps((1, 2)))", "note": "Кортежа в JSON нет — станет массивом."}, {"label": "{1: 'a'}", "code": "import json\nprint(json.dumps({1: 'a'}))", "note": "Ключи в JSON — всегда строки: `1` стал `\"1\"`."}, {"label": "'Привет'", "code": "import json\nprint(json.dumps('Привет'))", "note": "Кириллица по умолчанию экранируется. `ensure_ascii=False` оставит буквы как есть."}, {"label": "[3.0, 10, False]", "code": "import json\nprint(json.dumps([3.0, 10, False]))", "note": "Числа как есть, `False` → `false`."}]}
+```
+
 ## loads — из строки в Python
 
 ```python

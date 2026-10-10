@@ -112,6 +112,10 @@ print(status_of("failed", "AssertionError"), status_of("failed", "KeyError"), st
 
 - Вывод: `failed broken passed`.
 
+```viz
+{"type": "paths", "title": "Какой статус получит тест в Allure", "cases": [{"label": "всё прошло", "code": "def test_price():\n    assert price(100) == 100", "lines": [1, 2], "out": "passed — зелёный", "note": "Проверка прошла."}, {"label": "assert не прошёл", "code": "def test_price():\n    assert price(100) == 90", "lines": [1, 2], "error": "AssertionError → failed (красный)", "note": "Упала **проверка** — скорее всего, баг в продукте."}, {"label": "другое исключение", "code": "def test_price():\n    data = load_prices()\n    assert data[\"sale\"] == 90", "lines": [1, 2, 3], "error": "KeyError: 'sale' → broken (жёлтый)", "note": "Тест упал **не на проверке**, а раньше: сломан сам тест, данные или окружение. Разбирать — в первую очередь тест."}, {"label": "skip", "code": "@pytest.mark.skip(reason=\"баг JIRA-12\")\ndef test_price():\n    ...", "lines": [1], "out": "skipped — серый", "note": "Тест не запускался."}]}
+```
+
 ## Порядок разбора
 
 1. Сначала **broken** в категории «проблемы окружения» — если лёг стенд, остальные падения могут быть следствием.

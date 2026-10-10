@@ -26,6 +26,10 @@ print(sorted(a.union(b)), sorted(a.intersection(b)))
 - Методы `union` и `intersection` делают то же. Результат — **новое** множество, `a` и `b` не меняются.
 - Вывод: `[1, 2, 3, 4] [3]` — дважды.
 
+```viz
+{"type": "venn", "title": "Операции над множествами: навыки двух кандидатов", "a": "pytest, git, docker, sql", "b": "git, sql, java, linux", "names": ["anna", "boris"]}
+```
+
 ## Операторы против методов
 
 ```python

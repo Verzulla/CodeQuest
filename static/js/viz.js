@@ -2092,6 +2092,295 @@ function imagechainViz(box, spec) {
   show();
 }
 
+// ---------- пути выполнения: выбери вариант — увидишь, какие строки сработали ----------
+// {"type": "paths", "code": "…", "cases": [{"label": "x = 5", "lines": [1, 2], "out": "…", "error": "…", "note": "…", "vars": {}, "code": "…"}]}
+// lines/out считаются при сборке (vizcalc.paths_auto): это реальное выполнение Python.
+
+function pathsViz(box, spec) {
+  let k = spec.start || 0;
+  const show = () => {
+    const c = spec.cases[k];
+    const code = c.code || spec.code || "";
+    const run = new Set(c.lines || []);
+    const lines = code.split("\n");
+    box.innerHTML = `${vizHead(spec)}
+      ${spec.ask ? `<div class="viz-sb-head">${esc(spec.ask)}</div>` : ""}
+      <div class="viz-sb-quick viz-pt-cases">${spec.cases.map((x, i) => `<button class="viz-chip${i === k ? " on" : ""}" data-k="${i}">${esc(x.label)}</button>`).join("")}</div>
+      <pre class="viz-code flat wrap viz-pt-code">${lines.map((l, n) => `<span class="ln ${run.has(n + 1) ? "run" : l.trim() ? "skip" : ""}">${highlight(l) || " "}</span>`).join("")}</pre>
+      <div class="viz-legend viz-pt-legend"><span class="r"></span>строка выполнилась <span class="k"></span>пропущена</div>
+      ${c.vars && Object.keys(c.vars).length ? `<div class="viz-vars">${Object.entries(c.vars).map(([n, v]) => `<div class="viz-kv"><b>${esc(n)}</b><span>${esc(v)}</span></div>`).join("")}</div>` : ""}
+      <div class="viz-out${c.error ? " err" : ""}"><span>${c.error ? "Ошибка" : "Вывод"}</span><pre>${esc([c.out, c.error].filter(Boolean).join("\n") || "(ничего не напечатано)")}</pre></div>
+      ${c.note ? `<div class="viz-note">${inline(c.note)}</div>` : ""}`;
+    box.querySelectorAll("[data-k]").forEach((b) => (b.onclick = () => { k = Number(b.dataset.k); show(); }));
+  };
+  show();
+}
+
+// ---------- включение по элементам ----------
+// {"type": "comp", "presets": [{"label", "var", "items", "expr", "cond", "name", "rows": [{"item", "ok", "val"}], "result", "code"}]}
+
+function compViz(box, spec) {
+  let p = 0;
+  const build = () => {
+    const pr = spec.presets[p];
+    const states = [{ i: -1, note: `Python берёт элементы \`${pr.name || "items"}\` по одному. Нажимай «Шаг».` }];
+    pr.rows.forEach((r, i) => states.push({ i, note: pr.cond
+      ? (r.ok ? `\`${pr.var} = ${r.item}\`: условие \`${pr.cond}\` истинно → в результат идёт \`${pr.expr}\` = **${r.val}**.`
+              : `\`${pr.var} = ${r.item}\`: условие \`${pr.cond}\` ложно → элемент **пропускаем**.`)
+      : `\`${pr.var} = ${r.item}\` → \`${pr.expr}\` = **${r.val}** — в результат.` }));
+    states.push({ i: pr.rows.length, note: `Готово: \`${pr.code}\` → \`${pr.result}\`. Исходный список не изменился.` });
+    stepper(box, {
+      title: spec.title,
+      states,
+      extra: spec.presets.length > 1 ? `<div class="viz-sb-quick viz-cp-presets">${spec.presets.map((x, i) => `<button class="viz-chip${i === p ? " on" : ""}" data-p="${i}">${esc(x.label)}</button>`).join("")}</div>` : "",
+      render(stage, st) {
+        const done = pr.rows.slice(0, st.i + 1).filter((r) => r.ok).map((r) => r.val);
+        stage.innerHTML = `
+          <div class="viz-cp-code"><code><span class="e">${esc(pr.expr)}</span> <span class="k">for</span> ${esc(pr.var)} <span class="k">in</span> ${esc(pr.name || "items")}${pr.cond ? ` <span class="k">if</span> <span class="c">${esc(pr.cond)}</span>` : ""}</code></div>
+          <div class="viz-cp-src"><span>${esc(pr.name || "items")} =</span> ${esc(pr.items)}</div>
+          <div class="viz-cp-rows">${pr.rows.map((r, i) => `<div class="viz-cp-row${i === st.i ? " cur" : ""}${i <= st.i ? " seen" : ""}${i <= st.i && !r.ok ? " skip" : ""}">
+            <code>${esc(pr.var)} = ${esc(r.item)}</code>
+            ${pr.cond ? `<span class="viz-cp-cond">${i <= st.i ? (r.ok ? "✓ условие" : "✗ мимо") : ""}</span>` : ""}
+            <b>${i <= st.i && r.ok ? `→ ${esc(r.val)}` : ""}</b></div>`).join("")}</div>
+          <div class="viz-out"><span>Результат</span><pre>[${esc(done.join(", "))}]</pre></div>`;
+      },
+    });
+    toTop(box, ".viz-cp-presets");
+    box.querySelectorAll(".viz-cp-presets [data-p]").forEach((b) => (b.onclick = () => { p = Number(b.dataset.p); build(); }));
+  };
+  build();
+}
+
+// ---------- ключ сортировки ----------
+// {"type": "sortkey", "items": "…", "items_repr": [...], "keys": [{"label", "key", "vals": [...], "order": [...]}]}
+
+function sortkeyViz(box, spec) {
+  let k = spec.start || 0, rev = false;
+  const show = () => {
+    const key = spec.keys[k];
+    const order = rev ? [...key.order].reverse() : key.order;
+    const call = `sorted(${spec.name || "items"}${key.key ? `, key=lambda x: ${key.key}` : ""}${rev ? ", reverse=True" : ""})`;
+    box.innerHTML = `${vizHead(spec)}
+      <div class="viz-cp-src"><span>${esc(spec.name || "items")} =</span> ${esc(spec.items)}</div>
+      <div class="viz-sb-quick">${spec.keys.map((x, i) => `<button class="viz-chip${i === k ? " on" : ""}" data-k="${i}">${esc(x.label)}</button>`).join("")}</div>
+      <label class="viz-sch-opt"><input type="checkbox" class="viz-sk-rev"${rev ? " checked" : ""}> <code>reverse=True</code> — по убыванию</label>
+      <pre class="viz-code flat wrap"><span class="ln">${highlight(call)}</span></pre>
+      <div class="viz-sk-rows">${order.map((i, pos) => `<div class="viz-sk-row"><i>${pos + 1}</i><code>${esc(spec.items_repr[i])}</code>${key.key ? `<span>ключ: <b>${esc(key.vals[i])}</b></span>` : ""}</div>`).join("")}</div>
+      <div class="viz-note">${inline(key.note || (key.key ? "Python сравнивает не сами элементы, а **ключи** справа — элементы при этом не меняются. При равных ключах порядок как в исходном списке (сортировка стабильная)." : "Без `key` элементы сравниваются сами по себе: строки — по алфавиту, и заглавные буквы идут раньше строчных."))}</div>`;
+    box.querySelectorAll("[data-k]").forEach((b) => (b.onclick = () => { k = Number(b.dataset.k); show(); }));
+    box.querySelector(".viz-sk-rev").onchange = (e) => { rev = e.target.checked; show(); };
+  };
+  show();
+}
+
+// ---------- множества: круги Эйлера ----------
+// {"type": "venn", "a": "1, 2, 3, 4", "b": "3, 4, 5", "names": ["A", "B"]}
+
+function vennViz(box, spec) {
+  const [na, nb] = spec.names || ["A", "B"];
+  let op = spec.op || "|";
+  const ops = { "|": ["объединение", "всё из обоих"], "&": ["пересечение", "только общие"], "-": ["разность", `есть в ${na}, нет в ${nb}`], "^": ["симметричная разность", "есть только в одном"] };
+  box.innerHTML = `${vizHead(spec)}
+    <div class="viz-vn-in"><label><b>${esc(na)} =</b><input class="viz-sb-input" data-s="a" value="${esc(spec.a)}"></label>
+      <label><b>${esc(nb)} =</b><input class="viz-sb-input" data-s="b" value="${esc(spec.b)}"></label></div>
+    <div class="viz-sb-quick">${Object.entries(ops).map(([o, [t]]) => `<button class="viz-chip" data-o="${esc(o)}">${esc(na)} ${esc(o)} ${esc(nb)} · ${t}</button>`).join("")}</div>
+    <div class="viz-vn-stage"></div>
+    <div class="viz-note"></div>`;
+  const parse = (s) => [...new Set(s.split(",").map((x) => x.trim()).filter(Boolean))];
+  const show = () => {
+    const A = parse(box.querySelector('[data-s="a"]').value), B = parse(box.querySelector('[data-s="b"]').value);
+    const onlyA = A.filter((x) => !B.includes(x)), both = A.filter((x) => B.includes(x)), onlyB = B.filter((x) => !A.includes(x));
+    const take = { "|": [1, 1, 1], "&": [0, 1, 0], "-": [1, 0, 0], "^": [1, 0, 1] }[op];
+    const result = [...(take[0] ? onlyA : []), ...(take[1] ? both : []), ...(take[2] ? onlyB : [])];
+    const zone = (cls, title, items, on) => `<div class="viz-vn-zone ${cls}${on ? " on" : ""}"><span>${title}</span><div>${items.map((x) => `<i>${esc(x)}</i>`).join("") || "<em>—</em>"}</div></div>`;
+    box.querySelectorAll("[data-o]").forEach((b) => b.classList.toggle("on", b.dataset.o === op));
+    const fmt = (xs) => (xs.length ? `{${xs.join(", ")}}` : "set()");
+    box.querySelector(".viz-vn-stage").innerHTML = `
+      <div class="viz-vn">${zone("a", `только ${esc(na)}`, onlyA, take[0])}${zone("ab", `${esc(na)} и ${esc(nb)}`, both, take[1])}${zone("b", `только ${esc(nb)}`, onlyB, take[2])}</div>
+      <div class="viz-out"><span>${esc(na)} ${esc(op)} ${esc(nb)}</span><pre>${esc(fmt(result))}</pre></div>`;
+    box.querySelector(".viz-note").innerHTML = inline(`**${ops[op][0]}** — ${ops[op][1]}. Подсвечены части, которые попадут в результат. Меняй элементы в полях вверху (через запятую), повторы множество само уберёт.`);
+  };
+  box.querySelectorAll("[data-o]").forEach((b) => (b.onclick = () => { op = b.dataset.o; show(); }));
+  box.querySelectorAll("[data-s]").forEach((i) => (i.oninput = show));
+  show();
+}
+
+// ---------- поиск имени по уровням (LEGB, атрибуты классов, except) ----------
+// {"type": "lookup", "levels": [{"name": "L — локальная", "sub": "inner()", "names": {"x": "'local'"}}, …], "queries": ["x", "len"], "miss": "NameError: name '{q}' is not defined"}
+
+function lookupViz(box, spec) {
+  let q = spec.queries[0], timers = [];
+  const show = () => {
+    timers.forEach(clearTimeout);
+    timers = [];
+    const found = spec.levels.findIndex((l) => q in l.names);
+    box.innerHTML = `${vizHead(spec)}
+      ${spec.code ? `<pre class="viz-code flat">${spec.code.split("\n").map((l) => `<span class="ln">${highlight(l) || " "}</span>`).join("")}</pre>` : ""}
+      <div class="viz-sb-head">${esc(spec.ask || "Какое имя ищем?")}</div>
+      <div class="viz-sb-quick">${spec.queries.map((x) => `<button class="viz-chip${x === q ? " on" : ""}" data-q="${esc(x)}">${esc(x)}</button>`).join("")}</div>
+      <div class="viz-lk">${spec.levels.map((l, i) => `<div class="viz-lk-lv" data-i="${i}"><div class="viz-lk-h"><b>${esc(l.name)}</b>${l.sub ? `<small>${esc(l.sub)}</small>` : ""}<span class="viz-lk-st"></span></div>
+        <div class="viz-lk-names">${Object.entries(l.names).map(([n, v]) => `<code class="${n === q ? "hit" : ""}">${esc(n)}${v ? ` = ${esc(v)}` : ""}</code>`).join("") || "<em>пусто</em>"}</div></div>`).join("")}</div>
+      <div class="viz-out"><span>Результат</span><pre></pre></div>
+      <div class="viz-note"></div>`;
+    const res = box.querySelector(".viz-out pre"), note = box.querySelector(".viz-note");
+    res.textContent = "ищем…";
+    const lastI = found < 0 ? spec.levels.length - 1 : found;
+    for (let i = 0; i <= lastI; i++) timers.push(setTimeout(() => {
+      const lv = box.querySelector(`.viz-lk-lv[data-i="${i}"]`);
+      const hit = i === found;
+      lv.classList.add(hit ? "found" : "miss");
+      lv.querySelector(".viz-lk-st").textContent = hit ? "✓ нашли" : "✗ нет";
+      if (i === lastI) {
+        res.textContent = found < 0 ? (spec.miss || "NameError: name '{q}' is not defined").replace("{q}", q) : `${q} = ${spec.levels[found].names[q]}`;
+        box.querySelector(".viz-out").classList.toggle("err", found < 0);
+        note.innerHTML = inline(found < 0 ? `\`${q}\` нет ни на одном уровне — ошибка.` : `Поиск идёт сверху вниз и **останавливается на первом** уровне, где имя есть: \`${spec.levels[found].name}\`.${found > 0 ? " Уровни ниже уже не проверяются." : ""}`);
+      }
+    }, 350 * (i + 1)));
+  };
+  box.addEventListener("click", (e) => { const b = e.target.closest("[data-q]"); if (b) { q = b.dataset.q; show(); } });
+  show();
+}
+
+// ---------- strftime: коды формата даты ----------
+// {"type": "strftime", "date": "2026-03-07T09:05:03", "format": "%d.%m.%Y", "presets": [...]}
+
+const SF_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const SF_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const SF_CODES = {
+  Y: ["год, 4 цифры", (d) => String(d.getFullYear())], y: ["год, 2 цифры", (d) => String(d.getFullYear()).slice(-2)],
+  m: ["месяц 01–12", (d) => p2(d.getMonth() + 1)], d: ["день 01–31", (d) => p2(d.getDate())],
+  H: ["часы 00–23", (d) => p2(d.getHours())], I: ["часы 01–12", (d) => p2(d.getHours() % 12 || 12)], M: ["минуты", (d) => p2(d.getMinutes())],
+  S: ["секунды", (d) => p2(d.getSeconds())], p: ["AM / PM", (d) => (d.getHours() < 12 ? "AM" : "PM")],
+  A: ["день недели", (d) => SF_DAYS[d.getDay()]], a: ["день недели коротко", (d) => SF_DAYS[d.getDay()].slice(0, 3)],
+  B: ["месяц словом", (d) => SF_MONTHS[d.getMonth()]], b: ["месяц коротко", (d) => SF_MONTHS[d.getMonth()].slice(0, 3)],
+  j: ["день года 001–366", (d) => String(Math.floor((d - new Date(d.getFullYear(), 0, 1)) / 864e5) + 1).padStart(3, "0")],
+  w: ["день недели числом, 0 = воскресенье", (d) => String(d.getDay())], f: ["микросекунды", () => "000000"], "%": ["сам знак %", () => "%"],
+};
+const p2 = (n) => String(n).padStart(2, "0");
+
+function strftimeViz(box, spec) {
+  const [ds, ts = "00:00:00"] = String(spec.date || "2026-03-07T09:05:03").split("T");
+  const [Y, Mo, D] = ds.split("-").map(Number), [h, mi, s] = ts.split(":").map(Number);
+  const date = new Date(Y, Mo - 1, D, h, mi, s);
+  const presets = spec.presets || ["%d.%m.%Y", "%Y-%m-%d %H:%M:%S", "%A, %d %B %Y", "%d.%m.%y %I:%M %p", "report_%Y%m%d_%H%M.txt", "%j"];
+  box.innerHTML = `${vizHead(spec)}
+    <div class="viz-cp-src"><span>dt =</span> datetime(${Y}, ${Mo}, ${D}, ${h}, ${mi}, ${s})</div>
+    <form class="viz-sb-form"><input class="viz-sb-input viz-sf-in" value="${esc(spec.format || presets[0])}" autocapitalize="off" autocomplete="off" spellcheck="false"></form>
+    <div class="viz-sb-quick">${presets.map((x) => `<button class="viz-chip" data-p="${esc(x)}">${esc(x)}</button>`).join("")}</div>
+    <div class="viz-out"><span>dt.strftime(…)</span><pre class="viz-sf-res"></pre></div>
+    <div class="viz-sf-codes"></div>`;
+  const input = box.querySelector(".viz-sf-in");
+  const show = () => {
+    const f = input.value;
+    const used = [], bad = [];
+    const res = f.replace(/%(.)/g, (m, c) => {
+      if (SF_CODES[c]) { if (!used.includes(c)) used.push(c); return SF_CODES[c][1](date); }
+      bad.push(m); return m;
+    });
+    box.querySelector(".viz-sf-res").textContent = `'${res}'`;
+    box.querySelector(".viz-sf-codes").innerHTML = (used.length ? used.map((c) => `<div><code>%${esc(c)}</code><span>${esc(SF_CODES[c][0])}</span><b>${esc(SF_CODES[c][1](date))}</b></div>`).join("") : `<div class="viz-empty">в формате нет кодов — текст напечатается как есть</div>`)
+      + `<div class="viz-sf-hint">${inline(`Коды начинаются с \`%\`, всё остальное — обычный текст. Имена дней и месяцев — по-английски (так по умолчанию в Python).${bad.length ? ` Коды ${bad.map((b) => `\`${b}\``).join(", ")} здесь не разобраны.` : ""}`)}</div>`;
+  };
+  input.oninput = show;
+  box.querySelector(".viz-sb-form").onsubmit = (e) => e.preventDefault();
+  box.querySelectorAll("[data-p]").forEach((b) => (b.onclick = () => { input.value = b.dataset.p; show(); }));
+  show();
+}
+
+// ---------- ожидания в UI-тестах ----------
+// {"type": "waits", "appear": 3}
+
+function waitsViz(box, spec) {
+  let t = spec.appear ?? 3;
+  const MAX = 12;
+  const ways = [
+    { code: "time.sleep(2); page.click('#pay')", kind: "sleep", wait: 2 },
+    { code: "time.sleep(10); page.click('#pay')", kind: "sleep", wait: 10 },
+    { code: "page.click('#pay')  # автоожидание до 30 с", kind: "auto", wait: 30 },
+    { code: "expect(page.locator('#pay')).to_be_visible()  # до 5 с", kind: "auto", wait: 5 },
+  ];
+  box.innerHTML = `${vizHead(spec)}
+    <label class="viz-slider viz-wt-sl"><span>кнопка</span><input type="range" min="0" max="${MAX}" step="0.5" value="${t}"><b></b></label>
+    <div class="viz-wt-rows"></div>
+    <div class="viz-note"></div>`;
+  const show = () => {
+    box.querySelector(".viz-wt-sl b").textContent = `${t} с`;
+    const pct = (s) => `${Math.min(100, (s / MAX) * 100)}%`;
+    const rows = ways.map((w) => {
+      const ok = t <= w.wait;
+      const end = w.kind === "sleep" ? w.wait : Math.min(t, w.wait);
+      const waste = w.kind === "sleep" && ok ? w.wait - t : 0;
+      const verdict = ok ? (waste >= 1 ? `✓ прошёл, но потерял ${waste} с` : `✓ прошёл за ${end} с`) : (w.kind === "sleep" ? "✗ упал: кнопки ещё нет" : `✗ упал по таймауту через ${w.wait} с`);
+      return `<div class="viz-wt-row ${ok ? (waste >= 1 ? "slow" : "ok") : "bad"}"><code>${esc(w.code)}</code>
+        <div class="viz-wt-bar"><div class="viz-wt-fill" style="width:${pct(end)}"></div><div class="viz-wt-mark" style="left:${pct(t)}" title="кнопка появилась"></div></div>
+        <b>${verdict}</b></div>`;
+    });
+    box.querySelector(".viz-wt-rows").innerHTML = rows.join("") + `<div class="viz-wt-axis"><span>0 с</span><span>кнопка появляется через ${t} с ▲</span><span>${MAX} с</span></div>`;
+    box.querySelector(".viz-note").innerHTML = inline("Двигай ползунок: так меняется скорость сайта (сеть, нагрузка). `sleep` ждёт **фиксированное** время — то не хватает, то тратит лишнее. Автоожидание Playwright проверяет элемент снова и снова и действует **сразу**, как только он готов.");
+  };
+  box.querySelector("input[type=range]").oninput = (e) => { t = Number(e.target.value); show(); };
+  show();
+}
+
+// ---------- версии в requirements.txt ----------
+// {"type": "versions", "package": "requests", "available": ["2.28.2", …], "spec": "~=2.31.0", "presets": [...]}
+
+function verParts(v) { return v.split(".").map(Number); }
+function verCmp(a, b) {
+  const x = verParts(a), y = verParts(b);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d; }
+  return 0;
+}
+function verMatch(v, clause) {
+  const m = clause.trim().match(/^(==|!=|>=|<=|~=|>|<)\s*([\d.*]+)$/);
+  if (!m) throw new Error(clause);
+  const [, op, w] = m;
+  if (w.includes("*")) {
+    const pre = w.replace(/\.\*$/, "").split(".");
+    const same = pre.every((p, i) => verParts(v)[i] === Number(p));
+    return op === "!=" ? !same : same;
+  }
+  const c = verCmp(v, w);
+  if (op === "~=") {
+    const parts = w.split(".");
+    const prefix = parts.slice(0, -1);
+    return c >= 0 && prefix.every((p, i) => verParts(v)[i] === Number(p));
+  }
+  return { "==": c === 0, "!=": c !== 0, ">=": c >= 0, "<=": c <= 0, ">": c > 0, "<": c < 0 }[op];
+}
+
+function versionsViz(box, spec) {
+  const avail = spec.available;
+  const presets = spec.presets || [];
+  box.innerHTML = `${vizHead(spec)}
+    <div class="viz-sb-head">Строка в requirements.txt:</div>
+    <form class="viz-sb-form"><span class="viz-sel-cmd">${esc(spec.package)}</span><input class="viz-sb-input viz-vr-in" value="${esc(spec.spec || "")}" autocapitalize="off" autocomplete="off" spellcheck="false"></form>
+    <div class="viz-sb-quick">${presets.map((x) => `<button class="viz-chip" data-p="${esc(x)}">${esc(x || "(без версии)")}</button>`).join("")}</div>
+    <div class="viz-vr-list"></div>
+    <div class="viz-note"></div>`;
+  const input = box.querySelector(".viz-vr-in");
+  const meaning = { "==": "ровно эта версия", "!=": "любая, кроме этой", ">=": "эта или новее", "<=": "эта или старее", ">": "строго новее", "<": "строго старее", "~=": "совместимая: последняя цифра может расти" };
+  const show = () => {
+    const raw = input.value.trim();
+    const clauses = raw ? raw.split(",") : [];
+    let ok;
+    try { ok = avail.map((v) => clauses.every((c) => verMatch(v, c))); } catch {
+      box.querySelector(".viz-vr-list").innerHTML = "";
+      box.querySelector(".viz-note").innerHTML = inline("Не понял условие. Примеры: `==2.31.0`, `>=2.28,<3`, `~=2.31.0`.");
+      return;
+    }
+    const pick = avail.filter((_, i) => ok[i]).sort(verCmp).at(-1);
+    box.querySelector(".viz-vr-list").innerHTML = avail.map((v, i) => `<div class="viz-vr-v${ok[i] ? " ok" : ""}${v === pick ? " pick" : ""}"><code>${esc(v)}</code><span>${v === pick ? "← pip поставит эту" : ok[i] ? "подходит" : "не подходит"}</span></div>`).join("");
+    const expl = clauses.map((c) => { const m = c.trim().match(/^(==|!=|>=|<=|~=|>|<)/); return m ? `\`${c.trim()}\` — ${meaning[m[1]]}` : ""; }).filter(Boolean).join("; ");
+    box.querySelector(".viz-note").innerHTML = inline((raw ? expl + ". " : "Версия не указана — подходит любая. ")
+      + (pick ? `Из подходящих pip берёт **самую новую**: ${pick}.` : "Ни одна версия не подходит — pip выдаст ошибку `No matching distribution`."));
+  };
+  input.oninput = show;
+  box.querySelector(".viz-sb-form").onsubmit = (e) => e.preventDefault();
+  box.querySelectorAll("[data-p]").forEach((b) => (b.onclick = () => { input.value = b.dataset.p; show(); }));
+  show();
+}
+
 const KINDS = {
   memory: memoryViz, git: gitViz, slice: sliceViz, fs: fsViz, perm: permViz,
   fixtures: fixturesViz, pipeline: pipelineViz, http: httpViz, trace: traceViz,
@@ -2099,4 +2388,6 @@ const KINDS = {
   schema: schemaViz, matrix: matrixViz, trigger: triggerViz, cron: cronViz, itertools: itertoolsViz,
   buildcache: buildcacheViz, container: containerViz, dockerhost: dockerhostViz, promote: promoteViz,
   vmstack: vmstackViz, imagechain: imagechainViz,
+  paths: pathsViz, comp: compViz, sortkey: sortkeyViz, venn: vennViz, lookup: lookupViz,
+  strftime: strftimeViz, waits: waitsViz, versions: versionsViz,
 };

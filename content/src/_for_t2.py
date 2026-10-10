@@ -331,6 +331,10 @@ else:
 
 Запомнить: `else` у цикла — это «**если не было break**». Название неудачное, некоторые мысленно читают его как `nobreak`.
 
+```viz
+{"type": "paths", "auto": true, "title": "for … else: когда сработает else", "ask": "Кого ищем?", "code": "for name in users:\n    if name == target:\n        print(\"нашли\", name)\n        break\nelse:\n    print(\"нет такого пользователя\")", "cases": [{"label": "target = 'boris'", "setup": "users = ['anna', 'boris', 'vera']\ntarget = 'boris'", "note": "Нашли — `break` прервал цикл, и `else` **не выполнился**."}, {"label": "target = 'oleg'", "setup": "users = ['anna', 'boris', 'vera']\ntarget = 'oleg'", "note": "Цикл дошёл до конца без `break` — выполнился `else`."}, {"label": "users = []", "setup": "users = []\ntarget = 'anna'", "note": "Пустой список: тело ни разу не выполнилось, `break` не было — `else` сработал."}]}
+```
+
 ## else выполняется и без break в коде
 
 ```python

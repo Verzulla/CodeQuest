@@ -300,6 +300,10 @@ work()
 - `work()` — на самом деле вызывает `wrapper()`.
 - Вывод: `до вызова`, `работаю`, `после вызова`.
 
+```viz
+{"type": "trace", "auto": true, "title": "Декоратор по шагам: кто кого вызывает", "code": "def log(func):\n    def wrapper(*args):\n        print(\"вызов\", func.__name__, args)\n        result = func(*args)\n        print(\"результат\", result)\n        return result\n    return wrapper\n\n@log\ndef add(a, b):\n    return a + b\n\nprint(add(2, 3))", "notes": {"9": "`@log` сработал **при определении**: `add = log(add)`. Теперь имя `add` — это `wrapper`.", "13": "Вызываем `add(2, 3)` — на самом деле работает `wrapper`.", "4": "`wrapper` вызывает исходную функцию, а без `return result` ответ бы потерялся."}}
+```
+
 ## Не потеряй результат
 
 ```python

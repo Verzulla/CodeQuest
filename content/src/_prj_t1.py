@@ -39,6 +39,10 @@ $ .venv/bin/pip install requests
 
 - Можно вызывать программы окружения по полному пути — удобно в скриптах и CI.
 
+```viz
+{"type": "paths", "title": "Куда поставится пакет: venv включён или нет", "code": "python -m venv .venv\nsource .venv/bin/activate\nwhich python\npip install requests", "cases": [{"label": "venv не активирован", "lines": [3, 4], "out": "$ which python\n/usr/bin/python3\n$ pip install requests\nerror: externally-managed-environment", "note": "Без venv команды идут в **системный** Python. Современные Linux и macOS запрещают ставить туда пакеты — и правильно: можно сломать систему."}, {"label": "source .venv/bin/activate", "lines": [2, 3, 4], "out": "(.venv) $ which python\n/home/anna/shop-tests/.venv/bin/python\n(.venv) $ pip install requests\nSuccessfully installed requests", "note": "Активация подставляет `.venv/bin` первым в PATH: `python` и `pip` теперь из venv, пакеты ставятся в `.venv`."}, {"label": ".venv/bin/python без активации", "lines": [], "out": "$ .venv/bin/python -m pip install requests\nSuccessfully installed requests", "note": "Активация не обязательна: можно звать Python из venv по пути. Так делают в скриптах и CI."}]}
+```
+
 ## Правила
 
 - Папку `.venv` **не коммитят** в git (она в `.gitignore`) — окружение пересоздают из списка зависимостей.
@@ -121,6 +125,10 @@ $ pip uninstall -y selenium
 - `pip list` — все установленные пакеты; `pip freeze` — то же в формате `имя==версия`.
 - `pip show` — версия, зависимости, путь установки.
 - `pip uninstall -y` — удалить без вопроса. Зависимости пакета при этом **не** удаляются.
+
+```viz
+{"type": "versions", "title": "Какую версию поставит pip", "package": "pytest", "available": ["7.4.4", "8.0.2", "8.3.5", "8.4.1", "9.0.1"], "spec": "~=8.3.0", "presets": ["==8.3.5", ">=8.0", ">=8,<9", "~=8.3.0", "~=8.3", "!=8.4.1", ""]}
+```
 
 ## Версии
 

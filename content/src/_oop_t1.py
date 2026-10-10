@@ -49,6 +49,10 @@ print(bob.name)
 - `bob.name` — читаем атрибут через точку.
 - Вывод: `Рекс: Гав!`, `Бобик`.
 
+```viz
+{"type": "memory", "auto": true, "title": "Два объекта одного класса в памяти", "code": "class Dog:\n    def __init__(self, name):\n        self.name = name\n        self.tricks = []\n\nrex = Dog(\"Рекс\")\nbim = Dog(\"Бим\")\nrex.tricks.append(\"сидеть\")\nprint(rex.tricks, bim.tricks)", "notes": {"3": "Внутри `__init__` имя `self` — это создаваемый объект.", "6": "`rex` — объект с собственными атрибутами.", "8": "У каждого объекта свой список `tricks` — меняем у Рекса, Бим не задет."}}
+```
+
 ## У каждого объекта — свои данные
 
 ```python
@@ -519,6 +523,10 @@ print(Test.count, a.count, a.name)
 - `Test.count += 1` — меняем атрибут класса через имя класса.
 - `a.count` — у объекта своего `count` нет, поэтому Python ищет дальше — в классе. Порядок поиска: объект → класс.
 - Вывод: `2 2 login`.
+
+```viz
+{"type": "lookup", "title": "Где Python ищет rex.атрибут", "code": "class Dog:\n    species = \"собака\"\n    def bark(self): ...\n\nrex = Dog()\nrex.name = \"Рекс\"", "ask": "Какой атрибут читаем через rex.…?", "queries": ["name", "species", "bark", "color"], "miss": "AttributeError: 'Dog' object has no attribute '{q}'", "levels": [{"name": "объект rex", "sub": "rex.__dict__", "names": {"name": "'Рекс'"}}, {"name": "класс Dog", "sub": "общее для всех собак", "names": {"species": "'собака'", "bark": "метод"}}, {"name": "object", "sub": "родитель всех классов", "names": {"__str__": "метод", "__eq__": "метод"}}]}
+```
 
 ## Ловушка: присваивание через self
 

@@ -366,6 +366,10 @@ print(3 % 10)
 
 Эти два оператора всегда связаны правилом: **`a == (a // b) * b + a % b`**. Для 17 и 5: 3 × 5 + 2 = 17.
 
+```viz
+{"type": "paths", "auto": true, "title": "Секунды → минуты и секунды", "ask": "Сколько всего секунд?", "show": ["minutes", "seconds"], "code": "minutes = total // 60\nseconds = total % 60\nprint(minutes, \"мин\", seconds, \"сек\")", "cases": [{"label": "total = 125", "setup": "total = 125", "note": "`125 // 60` = 2 полных минуты, `125 % 60` = 5 секунд остатка."}, {"label": "total = 59", "setup": "total = 59", "note": "Меньше минуты: целая часть 0, остаток — все 59 секунд."}, {"label": "total = 3600", "setup": "total = 3600", "note": "Ровно 60 минут: остаток 0."}]}
+```
+
 ## divmod — сразу и частное, и остаток
 
 ```python

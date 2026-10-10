@@ -207,6 +207,10 @@ print(check("E", True) and check("F", False))
 - `C or D`: `check("C")` вернула `True` → `D` не вызывается. `проверяю C`, `True`.
 - `E and F`: `E` истинна, ответа ещё нет — вызывается и `F`. `проверяю E`, `проверяю F`, `False`.
 
+```viz
+{"type": "paths", "auto": true, "title": "Короткое замыкание: вторая проверка нужна не всегда", "cases": [{"label": "False and …", "code": "def check(name, result):\n    print(\"проверяю\", name)\n    return result\n\nif check(\"A\", False) and check(\"B\", True):\n    print(\"оба истинны\")", "note": "`and`: первое ложно — значит, всё ложно. `B` **не вызывается**."}, {"label": "True and …", "code": "def check(name, result):\n    print(\"проверяю\", name)\n    return result\n\nif check(\"A\", True) and check(\"B\", True):\n    print(\"оба истинны\")", "note": "Первое истинно — ответ зависит от второго, проверяем `B`."}, {"label": "True or …", "code": "def check(name, result):\n    print(\"проверяю\", name)\n    return result\n\nif check(\"A\", True) or check(\"B\", False):\n    print(\"хотя бы одно\")", "note": "`or`: первое истинно — значит, всё истинно. `B` не нужен."}, {"label": "False or …", "code": "def check(name, result):\n    print(\"проверяю\", name)\n    return result\n\nif check(\"A\", False) or check(\"B\", True):\n    print(\"хотя бы одно\")", "note": "Первое ложно — надежда только на второе, проверяем `B`."}]}
+```
+
 ## Защитные проверки (guard)
 
 Короткое замыкание позволяет безопасно проверять вещи, которые без проверки вызвали бы ошибку:
@@ -381,6 +385,10 @@ for v in [0, "", "0", [], [0], None]:
 - `for v in [...]:` — **цикл**: по очереди берём каждый элемент списка в переменную `v` и выполняем строку с отступом (тема «Цикл for»).
 - `repr(v)` — показывает значение «как в коде», с кавычками у строк, чтобы `""` и `"0"` было видно.
 - Вывод: `0 False`, `'' False`, `'0' True`, `[] False`, `[0] True`, `None False`.
+
+```viz
+{"type": "paths", "auto": true, "title": "Истина или ложь? Перебери значения", "ask": "Что лежит в value?", "code": "if value:\n    print(\"истина\")\nelse:\n    print(\"ложь\")", "cases": [{"label": "0", "setup": "value = 0", "note": "Ноль — ложь."}, {"label": "42", "setup": "value = 42", "note": "Любое ненулевое число — истина."}, {"label": "''", "setup": "value = ''", "note": "Пустая строка — ложь."}, {"label": "'0'", "setup": "value = '0'", "note": "Строка `'0'` **не пустая** — значит, истина. Частая ловушка!"}, {"label": "' '", "setup": "value = ' '", "note": "Пробел — тоже символ: истина."}, {"label": "[]", "setup": "value = []", "note": "Пустой список — ложь."}, {"label": "[0]", "setup": "value = [0]", "note": "Список с одним элементом — истина, даже если элемент — ноль."}, {"label": "None", "setup": "value = None", "note": "`None` — ложь."}, {"label": "0.0", "setup": "value = 0.0", "note": "Дробный ноль — тоже ложь."}]}
+```
 
 ## Значение прямо в if
 

@@ -374,6 +374,10 @@ print(cfg.get("retries", 3), cfg.get("proxy", "нет"))
 - **Важно:** если ключ есть, `get` возвращает его значение — даже `0` или `None`. Умолчание подставляется, только когда ключа **нет**.
 - Вывод: `chrome None 30`, `0 None`.
 
+```viz
+{"type": "paths", "auto": true, "title": "[ ] или get: что вернётся", "cases": [{"label": "user[\"name\"]", "code": "user = {\"name\": \"Аня\", \"city\": None}\nprint(user[\"name\"])"}, {"label": "user[\"age\"]", "code": "user = {\"name\": \"Аня\", \"city\": None}\nprint(user[\"age\"])", "note": "Ключа нет — `KeyError`."}, {"label": "user.get(\"age\")", "code": "user = {\"name\": \"Аня\", \"city\": None}\nprint(user.get(\"age\"))", "note": "`get` не падает: ключа нет — `None`."}, {"label": "user.get(\"age\", 18)", "code": "user = {\"name\": \"Аня\", \"city\": None}\nprint(user.get(\"age\", 18))", "note": "Значение по умолчанию вместо `None`."}, {"label": "user.get(\"city\", \"Москва\")", "code": "user = {\"name\": \"Аня\", \"city\": None}\nprint(user.get(\"city\", \"Москва\"))", "note": "Ловушка: ключ **есть**, его значение `None` — умолчание не подставляется."}]}
+```
+
 ## Ловушка: None как значение
 
 ```python

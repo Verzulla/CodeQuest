@@ -233,6 +233,10 @@ print(work())
 - Возврат — в обратном порядке: B выходит первой, A — последней.
 - Вывод: `вход A`, `вход B`, `работа`, `выход B`, `выход A`, `1`.
 
+```viz
+{"type": "trace", "auto": true, "title": "Два декоратора — матрёшка", "code": "def bold(func):\n    def wrapper():\n        return \"<b>\" + func() + \"</b>\"\n    return wrapper\n\ndef italic(func):\n    def wrapper():\n        return \"<i>\" + func() + \"</i>\"\n    return wrapper\n\n@bold\n@italic\ndef hello():\n    return \"привет\"\n\nprint(hello())", "notes": {"11": "Применяются снизу вверх: `hello = bold(italic(hello))`.", "7": "Сначала применяется **нижний** декоратор: `italic` получил `hello` и вернул свою обёртку.", "2": "Потом `bold` получил обёртку от `italic` и обернул её ещё раз.", "16": "При вызове снаружи работает `bold`, внутри — `italic`: `<b><i>привет</i></b>`."}}
+```
+
 ## Порядок меняет результат
 
 ```python

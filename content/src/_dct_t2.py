@@ -266,6 +266,10 @@ print(counts)
 
 - `counts.get(ch, 0) + 1` — старое значение (или 0) плюс один. Вывод: `{'a': 2, 'b': 1, 'c': 1}`.
 
+```viz
+{"type": "trace", "auto": true, "title": "Подсчёт через get по шагам", "code": "words = [\"да\", \"нет\", \"да\", \"да\", \"нет\"]\ncounts = {}\nfor w in words:\n    counts[w] = counts.get(w, 0) + 1\nprint(counts)", "notes": {"4": "Слова ещё нет — `get` вернул 0, записали 1.", "4#3": "Слово уже есть — к старому числу прибавили 1."}}
+```
+
 ## Counter — готовый счётчик
 
 ```python

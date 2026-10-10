@@ -542,6 +542,10 @@ print(handle("start"), handle("exit"), handle("jump"))
 - если ничего не подошло и нет `case _`, не выполняется ничего — ошибки нет;
 - в блоке `case` может быть любой код, не только `return`.
 
+```viz
+{"type": "paths", "auto": true, "title": "match: какой case совпадёт?", "ask": "Какую команду ввели?", "code": "match command:\n    case \"start\":\n        print(\"запуск\")\n    case \"stop\" | \"exit\":\n        print(\"остановка\")\n    case _:\n        print(\"неизвестная команда:\", command)", "cases": [{"label": "'start'", "setup": "command = 'start'"}, {"label": "'exit'", "setup": "command = 'exit'", "note": "`|` — «или»: подходит и `stop`, и `exit`."}, {"label": "'jump'", "setup": "command = 'jump'", "note": "Ничего не совпало — сработал `case _` (как `else`)."}]}
+```
+
 ## Литералы
 
 **Литерал** — значение, записанное прямо в коде: число, строка, `None`, `True`, `False`.

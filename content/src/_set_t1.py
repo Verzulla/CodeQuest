@@ -251,6 +251,10 @@ print(found)
 
 - Для каждого числа проверяем, встречалось ли его «дополнение» до `target`. Вывод: `True` (8 + 1).
 
+```viz
+{"type": "trace", "auto": true, "title": "Приём seen: ищем повторы за один проход", "code": "ids = [3, 7, 3, 9, 7]\nseen = set()\ndups = []\nfor i in ids:\n    if i in seen:\n        dups.append(i)\n    seen.add(i)\nprint(dups)", "notes": {"6": "`3` уже встречалось — в `seen` проверка мгновенная.", "8": "Повторы: 3 и 7."}}
+```
+
 ## Что можно положить в множество
 
 ```python

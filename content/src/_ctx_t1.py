@@ -175,6 +175,10 @@ with Box("А") as a, Box("Б") as b:
 - Закрытие в **обратном** порядке: последний открытый закрывается первым. Так `Б`, который мог зависеть от `А`, закроется раньше.
 - Вывод: `открыл А`, `открыл Б`, `внутри А Б`, `закрыл Б`, `закрыл А`.
 
+```viz
+{"type": "trace", "auto": true, "title": "Два менеджера: вход слева направо, выход — наоборот", "code": "from contextlib import contextmanager\n\n@contextmanager\ndef step(name):\n    print(\"вход\", name)\n    yield\n    print(\"выход\", name)\n\nwith step(\"A\"), step(\"B\"):\n    print(\"работаем\")", "notes": {"10": "Оба открыты: сначала A, потом B.", "7#2": "Закрываются в обратном порядке: сначала B, потом A."}}
+```
+
 ## Если второй не открылся
 
 ```python
@@ -318,6 +322,10 @@ with Conn() as c:
 - В переменную после `as` попадает **то, что вернул `__enter__`** — не обязательно сам объект.
 - Чаще всего `__enter__` возвращает `self`, чтобы внутри блока пользоваться методами объекта.
 - Вывод: `соединение №1`.
+
+```viz
+{"type": "trace", "auto": true, "title": "with по шагам: __enter__ и __exit__", "code": "class Timer:\n    def __repr__(self):\n        return \"Timer()\"\n\n    def __enter__(self):\n        print(\"вход: запускаю секундомер\")\n        return \"секундомер\"\n\n    def __exit__(self, exc_type, exc, tb):\n        print(\"выход: ошибка =\", exc_type)\n        return False\n\nwith Timer() as t:\n    print(\"внутри with, t =\", t)\nprint(\"после with\")", "notes": {"6": "`with` вызвал `__enter__`.", "13": "То, что вернул `__enter__`, попало в `t`.", "10": "Блок закончился — `with` сам вызвал `__exit__`."}}
+```
 
 ## Полноценный пример
 

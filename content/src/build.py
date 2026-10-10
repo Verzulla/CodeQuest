@@ -20,7 +20,8 @@ OUT = SRC.parent
 
 VIZ_TYPES = {"memory", "git", "slice", "fs", "perm", "fixtures", "pipeline", "http", "trace",
              "pipe", "redirect", "select", "params", "json", "schema", "matrix", "trigger", "cron", "itertools",
-             "buildcache", "container", "dockerhost", "promote", "vmstack", "imagechain"}
+             "buildcache", "container", "dockerhost", "promote", "vmstack", "imagechain",
+             "paths", "comp", "sortkey", "venn", "lookup", "strftime", "waits", "versions"}
 VIZ_NEED_STEPS = {"memory", "git", "trace", "container"}   # остальные — песочницы без заранее заданных шагов
 
 
@@ -35,6 +36,16 @@ def check_viz(where: str, text: str) -> None:
             raise SystemExit(f"{where}: схема viz неизвестного типа {spec.get('type')!r}")
         if spec["type"] in VIZ_NEED_STEPS and not spec.get("steps"):
             raise SystemExit(f"{where}: в схеме viz нет шагов")
+
+
+def expand_viz(text: str) -> str:
+    """Схемы, которые считаются при сборке (auto, comp, sortkey), — выполнить и подставить результат."""
+    from content.src.vizcalc import expand
+
+    def sub(m):
+        spec = json.loads(m.group(1))
+        return "```viz\n" + json.dumps(expand(spec), ensure_ascii=False) + "\n```"
+    return re.sub(r"^```viz\n(.*?)\n```", sub, text or "", flags=re.S | re.M)
 
 
 def attach_theory(name: str, topic: dict) -> None:
@@ -58,9 +69,9 @@ def attach_theory(name: str, topic: dict) -> None:
             continue
         if "short" in item:
             lesson["theory"] = item["short"]
-        lesson["theory_full"] = item["full"]
+        lesson["theory_full"] = expand_viz(item["full"])
         lesson["quiz"] = item.get("quiz", [])
-        check_viz(f"theory_{name}.py: {slug}", item["full"] + "\n" + item.get("short", ""))
+        check_viz(f"theory_{name}.py: {slug}", lesson["theory_full"] + "\n" + item.get("short", ""))
 
 
 def attach_explain(name: str, topic: dict) -> None:

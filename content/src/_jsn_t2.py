@@ -25,6 +25,10 @@ print(len(users), users[1]["name"], resp["total"])
 - Промежуточное значение удобно сохранить в переменную (`users`) — короче и понятнее.
 - Вывод: `2 Боря 2`.
 
+```viz
+{"type": "json", "title": "Нажми на поле — увидишь путь в Python", "var": "data", "select": ["order", "items", 0, "price"], "data": {"order": {"id": 501, "items": [{"title": "Книга", "price": 450}, {"title": "Ручка", "price": 30}], "coupon": null}, "status": "paid"}}
+```
+
 ## null и отсутствующие ключи
 
 ```python

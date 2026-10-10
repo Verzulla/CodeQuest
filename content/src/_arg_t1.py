@@ -247,6 +247,10 @@ print(add3(10, *[20, 30]))
 
 Работает с любой коллекцией: список, кортеж, строка, `range`, множество.
 
+```viz
+{"type": "paths", "auto": true, "title": "Звёздочка при вызове раскладывает список", "cases": [{"label": "print(nums)", "code": "nums = [1, 2, 3]\nprint(nums)", "note": "Передан **один** аргумент — список."}, {"label": "print(*nums)", "code": "nums = [1, 2, 3]\nprint(*nums)", "note": "То же, что `print(1, 2, 3)`: три аргумента через пробел."}, {"label": "print(*nums, sep=' + ')", "code": "nums = [1, 2, 3]\nprint(*nums, sep=\" + \")"}, {"label": "print(*'abc')", "code": "print(*\"abc\")", "note": "Строка — тоже коллекция: разложилась на символы."}]}
+```
+
 ## print и звёздочка
 
 ```python

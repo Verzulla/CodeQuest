@@ -150,6 +150,10 @@ print(a, c, a is b, a is c)
 - `dict(a)` (или `a.copy()`) — новый словарь с теми же парами.
 - Вывод: `{'x': 1, 'y': 2} {'x': 1} True False`.
 
+```viz
+{"type": "memory", "auto": true, "title": "copy() копирует только верхний уровень", "code": "config = {\"url\": \"test\", \"headers\": {\"token\": \"a1\"}}\nsame = config\ncopy = config.copy()\ncopy[\"url\"] = \"prod\"\ncopy[\"headers\"][\"token\"] = \"b2\"\nprint(config)", "notes": {"2": "`same` — второе имя того же словаря.", "3": "`copy()` — новый словарь, но `headers` внутри — **тот же** вложенный словарь (одинаковые метки).", "4": "Верхний уровень у копии свой — `config` не задет.", "5": "А вложенный общий: токен поменялся и в `config`!"}}
+```
+
 ## Слияние
 
 ```python

@@ -255,6 +255,10 @@ run("x")
 - Успех: `try` → `else` → `finally`. Ошибка: `try` → `except` → `finally`.
 - Вывод: `else 5`, `finally`, `except`, `finally`.
 
+```viz
+{"type": "paths", "auto": true, "title": "try / except / else / finally: какие блоки сработают", "ask": "Что ввёл пользователь?", "code": "try:\n    n = int(text)\n    result = 100 / n\nexcept ValueError:\n    print(\"это не число\")\nexcept ZeroDivisionError:\n    print(\"на ноль делить нельзя\")\nelse:\n    print(\"результат:\", result)\nfinally:\n    print(\"finally: выполняется всегда\")", "cases": [{"label": "'4'", "setup": "text = '4'", "note": "Ошибок нет: выполнились `try`, `else` и `finally`."}, {"label": "'abc'", "setup": "text = 'abc'", "note": "`int('abc')` упал — остаток `try` пропущен, сработал подходящий `except`, потом `finally`."}, {"label": "'0'", "setup": "text = '0'", "note": "Деление на ноль — другой `except`."}, {"label": "None", "setup": "text = None", "note": "`TypeError` никто не ловит: `finally` всё равно выполнился, а ошибка полетела дальше."}]}
+```
+
 ## Зачем else
 
 В `try` стоит держать **только** код, который может упасть с ожидаемой ошибкой. Всё, что должно выполниться после успеха, — в `else`. Иначе `except` случайно поймает ошибку из «хорошего» кода.
@@ -381,6 +385,10 @@ print(issubclass(KeyboardInterrupt, Exception))
   - `ArithmeticError` → `ZeroDivisionError`, `OverflowError`;
   - `KeyboardInterrupt`, `SystemExit` — наследники `BaseException`, **не** `Exception`: поэтому `except Exception` не мешает остановить программу по Ctrl+C.
 - Вывод: `True True`, `True True`, `False`.
+
+```viz
+{"type": "paths", "auto": true, "title": "Какой except поймает ошибку", "ask": "Что упало внутри action()?", "code": "try:\n    action()\nexcept KeyError:\n    print(\"поймал KeyError\")\nexcept LookupError:\n    print(\"поймал LookupError (родитель KeyError и IndexError)\")\nexcept Exception as e:\n    print(\"поймал Exception:\", type(e).__name__)", "cases": [{"label": "KeyError", "setup": "def action():\n    {}['x']", "note": "Первый подходящий — сам `KeyError`."}, {"label": "IndexError", "setup": "def action():\n    [][1]", "note": "`IndexError` — потомок `LookupError`, его ловит второй блок."}, {"label": "ValueError", "setup": "def action():\n    int('x')", "note": "Не `LookupError` — доходит до общего `Exception`."}, {"label": "ZeroDivisionError", "setup": "def action():\n    1 / 0", "note": "Тоже только `Exception`. Порядок `except` — от частного к общему."}]}
+```
 
 ## Базовый класс ловит потомков
 
