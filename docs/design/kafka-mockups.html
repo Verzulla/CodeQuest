@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kafka — макеты</title>
+<style>
+:root {
+  --bg: #0b0f0d; --card: #141a17; --soft: #1a221e; --line: rgba(255,255,255,.1); --text: #e9f2ec; --text2: #b6c4bb; --muted: #7d8b83;
+  --acc: #78d428; --acc2: #9be84a; --blue: #5aa9ff; --gold: #f2c14e; --pink: #ff7ab6; --purple: #b18cff; --orange: #ff9f43; --red: #ff5d5d;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace; --font: Manrope, -apple-system, system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: radial-gradient(1200px 500px at 50% -150px, rgba(120,212,40,.16), transparent), var(--bg); color: var(--text); font: 15px/1.5 var(--font); }
+.wrap { max-width: 920px; margin: 0 auto; padding: 18px 16px 60px; }
+h1 { font-size: 22px; margin: 4px 0 4px; }
+.sub { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.tab { border: 1px solid var(--line); background: var(--soft); color: var(--text2); border-radius: 999px; padding: 8px 14px; font: 600 13px var(--font); cursor: pointer; }
+.tab.on { background: var(--acc); color: #0b0f0d; border-color: transparent; }
+.panel { display: none; } .panel.on { display: block; }
+.card { border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.035); padding: 14px; }
+.title { font-weight: 800; font-size: 15px; margin-bottom: 4px; }
+.desc { color: var(--text2); font-size: 13.5px; margin-bottom: 12px; }
+.btn { border: 1px solid var(--line); background: var(--soft); color: var(--text); border-radius: 12px; padding: 8px 12px; font: 600 13px var(--font); cursor: pointer; min-height: 38px; }
+.btn.main { background: var(--acc); color: #0b0f0d; border-color: transparent; }
+.btn:disabled { opacity: .4; }
+.chip { border: 1px solid var(--line); background: var(--soft); color: var(--text2); border-radius: 999px; padding: 5px 10px; font: 12px var(--mono); cursor: pointer; }
+.chip.on { outline: 2px solid var(--acc); color: var(--text); }
+.row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.note { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: var(--soft); color: var(--text2); font-size: 14px; }
+.note b { color: var(--text); }
+.note code, .desc code { font: 12.5px var(--mono); background: rgba(255,255,255,.07); padding: 1px 5px; border-radius: 6px; }
+.lbl { font: 600 11px var(--font); color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.k0 { --kc: var(--blue); } .k1 { --kc: var(--gold); } .k2 { --kc: var(--pink); } .k3 { --kc: var(--purple); }
+
+/* ===== A: 2D ===== */
+.sim { display: grid; gap: 10px; }
+.prod { display: grid; gap: 8px; padding: 10px; border-radius: 14px; background: var(--soft); }
+.topic { padding: 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); position: relative; }
+.part { display: grid; grid-template-columns: 58px 1fr; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px dashed var(--line); }
+.part:first-of-type { border-top: 0; }
+.pname { font: 700 12px var(--mono); color: var(--text2); }
+.pname small { display: block; font: 10.5px var(--font); color: var(--muted); }
+.log { display: flex; gap: 3px; overflow-x: auto; padding: 14px 2px 4px; scrollbar-width: thin; position: relative; min-height: 50px; }
+.msg { flex: none; width: 30px; height: 30px; border-radius: 7px; background: color-mix(in srgb, var(--kc) 30%, var(--soft)); border: 1px solid var(--kc); display: grid; place-items: center; font: 700 10px var(--mono); color: var(--text); position: relative; transition: opacity .3s; }
+.msg i { position: absolute; top: -13px; font: 9px var(--mono); font-style: normal; color: var(--muted); }
+.msg.read { opacity: .45; }
+.msg.new { animation: drop .45s ease; }
+@keyframes drop { from { transform: translateY(-26px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+.cursor { flex: none; width: 3px; border-radius: 2px; align-self: stretch; margin: -4px 0; }
+.groups { display: grid; gap: 8px; }
+.group { padding: 10px; border-radius: 14px; background: var(--soft); }
+.group h4 { margin: 0 0 6px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.group h4 span { font: 600 11.5px var(--font); color: var(--muted); }
+.cons { display: flex; flex-wrap: wrap; gap: 6px; }
+.con { padding: 6px 10px; border-radius: 10px; background: var(--card); border: 1px solid var(--cc, var(--line)); font: 12px var(--mono); }
+.con b { color: var(--cc); }
+.con.idle { opacity: .5; border-style: dashed; }
+.lag { font: 700 12px var(--mono); }
+.lag.hi { color: var(--orange); }
+.flash { animation: flash .8s ease; }
+@keyframes flash { 0%,100% { box-shadow: none; } 40% { box-shadow: 0 0 0 3px var(--orange); } }
+@media (min-width: 760px) { .sim { grid-template-columns: 240px 1fr; } .prod { align-content: start; } .groups { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; } }
+
+/* ===== B: изометрия ===== */
+.iso-stage { height: 360px; display: grid; place-items: center; overflow: hidden; border-radius: 14px; background: radial-gradient(circle at 50% 40%, rgba(120,212,40,.08), transparent 60%), var(--card); perspective: 1200px; }
+.iso { position: relative; width: 300px; height: 300px; transform: rotateX(58deg) rotateZ(-40deg); transform-style: preserve-3d; transition: transform .6s; }
+.broker { position: absolute; width: 86px; height: 220px; border-radius: 12px; background: rgba(255,255,255,.06); border: 1px solid var(--line); transform-style: preserve-3d; }
+.broker.down { background: rgba(255,93,93,.12); border-color: var(--red); }
+.broker > span { position: absolute; bottom: -26px; left: 0; right: 0; text-align: center; font: 700 12px var(--mono); color: var(--text2); transform: rotateZ(40deg); }
+.stackcol { position: absolute; left: 21px; width: 44px; height: 44px; transform-style: preserve-3d; }
+.cube { position: absolute; width: 44px; height: 44px; transform-style: preserve-3d; transition: transform .5s; }
+.cube .f { position: absolute; width: 44px; height: 44px; border: 1px solid rgba(0,0,0,.35); }
+.cube .t { background: color-mix(in srgb, var(--kc) 85%, white); transform: translateZ(14px); }
+.cube .s1 { height: 14px; background: color-mix(in srgb, var(--kc) 70%, black); transform-origin: top; transform: rotateX(-90deg) translateY(-0px); top: 44px; }
+.cube .s2 { width: 14px; background: color-mix(in srgb, var(--kc) 55%, black); transform-origin: left; transform: rotateY(90deg); left: 44px; }
+.ghost .t { background: transparent; border: 1px dashed var(--muted); }
+.ghost .s1, .ghost .s2 { display: none; }
+.leader { position: absolute; top: -18px; left: 8px; font: 700 10px var(--font); color: var(--acc2); transform: rotateZ(40deg); white-space: nowrap; }
+
+/* ===== C: three.js ===== */
+#three { width: 100%; height: 420px; border-radius: 14px; overflow: hidden; background: #070a08; touch-action: none; position: relative; }
+#three .hud { position: absolute; left: 10px; top: 10px; font: 12px var(--font); color: var(--muted); pointer-events: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12.5px; color: var(--text2); margin-top: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.pc { display: grid; gap: 6px; margin-top: 12px; font-size: 13.5px; color: var(--text2); }
+.pc div { display: flex; gap: 8px; } .pc b { color: var(--acc2); min-width: 18px; } .pc .m b { color: var(--orange); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Kafka: три варианта схемы</h1>
+  <div class="sub">Макеты для обсуждения. Сообщения окрашены по ключу: одинаковый ключ — одинаковый цвет и всегда одна и та же партиция.</div>
+  <div class="tabs">
+    <button class="tab on" data-t="a">A. 2D-симулятор</button>
+    <button class="tab" data-t="b">B. Псевдо-3D (CSS)</button>
+    <button class="tab" data-t="c">C. 3D (three.js)</button>
+  </div>
+
+  <!-- ================= A ================= -->
+  <section class="panel on" id="p-a">
+    <div class="card">
+      <div class="title">Продюсер → топик orders (3 партиции) → группы консьюмеров</div>
+      <div class="desc">Отправляй сообщения с разными ключами, добавляй консьюмеров, включай поток. Это основной вариант — его делаем в уроке.</div>
+      <div class="sim">
+        <div class="prod">
+          <div class="lbl">Продюсер</div>
+          <div class="row" id="keys"></div>
+          <div class="row"><button class="btn main" id="send">Отправить</button><button class="btn" id="burst">×5</button></div>
+          <label class="row" style="font-size:13px;color:var(--text2)"><input type="checkbox" id="flow"> поток: 1 сообщение/сек</label>
+          <label class="row" style="font-size:13px;color:var(--text2)"><input type="checkbox" id="reading" checked> консьюмеры читают</label>
+        </div>
+        <div class="topic">
+          <div class="lbl">Топик <span style="font-family:var(--mono);text-transform:none">orders</span></div>
+          <div id="parts"></div>
+        </div>
+        <div class="groups" id="groups"></div>
+      </div>
+      <div class="note" id="noteA"></div>
+    </div>
+  </section>
+
+  <!-- ================= B ================= -->
+  <section class="panel" id="p-b">
+    <div class="card">
+      <div class="title">Кластер из 3 брокеров — объёмно, но без тяжёлых библиотек</div>
+      <div class="desc">Каждый брокер — платформа, на ней стопка сообщений партиции, где он лидер. Пунктир — реплика. Можно «уронить» брокер: лидерство переедет на реплику.</div>
+      <div class="row" style="margin-bottom:10px">
+        <button class="btn main" id="bsend">Отправить сообщение</button>
+        <button class="btn" id="bdown">Уронить брокер 2</button>
+        <button class="btn" id="brot">Повернуть</button>
+      </div>
+      <div class="iso-stage"><div class="iso" id="iso"></div></div>
+      <div class="note" id="noteB"></div>
+    </div>
+  </section>
+
+  <!-- ================= C ================= -->
+  <section class="panel" id="p-c">
+    <div class="card">
+      <div class="title">Кластер в 3D — крути пальцем или мышью</div>
+      <div class="desc">Обзорная сцена: продюсер слева отправляет сообщения, они ложатся в партиции (колонны). Зелёное кольцо — консьюмер: оно поднимается по колонне, как офсет, и прочитанное тускнеет, но не исчезает. Подгружается только по кнопке «Посмотреть в 3D».</div>
+      <div class="row" style="margin-bottom:10px">
+        <button class="btn main" id="csend">Отправить ×5</button>
+        <button class="btn" id="ccons">+ консьюмер</button>
+        <button class="btn" id="cauto">Автоповорот: вкл</button>
+      </div>
+      <div id="three"><div class="hud">перетаскивай, чтобы вращать</div></div>
+      <div class="legend"><span><i style="background:#5aa9ff"></i>user-1</span><span><i style="background:#f2c14e"></i>user-2</span><span><i style="background:#ff7ab6"></i>user-3</span><span><i style="background:#b18cff"></i>user-4</span><span><i style="background:#78d428"></i>консьюмер</span></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="title">Плюсы и минусы вариантов</div>
+      <div class="pc">
+        <div><b>A</b>понятнее всего, быстро работает на телефоне, видно офсеты и lag — основа урока</div>
+        <div><b>B</b>выглядит объёмно, лёгкий; но детали (офсеты, коммиты) читать сложнее</div>
+        <div><b>C</b>самый эффектный; тяжелее (~600 КБ), на телефоне вращение конфликтует с прокруткой; детали мелкие</div>
+        <div class="m"><b>→</b>предложение: A как основной симулятор, C — кнопка «Посмотреть в 3D» для обзора кластера</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+// ---------- общие ----------
+const KEYS = ["user-1", "user-2", "user-3", "user-4"];
+const P = 3;
+const hash = (s) => { let h = 7; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
+const partOf = (key) => (key === "user-1" ? 0 : key === "user-2" ? 1 : key === "user-3" ? 2 : hash(key) % P);
+const kclass = (key) => "k" + KEYS.indexOf(key);
+const COLORS = ["var(--acc)", "var(--orange)", "var(--blue)", "var(--purple)"];
+
+document.querySelectorAll(".tab").forEach((t) => (t.onclick = () => {
+  document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("on", x === t));
+  document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("on", p.id === "p-" + t.dataset.t));
+  if (t.dataset.t === "c") startThree();
+}));
+
+// ================= A: 2D-симулятор =================
+const A = {
+  key: "user-1",
+  logs: [[], [], []],                         // сообщения по партициям
+  groups: [{ name: "billing", cons: ["c1"], off: [0, 0, 0] }],
+  last: null, note: "",
+};
+function assign(group) {                       // range-раздача: партиции по очереди консьюмерам
+  const map = {};
+  group.cons.forEach((c) => (map[c] = []));
+  for (let p = 0; p < P; p++) if (group.cons.length) map[group.cons[p % group.cons.length]].push(p);
+  return map;
+}
+function sendA(key) {
+  const p = partOf(key);
+  A.logs[p].push({ key, n: A.logs[p].length });
+  A.last = { p, o: A.logs[p].length - 1 };
+  A.note = `Ключ <code>${key}</code> → партиция <b>${p}</b>, офсет <b>${A.logs[p].length - 1}</b>. Сообщения с одним ключом всегда идут в одну партицию — поэтому их порядок сохраняется.`;
+}
+function renderA() {
+  document.getElementById("keys").innerHTML = KEYS.map((k) => `<button class="chip ${kclass(k)}${k === A.key ? " on" : ""}" data-k="${k}" style="border-color:var(--kc)">${k}</button>`).join("");
+  document.querySelectorAll("#keys .chip").forEach((b) => (b.onclick = () => { A.key = b.dataset.k; renderA(); }));
+  const g0 = A.groups[0];
+  document.getElementById("parts").innerHTML = A.logs.map((log, p) => {
+    const cells = log.map((m, o) => {
+      const read = A.groups.every((g) => o < g.off[p]);
+      const fresh = A.last && A.last.p === p && A.last.o === o;
+      const marks = A.groups.map((g, gi) => (g.off[p] === o ? `<div class="cursor" title="${g.name}: следующий офсет ${o}" style="background:${gi ? "var(--purple)" : "var(--acc)"}"></div>` : "")).join("");
+      return marks + `<div class="msg ${kclass(m.key)}${read ? " read" : ""}${fresh ? " new" : ""}"><i>${o}</i>${m.key.slice(-1)}</div>`;
+    }).join("");
+    const tail = A.groups.map((g, gi) => (g.off[p] === log.length ? `<div class="cursor" style="background:${gi ? "var(--purple)" : "var(--acc)"}"></div>` : "")).join("");
+    return `<div class="part"><div class="pname">P${p}<small>${log.length} сообщ.</small></div><div class="log">${cells}${tail}</div></div>`;
+  }).join("");
+  document.getElementById("groups").innerHTML = A.groups.map((g, gi) => {
+    const map = assign(g);
+    const lag = A.logs.reduce((s, log, p) => s + (log.length - g.off[p]), 0);
+    return `<div class="group"><h4>группа <code>${g.name}</code><span>маркер: <i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${gi ? "var(--purple)" : "var(--acc)"}"></i></span>
+        <span class="lag${lag > 6 ? " hi" : ""}">lag ${lag}</span></h4>
+      <div class="cons">${g.cons.map((c, ci) => `<div class="con${map[c].length ? "" : " idle"}" style="--cc:${COLORS[ci % 4]}"><b>${c}</b> ← ${map[c].length ? map[c].map((p) => "P" + p).join(", ") : "простаивает"}</div>`).join("")}</div>
+      <div class="row" style="margin-top:8px"><button class="btn" data-add="${gi}">+ консьюмер</button><button class="btn" data-del="${gi}"${g.cons.length < 2 ? " disabled" : ""}>− консьюмер</button>
+        ${gi === 0 && A.groups.length < 2 ? `<button class="btn" id="addg">+ группа analytics</button>` : ""}</div></div>`;
+  }).join("");
+  document.querySelectorAll("[data-add]").forEach((b) => (b.onclick = () => {
+    const g = A.groups[b.dataset.add]; g.cons.push("c" + (g.cons.length + 1));
+    A.note = g.cons.length > P ? `В группе ${g.cons.length} консьюмеров, а партиций ${P}: <b>лишний простаивает</b>. Больше консьюмеров, чем партиций, не ускоряет чтение.`
+      : `<b>Ребаланс</b>: партиции заново разданы ${g.cons.length} консьюмерам группы <code>${g.name}</code>. Каждую партицию в группе читает ровно один консьюмер.`;
+    renderA(); document.querySelectorAll(".group")[b.dataset.add].classList.add("flash");
+  }));
+  document.querySelectorAll("[data-del]").forEach((b) => (b.onclick = () => {
+    const g = A.groups[b.dataset.del]; g.cons.pop(); A.note = `Консьюмер ушёл — <b>ребаланс</b>: его партиции забрали оставшиеся.`; renderA();
+  }));
+  const ag = document.getElementById("addg");
+  if (ag) ag.onclick = () => { A.groups.push({ name: "analytics", cons: ["a1"], off: [0, 0, 0] }); A.note = `Новая группа <code>analytics</code> читает тот же топик <b>с начала</b> и независимо: у каждой группы свои офсеты (фиолетовый маркер). Сообщения после чтения не удаляются.`; renderA(); };
+  A.last = null;   // анимация появления — только один раз
+  document.getElementById("noteA").innerHTML = A.note || "Нажми «Отправить». Цвет — ключ сообщения, число сверху — офсет. Зелёная черта — докуда группа уже прочитала.";
+}
+document.getElementById("send").onclick = () => { sendA(A.key); renderA(); };
+document.getElementById("burst").onclick = () => { for (let i = 0; i < 5; i++) sendA(KEYS[Math.floor(Math.random() * 4)]); A.note = "Пять сообщений со случайными ключами разошлись по партициям."; renderA(); };
+setInterval(() => {
+  if (document.getElementById("flow").checked) { sendA(KEYS[Math.floor(Math.random() * 4)]); }
+  if (document.getElementById("reading").checked) {
+    for (const g of A.groups) {
+      const map = assign(g);
+      for (const c of g.cons) { const ps = map[c]; const p = ps.find((x) => g.off[x] < A.logs[x].length); if (p !== undefined) g.off[p]++; }
+    }
+  } else if (document.getElementById("flow").checked) {
+    A.note = "Консьюмеры стоят, а продюсер пишет — <b>lag растёт</b>. Это первое, что смотрят, когда «сообщения не доходят».";
+  }
+  if (document.getElementById("p-a").classList.contains("on")) renderA();
+}, 1000);
+renderA();
+
+// ================= B: изометрия =================
+const B = { counts: [3, 2, 4], down: false, rot: 0 };
+function renderB() {
+  const iso = document.getElementById("iso");
+  const narrow = innerWidth < 520;
+  iso.style.transform = `${narrow ? "translateX(-18px) scale(.74)" : ""} rotateX(58deg) rotateZ(${-40 + B.rot}deg)`;
+  iso.innerHTML = [0, 1, 2].map((b) => {
+    const isDown = B.down && b === 1;
+    const lead = b === 1 && B.down ? null : b;           // брокер b — лидер партиции b
+    const parts = [];
+    // своя партиция (лидер) и реплика соседней
+    const own = B.down && b === 1 ? null : b;
+    const replicaOf = (b + 2) % 3;
+    const takes = B.down && b === 2 ? 1 : null;           // при падении брокера 2 лидерство P1 переходит на брокер 3
+    const stack = (p, ghost, x) => `<div class="stackcol" style="top:${x}px">${Array.from({ length: B.counts[p] }, (_, i) =>
+      `<div class="cube k${(p + i) % 4}${ghost ? " ghost" : ""}" style="transform:translateZ(${i * 14}px)"><div class="f t"></div><div class="f s1"></div><div class="f s2"></div></div>`).join("")}</div>`;
+    let html = "";
+    if (own !== null) html += stack(own, false, 30);
+    if (takes !== null) html += stack(takes, false, 130);
+    else html += stack(replicaOf, true, 130);
+    const leadTxt = isDown ? "недоступен" : `лидер P${b}${takes !== null ? " и P1" : ""}`;
+    return `<div class="broker${isDown ? " down" : ""}" style="left:${b * 107}px;top:40px"><div class="leader">${leadTxt}</div>${isDown ? "" : html}<span>брокер ${b + 1}</span></div>`;
+  }).join("");
+  document.getElementById("noteB").innerHTML = B.down
+    ? "Брокер 2 упал. Его партиция <b>P1</b> не пропала: реплика на брокере 3 стала лидером, продюсеры и консьюмеры переключились на неё."
+    : "У каждой партиции есть <b>лидер</b> (сплошная стопка) и <b>реплика</b> на другом брокере (пунктир). Пишут и читают через лидера.";
+}
+document.getElementById("bsend").onclick = () => { const p = B.down ? [0, 1, 2][Math.floor(Math.random() * 3)] : Math.floor(Math.random() * 3); B.counts[p] = Math.min(9, B.counts[p] + 1); renderB(); };
+document.getElementById("bdown").onclick = (e) => { B.down = !B.down; e.target.textContent = B.down ? "Поднять брокер 2" : "Уронить брокер 2"; renderB(); };
+document.getElementById("brot").onclick = () => { B.rot = (B.rot + 30) % 120; renderB(); };
+renderB();
+
+// ================= C: three.js =================
+let threeStarted = false;
+function startThree() {
+  if (threeStarted) return;
+  threeStarted = true;
+  const s = document.createElement("script");
+  s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+  s.onload = initThree;
+  document.head.appendChild(s);
+}
+function initThree() {
+  const box = document.getElementById("three");
+  const W = () => box.clientWidth, H = () => box.clientHeight;
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+  renderer.setSize(W(), H());
+  box.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x070a08, 18, 40);
+  const camera = new THREE.PerspectiveCamera(45, W() / H(), 0.1, 100);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const dl = new THREE.DirectionalLight(0xffffff, 0.8); dl.position.set(5, 10, 7); scene.add(dl);
+  const grid = new THREE.GridHelper(30, 30, 0x1f3b1a, 0x14201a); grid.position.y = -0.01; scene.add(grid);
+  const KC = [0x5aa9ff, 0xf2c14e, 0xff7ab6, 0xb18cff];
+  const group = new THREE.Group(); scene.add(group);
+  // брокеры-платформы и колонны партиций
+  const parts = [];
+  for (let b = 0; b < 3; b++) {
+    const x = (b - 1) * 3.2;
+    const plat = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.2, 2.4), new THREE.MeshStandardMaterial({ color: 0x1a221e, transparent: true, opacity: 0.9 }));
+    plat.position.set(x, 0.1, 0); group.add(plat);
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(2.4, 6, 2.4)), new THREE.LineBasicMaterial({ color: 0x2e4a28, transparent: true, opacity: 0.6 }));
+    edges.position.set(x, 3.1, 0); group.add(edges);
+    parts.push({ x, z: 0, cubes: [], read: 0 });
+  }
+  // продюсер и консьюмеры
+  const producer = new THREE.Mesh(new THREE.SphereGeometry(0.5, 24, 16), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x334433 }));
+  producer.position.set(-7.5, 2, 0); group.add(producer);
+  const consumers = [];
+  function addConsumer() {
+    const m = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.1, 12, 40), new THREE.MeshStandardMaterial({ color: 0x78d428, emissive: 0x1d3a0a }));
+    m.rotation.x = Math.PI / 2; group.add(m); consumers.push({ mesh: m, t: 0 });
+    consumers.forEach((c, i) => { c.part = i % 3; c.idle = i >= 3; });
+  }
+  addConsumer();
+  const flying = [];
+  const cubeGeo = new THREE.BoxGeometry(0.9, 0.32, 0.9);
+  function send(n) {
+    for (let i = 0; i < n; i++) setTimeout(() => {
+      const k = Math.floor(Math.random() * 4), p = k === 3 ? 1 : k % 3;
+      const m = new THREE.Mesh(cubeGeo, new THREE.MeshStandardMaterial({ color: KC[k], emissive: KC[k], emissiveIntensity: 0.25 }));
+      m.position.copy(producer.position); group.add(m);
+      flying.push({ m, p, t: 0, from: producer.position.clone() });
+    }, i * 180);
+  }
+  document.getElementById("csend").onclick = () => send(5);
+  document.getElementById("ccons").onclick = () => { if (consumers.length < 4) addConsumer(); };
+  let auto = true;
+  document.getElementById("cauto").onclick = (e) => { auto = !auto; e.target.textContent = "Автоповорот: " + (auto ? "вкл" : "выкл"); };
+  // вращение мышью/пальцем
+  let yaw = 0.5, pitch = 0.45, drag = null;
+  box.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clientY }; box.setPointerCapture(e.pointerId); });
+  box.addEventListener("pointermove", (e) => { if (!drag) return; yaw -= (e.clientX - drag.x) * 0.008; pitch = Math.max(0.1, Math.min(1.2, pitch + (e.clientY - drag.y) * 0.006)); drag = { x: e.clientX, y: e.clientY }; });
+  box.addEventListener("pointerup", () => (drag = null));
+  send(8);
+  let last = performance.now(), readTimer = 0;
+  function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (auto && !drag) yaw += dt * 0.15;
+    const r = W() / H() < 1 ? 24 : 16;   // на узком экране камера дальше — всё в кадре
+    camera.position.set(Math.sin(yaw) * Math.cos(pitch) * r, Math.sin(pitch) * r + 1, Math.cos(yaw) * Math.cos(pitch) * r);
+    camera.lookAt(0, 2, 0);
+    // полёт сообщений по дуге
+    for (let i = flying.length - 1; i >= 0; i--) {
+      const f = flying[i]; f.t += dt * 1.1;
+      const part = parts[f.p], top = 0.4 + part.cubes.length * 0.36;
+      const to = new THREE.Vector3(part.x, top, part.z);
+      const t = Math.min(1, f.t);
+      f.m.position.lerpVectors(f.from, to, t); f.m.position.y += Math.sin(t * Math.PI) * 2.5;
+      f.m.rotation.y = t * 4;
+      if (t >= 1) { f.m.rotation.y = 0; f.m.position.copy(to); part.cubes.push(f.m); flying.splice(i, 1); }
+    }
+    // консьюмеры «забирают» нижнее сообщение своей партиции
+    readTimer += dt;
+    consumers.forEach((c, i) => {
+      const part = parts[c.part];
+      // кольцо консьюмера стоит на высоте своего офсета: всё ниже — уже прочитано
+      const target = c.idle ? new THREE.Vector3(7.5, 1, (i - 3) * 1.4) : new THREE.Vector3(part.x, 0.4 + part.read * 0.36, part.z);
+      c.mesh.position.lerp(target, 0.06);
+      c.mesh.material.opacity = c.idle ? 0.35 : 1; c.mesh.material.transparent = c.idle;
+    });
+    if (readTimer > 1.2) {
+      readTimer = 0;
+      consumers.filter((c) => !c.idle).forEach((c) => {
+        const part = parts[c.part]; const cube = part.cubes[part.read];
+        if (!cube) return;
+        // сообщение не удаляется — просто становится прочитанным (тусклым)
+        cube.material.transparent = true; cube.material.opacity = 0.3; cube.material.emissiveIntensity = 0;
+        part.read++;
+      });
+    }
+    renderer.render(scene, camera);
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  addEventListener("resize", () => { renderer.setSize(W(), H()); camera.aspect = W() / H(); camera.updateProjectionMatrix(); });
+}
+</script>
+</body>
+</html>

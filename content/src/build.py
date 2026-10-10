@@ -21,7 +21,7 @@ OUT = SRC.parent
 VIZ_TYPES = {"memory", "git", "slice", "fs", "perm", "fixtures", "pipeline", "http", "trace",
              "pipe", "redirect", "select", "params", "json", "schema", "matrix", "trigger", "cron", "itertools",
              "buildcache", "container", "dockerhost", "promote", "vmstack", "imagechain",
-             "paths", "comp", "sortkey", "venn", "lookup", "strftime", "waits", "versions"}
+             "paths", "comp", "sortkey", "venn", "lookup", "strftime", "waits", "versions", "story", "kafka"}
 VIZ_NEED_STEPS = {"memory", "git", "trace", "container"}   # остальные — песочницы без заранее заданных шагов
 
 

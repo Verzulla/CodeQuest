@@ -785,7 +785,9 @@ SHELL_EXT = {".html", ".css", ".js", ".png", ".webp", ".woff2", ".webmanifest"}
 
 
 def _shell_files() -> list[Path]:
-    return sorted(p for p in STATIC.rglob("*") if p.suffix in SHELL_EXT and p.name != "sw.js")
+    # 3D-истории (static/stories) тяжёлые и грузятся только по кнопке — в офлайн-оболочку не кладём
+    return sorted(p for p in STATIC.rglob("*") if p.suffix in SHELL_EXT and p.name != "sw.js"
+                  and "stories" not in p.relative_to(STATIC).parts)
 
 
 @app.get("/sw.js")

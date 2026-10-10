@@ -2381,6 +2381,101 @@ function versionsViz(box, spec) {
   show();
 }
 
+// ---------- 3D-история: обложка в уроке, сама история — поверх урока на весь экран ----------
+// {"type": "story", "url": "/static/stories/kafka/", "title": "…", "text": "…", "meta": "12 шагов · 5 минут"}
+
+function storyViz(box, spec) {
+  box.classList.add("viz-story-box");
+  box.innerHTML = `<div class="viz-story">
+      <div class="viz-story-badge">3D-история</div>
+      <div class="viz-story-title">${esc(spec.title || "")}</div>
+      ${spec.text ? `<div class="viz-story-text">${inline(spec.text)}</div>` : ""}
+      <div class="viz-story-row"><button class="viz-btn main viz-story-open">▶ Открыть 3D-историю</button>${spec.meta ? `<span>${esc(spec.meta)}</span>` : ""}</div>
+    </div>`;
+  box.querySelector(".viz-story-open").onclick = () => openStory(spec.url);
+}
+
+function openStory(url) {
+  const ov = document.createElement("div");
+  ov.className = "story-overlay";
+  ov.innerHTML = `<iframe src="${esc(url)}" title="3D-история" allow="fullscreen"></iframe>`;
+  document.body.appendChild(ov);
+  document.documentElement.classList.add("story-open");
+  const close = () => {
+    ov.remove();
+    document.documentElement.classList.remove("story-open");
+    removeEventListener("message", onMsg);
+    removeEventListener("keydown", onKey);
+  };
+  const onMsg = (e) => { if (e.origin === location.origin && e.data?.type === "cq-story-close") close(); };
+  const onKey = (e) => { if (e.key === "Escape") close(); };
+  addEventListener("message", onMsg);
+  addEventListener("keydown", onKey);
+}
+
+// ---------- Kafka: продюсер → партиции → группы консьюмеров (2D-симулятор) ----------
+// {"type": "kafka", "title": "…", "partitions": 3}
+
+function kafkaViz(box, spec) {
+  const KEYS = ["user-1", "user-2", "user-3", "user-4"];
+  const P = spec.partitions || 3;
+  const partOf = (k) => [0, 1, 2, 1][KEYS.indexOf(k)] % P;
+  const GC = ["var(--acc)", "var(--purple)"];
+  const S = { key: KEYS[0], logs: Array.from({ length: P }, () => []), groups: [{ name: "billing", cons: ["c1"], off: Array(P).fill(0) }], fresh: null, note: "", flow: false, reading: true };
+  const assign = (g) => { const m = {}; g.cons.forEach((c) => (m[c] = [])); for (let p = 0; p < P; p++) if (g.cons.length) m[g.cons[p % g.cons.length]].push(p); return m; };
+  const send = (k) => { const p = partOf(k); S.logs[p].push(k); S.fresh = [p, S.logs[p].length - 1];
+    S.note = `Ключ \`${k}\` → партиция **P${p}**, офсет **${S.logs[p].length - 1}**. Один ключ — всегда одна партиция, поэтому порядок его сообщений сохраняется.`; };
+  box.innerHTML = `${vizHead(spec)}
+    <div class="viz-kf">
+      <div class="viz-kf-prod"><span class="viz-kf-lbl">Продюсер · ключ сообщения</span>
+        <div class="viz-sb-quick viz-kf-keys"></div>
+        <div class="viz-kf-btns"><button class="viz-btn main" data-a="send">Отправить</button><button class="viz-btn" data-a="burst">×5 случайных</button></div>
+        <label class="viz-sch-opt"><input type="checkbox" data-a="flow"> поток: 1 сообщение в секунду</label>
+        <label class="viz-sch-opt"><input type="checkbox" data-a="read" checked> консьюмеры читают</label></div>
+      <div class="viz-kf-topic"><span class="viz-kf-lbl">Топик <code>orders</code></span><div class="viz-kf-parts"></div></div>
+      <div class="viz-kf-groups"></div>
+    </div>
+    <div class="viz-note"></div>`;
+  const render = () => {
+    box.querySelector(".viz-kf-keys").innerHTML = KEYS.map((k, i) => `<button class="viz-chip k${i}${k === S.key ? " on" : ""}" data-k="${k}">${k}</button>`).join("");
+    box.querySelector(".viz-kf-parts").innerHTML = S.logs.map((log, p) => {
+      const cur = (o) => S.groups.map((g, gi) => (g.off[p] === o ? `<i class="viz-kf-cur" style="background:${GC[gi]}" title="${g.name}: следующий офсет ${o}"></i>` : "")).join("");
+      return `<div class="viz-kf-part"><b>P${p}<small>${log.length} сообщ.</small></b><div class="viz-kf-log">${log.map((k, o) =>
+        cur(o) + `<span class="viz-kf-msg k${KEYS.indexOf(k)}${S.groups.every((g) => o < g.off[p]) ? " read" : ""}${S.fresh && S.fresh[0] === p && S.fresh[1] === o ? " new" : ""}"><i>${o}</i>${k.slice(-1)}</span>`).join("")}${cur(log.length)}</div></div>`;
+    }).join("");
+    box.querySelector(".viz-kf-groups").innerHTML = S.groups.map((g, gi) => {
+      const m = assign(g), lag = S.logs.reduce((s, l, p) => s + l.length - g.off[p], 0);
+      return `<div class="viz-kf-group"><div class="viz-kf-gh"><b><i style="background:${GC[gi]}"></i>группа <code>${g.name}</code></b><span class="${lag > 6 ? "hi" : ""}">lag ${lag}</span></div>
+        <div class="viz-kf-cons">${g.cons.map((c) => `<span class="${m[c].length ? "" : "idle"}">${c} ← ${m[c].length ? m[c].map((p) => "P" + p).join(", ") : "простаивает"}</span>`).join("")}</div>
+        <div class="viz-kf-btns"><button class="viz-btn" data-add="${gi}"${g.cons.length >= 4 ? " disabled" : ""}>+ консьюмер</button><button class="viz-btn" data-del="${gi}"${g.cons.length < 2 ? " disabled" : ""}>− консьюмер</button>
+        ${gi === 0 && S.groups.length < 2 ? `<button class="viz-btn" data-a="group">+ группа analytics</button>` : ""}</div></div>`;
+    }).join("");
+    S.fresh = null;
+    box.querySelector(".viz-note").innerHTML = inline(S.note || "Выбери ключ и нажми «Отправить». Число над коробкой — офсет, цветная черта — докуда дочитала группа.");
+  };
+  box.addEventListener("click", (e) => {
+    const t = e.target.closest("button"); if (!t) return;
+    if (t.dataset.k) S.key = t.dataset.k;
+    if (t.dataset.a === "send") send(S.key);
+    if (t.dataset.a === "burst") { for (let i = 0; i < 5; i++) send(KEYS[Math.floor(Math.random() * 4)]); S.note = "Пять сообщений со случайными ключами разошлись по партициям."; }
+    if (t.dataset.add) { const g = S.groups[t.dataset.add]; g.cons.push("c" + (g.cons.length + 1));
+      S.note = g.cons.length > P ? `В группе ${g.cons.length} консьюмеров, а партиций ${P}: **лишний простаивает**.` : `**Ребаланс**: партиции заново разданы ${g.cons.length} консьюмерам. Каждую партицию в группе читает ровно один.`; }
+    if (t.dataset.del) { S.groups[t.dataset.del].cons.pop(); S.note = "Консьюмер ушёл — **ребаланс**: его партиции забрали оставшиеся."; }
+    if (t.dataset.a === "group") { S.groups.push({ name: "analytics", cons: ["a1"], off: Array(P).fill(0) });
+      S.note = "Группа `analytics` читает тот же топик **с начала** и со своими офсетами (фиолетовая черта). Сообщения после чтения не удаляются."; }
+    render();
+  });
+  box.addEventListener("change", (e) => { if (e.target.dataset.a === "flow") S.flow = e.target.checked; if (e.target.dataset.a === "read") S.reading = e.target.checked; });
+  const timer = setInterval(() => {
+    if (!box.isConnected) { clearInterval(timer); return; }
+    if (S.flow) send(KEYS[Math.floor(Math.random() * 4)]);
+    if (S.reading) for (const g of S.groups) { const m = assign(g); for (const c of g.cons) { const p = m[c].find((x) => g.off[x] < S.logs[x].length); if (p !== undefined) g.off[p]++; } }
+    else if (S.flow) S.note = "Консьюмеры стоят, а продюсер пишет — **lag растёт**. Первое, что смотрят, когда «сообщения не доходят».";
+    if (S.flow || S.reading) render();
+  }, 1000);
+  render();
+}
+
 const KINDS = {
   memory: memoryViz, git: gitViz, slice: sliceViz, fs: fsViz, perm: permViz,
   fixtures: fixturesViz, pipeline: pipelineViz, http: httpViz, trace: traceViz,
@@ -2389,5 +2484,5 @@ const KINDS = {
   buildcache: buildcacheViz, container: containerViz, dockerhost: dockerhostViz, promote: promoteViz,
   vmstack: vmstackViz, imagechain: imagechainViz,
   paths: pathsViz, comp: compViz, sortkey: sortkeyViz, venn: vennViz, lookup: lookupViz,
-  strftime: strftimeViz, waits: waitsViz, versions: versionsViz,
+  strftime: strftimeViz, waits: waitsViz, versions: versionsViz, story: storyViz, kafka: kafkaViz,
 };

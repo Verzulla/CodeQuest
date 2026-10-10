@@ -10,7 +10,7 @@ const GLYPHS = {
   "py-files": "open", "py-context": "with", "py-mutable": "id()", "py-generators": "yield",
   "tools-linux": "$_", "tools-git": "git", "tools-project": "venv",
   "test-pytest": "assert", "test-allure": "report", "test-api": "GET", "test-ui": "</>",
-  "test-docker": "FROM", "test-cicd": "CI",
+  "test-docker": "FROM", "test-cicd": "CI", "test-kafka": "kafka",
 };
 
 // Новая тема без своего значка — первые буквы названия.

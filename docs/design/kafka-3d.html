@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kafka — как путешествует сообщение</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #f4efe6; --dim: #c9bfae; --glass: rgba(22, 18, 30, .62); --line: rgba(255,255,255,.14); --hot: #ffb347; --mint: #7cf2c4; --vio: #b59cff; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1424; color: var(--ink); font: 15px/1.5 Inter, system-ui, sans-serif; }
+  #scene { position: fixed; inset: 0; }
+  #scene canvas { display: block; touch-action: none; }
+  .label { font: 600 12px Inter, sans-serif; color: #fff; padding: 3px 8px; border-radius: 8px; background: rgba(15,12,22,.72); border: 1px solid var(--line); white-space: nowrap; pointer-events: none; transition: opacity .4s; }
+  .label.big { font: 700 13px Unbounded, sans-serif; letter-spacing: .3px; }
+  .label.hot { border-color: var(--hot); color: var(--hot); }
+  .label.mint { border-color: var(--mint); color: var(--mint); }
+  .label.vio { border-color: var(--vio); color: var(--vio); }
+  .label.red { border-color: #ff6b6b; color: #ff8a8a; }
+  body.nolabels .label { opacity: 0; }
+
+  .ui { position: fixed; left: 0; right: 0; pointer-events: none; padding: 0 max(14px, env(safe-area-inset-left)); }
+  .top { top: max(12px, env(safe-area-inset-top)); }
+  .brand { font: 700 13px Unbounded, sans-serif; letter-spacing: 1px; color: var(--dim); text-transform: uppercase; }
+  .brand b { color: var(--hot); font-size: 20px; letter-spacing: .5px; text-transform: none; display: inline-block; margin-left: 6px; }
+  .card { pointer-events: auto; margin-top: 10px; max-width: 560px; padding: 14px 16px; border-radius: 18px; background: var(--glass); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+  .card .meta { display: flex; justify-content: space-between; gap: 10px; font: 600 12px "JetBrains Mono", monospace; color: var(--dim); }
+  .card .meta span:first-child { white-space: nowrap; }
+  .card .meta span:last-child { text-transform: uppercase; letter-spacing: 1px; text-align: right; }
+  @media (max-width: 600px) { .card .meta { font-size: 10.5px; } }
+  .card h2 { margin: 4px 0 4px; font: 700 19px/1.25 Unbounded, sans-serif; }
+  .card p { margin: 0; color: #e4dccd; font-size: 14.5px; }
+  .card p b { color: #fff; }
+  .card p code { font: 600 12.5px "JetBrains Mono", monospace; color: var(--hot); background: rgba(255,179,71,.12); padding: 1px 6px; border-radius: 6px; }
+  .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .acts:empty { display: none; }
+  .act { pointer-events: auto; border: 1px solid var(--line); background: rgba(255,255,255,.08); color: #fff; border-radius: 999px; padding: 7px 12px; font: 600 13px Inter, sans-serif; cursor: pointer; }
+  .act.k { font-family: "JetBrains Mono", monospace; }
+  .act:active { transform: scale(.96); }
+  .act.primary { background: var(--hot); color: #24160a; border-color: transparent; }
+  .hud { position: fixed; right: max(14px, env(safe-area-inset-right)); top: max(12px, env(safe-area-inset-top)); display: grid; gap: 6px; pointer-events: none; }
+  .hud div { font: 600 12px "JetBrains Mono", monospace; padding: 6px 10px; border-radius: 10px; background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(10px); }
+  .hud div.hi { color: var(--hot); border-color: var(--hot); }
+
+  .bottom { bottom: max(12px, env(safe-area-inset-bottom)); }
+  .bar { pointer-events: auto; display: flex; align-items: center; gap: 10px; max-width: 760px; margin: 0 auto; padding: 10px 12px; border-radius: 18px; background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--line); }
+  .btn { flex: none; width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,.08); color: #fff; display: grid; place-items: center; cursor: pointer; font-size: 16px; }
+  .btn.play { background: var(--hot); color: #24160a; border-color: transparent; }
+  .btn.on { background: rgba(124,242,196,.2); border-color: var(--mint); color: var(--mint); }
+  .dots { flex: 1; display: flex; gap: 4px; align-items: center; min-width: 0; }
+  .dot { flex: 1; height: 8px; border-radius: 5px; background: rgba(255,255,255,.14); position: relative; overflow: hidden; cursor: pointer; }
+  .dot i { position: absolute; inset: 0; width: 0; background: var(--hot); }
+  .dot.done i { width: 100%; background: rgba(255,179,71,.55); }
+  .tools { display: flex; gap: 6px; }
+  @media (max-width: 600px) {
+    .card { padding: 12px 13px; }
+    .card h2 { font-size: 16px; }
+    .card p { font-size: 13.5px; }
+    .bar { gap: 6px; padding: 8px; }
+    .btn { width: 38px; height: 38px; }
+    .tools .btn.opt { display: none; }
+    .hud { top: auto; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 66px); }
+  }
+  .ratebox { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: calc(max(12px, env(safe-area-inset-bottom)) + 74px); width: min(320px, calc(100vw - 28px)); padding: 12px; border-radius: 16px; background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--line); z-index: 3; }
+  .ratebox[hidden] { display: none; }
+  .ratebox .rt { font: 700 13px Unbounded, sans-serif; margin-bottom: 8px; }
+  .rates { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rates button { border: 1px solid var(--line); background: rgba(255,255,255,.08); color: #fff; border-radius: 999px; padding: 6px 11px; font: 600 12.5px Inter, sans-serif; cursor: pointer; }
+  .rates button.on { background: var(--hot); color: #24160a; border-color: transparent; }
+  .ratebox .rh { margin-top: 8px; font-size: 12px; color: var(--dim); line-height: 1.4; }
+  #loading { position: fixed; inset: 0; display: grid; place-items: center; font: 700 14px Unbounded, sans-serif; color: var(--dim); background: #1a1424; transition: opacity .6s; z-index: 5; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="scene"></div>
+<div id="loading">собираем склад…</div>
+
+<div class="ui top">
+  <div class="brand">как работает <b>Kafka</b></div>
+  <div class="card">
+    <div class="meta"><span id="num">00 / 11</span><span id="actname"></span></div>
+    <h2 id="title"></h2>
+    <p id="text"></p>
+    <div class="acts" id="acts"></div>
+  </div>
+</div>
+<div class="hud" id="hud"></div>
+<div class="ratebox" id="ratebox" hidden>
+  <div class="rt">Продюсер отправляет</div>
+  <div class="rates" id="rates"></div>
+  <div class="rh">«Авто» — темп, задуманный для шага. Медленнее — работники успевают, lag не растёт; быстрее — коробки копятся.</div>
+</div>
+<div class="ui bottom">
+  <div class="bar">
+    <button class="btn" id="prev" title="Назад">‹</button>
+    <button class="btn play" id="play" title="Пауза">❚❚</button>
+    <button class="btn" id="next" title="Дальше">›</button>
+    <div class="dots" id="dots"></div>
+    <div class="tools">
+      <button class="btn opt" id="labels" title="Подписи">Aa</button>
+      <button class="btn" id="rate" title="Темп отправки">📦</button>
+      <button class="btn" id="free" title="Свободная камера">⟲</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import * as SkeletonUtils from "three/addons/utils/SkeletonUtils.js";
+
+// Модели: Kenney Factory Kit, City Kit Industrial, Mini Characters (CC0, kenney.nl)
+const MODELS = {
+  conveyor: "factory/conveyor-long-stripe-sides", conveyorPlain: "factory/conveyor-long-sides", scanner: "factory/scanner-high",
+  machine: "factory/machine-window", cog: "factory/cog-a", box: "factory/box-small", floor: "factory/floor-large", checker: "factory/top-large-checkerboard",
+  wall: "factory/structure-window-wide", screen: "factory/screen-hanging-wide", traffic: "factory/warning-traffic", arm: "factory/robot-arm-a",
+  hopper: "factory/hopper-high-square", crane: "factory/crane",
+  plant: "city/building-f", plant2: "city/building-e", chimney: "city/chimney-large", tank: "city/detail-tank-large", tower: "city/water-tower",
+  contA: "city/shipping-container-a", contB: "city/shipping-container-b", contC: "city/shipping-container-c", solar: "city/solar-panel-landscape-group", windmill: "city/windmill",
+  worker1: "chars/character-male-a", worker2: "chars/character-female-b", worker3: "chars/character-male-c", worker4: "chars/character-female-a",
+  analyst1: "chars/character-female-c", analyst2: "chars/character-male-b",
+};
+const loadingEl = document.getElementById("loading");
+const loader = new GLTFLoader();
+const GLB = {};
+let loaded = 0;
+await Promise.all(Object.entries(MODELS).map(([k, path]) => new Promise((res, rej) => loader.load(`kafka-assets/${path}.glb`, (g) => {
+  g.scene.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  GLB[k] = g; loadingEl.textContent = `собираем склад… ${++loaded}/${Object.keys(MODELS).length}`; res();
+}, undefined, rej))));
+
+// ===================== сцена =====================
+const mobile = innerWidth < 700;
+const host = document.getElementById("scene");
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.6 : 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+host.appendChild(renderer.domElement);
+const labelR = new CSS2DRenderer();
+labelR.setSize(innerWidth, innerHeight);
+Object.assign(labelR.domElement.style, { position: "absolute", top: 0, left: 0, pointerEvents: "none" });
+host.appendChild(labelR.domElement);
+
+const scene = new THREE.Scene();
+{ // небо: градиент заката
+  const c = document.createElement("canvas"); c.width = 2; c.height = 256;
+  const x = c.getContext("2d"); const g = x.createLinearGradient(0, 0, 0, 256);
+  g.addColorStop(0, "#1c1530"); g.addColorStop(0.55, "#4a2f5c"); g.addColorStop(0.82, "#c9725e"); g.addColorStop(1, "#f2b27a");
+  x.fillStyle = g; x.fillRect(0, 0, 2, 256);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; scene.background = t;
+}
+scene.fog = new THREE.Fog(0x5a3a5e, 55, 110);
+const camera = new THREE.PerspectiveCamera(mobile ? 50 : 38, innerWidth / innerHeight, 0.1, 300);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.enabled = false; controls.maxPolarAngle = Math.PI * 0.47;
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.45, 0.55, 0.85));
+composer.addPass(new OutputPass());
+
+scene.add(new THREE.HemisphereLight(0xffe6cc, 0x3b2f55, 1.6));
+const sun = new THREE.DirectionalLight(0xffc48a, 2.6);
+sun.position.set(-20, 28, 16); sun.castShadow = true;
+sun.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048);
+Object.assign(sun.shadow.camera, { left: -28, right: 28, top: 20, bottom: -20, near: 1, far: 80 });
+sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.04;
+scene.add(sun);
+const rim = new THREE.DirectionalLight(0x9db8ff, 0.7); rim.position.set(22, 12, -22); scene.add(rim);
+
+const M = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.8, metalness: 0.05, ...o });
+function put(key, x, y, z, s = 1, ry = 0) {
+  const o = GLB[key].scene.clone(true);
+  o.position.set(x, y, z); o.scale.setScalar(s); o.rotation.y = ry;
+  scene.add(o); return o;
+}
+function label(text, cls, x, y, z, parent = scene) {
+  const el = document.createElement("div"); el.className = "label " + (cls || ""); el.textContent = text;
+  const o = new CSS2DObject(el); o.position.set(x, y, z); parent.add(o); return o;
+}
+// лента из плиток-конвейеров Kenney между двумя точками
+function belt(x1, z1, x2, z2, w = 1.25, key = "conveyor") {
+  const len = Math.hypot(x2 - x1, z2 - z1), ang = Math.atan2(z2 - z1, x2 - x1);
+  const tile = 2 * w, n = Math.max(1, Math.round(len / tile)), sx = len / (n * 2);
+  const g = new THREE.Group();
+  for (let i = 0; i < n; i++) {
+    const t = GLB[key].scene.clone(true);
+    t.scale.set(sx, w, w); t.position.set(-len / 2 + (i + 0.5) * (len / n), 0, 0); g.add(t);
+  }
+  g.position.set((x1 + x2) / 2, 0, (z1 + z2) / 2); g.rotation.y = -ang;
+  scene.add(g); return g;
+}
+
+// ---------- остров ----------
+{
+  const shape = new THREE.Shape(); const W = 48, D = 30, r = 3;
+  shape.moveTo(-W / 2 + r, -D / 2); shape.lineTo(W / 2 - r, -D / 2); shape.quadraticCurveTo(W / 2, -D / 2, W / 2, -D / 2 + r);
+  shape.lineTo(W / 2, D / 2 - r); shape.quadraticCurveTo(W / 2, D / 2, W / 2 - r, D / 2); shape.lineTo(-W / 2 + r, D / 2);
+  shape.quadraticCurveTo(-W / 2, D / 2, -W / 2, D / 2 - r); shape.lineTo(-W / 2, -D / 2 + r); shape.quadraticCurveTo(-W / 2, -D / 2, -W / 2 + r, -D / 2);
+  const geo = new THREE.ExtrudeGeometry(shape, { depth: 2.4, bevelEnabled: true, bevelSize: 0.5, bevelThickness: 0.5, bevelSegments: 4 });
+  geo.rotateX(-Math.PI / 2);
+  const base = new THREE.Mesh(geo, M(0x4a3b5c)); base.position.set(0, -3.05, 0); base.receiveShadow = true; scene.add(base);
+  const top = new THREE.Mesh(new THREE.BoxGeometry(47.2, 0.3, 29.2), M(0x8d7f9e)); top.position.y = -0.15; top.receiveShadow = true; scene.add(top);
+  // трава по краям — немного жизни
+  const grass = M(0x6f9a6a);
+  for (const [x, z, w, d] of [[-21, 11, 6, 6], [-21, -11, 6, 6], [19, -12.5, 9, 3.5], [19, 12.5, 9, 3.5]]) {
+    const g = new THREE.Mesh(new THREE.BoxGeometry(w, 0.12, d), grass); g.position.set(x, 0.05, z); g.receiveShadow = true; scene.add(g);
+  }
+}
+
+// ---------- продюсер: завод ----------
+put("plant", -17.5, 0, -1, 3.4, Math.PI / 2);
+put("chimney", -20.5, 0, 3.2, 2.6);
+put("tank", -21, 0, -6.8, 2.2, 0.4);
+put("tower", -14.5, 0, -8.5, 2.6);
+put("contA", -19.5, 0, 8.6, 2.4, Math.PI / 2);
+put("contB", -17.6, 0, 9.2, 2.4, Math.PI / 2 + 0.2);
+put("contC", -18.6, 0.85, 8.9, 2.4, Math.PI / 2 - 0.1);
+put("solar", -21, 0, -11.5, 2.2);
+put("windmill", 20.5, 0, -12.5, 3);
+put("solar", 18, 0, 12.5, 2.2, Math.PI);
+const dock = put("checker", -12.6, 0.02, 0, 1.6);
+label("Продюсер · сервис заказов", "big hot", -17.5, 7.6, -1);
+// дым
+const smoke = [];
+for (let i = 0; i < 10; i++) {
+  const s = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 10), M(0xe6dcea, { transparent: true, opacity: 0.45, roughness: 1 }));
+  s.userData.t = i / 10; scene.add(s); smoke.push(s);
+}
+belt(-14.4, 0, -9.4, 0, 1.2);
+
+// ---------- распределитель ----------
+put("machine", -8, 0, 0, 1.8, -Math.PI / 2);
+const cog = put("cog", -8, 2.5, 0, 1.3);
+label("hash(ключ) % 3", "hot", -8, 4.1, 0);
+
+// ---------- брокеры ----------
+const LANE_Z = [-7.5, 0, 7.5];
+const SLOT0 = -2.2, SLOT = 1.0, MAXS = 15;
+const slotX = (o) => SLOT0 + o * SLOT;
+const KEYS = ["user-1", "user-2", "user-3", "user-4"];
+const KCOL = [0x4fb3ff, 0xffc94a, 0xff6fa8, 0x9f7bff];
+const partOf = (k) => [0, 1, 2, 1][k];
+const repBroker = (p) => (p + 1) % 3;
+const brokers = [];
+for (let b = 0; b < 3; b++) {
+  const z = LANE_Z[b];
+  const g = { z, floors: [] };
+  for (let i = 0; i < 10; i++) for (const dz of [-1.5, 1.5]) {
+    const f = put("floor", -2.6 + i * 2, 0.03, z + dz, 1); f.traverse((o) => { if (o.isMesh) { o.material = o.material.clone(); g.floors.push(o); } });
+  }
+  g.traffic = put("traffic", 16.6, 0, z - 2.2, 2.2);
+  g.bulb = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), M(0x6dff9b, { emissive: 0x3dff7a, emissiveIntensity: 3 }));
+  g.bulb.position.set(16.6, 1.75, z - 2.2); scene.add(g.bulb);
+  g.light = new THREE.PointLight(0xffc27a, 18, 13, 1.8); g.light.position.set(6, 3.6, z); scene.add(g.light);
+  g.label = label(`Брокер ${b + 1}`, "big", 6, 4.1, z - 3.0);
+  brokers.push(g);
+}
+const partitions = [0, 1, 2].map((p) => ({ p, msgs: [], leader: "home" }));
+function locOf(p, which) {
+  const b = which === "home" ? p : repBroker(p);
+  return { b, z: which === "home" ? LANE_Z[b] : LANE_Z[b] - 1.55, rep: which !== "home" };
+}
+for (let p = 0; p < 3; p++) {
+  const h = locOf(p, "home");
+  belt(-3.4, h.z, 15.4, h.z, 1.2);
+  put("scanner", -2.9, 0, h.z, 1.25);
+  partitions[p].homeLabel = label(`P${p} · лидер`, "mint", -4.6, 2.2, h.z + 0.3);
+  const r = locOf(p, "rep");
+  partitions[p].shelf = belt(-2.4, r.z, 15.2, r.z, 0.8, "conveyorPlain");
+  partitions[p].repLabel = label(`реплика P${p}`, "", 15.8, 1.1, r.z);
+}
+for (let p = 0; p < 3; p++) belt(-6.7, LANE_Z[p] * 0.16, -3.4, LANE_Z[p], 1.0);
+
+// ---------- коробки: картон Kenney + наклейка с цветом ключа и офсетом ----------
+const texCache = new Map();
+function stickerTex(k, n) {
+  const id = k + ":" + n;
+  if (texCache.has(id)) return texCache.get(id);
+  const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d");
+  const col = "#" + KCOL[k].toString(16).padStart(6, "0");
+  x.fillStyle = col; x.beginPath(); x.roundRect(4, 4, 120, 120, 22); x.fill();
+  x.fillStyle = "#ffffff"; x.beginPath(); x.roundRect(20, 20, 88, 88, 14); x.fill();
+  x.fillStyle = "#231a2e"; x.font = "bold 62px JetBrains Mono, monospace"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(String(n), 64, 68);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; texCache.set(id, t); return t;
+}
+const stickerGeo = new THREE.PlaneGeometry(0.62, 0.62); stickerGeo.rotateX(-Math.PI / 2);
+function makeBox(k, n, ghost = false) {
+  const g = new THREE.Group();
+  const body = GLB.box.scene.clone(true);
+  body.scale.set(1.3, 1.15, 1.6);
+  const mats = [];
+  // вся коробка — цвета ключа (без картонной текстуры), на крышке — белая наклейка с офсетом
+  body.traverse((o) => { if (o.isMesh) {
+    o.material = new THREE.MeshStandardMaterial({ color: KCOL[k], roughness: 0.55, emissive: KCOL[k], emissiveIntensity: ghost ? 0.25 : 0.12, transparent: ghost, opacity: ghost ? 0.38 : 1 });
+    o.castShadow = !ghost; mats.push(o.material);
+  } });
+  g.add(body);
+  const st = new THREE.Mesh(stickerGeo, new THREE.MeshStandardMaterial({ map: stickerTex(k, n), transparent: true, opacity: ghost ? 0.55 : 1, emissive: 0xffffff, emissiveMap: stickerTex(k, n), emissiveIntensity: 0.25 }));
+  st.position.y = 0.64; g.add(st);
+  g.userData = { k, n, mats, st };
+  scene.add(g); return g;
+}
+function dimBox(g, on) {
+  g.userData.st.material.color.set(on ? 0x8a8494 : 0xffffff);
+  g.userData.st.material.emissiveIntensity = on ? 0 : 0.25;
+  g.userData.mats.forEach((m) => { m.color.set(on ? 0x6f6878 : KCOL[g.userData.k]); m.emissiveIntensity = on ? 0 : 0.12; });
+}
+const BOX_Y = 0.4, REP_Y = 0.32;
+
+// ---------- работники-консьюмеры ----------
+const groups = {
+  billing: { name: "billing", color: 0x7cf2c4, cls: "mint", robots: [], off: [0, 0, 0], active: true, paused: false, side: 1, models: ["worker1", "worker2", "worker3", "worker4"] },
+  analytics: { name: "analytics", color: 0xb59cff, cls: "vio", robots: [], off: [0, 0, 0], active: false, paused: false, side: -1, models: ["analyst1", "analyst2"] },
+};
+function makeRobot(g, i) {
+  const src = GLB[g.models[i % g.models.length]];
+  const body = SkeletonUtils.clone(src.scene);
+  body.scale.setScalar(2.3);
+  body.traverse((o) => { if (o.isMesh) { o.castShadow = true; } });
+  const r = new THREE.Group(); r.add(body);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.56, 32), new THREE.MeshBasicMaterial({ color: g.color, transparent: true, opacity: 0.9 }));
+  ring.rotation.x = -Math.PI / 2; ring.position.y = 0.04; r.add(ring);
+  const mixer = new THREE.AnimationMixer(body);
+  const clip = (n) => mixer.clipAction(THREE.AnimationClip.findByName(src.animations, n));
+  const acts = { idle: clip("idle"), walk: clip("walk"), read: clip("interact-right"), jump: clip("jump") };
+  acts.idle.play();
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1, 6), new THREE.MeshBasicMaterial({ color: g.color, transparent: true, opacity: 0.85 }));
+  beam.visible = false; scene.add(beam);
+  r.position.set(18, 0, 10 + i * 1.3); scene.add(r);
+  const name = (g.name === "billing" ? "c" : "a") + (i + 1);
+  const lab = label(name, g.cls, 0, 2.3, 0, r);
+  const robot = { g: r, body, mixer, acts, cur: "idle", beam, name, lab, part: null, beamT: 0 };
+  g.robots.push(robot); return robot;
+}
+function play(r, name) {
+  if (r.cur === name) return;
+  const from = r.acts[r.cur], to = r.acts[name];
+  to.reset().play(); from.crossFadeTo(to, 0.25, false); r.cur = name;
+}
+function assign(g) {
+  g.robots.forEach((r) => (r.parts = []));
+  if (!g.robots.length) return;
+  for (let p = 0; p < 3; p++) g.robots[p % g.robots.length].parts.push(p);
+  g.robots.forEach((r) => { r.lab.element.textContent = r.parts.length ? `${r.name} · P${r.parts.join(", P")}` : `${r.name} · простаивает`; });
+}
+
+// ===================== сообщения =====================
+const flying = [];
+let routerPulse = 0;
+function send(k) {
+  const p = partOf(k), part = partitions[p];
+  if (part.msgs.length >= MAXS) {
+    const old = part.msgs.shift();
+    for (const b of [old.box, old.rep]) if (b) scene.remove(b);
+    part.msgs.forEach((m, i) => (m.slot = i)); layout();
+  }
+  const msg = { k, landed: false, slot: part.msgs.length };
+  msg.n = (part.total = (part.total || 0) + 1) - 1;
+  part.msgs.push(msg);
+  const box = makeBox(k, msg.n);
+  const loc = locOf(p, part.leader);
+  const pts = [new THREE.Vector3(-14.4, BOX_Y, 0), new THREE.Vector3(-9.6, BOX_Y, 0), new THREE.Vector3(-8, 2.0, 0), new THREE.Vector3(-6.7, BOX_Y, LANE_Z[p] * 0.16),
+    new THREE.Vector3(-3.4, BOX_Y, LANE_Z[p]), new THREE.Vector3(slotX(msg.slot), loc.rep ? REP_Y : BOX_Y, loc.z)];
+  if (loc.rep) pts.splice(5, 0, new THREE.Vector3(-3.4, 1.8, loc.z));
+  box.position.copy(pts[0]);
+  flying.push({ box, pts, t: 0, seg: 0, msg, p });
+  routerPulse = 1;
+}
+function updateFlying(dt) {
+  for (let i = flying.length - 1; i >= 0; i--) {
+    const f = flying[i];
+    const a = f.pts[f.seg], b = f.pts[f.seg + 1];
+    if (f.seg === f.pts.length - 2) { const loc = locOf(f.p, partitions[f.p].leader); b.set(slotX(f.msg.slot), loc.rep ? REP_Y : BOX_Y, loc.z); }
+    f.t += (dt * 6.5) / Math.max(a.distanceTo(b), 0.01);
+    const t = Math.min(1, f.t);
+    f.box.position.lerpVectors(a, b, t);
+    if (t >= 1) {
+      f.seg++; f.t = 0;
+      if (f.seg >= f.pts.length - 1) {
+        f.msg.landed = true; f.msg.box = f.box; f.msg.loc = partitions[f.p].leader;
+        layout(); flying.splice(i, 1);
+        setTimeout(() => { replicate(f.p, f.msg); layout(); }, 450);
+      }
+    }
+  }
+}
+function replicate(p, msg) {
+  if (msg.rep || (state.brokerDown && p === 1)) return;
+  const other = partitions[p].leader === "home" ? "rep" : "home";
+  const loc = locOf(p, other);
+  msg.rep = makeBox(msg.k, msg.n, true);
+  msg.rep.scale.setScalar(loc.rep ? 0.8 : 1);
+  msg.rep.position.set(slotX(msg.slot), loc.rep ? REP_Y : BOX_Y, loc.z);
+  msg.rep.visible = state.showReplicas;
+}
+function layout() {
+  for (const part of partitions) for (const m of part.msgs) {
+    if (!m.landed) continue;
+    const lead = locOf(part.p, part.leader), other = locOf(part.p, part.leader === "home" ? "rep" : "home");
+    const mainBox = m.loc === part.leader ? m.box : m.rep, repBox = m.loc === part.leader ? m.rep : m.box;
+    if (mainBox) { mainBox.position.set(slotX(m.slot), lead.rep ? REP_Y : BOX_Y, lead.z); mainBox.scale.setScalar(lead.rep ? 0.8 : 1); }
+    if (repBox) { repBox.position.set(slotX(m.slot), other.rep ? REP_Y : BOX_Y, other.z); repBox.scale.setScalar(other.rep ? 0.8 : 1); }
+  }
+}
+
+// ===================== чтение =====================
+let readTimer = 0;
+function readTick() {
+  for (const g of Object.values(groups)) {
+    if (!g.active || g.paused) continue;
+    for (const r of g.robots) {
+      if (!r.parts.length) continue;
+      let best = null, most = 0;
+      for (const p of r.parts) {
+        const unread = partitions[p].msgs.filter((m) => m.landed && m.n >= g.off[p]).length;
+        if (unread > most) { most = unread; best = p; }
+      }
+      if (best === null) continue;
+      // читаем, только когда работник уже дошёл до своей ленты
+      if (r.part !== best) { r.part = best; continue; }
+      const part = partitions[best];
+      const msg = part.msgs.find((m) => m.landed && m.n >= g.off[best]);
+      const box = msg && (msg.loc === part.leader ? msg.box : msg.rep);
+      if (!box || r.moving) continue;
+      g.off[best] = msg.n + 1;
+      r.beamTarget = box; r.beamT = 0.5; r.readT = 0.7;
+      if (g.name === "billing") { msg.read = true; setTimeout(() => dimBox(box, true), 300); }
+    }
+  }
+}
+function robotTargets(dt) {
+  for (const g of Object.values(groups)) {
+    g.robots.forEach((r, i) => {
+      r.lab.visible = g.active; r.g.visible = g.active;
+      let target, face = 0;
+      if (!r.parts.length) { target = new THREE.Vector3(17.6, 0.02, 10 + i * 0.5); face = -Math.PI / 2; }
+      else {
+        const p = r.part ?? r.parts[0], part = partitions[p], loc = locOf(p, part.leader);
+        const first = part.msgs.find((m) => m.n >= g.off[p]);
+        const slot = first ? first.slot : part.msgs.length;
+        const zOff = loc.rep ? -1.15 : (g.side > 0 ? 1.55 : -2.55);
+        target = new THREE.Vector3(slotX(slot) - 0.2, 0.02, loc.z + zOff);
+        face = zOff > 0 ? Math.PI : 0;   // лицом к ленте
+      }
+      // На другую ленту — прыжком по дуге над конвейерами; вдоль своей ленты — пешком по дорожке
+      if (!r.hop && Math.abs(r.g.position.z - target.z) > 0.6) {
+        const from = r.g.position.clone(), to = target.clone();
+        const span = from.distanceTo(to);
+        r.hop = { from, to, t: 0, dur: 0.5 + span * 0.05, h: 1.9 + span * 0.06 };
+        play(r, "jump");
+      }
+      if (r.hop) {
+        const h = r.hop;
+        h.t = Math.min(1, h.t + dt / h.dur);
+        r.g.position.lerpVectors(h.from, h.to, h.t);
+        r.g.position.y = 0.02 + Math.sqrt(Math.max(0, 1 - (2 * h.t - 1) ** 2)) * h.h;   // полуэллипс: сразу вверх, над лентами — высоко
+        const dd = h.to.clone().sub(h.from);
+        r.g.rotation.y = lerpAngle(r.g.rotation.y, Math.atan2(dd.x, dd.z), Math.min(1, dt * 10));
+        r.moving = true;
+        if (h.t >= 1) { r.hop = null; r.g.position.y = 0.02; }
+      }
+      const d = target.clone().sub(r.g.position); d.y = 0;
+      const dist = d.length();
+      if (!r.hop) r.moving = dist > 0.25;
+      if (r.hop) { /* в полёте — позицию ведёт прыжок */ }
+      else if (r.moving) {
+        const step = Math.min(dist, dt * 3.4);
+        r.g.position.add(d.normalize().multiplyScalar(step));
+        const head = Math.atan2(d.x, d.z);
+        r.g.rotation.y = lerpAngle(r.g.rotation.y, head, Math.min(1, dt * 8));
+        play(r, "walk");
+      } else {
+        r.g.rotation.y = lerpAngle(r.g.rotation.y, face, Math.min(1, dt * 6));
+        play(r, r.readT > 0 ? "read" : "idle");
+      }
+      r.readT = Math.max(0, (r.readT || 0) - dt);
+      r.mixer.update(dt);
+      if (r.beamT > 0 && r.beamTarget) {
+        r.beamT -= dt;
+        const a = r.g.position.clone().add(new THREE.Vector3(0, 1.1, 0)), b = r.beamTarget.position.clone().add(new THREE.Vector3(0, 0.6, 0));
+        r.beam.visible = true; r.beam.position.copy(a.clone().add(b).multiplyScalar(0.5));
+        r.beam.scale.set(1, a.distanceTo(b), 1); r.beam.lookAt(b); r.beam.rotateX(Math.PI / 2);
+      } else r.beam.visible = false;
+    });
+  }
+}
+const lerpAngle = (a, b, t) => { let d = ((b - a + Math.PI) % (2 * Math.PI)) - Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return a + d * t; };
+
+// ===================== шаги истории =====================
+const state = { flow: 1.6, showReplicas: false, brokerDown: false };
+const HUD = document.getElementById("hud");
+const STEPS = [
+  { act: "Пролог", title: "Как сервисы передают друг другу сообщения", cam: [[-14, 27, 35], [-3, 0, 0]],
+    text: "Сервис заказов хочет сообщить остальным: «заказ 501 оплачен». Звонить каждому — долго и ненадёжно. Поэтому он кладёт сообщение в <b>Kafka</b> — что-то вроде склада с конвейерами, — а другие сервисы забирают его оттуда, когда им удобно.",
+    enter() { state.flow = 1.8; } },
+  { act: "Акт I · Продюсер", title: "Продюсер отправляет сообщения", cam: [[-28, 10, 14], [-14, 2, 0]],
+    text: "<b>Продюсер</b> (producer) — тот, кто пишет в Kafka. Здесь это завод: сервис заказов. Каждое событие — коробка-<b>сообщение</b>, которая уезжает по конвейеру.",
+    enter() { state.flow = 1.2; } },
+  { act: "Акт I · Продюсер", title: "Что внутри сообщения", cam: [[-14.5, 4.2, 6.5], [-11.5, 0.6, 0]],
+    text: "У сообщения есть <b>ключ</b> (key) и <b>значение</b> (value). Ключ — например, <code>user-2</code>: от него зависит, куда поедет коробка. Цвет наклейки = ключ. Значение — сами данные: <code>{\"order\": 501, \"status\": \"paid\"}</code>.",
+    enter() { state.flow = 1.4; } },
+  { act: "Акт II · Топик", title: "Распределитель: hash(ключ) % 3", cam: [[-11, 10, 12], [-5.5, 0.5, 0]], interactive: true,
+    text: "Kafka считает от ключа число и берёт остаток от деления на число партиций. <b>Одинаковый ключ всегда едет на одну и ту же ленту</b> — поэтому сообщения одного пользователя не перепутаются по порядку. Отправь сам:",
+    acts: () => KEYS.map((k, i) => ({ label: k, cls: "k", color: KCOL[i], run: () => send(i) })),
+    enter() { state.flow = 0; } },
+  { act: "Акт II · Топик", title: "Топик и партиции", cam: [[-6, 16, 20], [2, 0, 0]],
+    text: "Все ленты вместе — <b>топик</b> <code>orders</code>. Каждая лента — <b>партиция</b> (partition): журнал, куда сообщения только <b>дописываются в конец</b>. Номер на наклейке — <b>офсет</b> (offset): порядковый номер в партиции. 3 партиции = 3 ленты работают параллельно.",
+    enter() { state.flow = 1.0; } },
+  { act: "Акт II · Топик", title: "Брокеры и реплики", cam: [[-10, 13, 18], [4, 0, -1]],
+    text: "Каждый цех — <b>брокер</b> (broker), отдельный сервер Kafka. Лента партиции стоит у брокера-<b>лидера</b>. А на соседнем брокере вдоль стены едет <b>реплика</b> — полупрозрачная копия тех же коробок. Если брокер сломается, данные не пропадут.",
+    enter() { state.flow = 1.2; } },
+  { act: "Акт III · Консьюмеры", title: "Консьюмер читает по порядку", cam: [[4, 5.5, 11], [0, 0.8, 2]], follow: "c1",
+    text: "<b>Консьюмер</b> (consumer) — тот, кто читает. Работник идёт вдоль ленты и сканирует коробки по порядку. Прочитанные тускнеют, но <b>не исчезают</b>: Kafka хранит сообщения, пока не истечёт срок хранения. Работник лишь запоминает, докуда дочитал, — это его офсет.",
+    enter() { state.flow = 1.0; } },
+  { act: "Акт III · Консьюмеры", title: "Группа консьюмеров и ребаланс", cam: [[-4, 16, 20], [3, 0, 0]], interactive: true,
+    text: "Работники одного сервиса — <b>группа</b> (consumer group) <code>billing</code>, у них зелёные кольца. Каждую партицию в группе читает ровно один. Добавь работника — Kafka перераздаст ленты (<b>ребаланс</b>). Четвёртый при трёх партициях будет простаивать.",
+    acts: () => [{ label: "+ консьюмер", primary: true, run: () => { if (groups.billing.robots.length < 4) { makeRobot(groups.billing, groups.billing.robots.length); assign(groups.billing); } } },
+                 { label: "− консьюмер", run: () => { if (groups.billing.robots.length < 2) return; const r = groups.billing.robots.pop(); scene.remove(r.g); scene.remove(r.beam); r.lab.element.remove(); assign(groups.billing); } }],
+    enter() { state.flow = 1.4; } },
+  { act: "Акт III · Консьюмеры", title: "Вторая группа читает то же самое", cam: [[-4, 12, -21], [2, 0, 0]],
+    text: "Другому сервису — <b>аналитике</b> — нужны те же заказы. Его группа <code>analytics</code> (фиолетовые кольца) читает тот же топик <b>с самого начала</b> и со <b>своими</b> офсетами. Группы друг другу не мешают.",
+    enter() { state.flow = 1.2; } },
+  { act: "Акт IV · Когда что-то идёт не так", title: "Lag — отставание", cam: [[-6, 15, 19], [3, 0, 0]],
+    text: "Работники <code>billing</code> встали (сервис тормозит), а заказы всё идут. Непрочитанные коробки копятся — это <b>lag</b>: сколько сообщений группа ещё не прочитала. Первое, что смотрит тестировщик, когда «сообщения не доходят».",
+    enter() { groups.billing.paused = true; state.flow = 0.45; }, leave() { groups.billing.paused = false; } },
+  { act: "Акт IV · Когда что-то идёт не так", title: "Брокер упал — данные целы", cam: [[-8, 13, 19], [3, 0, 2]],
+    text: "Брокер 2 отключился: свет погас, светофор красный. Но реплика партиции <b>P1</b> лежит у брокера 3 — она становится новым <b>лидером</b>, и запись с чтением продолжаются уже через неё. Ничего не потерялось.",
+    enter() { failBroker(true); state.flow = 1.0; }, leave() { failBroker(false); } },
+  { act: "Эпилог", title: "Что проверяет тестировщик", cam: [[-10, 24, 32], [2, 0, 0]],
+    text: "Сообщение дошло и в нужном формате · сообщения с одним ключом пришли по порядку · нет дублей и потерь, если консьюмер упал · lag не растёт · «битые» сообщения уходят в отдельную очередь (DLQ). Это — следующие уроки темы.",
+    enter() { state.flow = 1.4; } },
+];
+const DURATION = 9;
+
+function failBroker(on) {
+  if (state.brokerDown === on) return;
+  state.brokerDown = on;
+  const b = brokers[1];
+  b.light.intensity = on ? 0 : 18;
+  b.floors.forEach((f) => f.material.color.set(on ? 0xe08a8a : 0xffffff));
+  b.bulb.material.color.set(on ? 0xff5a5a : 0x6dff9b); b.bulb.material.emissive.set(on ? 0xff2a2a : 0x3dff7a);
+  b.label.element.textContent = on ? "Брокер 2 · недоступен" : "Брокер 2";
+  b.label.element.className = "label big" + (on ? " red" : "");
+  const p1 = partitions[1];
+  p1.leader = on ? "rep" : "home";
+  p1.homeLabel.element.textContent = on ? "P1 · был лидер" : "P1 · лидер";
+  p1.homeLabel.element.className = "label " + (on ? "red" : "mint");
+  p1.repLabel.element.textContent = on ? "P1 · новый лидер" : "реплика P1";
+  p1.repLabel.element.className = "label " + (on ? "mint" : "");
+  for (const m of p1.msgs) {
+    if (!m.landed) continue;
+    if (on && !m.rep) replicate(1, m);
+    const homeBox = m.loc === "home" ? m.box : m.rep, repBox = m.loc === "home" ? m.rep : m.box;
+    const setOp = (box, op) => box && (box.userData.mats.forEach((mt) => { mt.transparent = op < 1; mt.opacity = op; }), box.userData.st.material.opacity = op, box.visible = true);
+    setOp(homeBox, on ? 0.3 : 1); setOp(repBox, on ? 1 : 0.4);
+  }
+  if (!on) {
+    // брокер вернулся и догоняет лидера: сообщения, записанные без него, получают копию дома
+    for (const m of p1.msgs) {
+      if (!m.landed || m.loc !== "rep") continue;
+      const home = makeBox(m.k, m.n);
+      if (m.read) dimBox(home, true);
+      const repCopy = m.box;
+      repCopy.userData.mats.forEach((mt) => { mt.transparent = true; mt.opacity = 0.38; });
+      repCopy.userData.st.material.opacity = 0.55;
+      repCopy.visible = state.showReplicas;
+      m.rep = repCopy; m.box = home; m.loc = "home";
+    }
+  }
+  layout();
+}
+
+// ---------- проигрывание ----------
+let step = 0, stepT = 0, playing = true, free = false;
+const camFrom = { pos: new THREE.Vector3(), tgt: new THREE.Vector3() }, camTo = { pos: new THREE.Vector3(), tgt: new THREE.Vector3() };
+let camT = 1;
+const curTarget = new THREE.Vector3();
+const dotsEl = document.getElementById("dots");
+dotsEl.innerHTML = STEPS.map((_, i) => `<div class="dot" data-i="${i}"><i></i></div>`).join("");
+dotsEl.querySelectorAll(".dot").forEach((d) => (d.onclick = () => go(Number(d.dataset.i))));
+function go(i) {
+  i = Math.max(0, Math.min(STEPS.length - 1, i));
+  STEPS[step].leave?.();
+  state.showReplicas = i >= 5;
+  groups.analytics.active = i >= 8;
+  step = i; stepT = 0;
+  const S = STEPS[i];
+  S.enter?.();
+  for (const part of partitions) for (const m of part.msgs) if (m.rep) m.rep.visible = state.showReplicas || (state.brokerDown && part.p === 1);
+  partitions.forEach((p) => { p.repLabel.visible = state.showReplicas; p.shelf.visible = state.showReplicas; });
+  document.getElementById("num").textContent = `${String(i).padStart(2, "0")} / ${STEPS.length - 1}`;
+  document.getElementById("actname").textContent = S.act;
+  document.getElementById("title").textContent = S.title;
+  document.getElementById("text").innerHTML = S.text;
+  const acts = document.getElementById("acts"); acts.innerHTML = "";
+  (S.acts?.() || []).forEach((a) => {
+    const b = document.createElement("button");
+    b.className = "act" + (a.cls ? " " + a.cls : "") + (a.primary ? " primary" : "");
+    b.textContent = a.label;
+    if (a.color) b.style.borderColor = "#" + a.color.toString(16).padStart(6, "0");
+    b.onclick = a.run; acts.appendChild(b);
+  });
+  camFrom.pos.copy(camera.position); camFrom.tgt.copy(curTarget);
+  camTo.pos.set(...S.cam[0]); camTo.tgt.set(...S.cam[1]);
+  if (innerHeight > innerWidth) camTo.pos.sub(camTo.tgt).multiplyScalar(1.7).add(camTo.tgt);
+  camT = 0;
+  if (S.interactive) setPlaying(false);
+  dotsEl.querySelectorAll(".dot").forEach((d, k) => { d.classList.toggle("done", k < i); d.querySelector("i").style.width = ""; });
+}
+function setPlaying(v) { playing = v; document.getElementById("play").textContent = v ? "❚❚" : "▶"; }
+document.getElementById("play").onclick = () => setPlaying(!playing);
+document.getElementById("next").onclick = () => go(step + 1);
+document.getElementById("prev").onclick = () => go(step - 1);
+document.getElementById("labels").onclick = (e) => { document.body.classList.toggle("nolabels"); e.currentTarget.classList.toggle("on", !document.body.classList.contains("nolabels")); };
+document.getElementById("labels").classList.add("on");
+document.getElementById("free").onclick = (e) => { free = !free; controls.enabled = free; e.currentTarget.classList.toggle("on", free); if (free) { controls.target.copy(curTarget); setPlaying(false); } };
+addEventListener("keydown", (e) => { if (e.key === "ArrowRight") go(step + 1); if (e.key === "ArrowLeft") go(step - 1); if (e.key === " ") setPlaying(!playing); });
+
+// темп продюсера: null — «авто» (как задумано в шаге), иначе коробок в секунду
+let userRate = null;
+const RATES = [["авто", null], ["стоп", 0], ["½ / сек", 0.5], ["1 / сек", 1], ["2 / сек", 2], ["4 / сек", 4]];
+function renderRates() {
+  document.getElementById("rates").innerHTML = RATES.map(([t, v], i) => `<button data-r="${i}" class="${v === userRate ? "on" : ""}">${t}</button>`).join("");
+  document.querySelectorAll("#rates button").forEach((b) => (b.onclick = () => { userRate = RATES[b.dataset.r][1]; renderRates(); document.getElementById("rate").classList.toggle("on", userRate !== null); }));
+}
+renderRates();
+document.getElementById("rate").onclick = () => { const box = document.getElementById("ratebox"); box.hidden = !box.hidden; };
+renderer.domElement.addEventListener("pointerdown", () => (document.getElementById("ratebox").hidden = true));
+window.__kafka = { groups, partitions, LANE_Z, setRate: (v) => { userRate = v; renderRates(); } };   // для отладки и проверок
+// ---------- старт ----------
+makeRobot(groups.billing, 0);
+makeRobot(groups.analytics, 0); makeRobot(groups.analytics, 1);
+assign(groups.billing); assign(groups.analytics);
+for (let i = 0; i < 7; i++) send([0, 1, 2, 3, 1, 0, 2][i]);
+camera.position.set(-30, 44, 56); curTarget.set(0, 0, 0);
+function viewOffset() { const k = innerHeight > innerWidth ? 0.17 : 0.07; camera.setViewOffset(innerWidth, innerHeight, 0, -k * innerHeight, innerWidth, innerHeight); }
+viewOffset();
+go(0);
+
+const clock = new THREE.Clock();
+let sendT = 0;
+function frame() {
+  const dt = Math.min(0.05, clock.getDelta());
+  const now = performance.now() / 1000;
+  if (!free) {
+    if (camT < 1) {
+      camT = Math.min(1, camT + dt / 2.4);
+      const e = camT < 0.5 ? 4 * camT ** 3 : 1 - (-2 * camT + 2) ** 3 / 2;
+      camera.position.lerpVectors(camFrom.pos, camTo.pos, e); curTarget.lerpVectors(camFrom.tgt, camTo.tgt, e);
+    } else camera.position.copy(camTo.pos).add(new THREE.Vector3(Math.sin(now * 0.25) * 0.6, Math.sin(now * 0.33) * 0.25, 0));
+    // камера следит за работником (шаг «консьюмер читает»)
+    const fol = STEPS[step].follow && groups.billing.robots.find((r) => r.name === STEPS[step].follow);
+    if (fol && camT >= 1) {
+      const t = fol.g.position.clone().add(new THREE.Vector3(0, 0.8, 0));
+      const k = innerHeight > innerWidth ? 1.6 : 1;
+      curTarget.lerp(t, Math.min(1, dt * 1.5));
+      camTo.pos.lerp(t.clone().add(new THREE.Vector3(2.5 * k, 6.5 * k, 5.5 * k)), Math.min(1, dt * 1.5));
+    } else if (fol && camT < 1) {
+      camTo.tgt.copy(fol.g.position).add(new THREE.Vector3(0, 0.8, 0));
+      camTo.pos.copy(camTo.tgt).add(new THREE.Vector3(2.5, 6.5, 5.5).multiplyScalar(innerHeight > innerWidth ? 1.6 : 1));
+    }
+    camera.lookAt(curTarget);
+  } else controls.update();
+  const interval = userRate === null ? state.flow : userRate > 0 ? 1 / userRate : 0;
+  if (interval > 0) { sendT += dt; if (sendT > interval) { sendT = 0; send(Math.floor(Math.random() * 4)); } }
+  updateFlying(dt);
+  readTimer += dt;
+  if (readTimer > 0.9) { readTimer = 0; readTick(); }
+  robotTargets(dt);
+  cog.rotation.y += dt * (0.8 + routerPulse * 5);
+  routerPulse = Math.max(0, routerPulse - dt * 2);
+  smoke.forEach((s) => { s.userData.t = (s.userData.t + dt * 0.12) % 1; const t = s.userData.t; s.position.set(-20.5 + t * 3, 4.6 + t * 5, 3.2 - t * 1.5); s.scale.setScalar(0.4 + t * 1.8); s.material.opacity = 0.45 * (1 - t); });
+  const lag = (g) => partitions.reduce((s, part, p) => s + part.msgs.filter((m) => m.landed && m.n >= g.off[p]).length, 0);
+  if (step >= 7) {
+    const lb = lag(groups.billing), la = lag(groups.analytics);
+    HUD.innerHTML = `<div class="${lb > 8 ? "hi" : ""}">billing · lag ${lb}</div>` + (groups.analytics.active ? `<div>analytics · lag ${la}</div>` : "");
+  } else HUD.innerHTML = "";
+  if (playing) {
+    stepT += dt;
+    const d = dotsEl.children[step]?.querySelector("i");
+    if (d) d.style.width = `${Math.min(100, (stepT / DURATION) * 100)}%`;
+    if (stepT > DURATION && step < STEPS.length - 1) go(step + 1);
+  }
+  composer.render(); labelR.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+loadingEl.style.opacity = 0; setTimeout(() => loadingEl.remove(), 700);
+addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight; viewOffset(); camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); labelR.setSize(innerWidth, innerHeight);
+});
+</script>
+<div style="position:fixed;right:10px;bottom:2px;font:10px Inter,sans-serif;color:rgba(255,255,255,.35);pointer-events:none">3D-модели: Kenney (CC0)</div>
+</body>
+</html>

@@ -24,6 +24,7 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
   if (req.method !== "GET" || url.origin !== location.origin || url.pathname.startsWith("/api/")) return;
+  if (url.pathname.startsWith("/static/stories/")) return;   // 3D-истории: модели тяжёлые, кэшем браузера обходимся
   event.respondWith(
     fetch(req)
       .then((res) => {

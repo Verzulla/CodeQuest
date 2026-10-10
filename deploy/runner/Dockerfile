@@ -8,3 +8,6 @@ RUN pip install --no-cache-dir \
 # pwfake — учебная реализация Playwright API без браузера (темы про UI-тесты)
 COPY pwfake /tmp/pwfake
 RUN pip install --no-cache-dir /tmp/pwfake && rm -rf /tmp/pwfake
+# kafkafake — учебная Kafka в памяти с API confluent-kafka (тема «Kafka для тестировщика»)
+COPY kafkafake /tmp/kafkafake
+RUN pip install --no-cache-dir /tmp/kafkafake && rm -rf /tmp/kafkafake

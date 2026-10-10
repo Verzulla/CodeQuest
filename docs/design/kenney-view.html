@@ -1,0 +1,36 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Kenney — просмотр моделей</title>
+<style>body{margin:0;background:#2a1f38;color:#fff;font:12px sans-serif}#info{position:fixed;left:8px;top:8px;z-index:2;background:#0008;padding:6px;max-width:60vw}</style>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+</head><body><div id="info"></div>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
+const set = new URLSearchParams(location.search).get("set") || "factory";
+const lists = {
+  factory: "conveyor-long-stripe-sides conveyor-stripe-sides conveyor-long-sides conveyor-sides conveyor-corner conveyor-stripe-corner robot-arm-a robot-arm-b scanner-high scanner-low machine machine-window machine-fortified box-small box-large box-wide hopper-high-square hopper-square screen-hanging-wide screen-wide screen-panel-wide floor-large floor top-large-checkerboard top-large structure-tall structure-high structure-window structure-window-wide structure-wall structure-doorway-wide structure-yellow-tall pipe-large-long pipe-large-bend warning-traffic warning-orange cog-a cog-b crane crane-magnet catwalk-straight catwalk-stairs piston-round lever-double indicator-special-arrow door-wide-open",
+  city: "building-a building-b building-c building-d building-e building-f building-g building-h building-i building-j building-k building-l building-m building-n building-o building-p building-q building-r building-s building-t chimney-basic chimney-large chimney-medium chimney-small detail-tank-large detail-tank shipping-container-a shipping-container-b shipping-container-c solar-panel-flat solar-panel-landscape-group water-tower windmill windmill-low",
+  chars: "character-male-a character-male-b character-male-c character-female-a character-female-b character-female-c",
+};
+const names = lists[set].split(" ");
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); r.setPixelRatio(devicePixelRatio); document.body.appendChild(r.domElement);
+const lr = new CSS2DRenderer(); lr.setSize(innerWidth, innerHeight); Object.assign(lr.domElement.style, { position: "absolute", top: 0, left: 0 }); document.body.appendChild(lr.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x2a1f38);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x444466, 2.2)); const d = new THREE.DirectionalLight(0xffffff, 2); d.position.set(3, 5, 4); scene.add(d);
+const cols = 8, cell = 2.6;
+const cam = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.1, 500);
+const rows = Math.ceil(names.length / cols);
+cam.position.set(cols * cell / 2, rows * cell * 1.05 + 6, rows * cell * 0.95 + 8); cam.lookAt(cols * cell / 2, 0, rows * cell / 2);
+const loader = new GLTFLoader(); const info = [];
+names.forEach((n, i) => loader.load(`kafka-assets/${set}/${n}.glb`, (g) => {
+  const o = g.scene; const b = new THREE.Box3().setFromObject(o); const s = b.getSize(new THREE.Vector3());
+  const k = 1.8 / Math.max(s.x, s.y, s.z); o.scale.setScalar(k);
+  o.position.set((i % cols) * cell, -b.min.y * k, Math.floor(i / cols) * cell);
+  scene.add(o);
+  const el = document.createElement("div"); el.textContent = `${n} ${s.x.toFixed(2)}×${s.y.toFixed(2)}×${s.z.toFixed(2)}${g.animations.length ? " anim:" + g.animations.map((a) => a.name).join(",") : ""}`;
+  el.style.cssText = "font:10px sans-serif;color:#fff;background:#0009;padding:1px 3px;white-space:nowrap";
+  const l = new CSS2DObject(el); l.position.set((i % cols) * cell, -0.2, Math.floor(i / cols) * cell + 0.9); scene.add(l);
+}));
+(function f() { r.render(scene, cam); lr.render(scene, cam); requestAnimationFrame(f); })();
+</script></body></html>
